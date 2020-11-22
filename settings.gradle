@@ -1,4 +1,4 @@
-include ':overpass-api'
+include ':api-overpass'
 include ':app'
 rootProject.name = "LookARound"
 include ':ui-main'
