@@ -1,5 +1,2 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.lookaround.overpass.api">
-
-    /
-</manifest>
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="com.lookaround.overpass.api" />
