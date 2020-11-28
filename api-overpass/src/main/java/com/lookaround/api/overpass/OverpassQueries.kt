@@ -13,28 +13,27 @@ import kotlin.math.sqrt
 object OverpassQueries {
     fun findAttractions(
         lat: Double, lng: Double, radiusInMeters: Double
-    ): String = OverpassQuery()
-        .format(OutputFormat.JSON)
-        .timeout(10)
-        .filterQuery()
-        .node()
+    ): String = filterNodeQuery()
         .tag("tourism", "attraction")
         .boundingBox(lat, lng, radiusInMeters)
-        .end()
-        .output(OutputVerbosity.BODY, OutputModificator.CENTER, OutputOrder.QT, 100)
-        .build()
-        .replace("\"", "")
+        .buildWithoutQuotes()
 
     fun findPlacesOfType(
         amenity: String, lat: Double, lng: Double, radiusInMeters: Double
-    ): String = OverpassQuery()
-        .format(OutputFormat.JSON)
-        .timeout(10)
-        .filterQuery()
-        .node()
+    ): String = filterNodeQuery()
         .amenity(amenity)
         .boundingBox(lat, lng, radiusInMeters)
-        .end()
+        .buildWithoutQuotes()
+
+    private fun filterNodeQuery(
+        format: OutputFormat = OutputFormat.JSON, timeoutInSeconds: Int = 10
+    ): OverpassFilterQuery = OverpassQuery()
+        .format(format)
+        .timeout(timeoutInSeconds)
+        .filterQuery()
+        .node()
+
+    private fun OverpassFilterQuery.buildWithoutQuotes(): String = end()
         .output(OutputVerbosity.BODY, OutputModificator.CENTER, OutputOrder.QT, 100)
         .build()
         .replace("\"", "")
