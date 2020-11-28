@@ -23,6 +23,7 @@ object OverpassQueries {
         .end()
         .output(OutputVerbosity.BODY, OutputModificator.CENTER, OutputOrder.QT, 100)
         .build()
+        .replace("\"", "")
 
     fun findPlacesOfType(
         amenity: String, lat: Double, lng: Double, radiusInMeters: Double
@@ -36,6 +37,7 @@ object OverpassQueries {
         .end()
         .output(OutputVerbosity.BODY, OutputModificator.CENTER, OutputOrder.QT, 100)
         .build()
+        .replace("\"", "")
 
     private fun OverpassFilterQuery.boundingBox(
         lat: Double, lng: Double, radiusInMeters: Double
