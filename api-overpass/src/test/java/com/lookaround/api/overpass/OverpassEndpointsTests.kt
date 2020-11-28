@@ -9,22 +9,24 @@ class OverpassEndpointsTests {
 
     @Test
     fun attractions() {
-        endpoints
-            .interpreter(OverpassQueries.findAttractions(warsawLat, warsawLng, 10_000.0))
-            .execute()
+        executeInterpreter(
+            OverpassQueries.findAttractions(warsawLat, warsawLng, 10_000.0)
+        )
     }
 
     @Test
     fun placesOfType() {
-        endpoints
-            .interpreter(
-                OverpassQueries.findPlacesOfType(
-                    "restaurant",
-                    warsawLat,
-                    warsawLng,
-                    10_000.0
-                )
+        executeInterpreter(
+            OverpassQueries.findPlacesOfType(
+                "restaurant",
+                warsawLat,
+                warsawLng,
+                10_000.0
             )
-            .execute()
+        )
+    }
+
+    private fun executeInterpreter(query: String) {
+        endpoints.interpreter(query).execute()
     }
 }
