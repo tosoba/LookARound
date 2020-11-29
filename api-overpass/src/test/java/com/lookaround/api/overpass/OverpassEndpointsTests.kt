@@ -1,6 +1,10 @@
 package com.lookaround.api.overpass
 
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.SphericalUtil
+import hu.supercluster.overpasser.adapter.OverpassQueryResult
 import org.junit.Test
+import retrofit2.Response
 
 class OverpassEndpointsTests {
     private val endpoints = OverpassEndpoints.NEW
@@ -9,9 +13,18 @@ class OverpassEndpointsTests {
 
     @Test
     fun attractions() {
-        executeInterpreter(
+        val response = executeInterpreter(
             OverpassQueries.findAttractions(warsawLat, warsawLng, 10_000.0)
         )
+
+        println(response.body()?.elements?.size ?: 0)
+        val warsawLL = LatLng(warsawLat, warsawLng)
+        val filtered = response.body()
+            ?.elements
+            ?.filter {
+                SphericalUtil.computeDistanceBetween(warsawLL, LatLng(it.lat, it.lon)) <= 10_000.0
+            }
+        println(filtered?.size ?: 0)
     }
 
     @Test
@@ -26,7 +39,7 @@ class OverpassEndpointsTests {
         )
     }
 
-    private fun executeInterpreter(query: String) {
-        endpoints.interpreter(query).execute()
-    }
+    private fun executeInterpreter(query: String): Response<OverpassQueryResult> = endpoints
+        .interpreter(query)
+        .execute()
 }
