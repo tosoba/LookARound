@@ -1,30 +1,35 @@
 package com.lookaround.api.overpass
 
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.SphericalUtil
 import hu.supercluster.overpasser.adapter.OverpassQueryResult
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.junit.Test
 import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class OverpassEndpointsTests {
-    private val endpoints = OverpassEndpoints.NEW
     private val warsawLat = 52.237049
     private val warsawLng = 21.017532
 
+    private val endpoints: OverpassEndpoints = Retrofit.Builder()
+        .baseUrl(OverpassEndpoints.BASE_URL)
+        .addConverterFactory(GsonConverterFactory.create())
+        .client(
+            OkHttpClient.Builder()
+                .addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                })
+                .build()
+        )
+        .build()
+        .create(OverpassEndpoints::class.java)
+
     @Test
     fun attractions() {
-        val response = executeInterpreter(
+        executeInterpreter(
             OverpassQueries.findAttractions(warsawLat, warsawLng, 10_000.0)
         )
-
-        println(response.body()?.elements?.size ?: 0)
-        val warsawLL = LatLng(warsawLat, warsawLng)
-        val filtered = response.body()
-            ?.elements
-            ?.filter {
-                SphericalUtil.computeDistanceBetween(warsawLL, LatLng(it.lat, it.lon)) <= 10_000.0
-            }
-        println(filtered?.size ?: 0)
     }
 
     @Test

@@ -14,18 +14,6 @@ interface OverpassEndpoints {
     fun interpreter(@Query("data", encoded = true) data: String): Call<OverpassQueryResult>
 
     companion object {
-        val NEW: OverpassEndpoints
-            get() = Retrofit.Builder()
-                .baseUrl("https://www.overpass-api.de")
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(
-                    OkHttpClient.Builder()
-                        .addInterceptor(HttpLoggingInterceptor().apply {
-                            level = HttpLoggingInterceptor.Level.BODY
-                        })
-                        .build()
-                )
-                .build()
-                .create(OverpassEndpoints::class.java)
+        internal const val BASE_URL = "https://www.overpass-api.de"
     }
 }
