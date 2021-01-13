@@ -44,6 +44,13 @@ class OverpassEndpointsTests {
         )
     }
 
+    @Test
+    fun images() {
+        executeInterpreter(
+            OverpassQueries.findImages(warsawLat, warsawLng, 10_000.0)
+        )
+    }
+
     private fun executeInterpreter(query: String): Response<OverpassQueryResult> = endpoints
         .interpreter(query)
         .execute()

@@ -25,6 +25,13 @@ object OverpassQueries {
         .boundingBox(lat, lng, radiusInMeters)
         .buildWithoutQuotes()
 
+    fun findImages(
+        lat: Double, lng: Double, radiusInMeters: Double
+    ): String = filterNodeQuery()
+        .tagRegex("image", "http")
+        .boundingBox(lat, lng, radiusInMeters)
+        .buildWithoutQuotes()
+
     private fun filterNodeQuery(
         format: OutputFormat = OutputFormat.JSON, timeoutInSeconds: Int = 10
     ): OverpassFilterQuery = OverpassQuery()
