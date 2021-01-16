@@ -32,6 +32,7 @@ dependencies {
     implementation 'com.google.maps.android:android-maps-utils:0.6.2'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
 
+    implementation 'nice.fontaine:overpass-wrapper:0.0.1'
     implementation 'hu.supercluster:overpasser:0.2.2'
     implementation 'hu.supercluster:overpasser-retrofit-adapter:0.2.2'
 

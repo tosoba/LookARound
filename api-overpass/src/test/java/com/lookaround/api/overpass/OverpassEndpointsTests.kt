@@ -1,6 +1,6 @@
 package com.lookaround.api.overpass
 
-import hu.supercluster.overpasser.adapter.OverpassQueryResult
+import nice.fontaine.overpass.models.response.OverpassResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.junit.Test
@@ -51,7 +51,7 @@ class OverpassEndpointsTests {
         )
     }
 
-    private fun executeInterpreter(query: String): Response<OverpassQueryResult> = endpoints
+    private fun executeInterpreter(query: String): Response<OverpassResponse> = endpoints
         .interpreter(query)
         .execute()
 }
