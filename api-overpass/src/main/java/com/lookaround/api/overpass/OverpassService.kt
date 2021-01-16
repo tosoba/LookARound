@@ -2,12 +2,11 @@ package com.lookaround.api.overpass
 
 import nice.fontaine.overpass.models.query.statements.NodeQuery
 import nice.fontaine.overpass.models.response.OverpassResponse
-import retrofit2.Call
 
 class OverpassService(private val endpoints: OverpassEndpoints) {
-    fun findAttractions(
+    suspend fun findAttractions(
         lat: Double, lng: Double, radiusInMeters: Float
-    ): Call<OverpassResponse> = endpoints.interpreter(
+    ): OverpassResponse = endpoints.interpreter(
         NodeQuery.Builder()
             .equal("tourism", "attraction")
             .around(lat, lng, radiusInMeters)
@@ -15,9 +14,9 @@ class OverpassService(private val endpoints: OverpassEndpoints) {
             .toQuery()
     )
 
-    fun findPlacesOfType(
+    suspend fun findPlacesOfType(
         type: String, lat: Double, lng: Double, radiusInMeters: Float
-    ): Call<OverpassResponse> = endpoints.interpreter(
+    ): OverpassResponse = endpoints.interpreter(
         NodeQuery.Builder()
             .equal("amenity", type)
             .around(lat, lng, radiusInMeters)
@@ -25,9 +24,9 @@ class OverpassService(private val endpoints: OverpassEndpoints) {
             .toQuery()
     )
 
-    fun findImages(
+    suspend fun findImages(
         lat: Double, lng: Double, radiusInMeters: Float
-    ): Call<OverpassResponse> = endpoints.interpreter(
+    ): OverpassResponse = endpoints.interpreter(
         NodeQuery.Builder()
             .ilike("image", "http")
             .around(lat, lng, radiusInMeters)
