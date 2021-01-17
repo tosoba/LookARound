@@ -1,7 +1,11 @@
 plugins {
     id 'java-library'
     id 'kotlin'
+    id 'kotlin-kapt'
+    id 'net.ltgt.apt' version '0.15'
 }
+
+apply plugin: 'net.ltgt.apt-idea'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -9,10 +13,15 @@ java {
 }
 
 dependencies {
+    implementation project(':core-overpass')
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
 
     implementation 'nice.fontaine:overpass-wrapper:0.0.1'
+
+    implementation 'org.mapstruct:mapstruct:1.4.1.Final'
+    kapt 'org.mapstruct:mapstruct-processor:1.4.1.Final'
 
     implementation "com.squareup.moshi:moshi:1.9.2"
     implementation "com.squareup.moshi:moshi-adapters:1.9.2"

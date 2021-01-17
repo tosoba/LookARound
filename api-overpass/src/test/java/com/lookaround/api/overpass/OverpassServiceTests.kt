@@ -44,16 +44,16 @@ class OverpassServiceTests {
 
     @Test
     fun attractions() {
-        runBlocking { service.findAttractions(warsawLat, warsawLng, radius) }
+        runBlocking { service.attractionsAround(warsawLat, warsawLng, radius) }
     }
 
     @Test
     fun images() {
-        runBlocking { service.findImages(warsawLat, warsawLng, radius) }
+        runBlocking { service.imagesAround(warsawLat, warsawLng, radius) }
     }
 
     @Test
     fun placesOfType() {
-        runBlocking { service.findPlacesOfType("restaurant", warsawLat, warsawLng, radius) }
+        runBlocking { service.placesOfTypeAround("restaurant", warsawLat, warsawLng, radius) }
     }
 }

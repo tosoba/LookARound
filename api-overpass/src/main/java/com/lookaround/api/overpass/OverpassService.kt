@@ -1,19 +1,27 @@
 package com.lookaround.api.overpass
 
+import com.lookaround.api.overpass.mapper.NodeMapper
+import com.lookaround.core.overpass.IOverpassService
+import com.lookaround.core.overpass.model.NodeDTO
 import nice.fontaine.overpass.models.query.statements.NodeQuery
 import nice.fontaine.overpass.models.response.OverpassResponse
 import nice.fontaine.overpass.models.response.geometries.Node
+import org.mapstruct.factory.Mappers
 
-class OverpassService(private val endpoints: OverpassEndpoints) {
-    suspend fun findAttractions(
+class OverpassService(private val endpoints: OverpassEndpoints) : IOverpassService {
+    private val nodeMapper = Mappers.getMapper(NodeMapper::class.java)
+
+    override suspend fun attractionsAround(
         lat: Double, lng: Double, radiusInMeters: Float
-    ): List<Node> = nodesAround(lat, lng, radiusInMeters) { equal("tourism", "attraction") }
+    ): List<NodeDTO> = nodesAround(lat, lng, radiusInMeters) { equal("tourism", "attraction") }
+        .map(nodeMapper::toDTO)
 
-    suspend fun findPlacesOfType(
+    override suspend fun placesOfTypeAround(
         type: String, lat: Double, lng: Double, radiusInMeters: Float
-    ): List<Node> = nodesAround(lat, lng, radiusInMeters) { equal("amenity", type) }
+    ): List<NodeDTO> = nodesAround(lat, lng, radiusInMeters) { equal("amenity", type) }
+        .map(nodeMapper::toDTO)
 
-    suspend fun findImages(
+    override suspend fun imagesAround(
         lat: Double, lng: Double, radiusInMeters: Float
     ): List<String> = nodesAround(lat, lng, radiusInMeters) { ilike("image", "http") }
         .mapNotNull { it.tags["image"] }
