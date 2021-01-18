@@ -6,10 +6,12 @@ import com.lookaround.core.overpass.model.NodeDTO
 import nice.fontaine.overpass.models.query.statements.NodeQuery
 import nice.fontaine.overpass.models.response.OverpassResponse
 import nice.fontaine.overpass.models.response.geometries.Node
-import org.mapstruct.factory.Mappers
+import javax.inject.Inject
 
-class OverpassService(private val endpoints: OverpassEndpoints) : IOverpassService {
-    private val nodeMapper = Mappers.getMapper(NodeMapper::class.java)
+class OverpassService @Inject constructor(
+    private val endpoints: OverpassEndpoints,
+    private val nodeMapper: NodeMapper,
+) : IOverpassService {
 
     override suspend fun attractionsAround(
         lat: Double, lng: Double, radiusInMeters: Float
