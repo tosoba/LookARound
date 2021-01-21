@@ -1,6 +1,0 @@
-include ':api-overpass'
-include ':app'
-rootProject.name = "LookARound"
-include ':ui-main'
-include ':core-overpass'
-include ':core'
