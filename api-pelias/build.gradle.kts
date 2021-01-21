@@ -46,7 +46,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.3.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 
-    implementation("com.mapzen.android:pelias-android-sdk:1.3.1")
+    implementation("com.mapzen.android:pelias-android-sdk:1.2.1")
 
     testImplementation("junit:junit:4.13.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.4.2")
