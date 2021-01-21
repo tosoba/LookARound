@@ -1,3 +1,4 @@
+include(":api-pelias")
 rootProject.name = "LookARound"
 include(":api-overpass")
 include(":app")

@@ -44,11 +44,12 @@ android {
 dependencies {
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("androidx.core:core-ktx:1.3.2")
-    implementation("androidx.appcompat:appcompat:1.2.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
-    implementation("com.google.android.material:material:1.2.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+
+    implementation("com.mapzen.android:pelias-android-sdk:1.3.1")
 
     testImplementation("junit:junit:4.13.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.4.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.3.0")
 }
