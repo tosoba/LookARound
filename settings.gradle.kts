@@ -1,4 +1,4 @@
-include(":api-pelias")
+include(":api-nominatim")
 rootProject.name = "LookARound"
 include(":api-overpass")
 include(":app")

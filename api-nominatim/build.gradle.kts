@@ -20,12 +20,9 @@ kapt {
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":core-overpass"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
-
-    implementation("nice.fontaine:overpass-wrapper:0.0.1")
 
     implementation("org.mapstruct:mapstruct:1.4.1.Final")
     kapt("org.mapstruct:mapstruct-processor:1.4.1.Final")
@@ -33,11 +30,9 @@ dependencies {
     implementation("com.google.dagger:dagger:2.31")
     kapt("com.google.dagger:dagger-compiler:2.31")
 
-    implementation("com.squareup.moshi:moshi:1.9.2")
-    implementation("com.squareup.moshi:moshi-adapters:1.9.2")
+    implementation("fr.dudie:nominatim-api:3.4")
+
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
-    implementation("com.squareup.retrofit2:converter-moshi:2.6.2")
-    implementation("com.squareup.retrofit2:retrofit:2.7.1")
 
     testImplementation("junit:junit:4.13.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.4.2")
