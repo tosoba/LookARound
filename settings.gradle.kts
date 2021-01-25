@@ -1,7 +1,6 @@
-include(":api-nominatim")
+include(":repo-nominatim")
 rootProject.name = "LookARound"
-include(":api-overpass")
+include(":repo-overpass")
 include(":app")
 include(":core")
-include(":core-overpass")
 include(":ui-main")
