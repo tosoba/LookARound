@@ -1,20 +1,26 @@
 package com.lookaround.repo.nominatim
 
-import fr.dudie.nominatim.client.JsonNominatimClient
+import com.lookaround.repo.nominatim.di.DaggerNominatimComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.apache.http.client.HttpClient
-import org.apache.http.impl.client.HttpClients
+import org.apache.http.impl.client.CloseableHttpClient
+import org.junit.After
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
 class NominatimTests {
+    private val component = DaggerNominatimComponent.builder().build()
+    private val httpClient: CloseableHttpClient = component.httpClient()
+    private val repo: NominatimRepo = component.nominatimRepo()
+
     @Test
     fun client() {
-        val httpClient: HttpClient = HttpClients.createDefault()
-        val baseUrl = "https://nominatim.openstreetmap.org/"
-        val email = "therealmerengue@gmail.com"
-        val nominatimClient = JsonNominatimClient(baseUrl, httpClient, email)
-        val address = nominatimClient.getAddress(1.64891269513038, 48.1166561643464)
-        address.addressElements.forEach { println(it.value) }
+        repo.getAddress(48.1166561643464, 1.64891269513038)
+            .elements
+            .forEach { println("${it.key} : ${it.value}") }
+    }
+
+    @After
+    fun closeClient() {
+        httpClient.close()
     }
 }

@@ -1,8 +1,8 @@
 package com.lookaround.repo.overpass
 
 import com.lookaround.repo.overpass.mapper.NodeMapper
-import com.lookaround.core.repo.overpass.IOverpassRepo
-import com.lookaround.core.model.overpass.NodeDTO
+import com.lookaround.core.repo.PlacesRepo
+import com.lookaround.core.model.NodeDTO
 import nice.fontaine.overpass.models.query.statements.NodeQuery
 import nice.fontaine.overpass.models.response.OverpassResponse
 import nice.fontaine.overpass.models.response.geometries.Node
@@ -11,7 +11,7 @@ import javax.inject.Inject
 class OverpassRepo @Inject constructor(
     private val endpoints: OverpassEndpoints,
     private val nodeMapper: NodeMapper,
-) : IOverpassRepo {
+) : PlacesRepo {
 
     override suspend fun attractionsAround(
         lat: Double, lng: Double, radiusInMeters: Float

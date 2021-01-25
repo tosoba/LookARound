@@ -1,8 +1,8 @@
-package com.lookaround.core.repo.overpass
+package com.lookaround.core.repo
 
-import com.lookaround.core.model.overpass.NodeDTO
+import com.lookaround.core.model.NodeDTO
 
-interface IOverpassRepo {
+interface PlacesRepo {
     suspend fun attractionsAround(lat: Double, lng: Double, radiusInMeters: Float): List<NodeDTO>
 
     suspend fun placesOfTypeAround(
