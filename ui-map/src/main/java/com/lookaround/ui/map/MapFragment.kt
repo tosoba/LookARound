@@ -4,20 +4,26 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import com.lookaround.core.android.delegate.viewBinding
+import com.lookaround.core.android.ext.init
+import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
+import com.mapzen.tangram.MapController
 import com.mapzen.tangram.SceneUpdate
+import kotlinx.coroutines.*
 
-class MapFragment : Fragment(R.layout.fragment_map) {
+class MapFragment :
+    Fragment(R.layout.fragment_map),
+    CoroutineScope by CoroutineScope(Dispatchers.Main) {
+
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
-    private val sceneUpdates: List<SceneUpdate> =
-        listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
+    private val mapController: Deferred<MapController> by lazyAsync { binding.map.init() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.map.getMapAsync {
-            it?.loadSceneFile(
+        mapController.launch {
+            loadSceneFile(
                 "https://www.nextzen.org/carto/bubble-wrap-style/9/bubble-wrap-style.zip",
-                sceneUpdates
+                listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
             )
         }
     }
@@ -40,5 +46,9 @@ class MapFragment : Fragment(R.layout.fragment_map) {
     override fun onLowMemory() {
         super.onLowMemory()
         binding.map.onLowMemory()
+    }
+
+    private fun Deferred<MapController>.launch(block: MapController.() -> Unit) {
+        this@MapFragment.launch { this@launch.await().block() }
     }
 }
