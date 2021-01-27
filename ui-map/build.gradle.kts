@@ -15,6 +15,16 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        buildConfigField(
+            "String",
+            "NEXTZEN_API_KEY",
+            if (project.hasProperty("nextzen.apiKey")) {
+                "\"${project.properties["nextzen.apiKey"] as String}\""
+            } else {
+                System.getenv("NEXTZEN_API_KEY")
+            }
+        )
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
