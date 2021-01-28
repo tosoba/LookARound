@@ -1,3 +1,4 @@
+include(":repo-photon")
 include(":core-android")
 include(":ui-map")
 include(":repo-nominatim")
