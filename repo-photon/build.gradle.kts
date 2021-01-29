@@ -34,10 +34,11 @@ dependencies {
     implementation("com.google.dagger:dagger:2.31")
     kapt("com.google.dagger:dagger-compiler:2.31")
 
+    implementation("com.google.code.gson:gson:2.8.6")
     implementation("com.github.filosganga:geogson-jts:1.4.2")
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
-    implementation("com.squareup.retrofit2:converter-moshi:2.6.2")
+    implementation("com.squareup.retrofit2:converter-gson:2.7.1")
     implementation("com.squareup.retrofit2:retrofit:2.7.1")
 
     testImplementation("junit:junit:4.13.1")
