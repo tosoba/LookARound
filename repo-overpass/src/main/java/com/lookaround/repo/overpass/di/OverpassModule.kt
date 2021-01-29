@@ -1,7 +1,7 @@
 package com.lookaround.repo.overpass.di
 
-import com.lookaround.repo.overpass.OverpassEndpoints
 import com.lookaround.core.di.annotation.TestHttpClient
+import com.lookaround.repo.overpass.OverpassEndpoints
 import com.lookaround.repo.overpass.di.annotation.OverpassMoshiConverterFactory
 import com.lookaround.repo.overpass.mapper.NodeMapper
 import com.lookaround.repo.overpass.mapper.NodeMapperImpl
@@ -13,7 +13,6 @@ import nice.fontaine.overpass.models.response.adapters.ElementAdapter
 import nice.fontaine.overpass.models.response.adapters.Iso8601Adapter
 import nice.fontaine.overpass.models.response.adapters.MemberAdapter
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.*
