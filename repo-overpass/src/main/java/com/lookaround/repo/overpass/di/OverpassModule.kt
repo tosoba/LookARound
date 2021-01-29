@@ -1,7 +1,7 @@
 package com.lookaround.repo.overpass.di
 
 import com.lookaround.repo.overpass.OverpassEndpoints
-import com.lookaround.repo.overpass.di.annotation.OverpassHttpClient
+import com.lookaround.core.di.annotation.TestHttpClient
 import com.lookaround.repo.overpass.di.annotation.OverpassMoshiConverterFactory
 import com.lookaround.repo.overpass.mapper.NodeMapper
 import com.lookaround.repo.overpass.mapper.NodeMapperImpl
@@ -42,17 +42,9 @@ abstract class OverpassModule {
 
         @Provides
         @Singleton
-        @OverpassHttpClient
-        fun overpassHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
-            OkHttpClient.Builder()
-                .addInterceptor(loggingInterceptor)
-                .build()
-
-        @Provides
-        @Singleton
         fun overpassEndpoints(
             @OverpassMoshiConverterFactory converterFactory: MoshiConverterFactory,
-            @OverpassHttpClient httpClient: OkHttpClient,
+            @TestHttpClient httpClient: OkHttpClient,
         ): OverpassEndpoints = Retrofit.Builder()
             .baseUrl(OverpassEndpoints.BASE_URL)
             .addConverterFactory(converterFactory)
