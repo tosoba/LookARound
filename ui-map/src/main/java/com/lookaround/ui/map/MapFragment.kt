@@ -3,7 +3,7 @@ package com.lookaround.ui.map
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
-import com.lookaround.core.android.delegate.viewBinding
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.init
 import com.lookaround.core.android.ext.zoomOnDoubleTap
 import com.lookaround.core.delegate.lazyAsync
