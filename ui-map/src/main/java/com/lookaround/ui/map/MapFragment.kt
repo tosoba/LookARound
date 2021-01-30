@@ -5,6 +5,8 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.init
+import com.lookaround.core.android.ext.restoreCameraPosition
+import com.lookaround.core.android.ext.saveCameraPosition
 import com.lookaround.core.android.ext.zoomOnDoubleTap
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
@@ -25,6 +27,7 @@ class MapFragment :
                 "https://www.nextzen.org/carto/bubble-wrap-style/9/bubble-wrap-style.zip",
                 listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
             )
+            restoreCameraPosition(savedInstanceState)
             zoomOnDoubleTap()
         }
     }
@@ -47,6 +50,10 @@ class MapFragment :
     override fun onLowMemory() {
         super.onLowMemory()
         binding.map.onLowMemory()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        if (mapController.isCompleted) mapController.getCompleted().saveCameraPosition(outState)
     }
 
     private fun Deferred<MapController>.launch(block: MapController.() -> Unit) {
