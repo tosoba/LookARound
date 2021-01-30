@@ -9,7 +9,6 @@ import com.lookaround.core.android.ext.restoreCameraPosition
 import com.lookaround.core.android.ext.saveCameraPosition
 import com.lookaround.core.android.ext.zoomOnDoubleTap
 import com.lookaround.core.delegate.lazyAsync
-import com.lookaround.core.ext.ifCompleted
 import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.*
 import kotlinx.coroutines.*
@@ -55,10 +54,10 @@ class MapFragment :
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        mapController.ifCompleted { saveCameraPosition(outState) }
+        mapController.launch { saveCameraPosition(outState) }
     }
 
     private fun Deferred<MapController>.launch(block: MapController.() -> Unit) {
-        this@MapFragment.launch { this@launch.await().block() }
+        this@MapFragment.launch(Dispatchers.Main.immediate) { this@launch.await().block() }
     }
 }
