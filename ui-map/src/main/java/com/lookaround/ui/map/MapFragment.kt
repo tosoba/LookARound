@@ -5,10 +5,10 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import com.lookaround.core.android.delegate.viewBinding
 import com.lookaround.core.android.ext.init
+import com.lookaround.core.android.ext.zoomOnDoubleTap
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
-import com.mapzen.tangram.MapController
-import com.mapzen.tangram.SceneUpdate
+import com.mapzen.tangram.*
 import kotlinx.coroutines.*
 
 class MapFragment :
@@ -25,6 +25,7 @@ class MapFragment :
                 "https://www.nextzen.org/carto/bubble-wrap-style/9/bubble-wrap-style.zip",
                 listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
             )
+            zoomOnDoubleTap()
         }
     }
 

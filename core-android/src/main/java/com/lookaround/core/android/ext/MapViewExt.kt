@@ -1,5 +1,7 @@
 package com.lookaround.core.android.ext
 
+import android.graphics.PointF
+import com.mapzen.tangram.CameraUpdateFactory
 import com.mapzen.tangram.MapController
 import com.mapzen.tangram.MapView
 import com.mapzen.tangram.networking.HttpHandler
@@ -23,4 +25,25 @@ suspend fun MapView.init(
         glViewHolderFactory,
         httpHandler
     )
+}
+
+fun MapController.zoomOnDoubleTap(
+    zoomIncrement: Float = 1f,
+    durationMs: Int = 500,
+    easeType: MapController.EaseType = MapController.EaseType.CUBIC
+) {
+    touchInput.setDoubleTapResponder { x, y ->
+        val tappedPosition = screenPositionToLngLat(PointF(x, y))
+            ?: return@setDoubleTapResponder false
+        updateCameraPosition(
+            CameraUpdateFactory.newCameraPosition(cameraPosition.apply {
+                longitude = .5 * (tappedPosition.longitude + longitude)
+                latitude = .5 * (tappedPosition.latitude + latitude)
+                zoom += zoomIncrement
+            }),
+            durationMs,
+            easeType
+        )
+        true
+    }
 }
