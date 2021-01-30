@@ -1,18 +1,17 @@
 package com.lookaround.repo.photon
 
 import com.lookaround.repo.photon.di.DaggerPhotonComponent
-import com.lookaround.repo.photon.PhotonEndpoints
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
 class PhotonRepoTests {
-    private val endpoints: PhotonEndpoints = DaggerPhotonComponent
+    private val repo: PhotonRepo = DaggerPhotonComponent
         .builder()
         .build()
-        .photonEndpoints()
+        .photonRepo()
 
     @Test
     fun search() {
-        runBlocking { println(endpoints.search("Berlin").toString()) }
+        runBlocking { println(repo.searchPoints("Berlin").toString()) }
     }
 }
