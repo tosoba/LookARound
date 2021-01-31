@@ -22,7 +22,6 @@ class MapFragment :
     private val mapController: Deferred<MapController> by lazyAsync { binding.map.init() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         mapController.launch {
             loadSceneFile(
                 "https://www.nextzen.org/carto/bubble-wrap-style/9/bubble-wrap-style.zip",
