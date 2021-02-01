@@ -21,6 +21,6 @@ interface PhotonEndpoints {
     ): FeatureCollection
 
     companion object {
-        const val BASE_URL = "https://photon.komoot.io"
+        internal const val BASE_URL = "https://photon.komoot.io"
     }
 }

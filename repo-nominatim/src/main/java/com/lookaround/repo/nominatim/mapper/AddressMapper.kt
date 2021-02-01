@@ -6,6 +6,7 @@ import fr.dudie.nominatim.model.Element
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import org.mapstruct.Qualifier
 
 @Mapper(componentModel = "jsr330")
 interface AddressMapper {
@@ -26,6 +27,10 @@ interface AddressMapper {
         ]
     )
     fun toDTO(node: Address): AddressDTO
+
+    @Qualifier
+    @Target(AnnotationTarget.FUNCTION)
+    private annotation class ElementsArrayToMap
 
     companion object {
         @ElementsArrayToMap
