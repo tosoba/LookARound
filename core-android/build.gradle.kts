@@ -17,6 +17,26 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        buildConfigField(
+            "Boolean",
+            "LOG_STATES_FLOW",
+            if (project.hasProperty("log.statesFlow")) {
+                project.properties["log.statesFlow"] as String
+            } else {
+                System.getenv("LOG_STATES_FLOW")
+            }
+        )
+
+        buildConfigField(
+            "Boolean",
+            "LOG_STATES_UPDATES_FLOW",
+            if (project.hasProperty("log.stateUpdatesFlow")) {
+                project.properties["log.stateUpdatesFlow"] as String
+            } else {
+                System.getenv("LOG_STATE_UPDATES_FLOW")
+            }
+        )
     }
 
     buildTypes {
@@ -47,15 +67,21 @@ android {
 
 dependencies {
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+
     implementation("androidx.core:core-ktx:1.3.2")
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
     implementation("com.google.android.material:material:1.2.1")
 
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.2.0")
+
     implementation("com.mapzen.tangram:tangram:0.13.0")
 
     implementation("androidx.lifecycle:lifecycle-runtime:2.2.0")
     implementation("androidx.lifecycle:lifecycle-common-java8:2.2.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-rc01")
+
 
     testImplementation("junit:junit:4.13.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")
