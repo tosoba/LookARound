@@ -3,6 +3,7 @@ package com.lookaround.ui.map
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.init
 import com.lookaround.core.android.ext.restoreCameraPosition
@@ -13,12 +14,16 @@ import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.*
 import kotlinx.coroutines.*
 
+@FlowPreview
 @ExperimentalCoroutinesApi
 class MapFragment :
     Fragment(R.layout.fragment_map),
     CoroutineScope by CoroutineScope(Dispatchers.Main),
     MapController.SceneLoadListener {
 
+    private val viewModel: MapViewModel by lazy(LazyThreadSafetyMode.NONE) {
+        ViewModelProvider(this).get(MapViewModel::class.java)
+    }
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
     private val mapController: Deferred<MapController> by lazyAsync { binding.map.init() }
 
@@ -28,6 +33,7 @@ class MapFragment :
                 MapScene.BUBBLE_WRAP.url,
                 listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
             )
+            setSceneLoadListener(this@MapFragment)
             restoreCameraPosition(savedInstanceState)
             zoomOnDoubleTap()
         }
