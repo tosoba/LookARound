@@ -4,6 +4,7 @@ plugins {
     id("com.android.library")
     kotlin("android")
     kotlin("android.extensions")
+    kotlin("kapt")
 }
 
 android {
@@ -65,7 +66,13 @@ android {
     }
 }
 
+kapt {
+    correctErrorTypes = true
+}
+
 dependencies {
+    implementation(project(":core"))
+
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 
@@ -82,6 +89,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-common-java8:2.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-rc01")
 
+    implementation("ru.beryukhov:flowreactivenetwork:1.0.2")
+
+    implementation("com.google.dagger:hilt-android:2.31.2-alpha")
+    kapt("com.google.dagger:hilt-android-compiler:2.31.2-alpha")
 
     testImplementation("junit:junit:4.13.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")
