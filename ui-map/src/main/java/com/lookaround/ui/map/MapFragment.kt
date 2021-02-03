@@ -16,7 +16,8 @@ import kotlinx.coroutines.*
 @ExperimentalCoroutinesApi
 class MapFragment :
     Fragment(R.layout.fragment_map),
-    CoroutineScope by CoroutineScope(Dispatchers.Main) {
+    CoroutineScope by CoroutineScope(Dispatchers.Main),
+    MapController.SceneLoadListener {
 
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
     private val mapController: Deferred<MapController> by lazyAsync { binding.map.init() }
@@ -24,7 +25,7 @@ class MapFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mapController.launch {
             loadSceneFile(
-                "https://www.nextzen.org/carto/bubble-wrap-style/9/bubble-wrap-style.zip",
+                MapScene.BUBBLE_WRAP.url,
                 listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
             )
             restoreCameraPosition(savedInstanceState)
@@ -54,6 +55,14 @@ class MapFragment :
 
     override fun onSaveInstanceState(outState: Bundle) {
         mapController.launch { saveCameraPosition(outState) }
+    }
+
+    override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
+        if (sceneError == null) {
+            //TODO: viewModel.intent(MapIntent.SceneLoaded)
+        } else {
+            //TODO: show error msg in SnackBar or smth
+        }
     }
 
     private fun Deferred<MapController>.launch(block: MapController.() -> Unit) {
