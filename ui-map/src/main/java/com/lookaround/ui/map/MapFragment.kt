@@ -29,10 +29,7 @@ class MapFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mapController.launch {
-            loadSceneFile(
-                MapScene.BUBBLE_WRAP.url,
-                listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
-            )
+            loadScene(MapScene.BUBBLE_WRAP)
             setSceneLoadListener(this@MapFragment)
             restoreCameraPosition(savedInstanceState)
             zoomOnDoubleTap()
@@ -71,7 +68,15 @@ class MapFragment :
         }
     }
 
-    private fun Deferred<MapController>.launch(block: MapController.() -> Unit) {
+    private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
         this@MapFragment.launch(Dispatchers.Main.immediate) { this@launch.await().block() }
+    }
+
+    private suspend fun MapController.loadScene(scene: MapScene) {
+        viewModel.intent(MapIntent.LoadingScene(scene))
+        loadSceneFile(
+            scene.url,
+            listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
+        )
     }
 }
