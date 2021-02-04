@@ -3,6 +3,7 @@ package com.lookaround.ui.map
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.init
@@ -13,6 +14,7 @@ import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.*
 import kotlinx.coroutines.*
+import timber.log.Timber
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -21,9 +23,7 @@ class MapFragment :
     CoroutineScope by CoroutineScope(Dispatchers.Main),
     MapController.SceneLoadListener {
 
-    private val viewModel: MapViewModel by lazy(LazyThreadSafetyMode.NONE) {
-        ViewModelProvider(this).get(MapViewModel::class.java)
-    }
+    private val viewModel: MapViewModel by viewModels()
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
     private val mapController: Deferred<MapController> by lazyAsync { binding.map.init() }
 
@@ -64,10 +64,10 @@ class MapFragment :
     }
 
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
-        if (sceneError == null) {
-            //TODO: viewModel.intent(MapIntent.SceneLoaded)
+        if (sceneError == null) launch {
+            viewModel.intent(MapIntent.SceneLoaded)
         } else {
-            //TODO: show error msg in SnackBar or smth
+            Timber.e("Failed to load scene: $sceneId. Scene error: $sceneError")
         }
     }
 

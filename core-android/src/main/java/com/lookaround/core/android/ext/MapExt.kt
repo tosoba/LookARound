@@ -31,7 +31,7 @@ suspend fun MapView.init(
 
 fun MapController.zoomOnDoubleTap(
     zoomIncrement: Float = 1f,
-    durationMs: Int = 500,
+    durationMs: Int = 250,
     easeType: MapController.EaseType = MapController.EaseType.CUBIC
 ) {
     touchInput.setDoubleTapResponder { x, y ->
