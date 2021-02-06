@@ -71,6 +71,7 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.3.2")
     implementation("androidx.fragment:fragment-ktx:1.2.5")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.2.0")
 
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
