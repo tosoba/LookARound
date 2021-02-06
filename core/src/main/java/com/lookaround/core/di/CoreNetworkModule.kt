@@ -12,7 +12,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object HttpModule {
+object CoreNetworkModule {
     @Provides
     @Singleton
     fun httpLoggingInterceptor(): HttpLoggingInterceptor = HttpLoggingInterceptor()

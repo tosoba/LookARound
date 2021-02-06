@@ -8,9 +8,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.*
+import com.lookaround.core.android.map.MapTilesCacheConfig
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.*
+import com.mapzen.tangram.networking.HttpHandler
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import kotlinx.coroutines.*
@@ -25,13 +27,16 @@ import javax.inject.Inject
 @AndroidEntryPoint
 @WithFragmentBindings
 class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadListener {
+    private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
+
     @Inject
     internal lateinit var viewModelFactory: MapViewModel.Factory
     private val viewModel: MapViewModel by assistedViewModel { viewModelFactory.create(it) }
 
-    private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
+    @Inject
+    internal lateinit var mapTilesHttpHandler: HttpHandler
     private val mapController: Deferred<MapController> by lifecycleScope.lazyAsync {
-        binding.map.init()
+        binding.map.init(mapTilesHttpHandler)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

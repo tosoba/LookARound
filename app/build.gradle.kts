@@ -60,6 +60,8 @@ dependencies {
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
 
+    implementation("com.mapzen.tangram:tangram:0.13.0")
+
     implementation("ru.beryukhov:flowreactivenetwork:1.0.2")
 
     testImplementation("junit:junit:4.13.1")
