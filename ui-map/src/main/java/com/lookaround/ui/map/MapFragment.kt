@@ -3,21 +3,17 @@ package com.lookaround.ui.map
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.lookaround.core.android.ext.init
-import com.lookaround.core.android.ext.restoreCameraPosition
-import com.lookaround.core.android.ext.saveCameraPosition
-import com.lookaround.core.android.ext.zoomOnDoubleTap
+import com.lookaround.core.android.ext.*
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.*
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -32,8 +28,8 @@ class MapFragment :
 
     @Inject
     internal lateinit var viewModelFactory: MapViewModel.Factory
-    private val viewModel: MapViewModel by viewModels {
-        MapViewModel.provideFactory(viewModelFactory, this, MapState())
+    private val viewModel: MapViewModel by assistedViewModel { savedState ->
+        viewModelFactory.create(MapState(), savedState)
     }
 
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
@@ -47,11 +43,10 @@ class MapFragment :
             zoomOnDoubleTap()
         }
 
-        launch {
-            viewModel.signals
-                .filterIsInstance<MapSignal.RetryLoadScene>()
-                .collect { mapController.await().loadScene(it.scene) }
-        }
+        viewModel.signals
+            .filterIsInstance<MapSignal.RetryLoadScene>()
+            .onEach { mapController.await().loadScene(it.scene) }
+            .launchIn(this)
     }
 
     override fun onDestroyView() {
