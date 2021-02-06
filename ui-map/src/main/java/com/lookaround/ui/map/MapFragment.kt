@@ -1,5 +1,7 @@
 package com.lookaround.ui.map
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
@@ -76,9 +78,20 @@ class MapFragment :
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
         if (sceneError == null) {
             launch { viewModel.intent(MapIntent.SceneLoaded) }
-            binding.shimmerLayout.stopShimmer()
-            binding.shimmerLayout.visibility = View.GONE
-            binding.blurBackground.visibility = View.GONE
+
+            with(binding.shimmerLayout) {
+                stopShimmer()
+                visibility = View.GONE
+            }
+
+            binding.blurBackground.animate()
+                .setDuration(500L)
+                .alpha(0f)
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        binding.blurBackground.visibility = View.GONE
+                    }
+                })
         } else {
             Timber.e("Failed to load scene: $sceneId. Scene error: $sceneError")
         }
@@ -89,9 +102,19 @@ class MapFragment :
     }
 
     private suspend fun MapController.loadScene(scene: MapScene) {
-        binding.blurBackground.visibility = View.VISIBLE
-        binding.shimmerLayout.visibility = View.VISIBLE
-        binding.shimmerLayout.startShimmer()
+        with(binding.blurBackground) {
+            if (visibility != View.VISIBLE) {
+                alpha = 0f
+                visibility = View.VISIBLE
+                animate().setDuration(500L).alpha(1f)
+            }
+        }
+
+        with(binding.shimmerLayout) {
+            visibility = View.VISIBLE
+            startShimmer()
+        }
+
         viewModel.intent(MapIntent.LoadingScene(scene))
         loadSceneFile(
             scene.url,
