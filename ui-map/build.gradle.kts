@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
 plugins {
     id("com.android.library")
+    id("dagger.hilt.android.plugin")
     kotlin("android")
     kotlin("android.extensions")
     kotlin("kapt")
@@ -80,6 +81,8 @@ dependencies {
 
     implementation("com.google.dagger:hilt-android:2.31.2-alpha")
     kapt("com.google.dagger:hilt-android-compiler:2.31.2-alpha")
+    kapt("androidx.hilt:hilt-compiler:1.0.0-alpha03")
+    implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
 
     implementation("com.jakewharton.timber:timber:4.7.1")
 

@@ -40,16 +40,27 @@ kapt {
 }
 
 dependencies {
+    implementation(project(":ui-main"))
+    implementation(project(":ui-map"))
+    implementation(project(":core"))
+    implementation(project(":core-android"))
+
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
 
-    implementation(project(":ui-main"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 
     implementation("androidx.core:core-ktx:1.3.2")
     implementation("androidx.appcompat:appcompat:1.2.0")
 
     implementation("com.google.dagger:hilt-android:2.31.2-alpha")
     kapt("com.google.dagger:hilt-android-compiler:2.31.2-alpha")
+    kapt("androidx.hilt:hilt-compiler:1.0.0-alpha03")
+    implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
+
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
+
+    implementation("ru.beryukhov:flowreactivenetwork:1.0.2")
 
     testImplementation("junit:junit:4.13.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")

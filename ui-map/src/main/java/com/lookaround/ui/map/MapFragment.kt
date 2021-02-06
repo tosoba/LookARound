@@ -13,17 +13,27 @@ import com.lookaround.core.android.ext.zoomOnDoubleTap
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.*
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.WithFragmentBindings
 import kotlinx.coroutines.*
 import timber.log.Timber
+import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
+@AndroidEntryPoint
+@WithFragmentBindings
 class MapFragment :
     Fragment(R.layout.fragment_map),
     CoroutineScope by CoroutineScope(Dispatchers.Main),
     MapController.SceneLoadListener {
 
-    private val viewModel: MapViewModel by viewModels()
+    @Inject
+    internal lateinit var viewModelFactory: MapViewModel.Factory
+    private val viewModel: MapViewModel by viewModels {
+        MapViewModel.provideFactory(viewModelFactory, this, MapState())
+    }
+
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
     private val mapController: Deferred<MapController> by lazyAsync { binding.map.init() }
 

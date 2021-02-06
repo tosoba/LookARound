@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.*
 abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : Any, Signal : Any>(
     initialState: State,
     processor: FlowProcessor<Intent, Update, State, Signal>,
-    savedStateHandle: SavedStateHandle = SavedStateHandle()
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _signals: BroadcastChannel<Signal> = BroadcastChannel(Channel.BUFFERED)
     val signals: Flow<Signal> get() = _signals.asFlow()

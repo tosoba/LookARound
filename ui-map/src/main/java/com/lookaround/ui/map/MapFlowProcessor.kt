@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
-@ViewModelScoped
 class MapFlowProcessor @Inject constructor(
     private val isConnectedFlow: IsConnectedFlow
 ) : FlowProcessor<MapIntent, MapStateUpdate, MapState, MapSignal> {
