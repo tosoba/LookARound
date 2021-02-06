@@ -2,10 +2,7 @@ package com.lookaround.core.android.ext
 
 import android.graphics.PointF
 import android.os.Bundle
-import com.mapzen.tangram.CameraPosition
-import com.mapzen.tangram.CameraUpdateFactory
-import com.mapzen.tangram.MapController
-import com.mapzen.tangram.MapView
+import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLSurfaceViewHolderFactory
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
@@ -31,7 +28,7 @@ suspend fun MapView.init(
 
 fun MapController.zoomOnDoubleTap(
     zoomIncrement: Float = 1f,
-    durationMs: Int = 250,
+    durationMs: Int = 50,
     easeType: MapController.EaseType = MapController.EaseType.CUBIC
 ) {
     touchInput.setDoubleTapResponder { x, y ->
