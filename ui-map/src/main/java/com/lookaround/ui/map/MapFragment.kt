@@ -74,8 +74,11 @@ class MapFragment :
     }
 
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
-        if (sceneError == null) launch {
-            viewModel.intent(MapIntent.SceneLoaded)
+        if (sceneError == null) {
+            launch { viewModel.intent(MapIntent.SceneLoaded) }
+            binding.shimmerLayout.stopShimmer()
+            binding.shimmerLayout.visibility = View.GONE
+            binding.blurBackground.visibility = View.GONE
         } else {
             Timber.e("Failed to load scene: $sceneId. Scene error: $sceneError")
         }
@@ -86,6 +89,9 @@ class MapFragment :
     }
 
     private suspend fun MapController.loadScene(scene: MapScene) {
+        binding.blurBackground.visibility = View.VISIBLE
+        binding.shimmerLayout.visibility = View.VISIBLE
+        binding.shimmerLayout.startShimmer()
         viewModel.intent(MapIntent.LoadingScene(scene))
         loadSceneFile(
             scene.url,
