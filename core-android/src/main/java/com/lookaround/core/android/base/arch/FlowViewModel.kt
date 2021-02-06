@@ -62,6 +62,13 @@ abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : 
             }
             .onEach { state = it }
             .launchIn(viewModelScope)
+
+        processor.sideEffects(
+            coroutineScope = viewModelScope,
+            currentState = states::value,
+            states = states,
+            signal = _signals::send
+        )
     }
 
     override fun onCleared() {

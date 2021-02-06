@@ -16,6 +16,8 @@ import com.mapzen.tangram.*
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterIsInstance
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -43,6 +45,12 @@ class MapFragment :
             setSceneLoadListener(this@MapFragment)
             restoreCameraPosition(savedInstanceState)
             zoomOnDoubleTap()
+        }
+
+        launch {
+            viewModel.signals
+                .filterIsInstance<MapSignal.RetryLoadScene>()
+                .collect { mapController.await().loadScene(it.scene) }
         }
     }
 

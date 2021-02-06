@@ -37,9 +37,10 @@ class MapFlowProcessor @Inject constructor(
         states: Flow<MapState>,
         signal: suspend (MapSignal) -> Unit
     ) {
-        states.map { it.sceneLoadingTimeoutOccurred }
-            .filter { it }
-            .combine(isConnectedFlow().filter { it }) { _, _ -> signal(MapSignal.RetryLoadScene) }
+        states.filter { it.sceneLoadingTimeoutOccurred }
+            .combine(isConnectedFlow().filter { it }) { state, _ ->
+                signal(MapSignal.RetryLoadScene(state.scene))
+            }
             .launchIn(coroutineScope)
     }
 

@@ -1,5 +1,5 @@
 package com.lookaround.ui.map
 
 sealed class MapSignal {
-    object RetryLoadScene : MapSignal()
+    data class RetryLoadScene(val scene: MapScene) : MapSignal()
 }
