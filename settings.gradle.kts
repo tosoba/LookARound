@@ -1,3 +1,4 @@
+include(":ui-camera")
 include(":ui-place-types")
 include(":repo-photon")
 include(":core-android")
