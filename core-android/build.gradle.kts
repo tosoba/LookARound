@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.config.KotlinCompilerVersion
 plugins {
     id("com.android.library")
     kotlin("android")
-    kotlin("android.extensions")
     kotlin("kapt")
 }
 
@@ -11,7 +10,7 @@ android {
     compileSdkVersion(30)
 
     defaultConfig {
-        minSdkVersion(16)
+        minSdkVersion(21)
         targetSdkVersion(30)
         versionCode = 1
         versionName = "1.0"
@@ -77,22 +76,22 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 
     implementation("androidx.core:core-ktx:1.3.2")
-    implementation("androidx.fragment:fragment-ktx:1.2.5")
+    implementation("androidx.fragment:fragment-ktx:1.3.0")
 
     implementation("androidx.navigation:navigation-fragment-ktx:2.3.3")
     implementation("androidx.navigation:navigation-ui-ktx:2.3.3")
 
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
-    implementation("com.google.android.material:material:1.2.1")
+    implementation("com.google.android.material:material:1.3.0")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.2.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.0")
 
     implementation("com.mapzen.tangram:tangram:0.13.0")
 
-    implementation("androidx.lifecycle:lifecycle-runtime:2.2.0")
-    implementation("androidx.lifecycle:lifecycle-common-java8:2.2.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-rc01")
+    implementation("androidx.lifecycle:lifecycle-runtime:2.3.0")
+    implementation("androidx.lifecycle:lifecycle-common-java8:2.3.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0")
 
     implementation("ru.beryukhov:flowreactivenetwork:1.0.2")
 

@@ -4,7 +4,7 @@ plugins {
     id("com.android.library")
     id("dagger.hilt.android.plugin")
     kotlin("android")
-    kotlin("android.extensions")
+
     kotlin("kapt")
 }
 
@@ -12,7 +12,7 @@ android {
     compileSdkVersion(30)
 
     defaultConfig {
-        minSdkVersion(16)
+        minSdkVersion(21)
         targetSdkVersion(30)
         versionCode = 1
         versionName = "1.0"
@@ -45,12 +45,13 @@ android {
 
 dependencies {
     implementation(project(":ui-map"))
+    implementation(project(":ui-place-types"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("androidx.core:core-ktx:1.3.2")
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
-    implementation("com.google.android.material:material:1.2.1")
+    implementation("com.google.android.material:material:1.3.0")
 
     implementation("com.google.dagger:hilt-android:2.31.2-alpha")
     kapt("com.google.dagger:hilt-android-compiler:2.31.2-alpha")

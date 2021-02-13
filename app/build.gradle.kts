@@ -4,7 +4,6 @@ plugins {
     id("com.android.application")
     id("dagger.hilt.android.plugin")
     kotlin("android")
-    kotlin("android.extensions")
     kotlin("kapt")
 }
 
@@ -14,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.lookaround"
-        minSdkVersion(16)
+        minSdkVersion(21)
         targetSdkVersion(30)
         versionCode = 1
         versionName = "1.0"

@@ -31,8 +31,8 @@ dependencies {
     implementation("org.mapstruct:mapstruct:1.4.1.Final")
     kapt("org.mapstruct:mapstruct-processor:1.4.1.Final")
 
-    implementation("com.google.dagger:dagger:2.31")
-    kapt("com.google.dagger:dagger-compiler:2.31")
+    implementation("com.google.dagger:dagger:2.31.2")
+    kapt("com.google.dagger:dagger-compiler:2.31.2")
 
     implementation("com.google.code.gson:gson:2.8.6")
     implementation("com.github.filosganga:geogson-jts:1.4.2")

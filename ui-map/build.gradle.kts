@@ -4,7 +4,7 @@ plugins {
     id("com.android.library")
     id("dagger.hilt.android.plugin")
     kotlin("android")
-    kotlin("android.extensions")
+    id("kotlin-parcelize")
     kotlin("kapt")
 }
 
@@ -12,7 +12,7 @@ android {
     compileSdkVersion(30)
 
     defaultConfig {
-        minSdkVersion(16)
+        minSdkVersion(21)
         targetSdkVersion(30)
         versionCode = 1
         versionName = "1.0"
@@ -70,12 +70,12 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.2")
 
     implementation("androidx.core:core-ktx:1.3.2")
-    implementation("androidx.fragment:fragment-ktx:1.2.5")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.2.0")
+    implementation("androidx.fragment:fragment-ktx:1.3.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
 
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
-    implementation("com.google.android.material:material:1.2.1")
+    implementation("com.google.android.material:material:1.3.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
