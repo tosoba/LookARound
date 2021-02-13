@@ -4,7 +4,6 @@ plugins {
     id("com.android.library")
     id("dagger.hilt.android.plugin")
     kotlin("android")
-
     kotlin("kapt")
 }
 
@@ -44,6 +43,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":ui-camera"))
     implementation(project(":ui-map"))
     implementation(project(":ui-place-types"))
 
