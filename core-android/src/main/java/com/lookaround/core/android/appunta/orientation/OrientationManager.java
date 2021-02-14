@@ -1,11 +1,11 @@
 package com.lookaround.core.android.appunta.orientation;
 
-import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.view.WindowManager;
 
 /**
  * This class is responsible for providing the measure of the compass (in the 3
@@ -22,6 +22,7 @@ public class OrientationManager implements SensorEventListener {
     // <<<< ORIGINAL VALUES: >>>>
 //    private static final float SMOOTH_THRESHOLD = CIRCLE / 6;
 //    private static final float SMOOTH_FACTOR = SMOOTH_THRESHOLD / 5;
+
     private final float[] gravs = new float[3];
     private final float[] geoMags = new float[3];
     private final float[] orientationArray = new float[3];
@@ -40,11 +41,11 @@ public class OrientationManager implements SensorEventListener {
     /***
      * This constructor will generate and start a Compass Manager
      *
-     * @param activity
-     * The activity where the service will work
+     * @param context
+     * The context where the service will work
      */
-    public OrientationManager(Activity activity) {
-        startSensor(activity);
+    public OrientationManager(Context context) {
+        startSensor(context);
     }
 
     /***
@@ -54,19 +55,19 @@ public class OrientationManager implements SensorEventListener {
     public OrientationManager() {
     }
 
-    public static int getPhoneRotation(Activity activity) {
-        return activity.getWindowManager().getDefaultDisplay().getRotation();
+    public static int getPhoneRotation(Context context) {
+        return ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
     }
 
     /***
      * This method registers this class as a listener of the Sensor service
      *
-     * @param activity
-     *            The activity over this will work
+     * @param context
+     *            The context over this will work
      */
-    public void startSensor(Activity activity) {
+    public void startSensor(Context context) {
         if (!sensorRunning) {
-            sensorManager = (SensorManager) activity
+            sensorManager = (SensorManager) context
                     .getSystemService(Context.SENSOR_SERVICE);
             sensorManager.registerListener(this,
                     sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
@@ -113,7 +114,7 @@ public class OrientationManager implements SensorEventListener {
         float y = orientationArray[0];
         float z = orientationArray[2];
 
-//        if (axisMode == MODE_AR)y=y+(getPhoneRotation(activity))*CIRCLE/4;
+//        if (axisMode == MODE_AR)y=y+(getPhoneRotation(context))*CIRCLE/4;
 
         if (oldOrientation == null) {
             orientation.setX(x);

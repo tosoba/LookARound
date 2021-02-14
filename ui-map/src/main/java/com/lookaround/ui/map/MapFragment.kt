@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.*
-import com.lookaround.core.android.map.MapTilesCacheConfig
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.*

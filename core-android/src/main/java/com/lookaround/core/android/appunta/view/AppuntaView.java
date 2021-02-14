@@ -69,7 +69,7 @@ public abstract class AppuntaView extends View {
     protected Point findNearestPoint(float x, float y) {
         Point nearest = null;
         double minorDistance = Math.max(this.getWidth(), this.getHeight());
-        for (Point point : getpoints()) {
+        for (Point point : getPoints()) {
             double distance = Math.sqrt(Math.pow((point.getX() - x), 2)
                     + Math.pow((point.getY() - y), 2));
             if (distance < minorDistance) {
@@ -86,8 +86,8 @@ public abstract class AppuntaView extends View {
         if (getOrientation() == null) return;
         PointsUtil.calculateDistance(points, location);
         preRender(canvas);
-        if (getpoints() != null) {
-            for (Point point : getpoints()) {
+        if (getPoints() != null) {
+            for (Point point : getPoints()) {
                 calculatePointCoordinates(point);
                 if (point.getDistance() < maxDistance && point.isDrawn()) {
                     if (point.getRenderer() != null) {
@@ -184,11 +184,11 @@ public abstract class AppuntaView extends View {
         this.onPointPressedListener = onPointPressedListener;
     }
 
-    protected List<? extends Point> getpoints() {
+    protected List<? extends Point> getPoints() {
         return points;
     }
 
-    public void setPosition(Location location) {
+    public void setLocationAndCalculatePointDistances(Location location) {
         this.location = location;
         PointsUtil.calculateDistance(points, location);
     }
