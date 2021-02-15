@@ -53,14 +53,14 @@ class CameraFragment :
     private fun FragmentCameraBinding.initARViews(points: List<Point>, location: Location) {
         eyeView.maxDistance = MAX_RENDER_DISTANCE_METERS
         eyeView.onPointPressedListener = this@CameraFragment
-        eyeView.pointRenderer = RectViewRenderer()
         eyeView.setPoints(points)
+        eyeView.pointRenderer = RectViewRenderer()
         eyeView.setLocationAndCalculatePointDistances(location)
 
         radarView.maxDistance = MAX_RENDER_DISTANCE_METERS
         radarView.rotableBackground = R.drawable.radar_arrow
-        radarView.pointRenderer = SimplePointRenderer()
         radarView.setPoints(points)
+        radarView.pointRenderer = SimplePointRenderer()
         radarView.setLocationAndCalculatePointDistances(location)
 
         cameraContainer.addView(CameraView(requireContext()))
