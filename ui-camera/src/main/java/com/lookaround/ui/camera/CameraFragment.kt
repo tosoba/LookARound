@@ -46,7 +46,7 @@ class CameraFragment :
     internal fun initAR() {
         val points = SamplePoints.get()
         points.forEach(::ARObject)
-        val location = LocationFactory.createLocation(1.383873, 2.156574, 12.0)
+        val location = LocationFactory.createLocation(41.383873, 2.156574, 12.0)
         binding.initARViews(points, location)
     }
 
