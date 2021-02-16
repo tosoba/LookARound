@@ -1,63 +1,64 @@
-package com.lookaround.core.android.appunta.view;
+package com.lookaround.core.android.appunta.view
 
-import android.content.Context;
-import android.graphics.Canvas;
-import android.location.Location;
-import android.util.AttributeSet;
-import android.view.MotionEvent;
-import android.view.View;
-
-import com.lookaround.core.android.appunta.orientation.Orientation;
-import com.lookaround.core.android.appunta.point.Point;
-import com.lookaround.core.android.appunta.point.PointsUtil;
-import com.lookaround.core.android.appunta.renderer.PointRenderer;
-
-import java.util.List;
+import android.content.Context
+import android.graphics.Canvas
+import android.location.Location
+import android.util.AttributeSet
+import android.view.MotionEvent
+import android.view.View
+import com.lookaround.core.android.appunta.orientation.Orientation
+import com.lookaround.core.android.appunta.point.Point
+import com.lookaround.core.android.appunta.point.PointsUtil
+import com.lookaround.core.android.appunta.renderer.PointRenderer
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 /***
- * <p>This is the base class in order to create Views using the Appunta system.
- * The class has all needed calculations and values to retrieve info from points.</p>
  *
- * <p>It's important to understand how this will work. All the stuff happens in the onDraw Method.
+ * This is the base class in order to create Views using the Appunta system.
+ * The class has all needed calculations and values to retrieve info from points.
  *
- * <p>The {@link #onDraw} method has three phases: <b>preRender</b>, <b>pointRendering</b> & <b>postRender</b>. </p>
- * <ul>
- * <li>The <b>preRender</b> phase triggers the method {@link #preRender}, used to draw all needed elements used in
- * the background.</li>
+ * It's important to understand how this will work. All the stuff happens in the onDraw Method.
  *
- * <li>In the <b>pointRendering</b> phase, the method calculatePointCoordinates(SimplePoint) is invoked per each on of the points, 
+ * The [.onDraw] method has three phases: **preRender**, **pointRendering** & **postRender**.
+ *
+ *  * The **preRender** phase triggers the method [.preRender], used to draw all needed elements used in
+ * the background.
+ *
+ *  * In the **pointRendering** phase, the method calculatePointCoordinates(SimplePoint) is invoked per each on of the points,
  * in order to calculate the screen coordinates for each one of them. Then, they are painted by calling
  * their PaintRenderer.
- * </li>
  *
- * <li>In the <b>Post render</b> phase, the {@link #postRender(Canvas)} method is invoked in order to paint
- * the foreground layer.</li>
- * </ul>
+ *  * In the **Post render** phase, the [.postRender] method is invoked in order to paint
+ * the foreground layer.
+ *
  */
-public abstract class AppuntaView extends View {
-    /**
-     * The default max distance that will be shown if not changed
-     */
-    private static final double DEFAULT_MAX_DISTANCE = 1000;
-    private Location location;
-    private double maxDistance = DEFAULT_MAX_DISTANCE;
-    private List<? extends Point> points;
-    private OnPointPressedListener onPointPressedListener;
-    private PointRenderer pointRenderer;
-    private Orientation orientation;
-    private int phoneRotation = 0;
+abstract class AppuntaView : View {
+    var location: Location = Location("")
+        set(value) {
+            field = value
+            PointsUtil.calculateDistance(points, field)
+        }
+    var maxDistance = DEFAULT_MAX_DISTANCE
+        set(value) {
+            field = value
+            invalidate()
+        }
+    var points: List<Point> = emptyList()
+    var onPointPressedListener: OnPointPressedListener? = null
+    var pointRenderer: PointRenderer? = null
+    var orientation: Orientation = Orientation()
+        set(value) {
+            field = value
+            invalidate()
+        }
+    var phoneRotation = 0
 
-    public AppuntaView(Context context) {
-        super(context);
-    }
-
-    public AppuntaView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    public AppuntaView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-    }
+    constructor(context: Context?) : super(context)
+    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
 
     /**
      * Given a screen coordinate, returns the nearest point to that coordinate
@@ -66,65 +67,41 @@ public abstract class AppuntaView extends View {
      * @param y The Y coordinate
      * @return The nearest point to coordinate X,Y
      */
-    protected Point findNearestPoint(float x, float y) {
-        Point nearest = null;
-        double minorDistance = Math.max(this.getWidth(), this.getHeight());
-        for (Point point : getPoints()) {
-            double distance = Math.sqrt(Math.pow((point.getX() - x), 2)
-                    + Math.pow((point.getY() - y), 2));
+    protected fun findNearestPoint(x: Float, y: Float): Point? {
+        var nearest: Point? = null
+        var minorDistance = width.coerceAtLeast(height).toDouble()
+        for (point in points) {
+            val distance = sqrt((point.x - x).toDouble().pow(2.0) + (point.y - y).toDouble().pow(2.0))
             if (distance < minorDistance) {
-                minorDistance = distance;
-                nearest = point;
+                minorDistance = distance
+                nearest = point
             }
         }
-        return nearest;
+        return nearest
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        if (getOrientation() == null) return;
-        PointsUtil.calculateDistance(points, location);
-        preRender(canvas);
-        if (getPoints() != null) {
-            for (Point point : getPoints()) {
-                calculatePointCoordinates(point);
-                if (point.getDistance() < maxDistance && point.isDrawn()) {
-                    if (point.getRenderer() != null) {
-                        point.getRenderer().drawPoint(point, canvas, orientation);
-                    } else {
-                        if (this.pointRenderer != null) {
-                            getPointRenderer().drawPoint(point, canvas, orientation);
-                        }
-                    }
-                }
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        PointsUtil.calculateDistance(points, location)
+        preRender(canvas)
+        for (point in points) {
+            calculatePointCoordinates(point)
+            if (point.distance < maxDistance && point.isDrawn) {
+                point.renderer?.drawPoint(point, canvas, orientation)
+                    ?: pointRenderer?.drawPoint(point, canvas, orientation)
             }
         }
-        postRender(canvas);
+        postRender(canvas)
     }
 
-    /***
-     * Returns the correct size of the control when needed (Basically
-     * maintaining the ratio)
-     */
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            Point p = findNearestPoint(event.getX(), event.getY());
-
-            if (p != null && getOnPointPressedListener() != null) {
-                if (Math.abs(p.getX() - event.getX()) < 50 && Math.abs(p.getY() - event.getY()) < 50) {
-                    onPointPressedListener.onPointPressed(p);
-                }
-            }
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        onPointPressedListener?.let { listener ->
+            if (event.action != MotionEvent.ACTION_DOWN) return@let
+            findNearestPoint(event.x, event.y)
+                ?.takeIf { point -> abs(point.x - event.x) < 50 && abs(point.y - event.y) < 50 }
+                ?.let(listener::onPointPressed)
         }
-
-        return super.onTouchEvent(event);
+        return super.onTouchEvent(event)
     }
 
     /**
@@ -132,7 +109,7 @@ public abstract class AppuntaView extends View {
      *
      * @param canvas The canvas where to draw
      */
-    protected abstract void preRender(Canvas canvas);
+    protected abstract fun preRender(canvas: Canvas)
 
     /**
      * This method will be called for each point on the rendering process, in order to determine where this point
@@ -140,94 +117,33 @@ public abstract class AppuntaView extends View {
      *
      * @param point The point to calculate
      */
-    protected abstract void calculatePointCoordinates(Point point);
+    protected abstract fun calculatePointCoordinates(point: Point)
 
     /**
      * This is the last method called during the painting process. It's used to draw the foreground layer
      *
      * @param canvas The canvas where to draw
      */
-    protected abstract void postRender(Canvas canvas);
+    protected abstract fun postRender(canvas: Canvas)
 
-    protected double getAngle(Point point) {
-        return Math.atan2(point.getLocation().getLatitude() - location.getLatitude(),
-                point.getLocation().getLongitude() - location.getLongitude());
-    }
+    protected fun getAngle(point: Point): Double = atan2(
+        point.location.latitude - location.latitude,
+        point.location.longitude - location.longitude
+    )
 
-    protected double getVerticalAngle(Point point) {
-        return Math.atan2(point.getDistance(), location.getAltitude());
-    }
-
-    public Location getLocation() {
-        return location;
-    }
-
-    public void setLocation(Location location) {
-        this.location = location;
-    }
-
-    public double getMaxDistance() {
-        return maxDistance;
-    }
-
-    public void setMaxDistance(double maxDistance) {
-        this.maxDistance = maxDistance;
-        this.invalidate();
-    }
-
-    public OnPointPressedListener getOnPointPressedListener() {
-        return onPointPressedListener;
-    }
-
-    public void setOnPointPressedListener(
-            OnPointPressedListener onPointPressedListener) {
-        this.onPointPressedListener = onPointPressedListener;
-    }
-
-    protected List<? extends Point> getPoints() {
-        return points;
-    }
-
-    public void setLocationAndCalculatePointDistances(Location location) {
-        this.location = location;
-        PointsUtil.calculateDistance(points, location);
-    }
-
-    public void setPoints(List<? extends Point> points) {
-        this.points = points;
-    }
-
-    public PointRenderer getPointRenderer() {
-        return pointRenderer;
-    }
-
-    public void setPointRenderer(PointRenderer pointRenderer) {
-        this.pointRenderer = pointRenderer;
-    }
-
-    public Orientation getOrientation() {
-        return orientation;
-    }
-
-    public void setOrientation(Orientation orientation) {
-        this.orientation = orientation;
-        this.invalidate();
-    }
-
-    public int getPhoneRotation() {
-        return phoneRotation;
-    }
-
-    public void setPhoneRotation(int phoneRotation) {
-        this.phoneRotation = phoneRotation;
-    }
+    protected fun getVerticalAngle(point: Point): Double = atan2(point.distance, location.altitude)
 
     /**
      * This interface represents an object able to be called when a point is pressed
-     *
-     * @author Sergi Mart�nez
      */
-    public interface OnPointPressedListener {
-        void onPointPressed(Point p);
+    interface OnPointPressedListener {
+        fun onPointPressed(point: Point)
+    }
+
+    companion object {
+        /**
+         * The default max distance that will be shown if not changed
+         */
+        private const val DEFAULT_MAX_DISTANCE = 1000.0
     }
 }

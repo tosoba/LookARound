@@ -1,42 +1,52 @@
-package com.lookaround.core.android.appunta.orientation;
+package com.lookaround.core.android.appunta.orientation
 
-import android.content.Context;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.view.WindowManager;
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.view.WindowManager
+import androidx.annotation.MainThread
+import kotlin.math.abs
 
 /**
  * This class is responsible for providing the measure of the compass (in the 3
  * axis) everytime it changes and dealing with the service
  */
-public class OrientationManager implements SensorEventListener {
-    public static final int MODE_COMPASS = 0;
-    public static final int MODE_AR = 1;
-
-    private static final float CIRCLE = (float) (Math.PI * 2);
-    private static final float SMOOTH_THRESHOLD = CIRCLE / 3;
-    private static final float SMOOTH_FACTOR = .03f;
-
+class OrientationManager : SensorEventListener {
     // <<<< ORIGINAL VALUES: >>>>
-//    private static final float SMOOTH_THRESHOLD = CIRCLE / 6;
-//    private static final float SMOOTH_FACTOR = SMOOTH_THRESHOLD / 5;
+    //    private static final float SMOOTH_THRESHOLD = CIRCLE / 6;
+    //    private static final float SMOOTH_FACTOR = SMOOTH_THRESHOLD / 5;
 
-    private final float[] gravs = new float[3];
-    private final float[] geoMags = new float[3];
-    private final float[] orientationArray = new float[3];
-    private final float[] rotationM = new float[9];
-    private final float[] remappedRotationM = new float[9];
-    private SensorManager sensorManager;
-    private Orientation orientation = new Orientation();
-    private Orientation oldOrientation;
-    private boolean sensorRunning = false;
-    private OnOrientationChangedListener onOrientationChangeListener;
-    private int axisMode = MODE_COMPASS;
-    private int firstAxis = SensorManager.AXIS_Y;
-    private int secondAxis = SensorManager.AXIS_MINUS_X;
-    private boolean failed;
+    private val gravs = FloatArray(3)
+    private val geoMags = FloatArray(3)
+    private val orientationArray = FloatArray(3)
+    private val rotationM = FloatArray(9)
+    private val remappedRotationM = FloatArray(9)
+
+    private var sensorManager: SensorManager? = null
+    var orientation = Orientation()
+    private var oldOrientation: Orientation? = null
+    private var sensorRunning = false
+
+    // Setters and getter for the three listeners (Bob, Moe and Curly)
+    var onCompassChangeListener: OnOrientationChangedListener? = null
+        private set
+    var axisMode = MODE_COMPASS
+        set(axisMode) {
+            field = axisMode
+            if (axisMode == MODE_COMPASS) {
+                firstAxis = SensorManager.AXIS_Y
+                secondAxis = SensorManager.AXIS_MINUS_X
+            }
+            if (axisMode == MODE_AR) {
+                firstAxis = SensorManager.AXIS_X
+                secondAxis = SensorManager.AXIS_Z
+            }
+        }
+    private var firstAxis = SensorManager.AXIS_Y
+    private var secondAxis = SensorManager.AXIS_MINUS_X
+    private var failed = false
 
     /***
      * This constructor will generate and start a Compass Manager
@@ -44,93 +54,81 @@ public class OrientationManager implements SensorEventListener {
      * @param context
      * The context where the service will work
      */
-    public OrientationManager(Context context) {
-        startSensor(context);
+    constructor(context: Context) {
+        startSensor(context)
     }
 
     /***
      * This constructor will generate a Compass Manager, but it will need to be
-     * started manually using {@link #startSensor}
+     * started manually using [.startSensor]
      */
-    public OrientationManager() {
-    }
-
-    public static int getPhoneRotation(Context context) {
-        return ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
-    }
+    constructor()
 
     /***
      * This method registers this class as a listener of the Sensor service
      *
      * @param context
-     *            The context over this will work
+     * The context over this will work
      */
-    public void startSensor(Context context) {
+    @MainThread
+    fun startSensor(context: Context) {
         if (!sensorRunning) {
-            sensorManager = (SensorManager) context
-                    .getSystemService(Context.SENSOR_SERVICE);
-            sensorManager.registerListener(this,
-                    sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-                    SensorManager.SENSOR_DELAY_UI);
-            sensorManager.registerListener(this,
-                    sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                    SensorManager.SENSOR_DELAY_UI);
-
-            sensorRunning = true;
+            val manager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            manager.registerListener(
+                this,
+                manager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+                SensorManager.SENSOR_DELAY_UI
+            )
+            manager.registerListener(
+                this,
+                manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                SensorManager.SENSOR_DELAY_UI
+            )
+            sensorManager = manager
+            sensorRunning = true
         }
     }
 
     /***
      * Detects a change in a sensor and warns the appropiate listener.
      */
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        switch (event.sensor.getType()) {
-            case Sensor.TYPE_ACCELEROMETER:
-                System.arraycopy(event.values, 0, gravs, 0, 3);
-                break;
-            case Sensor.TYPE_MAGNETIC_FIELD:
-                System.arraycopy(event.values, 0, geoMags, 0, 3);
-                break;
-            default:
-                return;
+    override fun onSensorChanged(event: SensorEvent) {
+        when (event.sensor.type) {
+            Sensor.TYPE_ACCELEROMETER -> System.arraycopy(event.values, 0, gravs, 0, 3)
+            Sensor.TYPE_MAGNETIC_FIELD -> System.arraycopy(event.values, 0, geoMags, 0, 3)
+            else -> return
         }
 
         if (SensorManager.getRotationMatrix(rotationM, null, gravs, geoMags)) {
             // Rotate to the camera's line of view (Y axis along the camera's axis)
-            SensorManager.remapCoordinateSystem(rotationM, firstAxis, secondAxis, remappedRotationM);
-            SensorManager.getOrientation(remappedRotationM, orientationArray);
-            onSuccess();
+            SensorManager.remapCoordinateSystem(rotationM, firstAxis, secondAxis, remappedRotationM)
+            SensorManager.getOrientation(remappedRotationM, orientationArray)
+            onSuccess()
         } else {
-            failed = true;
+            failed = true
         }
     }
 
-    private void onSuccess() {
-        if (failed) failed = false;
+    private fun onSuccess() {
+        if (failed) failed = false
 
         // Convert the azimuth to degrees in 0.5 degree resolution.
-        float x = orientationArray[1];
-        float y = orientationArray[0];
-        float z = orientationArray[2];
+        val x = orientationArray[1]
+        val y = orientationArray[0]
+        val z = orientationArray[2]
 
-//        if (axisMode == MODE_AR)y=y+(getPhoneRotation(context))*CIRCLE/4;
-
-        if (oldOrientation == null) {
-            orientation.setX(x);
-            orientation.setY(y);
-            orientation.setZ(z);
-        } else {
-            orientation.setX(lowPass(x, oldOrientation.getX()));
-            orientation.setY(lowPass(y, oldOrientation.getY()));
-            orientation.setZ(lowPass(z, oldOrientation.getZ()));
+        oldOrientation?.let {
+            orientation.x = lowPass(x, it.x)
+            orientation.y = lowPass(y, it.y)
+            orientation.z = lowPass(z, it.z)
+        } ?: run {
+            orientation.x = x
+            orientation.y = y
+            orientation.z = z
         }
 
-        oldOrientation = orientation;
-
-        if (getOnCompassChangeListener() != null) {
-            getOnCompassChangeListener().onOrientationChanged(orientation);
-        }
+        oldOrientation = orientation
+        onCompassChangeListener?.onOrientationChanged(orientation)
     }
 
     /**
@@ -140,91 +138,42 @@ public class OrientationManager implements SensorEventListener {
      * @param lowValue the old sensor value
      * @return and intermediate value
      */
-    public float lowPass(float newValue, float lowValue) {
-        float lowPassValue;
-        if (Math.abs(newValue - lowValue) < CIRCLE / 2) {
-            if (Math.abs(newValue - lowValue) > SMOOTH_THRESHOLD) {
-                lowPassValue = newValue;
-            } else {
-                lowPassValue = lowValue + SMOOTH_FACTOR * (newValue - lowValue);
-            }
+    fun lowPass(newValue: Float, lowValue: Float): Float = if (abs(newValue - lowValue) < CIRCLE / 2) {
+        if (abs(newValue - lowValue) > SMOOTH_THRESHOLD) {
+            newValue
         } else {
-            if (CIRCLE - Math.abs(newValue - lowValue) > SMOOTH_THRESHOLD) {
-                lowPassValue = newValue;
+            lowValue + SMOOTH_FACTOR * (newValue - lowValue)
+        }
+    } else {
+        if (CIRCLE - abs(newValue - lowValue) > SMOOTH_THRESHOLD) {
+            newValue
+        } else {
+            if (lowValue > newValue) {
+                ((lowValue + (SMOOTH_FACTOR * ((CIRCLE + newValue - lowValue) % CIRCLE)) + CIRCLE) % CIRCLE)
             } else {
-                if (lowValue > newValue) {
-                    lowPassValue = (lowValue + SMOOTH_FACTOR
-                            * ((CIRCLE + newValue - lowValue) % CIRCLE) + CIRCLE)
-                            % CIRCLE;
-                } else {
-                    lowPassValue = (lowValue - SMOOTH_FACTOR
-                            * ((CIRCLE - newValue + lowValue) % CIRCLE) + CIRCLE)
-                            % CIRCLE;
-                }
+                ((lowValue - SMOOTH_FACTOR * ((CIRCLE - newValue + lowValue) % CIRCLE) + CIRCLE) % CIRCLE)
             }
         }
-        return lowPassValue;
     }
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // Space for rent
-    }
+    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) = Unit
 
     /***
      * We stop "hearing" the sensors
      */
-    public void stopSensor() {
+    @MainThread
+    fun stopSensor() {
         if (sensorRunning) {
-            sensorManager.unregisterListener(this);
-            sensorRunning = false;
+            sensorManager?.unregisterListener(this)
+            sensorRunning = false
         }
     }
 
-    /***
-     * Just in case, we stop the sensor
-     */
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        stopSensor();
+    fun setOnOrientationChangeListener(onOrientationChangeListener: OnOrientationChangedListener?) {
+        onCompassChangeListener = onOrientationChangeListener
     }
 
-    // Setters and getter for the three listeners (Bob, Moe and Curly)
-
-    public OnOrientationChangedListener getOnCompassChangeListener() {
-        return onOrientationChangeListener;
-    }
-
-    public void setOnOrientationChangeListener(OnOrientationChangedListener onOrientationChangeListener) {
-        this.onOrientationChangeListener = onOrientationChangeListener;
-    }
-
-    public Orientation getOrientation() {
-        return orientation;
-    }
-
-    public void setOrientation(Orientation orientation) {
-        this.orientation = orientation;
-    }
-
-    public int getAxisMode() {
-        return axisMode;
-    }
-
-    public void setAxisMode(int axisMode) {
-        this.axisMode = axisMode;
-        if (axisMode == MODE_COMPASS) {
-            firstAxis = SensorManager.AXIS_Y;
-            secondAxis = SensorManager.AXIS_MINUS_X;
-        }
-        if (axisMode == MODE_AR) {
-            firstAxis = SensorManager.AXIS_X;
-            secondAxis = SensorManager.AXIS_Z;
-        }
-    }
-
-    public interface OnOrientationChangedListener {
+    interface OnOrientationChangedListener {
         /***
          * This method will be invoked when the magnetic orientation of the
          * phone changed
@@ -232,6 +181,19 @@ public class OrientationManager implements SensorEventListener {
          * @param orientation
          * Orientation on degrees. 360-0 is north.
          */
-        void onOrientationChanged(Orientation orientation);
+        fun onOrientationChanged(orientation: Orientation)
+    }
+
+    companion object {
+        const val MODE_COMPASS = 0
+        const val MODE_AR = 1
+
+        private const val CIRCLE = (Math.PI * 2).toFloat()
+        private const val SMOOTH_THRESHOLD = CIRCLE / 3
+        private const val SMOOTH_FACTOR = .03f
+
+        fun getPhoneRotation(context: Context): Int {
+            return (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
+        }
     }
 }

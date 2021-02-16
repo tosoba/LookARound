@@ -1,46 +1,45 @@
-package com.lookaround.core.android.appunta.renderer.impl;
+package com.lookaround.core.android.appunta.renderer.impl
 
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Typeface;
-
-import com.lookaround.core.android.appunta.orientation.Orientation;
-import com.lookaround.core.android.appunta.point.Point;
-import com.lookaround.core.android.appunta.renderer.PointRenderer;
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Typeface
+import com.lookaround.core.android.appunta.orientation.Orientation
+import com.lookaround.core.android.appunta.point.Point
+import com.lookaround.core.android.appunta.renderer.PointRenderer
 
 /***
  * This class is used to generate a PointRenderer using a drawable
  * resource
  */
-public class AugmentedDrawablePointRenderer implements PointRenderer {
+class AugmentedDrawablePointRenderer : PointRenderer {
     /***
      * This methods paints the drawable received in constructor and writes the point name beside it
      */
-    @Override
-    public void drawPoint(Point point, Canvas canvas, Orientation orientation) {
-        Paint pText = new Paint(Paint.ANTI_ALIAS_FLAG);
-        pText.setStyle(Paint.Style.STROKE);
-        pText.setTextAlign(Paint.Align.CENTER);
-        pText.setTextSize(20);
-        pText.setTypeface(Typeface.SANS_SERIF);
-        pText.setColor(Color.WHITE);
+    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation?) {
+        val circlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 4f
+            color = Color.WHITE
+        }
+        val size = ((10 - point.distance) * 6).toFloat()
+        canvas.drawCircle(point.x, point.y, size, circlePaint)
 
-        Paint pCircle = new Paint(Paint.ANTI_ALIAS_FLAG);
-        pCircle.setStyle(Paint.Style.STROKE);
-        pCircle.setStrokeWidth(4);
-        pCircle.setColor(Color.WHITE);
-
-        Paint pBlackLine = new Paint(Paint.ANTI_ALIAS_FLAG);
-        pBlackLine.setColor(Color.BLACK);
-        pBlackLine.setTextSize(20);
-        pBlackLine.setTypeface(Typeface.SANS_SERIF);
-        pBlackLine.setTextAlign(Paint.Align.CENTER);
-
-        float size = (float) ((10 - point.getDistance()) * 6);
-        canvas.drawCircle(point.getX(), point.getY(), size, pCircle);
-        float textWidth = (float) pText.breakText(point.getName(), true, 500, null) / 2;
-        canvas.drawText(point.getName(), point.getX() - textWidth + 2, point.getY() + size + 16, pBlackLine);
-        canvas.drawText(point.getName(), point.getX() - textWidth, point.getY() + size + 14, pText);
+        val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            textAlign = Paint.Align.CENTER
+            textSize = 20f
+            typeface = Typeface.SANS_SERIF
+            color = Color.WHITE
+        }
+        val textWidth = textPaint.breakText(point.name, true, 500f, null).toFloat() / 2
+        val blackLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.BLACK
+            textSize = 20f
+            typeface = Typeface.SANS_SERIF
+            textAlign = Paint.Align.CENTER
+        }
+        canvas.drawText(point.name, point.x - textWidth + 2, point.y + size + 16, blackLinePaint)
+        canvas.drawText(point.name, point.x - textWidth, point.y + size + 14, textPaint)
     }
 }

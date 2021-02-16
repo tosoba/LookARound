@@ -1,16 +1,14 @@
-package com.lookaround.core.android.appunta.math3d;
+package com.lookaround.core.android.appunta.math3d
 
-public class Vector3 {
-    public double x;
-    public double y;
-    public double z;
+class Vector3 {
+    var x = 0.0
+    var y = 0.0
+    var z = 0.0
 
-    public Vector3() {
-    }
-
-    public Vector3(double x, double y, double z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    constructor()
+    constructor(x: Double, y: Double, z: Double) {
+        this.x = x
+        this.y = y
+        this.z = z
     }
 }

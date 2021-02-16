@@ -1,21 +1,24 @@
-package com.lookaround.core.android.appunta.math3d;
+package com.lookaround.core.android.appunta.math3d
+
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * The list of trigonometric values (sin and cos) of a Vector3
  */
-public class Trig1 {
-    public double sin;
-    public double cos;
+class Trig1 {
+    var sin = 0.0
+        private set
+    var cos = 0.0
+        private set
 
-    public Trig1() {
+    constructor()
+    constructor(point: Vector1) {
+        setVector1(point)
     }
 
-    public Trig1(Vector1 point) {
-        setVector1(point);
-    }
-
-    public void setVector1(Vector1 point) {
-        sin = Math.sin(point.v);
-        cos = Math.cos(point.v);
+    fun setVector1(point: Vector1) {
+        sin = sin(point.v)
+        cos = cos(point.v)
     }
 }

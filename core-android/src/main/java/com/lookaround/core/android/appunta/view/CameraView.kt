@@ -1,123 +1,94 @@
-package com.lookaround.core.android.appunta.view;
+package com.lookaround.core.android.appunta.view
 
-import android.content.Context;
-import android.hardware.Camera;
-import android.util.AttributeSet;
-import android.view.Display;
-import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceHolder.Callback;
-import android.view.SurfaceView;
-import android.view.WindowManager;
+import android.content.Context
+import android.hardware.Camera
+import android.hardware.Camera.CameraInfo
+import android.util.AttributeSet
+import android.view.*
+import java.io.IOException
 
-import java.io.IOException;
-import java.lang.reflect.Method;
+class CameraView : SurfaceView, SurfaceHolder.Callback {
+    private var camera: Camera? = null
+    private var isPreviewRunning = false
+    private var surfaceHolder: SurfaceHolder = holder.apply { addCallback(this@CameraView) }
 
-public class CameraView extends SurfaceView implements Callback {
-    Camera camera;
-    SurfaceHolder previewHolder;
-    private boolean isPreviewRunning;
+    constructor(ctx: Context?) : super(ctx)
 
-    public CameraView(Context ctx) {
-        super(ctx);
-        init();
-    }
+    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
 
-    public CameraView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
+    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
 
-    public CameraView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-        init();
-    }
-
-    protected static void setDisplayOrientation(Camera camera, int angle) {
-        Method downPolymorphic;
+    override fun surfaceCreated(holder: SurfaceHolder) {
+        camera = Camera.open()
+        setCameraDisplayOrientation(camera)
         try {
-            downPolymorphic = camera.getClass().getMethod(
-                    "setDisplayOrientation", int.class);
-            if (downPolymorphic != null)
-                downPolymorphic.invoke(camera, angle);
-        } catch (Exception e1) {
+            camera?.setPreviewDisplay(holder)
+        } catch (e1: IOException) {
         }
+        camera?.startPreview()
     }
 
-    private void init() {
-        previewHolder = this.getHolder();
-        previewHolder.addCallback(this);
+    fun stopPreview() {
+        camera?.stopPreview()
     }
 
-    public void surfaceCreated(SurfaceHolder holder) {
-        camera = Camera.open();
-        setCameraDisplayOrientation(camera);
-        try {
-            camera.setPreviewDisplay(holder);
-        } catch (IOException e1) {
-        }
-        camera.startPreview();
+    fun startPreview() {
+        camera?.startPreview()
     }
 
-    public void stopPreview() {
-        camera.stopPreview();
-    }
-
-    public void startPreview() {
-        camera.startPreview();
-    }
-
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         if (isPreviewRunning) {
-            camera.stopPreview();
+            camera?.stopPreview()
         }
-        setCameraDisplayOrientation(camera);
-        previewCamera();
+        setCameraDisplayOrientation(camera)
+        previewCamera()
     }
 
-    public void previewCamera() {
+    fun previewCamera() {
         try {
-            camera.setPreviewDisplay(previewHolder);
-            camera.startPreview();
-            isPreviewRunning = true;
-        } catch (Exception e) {
+            camera?.setPreviewDisplay(surfaceHolder)
+            camera?.startPreview()
+            isPreviewRunning = true
+        } catch (e: Exception) {
         }
     }
 
-    public void surfaceDestroyed(SurfaceHolder arg0) {
-        camera.stopPreview();
-        camera.release();
+    override fun surfaceDestroyed(arg0: SurfaceHolder) {
+        camera?.stopPreview()
+        camera?.release()
     }
 
-    private void setCameraDisplayOrientation(Camera camera) {
-        Camera.CameraInfo info = new Camera.CameraInfo();
-        Camera.getCameraInfo(0, info);
-        Display display = ((WindowManager) getContext().getSystemService(
-                Context.WINDOW_SERVICE)).getDefaultDisplay();
-        int rotation = display.getRotation();
-        int degrees = 0;
-        switch (rotation) {
-            case Surface.ROTATION_0:
-                degrees = 0;
-                break;
-            case Surface.ROTATION_90:
-                degrees = 90;
-                break;
-            case Surface.ROTATION_180:
-                degrees = 180;
-                break;
-            case Surface.ROTATION_270:
-                degrees = 270;
-                break;
+    private fun setCameraDisplayOrientation(camera: Camera?) {
+        val info = CameraInfo()
+        Camera.getCameraInfo(0, info)
+        val display = (context.getSystemService(
+            Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+        val rotation = display.rotation
+        var degrees = 0
+        when (rotation) {
+            Surface.ROTATION_0 -> degrees = 0
+            Surface.ROTATION_90 -> degrees = 90
+            Surface.ROTATION_180 -> degrees = 180
+            Surface.ROTATION_270 -> degrees = 270
         }
-
-        int result;
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            result = (info.orientation + degrees) % 360;
-            result = (360 - result) % 360;  // compensate the mirror
+        var result: Int
+        if (info.facing == CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360
+            result = (360 - result) % 360 // compensate the mirror
         } else {  // back-facing
-            result = (info.orientation - degrees + 360) % 360;
+            result = (info.orientation - degrees + 360) % 360
         }
-        setDisplayOrientation(camera, result);
+        setDisplayOrientation(camera, result)
+    }
+
+    companion object {
+        private fun setDisplayOrientation(camera: Camera?, angle: Int) {
+            try {
+                camera?.javaClass
+                    ?.getMethod("setDisplayOrientation", Int::class.javaPrimitiveType)
+                    ?.invoke(camera, angle)
+            } catch (e1: Exception) {
+            }
+        }
     }
 }

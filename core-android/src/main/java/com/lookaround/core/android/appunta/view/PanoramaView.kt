@@ -1,66 +1,52 @@
-package com.lookaround.core.android.appunta.view;
+package com.lookaround.core.android.appunta.view
 
-import android.content.Context;
-import android.graphics.Canvas;
-import android.util.AttributeSet;
+import android.content.Context
+import android.graphics.Canvas
+import android.util.AttributeSet
+import com.lookaround.core.android.appunta.point.Point
 
-import com.lookaround.core.android.appunta.point.Point;
+class PanoramaView : AppuntaView {
+    constructor(context: Context?) : super(context)
+    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
 
-public class PanoramaView extends AppuntaView {
-    private static final double VISIBLE_DEGREES = Math.PI / 3;
-    private static final double MAX_DEGREES = Math.PI * 2;
+    override fun preRender(canvas: Canvas) = Unit
 
-    public PanoramaView(Context context) {
-        super(context);
+    override fun calculatePointCoordinates(point: Point) {
+        val angularDistance = angleDifference(
+            Math.toRadians(orientation.x.toDouble()),
+            MAX_DEGREES / 4 - getAngle(point)
+        )
+        point.x = ((angularDistance + VISIBLE_DEGREES / 2) * width / VISIBLE_DEGREES).toFloat()
+        point.y = (height - height * point.distance / maxDistance).toFloat()
     }
 
-    public PanoramaView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    override fun postRender(canvas: Canvas) = Unit
+
+    private fun angleDifference(centered: Double, moved: Double): Double {
+        val cwDiff = cwDifference(centered, moved)
+        val ccwDiff = ccwDiference(centered, moved)
+        return if (cwDiff < ccwDiff) cwDiff else -ccwDiff
     }
 
-    PanoramaView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-    }
-
-    @Override
-    protected void preRender(Canvas canvas) {
-    }
-
-    @Override
-    protected void calculatePointCoordinates(Point point) {
-        double angularDistance = angleDifference(Math.toRadians(getOrientation().getX()), MAX_DEGREES
-                / 4 - getAngle(point));
-        point.setX((float) ((angularDistance + VISIBLE_DEGREES / 2) * getWidth() / VISIBLE_DEGREES));
-        point.setY((float) (getHeight() - getHeight() * point.getDistance() / getMaxDistance()));
-    }
-
-    @Override
-    protected void postRender(Canvas canvas) {
-    }
-
-    private double angleDifference(double centered, double moved) {
-        double cwDiff = cwDifference(centered, moved);
-        double ccwDiff = ccwDiference(centered, moved);
-        if (cwDiff < ccwDiff) {
-            return cwDiff;
-        } else {
-            return -ccwDiff;
-        }
-    }
-
-    private double cwDifference(double centered, double moved) {
-        double cw = moved - centered;
+    private fun cwDifference(centered: Double, moved: Double): Double {
+        var cw = moved - centered
         if (cw < 0) {
-            cw += MAX_DEGREES;
+            cw += MAX_DEGREES
         }
-        return cw;
+        return cw
     }
 
-    private double ccwDiference(double centered, double moved) {
-        double ccw = centered - moved;
+    private fun ccwDiference(centered: Double, moved: Double): Double {
+        var ccw = centered - moved
         if (ccw < 0) {
-            ccw += MAX_DEGREES;
+            ccw += MAX_DEGREES
         }
-        return ccw;
+        return ccw
+    }
+
+    companion object {
+        private const val VISIBLE_DEGREES = Math.PI / 3
+        private const val MAX_DEGREES = Math.PI * 2
     }
 }

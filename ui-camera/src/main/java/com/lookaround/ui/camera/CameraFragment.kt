@@ -46,22 +46,22 @@ class CameraFragment :
     internal fun initAR() {
         val points = SamplePoints.get()
         points.forEach(::ARObject)
-        val location = LocationFactory.createLocation(41.383873, 2.156574, 12.0)
+        val location = LocationFactory.create(41.383873, 2.156574, 12.0)
         binding.initARViews(points, location)
     }
 
     private fun FragmentCameraBinding.initARViews(points: List<Point>, location: Location) {
         eyeView.maxDistance = MAX_RENDER_DISTANCE_METERS
         eyeView.onPointPressedListener = this@CameraFragment
-        eyeView.setPoints(points)
+        eyeView.points = points
         eyeView.pointRenderer = RectViewRenderer()
-        eyeView.setLocationAndCalculatePointDistances(location)
+        eyeView.location = location
 
         radarView.maxDistance = MAX_RENDER_DISTANCE_METERS
         radarView.rotableBackground = R.drawable.radar_arrow
-        radarView.setPoints(points)
+        radarView.points = points
         radarView.pointRenderer = SimplePointRenderer()
-        radarView.setLocationAndCalculatePointDistances(location)
+        radarView.location = location
 
         cameraContainer.addView(CameraView(requireContext()))
     }
@@ -85,7 +85,7 @@ class CameraFragment :
     }
 
     override fun onDestroyView() {
-        ARObject.getObjects().clear()
+        ARObject.objects.clear()
         super.onDestroyView()
     }
 

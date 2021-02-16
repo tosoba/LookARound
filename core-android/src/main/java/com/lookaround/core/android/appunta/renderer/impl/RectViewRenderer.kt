@@ -1,104 +1,85 @@
-package com.lookaround.core.android.appunta.renderer.impl;
+package com.lookaround.core.android.appunta.renderer.impl
 
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.RectF;
-import android.location.Location;
-import android.text.TextPaint;
-import android.text.TextUtils;
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.text.TextPaint
+import android.text.TextUtils
+import com.lookaround.core.android.appunta.location.LocationFactory
+import com.lookaround.core.android.appunta.orientation.Orientation
+import com.lookaround.core.android.appunta.point.ARObject
+import com.lookaround.core.android.appunta.point.Point
+import com.lookaround.core.android.appunta.point.PointsUtil
+import com.lookaround.core.android.appunta.renderer.PointRenderer
+import java.util.*
+import kotlin.math.abs
 
-import com.lookaround.core.android.appunta.location.LocationFactory;
-import com.lookaround.core.android.appunta.orientation.Orientation;
-import com.lookaround.core.android.appunta.point.ARObject;
-import com.lookaround.core.android.appunta.point.Point;
-import com.lookaround.core.android.appunta.point.PointsUtil;
-import com.lookaround.core.android.appunta.renderer.PointRenderer;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class RectViewRenderer implements PointRenderer {
-    private final static float baseY = 100f;
-    private final static float dialogHeight = 100f;
-    private final static float dialogWidth = 400f;
-    private final static float textYOffset = 20f;
-
-    public RectViewRenderer() {
-    }
-
-    public static List<Float> getTakenYsByX(ARObject thisPoint) {
-        ArrayList<Float> takenYs = new ArrayList<>();
-        for (ARObject object : ARObject.getObjects()) {
-            if (object.equals(thisPoint) || object.getScreenY() == null) continue;
-            if (thisPoint.willOverlapWith(object, dialogWidth) && !takenYs.contains(object.getScreenY())) {
-                takenYs.add(object.getScreenY());
-            }
+class RectViewRenderer : PointRenderer {
+    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation?) {
+        var y = baseY
+        val objectToDraw: ARObject = ARObject.findByPoint(point) ?: return
+        objectToDraw.screenY?.let { screenY ->
+            y = screenY
+        } ?: run {
+            y = findBestY(getTakenYsByBearing(objectToDraw))
+            objectToDraw.screenY = y
         }
-        return takenYs;
-    }
+        point.y = y
 
-    @Override
-    public void drawPoint(Point point, Canvas canvas, Orientation orientation) {
-        float y = baseY;
+        val rect = RectF(
+            point.x - dialogWidth / 2,
+            point.y - dialogHeight / 2,
+            point.x + dialogWidth / 2,
+            point.y + dialogHeight / 2
+        )
 
-        ARObject object = ARObject.findByPoint(point);
-        if (object != null) {
-            if (object.getScreenY() != null) {
-                y = object.getScreenY();
-            } else {
-                y = findBestY(getTakenYsByBearing(object));
-                object.setScreenY(y);
-            }
+        val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL_AND_STROKE
+            color = Color.parseColor("#70ffffff")
         }
-
-        point.setY(y);
-
-        RectF rect = new RectF(
-                point.getX() - dialogWidth / 2,
-                point.getY() - dialogHeight / 2,
-                point.getX() + dialogWidth / 2,
-                point.getY() + dialogHeight / 2
-        );
-
-        Paint backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        backgroundPaint.setStyle(Paint.Style.FILL_AND_STROKE);
-        backgroundPaint.setColor(Color.parseColor("#70ffffff"));
-
-        TextPaint textPaint = new TextPaint();//The Paint that will draw the text
-        textPaint.setColor(Color.BLACK);//Change the color if your background is white!
-        textPaint.setStyle(Paint.Style.FILL);
-        textPaint.setAntiAlias(true);
-        textPaint.setTextSize(40);
-        textPaint.setTextAlign(Paint.Align.LEFT);
-        textPaint.setLinearText(true);
-
-        int width = (int) (rect.width() - 10); // 10 to keep some space on the right for the "..."
-        CharSequence txt = TextUtils.ellipsize("The loooooong text", textPaint, width, TextUtils.TruncateAt.END);
-        canvas.drawText(txt, 0, txt.length(), point.getX() - dialogWidth / 2 + textYOffset, point.getY(), textPaint);
-
-        canvas.drawRoundRect(rect, 10f, 10f, backgroundPaint);
-    }
-
-    private List<Float> getTakenYsByBearing(ARObject thisPoint) {
-        ArrayList<Float> takenYs = new ArrayList<>();
-        Location userLocation = LocationFactory.createLocation(41.383873, 2.156574, 12);
-        double bearingThis = PointsUtil.calculateBearing(userLocation, thisPoint.getLocation());
-        for (ARObject object : ARObject.getObjects()) {
-            if (object.equals(thisPoint) || object.getScreenY() == null) continue;
-            double bearingCurrent = PointsUtil.calculateBearing(userLocation, object.getLocation());
-            if (Math.abs(bearingCurrent - bearingThis) < 30.0 && !takenYs.contains(object.getScreenY())) {
-                takenYs.add(object.getScreenY());
-            }
+        val textPaint = TextPaint().apply {
+            color = Color.BLACK
+            style = Paint.Style.FILL
+            isAntiAlias = true
+            textSize = 40f
+            textAlign = Paint.Align.LEFT
+            isLinearText = true
         }
-        return takenYs;
+        val width = (rect.width() - 10).toInt() // 10 to keep some space on the right for the "..."
+        val txt = TextUtils.ellipsize("The loooooong text", textPaint, width.toFloat(), TextUtils.TruncateAt.END)
+        canvas.drawText(txt, 0, txt.length, point.x - dialogWidth / 2 + textYOffset, point.y, textPaint)
+        canvas.drawRoundRect(rect, 10f, 10f, backgroundPaint)
     }
 
-    private float findBestY(List<Float> takenYs) {
-        float bestY = baseY;
+    private fun getTakenYsByBearing(thisPoint: ARObject): List<Float> {
+        val takenYs = ArrayList<Float>()
+        val userLocation = LocationFactory.create(41.383873, 2.156574, 12.0)
+        val bearingThis = PointsUtil.calculateBearing(userLocation, thisPoint.location)
+        for (arObject in ARObject.getObjects()) {
+            if (arObject == thisPoint) continue
+            arObject.screenY?.let { screenY ->
+                val bearingCurrent = PointsUtil.calculateBearing(userLocation, arObject.location)
+                if (abs(bearingCurrent - bearingThis) < 30.0 && !takenYs.contains(screenY)) {
+                    takenYs.add(screenY)
+                }
+            } ?: continue
+        }
+        return takenYs
+    }
+
+    private fun findBestY(takenYs: List<Float>): Float {
+        var bestY = baseY
         while (takenYs.contains(bestY)) {
-            bestY += dialogHeight;
+            bestY += dialogHeight
         }
-        return bestY;
+        return bestY
+    }
+
+    companion object {
+        private const val baseY = 100f
+        private const val dialogHeight = 100f
+        private const val dialogWidth = 400f
+        private const val textYOffset = 20f
     }
 }

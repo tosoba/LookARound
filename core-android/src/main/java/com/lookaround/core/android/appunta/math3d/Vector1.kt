@@ -1,5 +1,5 @@
-package com.lookaround.core.android.appunta.math3d;
+package com.lookaround.core.android.appunta.math3d
 
-public class Vector1 {
-    public double v;
+class Vector1 {
+    var v = 0.0
 }
