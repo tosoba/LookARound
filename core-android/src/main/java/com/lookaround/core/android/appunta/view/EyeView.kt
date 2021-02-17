@@ -19,13 +19,13 @@ class EyeView : AppuntaView {
     private val screenRot = Vector1()
     private val screenRotTrig = Trig1()
 
-    constructor(context: Context?) : super(context) {
+    constructor(context: Context?) : super(context)
+    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
+
+    init {
         screenRatio.z = SCREEN_DEPTH.toDouble()
     }
-
-    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
-
-    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
 
     override fun preRender(canvas: Canvas) {
         // For the moment we set a square as ratio. Size is arithmetic mean of width and height

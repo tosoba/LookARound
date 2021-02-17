@@ -12,10 +12,8 @@ class CameraView : SurfaceView, SurfaceHolder.Callback {
     private var isPreviewRunning = false
     private var surfaceHolder: SurfaceHolder = holder.apply { addCallback(this@CameraView) }
 
-    constructor(ctx: Context?) : super(ctx)
-
+    constructor(context: Context?) : super(context)
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
-
     constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
 
     override fun surfaceCreated(holder: SurfaceHolder) {
