@@ -45,7 +45,7 @@ class EyeViewRenderer(
     /***
      * This methods paints the drawable received in constructor and writes the point name beside it
      */
-    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation?) {
+    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation) {
         val xSelectedOff = selectedBitmap.width / 2
         val ySelectedOff = selectedBitmap.height / 2
         val xUnselectedOff = unselectedBitmap.width / 2

@@ -17,6 +17,7 @@ import com.lookaround.core.android.appunta.renderer.impl.RectViewRenderer
 import com.lookaround.core.android.appunta.renderer.impl.SimplePointRenderer
 import com.lookaround.core.android.appunta.view.AppuntaView
 import com.lookaround.core.android.appunta.view.CameraView
+import com.lookaround.core.android.ext.phoneRotation
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnNeverAskAgain
@@ -107,7 +108,7 @@ class CameraFragment :
 
     override fun onOrientationChanged(orientation: Orientation) {
         binding.eyeView.orientation = orientation
-        binding.eyeView.phoneRotation = OrientationManager.getPhoneRotation(requireContext())
+        binding.eyeView.phoneRotation = requireContext().phoneRotation
         binding.radarView.orientation = orientation
     }
 

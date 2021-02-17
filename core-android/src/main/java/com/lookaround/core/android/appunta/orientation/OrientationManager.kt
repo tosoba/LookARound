@@ -14,10 +14,6 @@ import kotlin.math.abs
  * axis) everytime it changes and dealing with the service
  */
 class OrientationManager : SensorEventListener {
-    // <<<< ORIGINAL VALUES: >>>>
-    //    private static final float SMOOTH_THRESHOLD = CIRCLE / 6;
-    //    private static final float SMOOTH_FACTOR = SMOOTH_THRESHOLD / 5;
-
     private val gravs = FloatArray(3)
     private val geoMags = FloatArray(3)
     private val orientationArray = FloatArray(3)
@@ -138,7 +134,7 @@ class OrientationManager : SensorEventListener {
      * @param lowValue the old sensor value
      * @return and intermediate value
      */
-    fun lowPass(newValue: Float, lowValue: Float): Float = if (abs(newValue - lowValue) < CIRCLE / 2) {
+    private fun lowPass(newValue: Float, lowValue: Float): Float = if (abs(newValue - lowValue) < CIRCLE / 2) {
         if (abs(newValue - lowValue) > SMOOTH_THRESHOLD) {
             newValue
         } else {
@@ -189,11 +185,7 @@ class OrientationManager : SensorEventListener {
         const val MODE_AR = 1
 
         private const val CIRCLE = (Math.PI * 2).toFloat()
-        private const val SMOOTH_THRESHOLD = CIRCLE / 3
-        private const val SMOOTH_FACTOR = .03f
-
-        fun getPhoneRotation(context: Context): Int {
-            return (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
-        }
+        private const val SMOOTH_THRESHOLD = CIRCLE / 3 // originally: CIRCLE / 6
+        private const val SMOOTH_FACTOR = .03f // originally: SMOOTH_THRESHOLD / 5
     }
 }

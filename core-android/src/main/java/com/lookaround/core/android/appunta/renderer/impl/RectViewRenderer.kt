@@ -16,7 +16,7 @@ import java.util.*
 import kotlin.math.abs
 
 class RectViewRenderer : PointRenderer {
-    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation?) {
+    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation) {
         var y = baseY
         val objectToDraw: ARObject = ARObject.findByPoint(point) ?: return
         objectToDraw.screenY?.let { screenY ->

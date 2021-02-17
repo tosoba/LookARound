@@ -16,7 +16,7 @@ class AugmentedDrawablePointRenderer : PointRenderer {
     /***
      * This methods paints the drawable received in constructor and writes the point name beside it
      */
-    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation?) {
+    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation) {
         val circlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = 4f

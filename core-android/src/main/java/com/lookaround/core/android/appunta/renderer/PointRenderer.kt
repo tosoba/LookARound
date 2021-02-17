@@ -14,5 +14,5 @@ interface PointRenderer {
      * @param point The point being drawn
      * @param canvas The canvas where to draw
      */
-    fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation?)
+    fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation)
 }

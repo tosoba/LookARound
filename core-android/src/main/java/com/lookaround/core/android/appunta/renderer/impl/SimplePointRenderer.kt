@@ -10,7 +10,7 @@ import com.lookaround.core.android.appunta.renderer.PointRenderer
  * A simple Point renderer used as default by the compass
  */
 class SimplePointRenderer : PointRenderer {
-    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation?) {
+    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation) {
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         paint.color = 0x44FFFFFF
         canvas.drawCircle(point.x, point.y, 5f, paint)

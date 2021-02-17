@@ -27,7 +27,7 @@ class DrawablePointRenderer(private val res: Resources, private val id: Int) : P
     /***
      * This methods paints the drawable received in constructor and writes the point name beside it
      */
-    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation?) {
+    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation) {
         val xOff = bitmap.width / 2
         val yOff = bitmap.height / 2
         canvas.drawBitmap(bitmap, point.x - xOff, point.y - yOff, null)

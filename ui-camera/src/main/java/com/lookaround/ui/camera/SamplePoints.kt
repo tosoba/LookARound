@@ -13,248 +13,248 @@ object SamplePoints {
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.383973, 2.147291, 240.0),
-                renderer,
-                "Adfadfsaf"
+                "Adfadfsaf",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.383635, 2.147591, 30.0),
-                renderer,
-                "Bfdsafsaf"
+                "Bfdsafsaf",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.382379, 2.147548, 37.0),
-                renderer,
-                "Cfdsafsa"
+                "Cfdsafsa",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.386936, 2.147055, 25.0),
-                renderer,
-                "Ddsafsafdaf"
+                "Ddsafsafdaf",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.389077, 2.147248, 34.0),
-                renderer,
-                "Edsafs"
+                "Edsafs",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.414490, 2.179167, 34.0),
-                renderer,
-                "Ffdsafsafas"
+                "Ffdsafsafas",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.412090, 2.188952, 74.0),
-                renderer,
-                "Gdfsafsafas"
+                "Gdfsafsafas",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.403011, 2.196333, 25.0),
-                renderer,
-                "Hfdasfsafd"
+                "Hfdasfsafd",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.408001, 2.198221, 17.0),
-                renderer,
-                "Iadasfas"
+                "Iadasfas",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.411091, 2.196933, 39.0),
-                renderer,
-                "Jadfsfas"
+                "Jadfsfas",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.406265, 2.203071, 45.0),
-                renderer,
-                "K"
+                "K",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.403206, 2.208134, 120.0),
-                renderer,
-                "L"
+                "L",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.401951, 2.194530, 70.0),
-                renderer,
-                "M"
+                "M",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.395157, 2.187965, 43.0),
-                renderer,
-                "N"
+                "N",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.400696, 2.176463, 23.0),
-                renderer,
-                "O"
+                "O",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.407776, 2.185389, 63.0),
-                renderer,
-                "P"
+                "P",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.412701, 2.195217, 57.0),
-                renderer,
-                "Q   "
+                "Q   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.409485, 2.198350, 78.0),
-                renderer,
-                "R   "
+                "R   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.407066, 2.202642, 33.0),
-                renderer,
-                "S   "
+                "S   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.405521, 2.205946, 32.0),
-                renderer,
-                "T   "
+                "T   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.402657, 2.199766, 75.0),
-                renderer,
-                "U   "
+                "U   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.400276, 2.199165, 256.0),
-                renderer,
-                "V   "
+                "V   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.403076, 2.192856, 45.0),
-                renderer,
-                "W   "
+                "W   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.399536, 2.190625, 66.0),
-                renderer,
-                "X   "
+                "X   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.402946, 2.189896, 55.0),
-                renderer,
-                "Y   "
+                "Y   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.401047, 2.184703, 77.0),
-                renderer,
-                "Z   "
+                "Z   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.403336, 2.178180, 33.0),
-                renderer,
-                "0   "
+                "0   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.407970, 2.180926, 44.0),
-                renderer,
-                "1   "
+                "1   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.412540, 2.179295, 64.0),
-                renderer,
-                "2   "
+                "2   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.413280, 2.190282, 32.0),
-                renderer,
-                "3   "
+                "3   ",
+                renderer
             )
         )
         points.add(
             SimplePoint(
                 UUID.randomUUID(),
                 LocationFactory.create(41.411446, 2.187706, 99.0),
-                renderer,
-                "4   "
+                "4   ",
+                renderer
             )
         )
         return points

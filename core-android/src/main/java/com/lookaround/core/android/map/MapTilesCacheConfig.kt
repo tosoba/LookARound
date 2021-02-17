@@ -32,6 +32,7 @@ class MapTilesCacheConfig @Inject constructor(@ApplicationContext context: Conte
 
     companion object {
         const val USER_AGENT_HEADER = "LookARound"
+
         private const val TILE_CACHE_DIR = "tile_cache"
         private const val TILE_CACHE_SIZE_B = 50L * 1024L * 1024L
         private const val TILE_CACHE_MAX_STALE_DAYS = 14

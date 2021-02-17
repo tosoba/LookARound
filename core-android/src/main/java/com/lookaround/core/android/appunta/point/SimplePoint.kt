@@ -9,11 +9,11 @@ import java.util.*
  * located in space, in screen, it's id and name and the name of the renderer to
  * use to draw it.
  */
-class SimplePoint constructor(
+class SimplePoint(
     override var id: UUID,
     override var location: Location,
-    override var renderer: PointRenderer? = null,
-    override var name: String = ""
+    override var name: String,
+    override var renderer: PointRenderer? = null
 ) : Point {
     override var x = 0f
     override var y = 0f
