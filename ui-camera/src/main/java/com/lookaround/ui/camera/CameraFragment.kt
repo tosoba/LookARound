@@ -11,9 +11,8 @@ import com.google.android.material.snackbar.Snackbar
 import com.lookaround.core.android.appunta.location.LocationFactory
 import com.lookaround.core.android.appunta.orientation.Orientation
 import com.lookaround.core.android.appunta.orientation.OrientationManager
-import com.lookaround.core.android.appunta.point.ARObject
 import com.lookaround.core.android.appunta.point.Point
-import com.lookaround.core.android.appunta.renderer.impl.RectViewRenderer
+import com.lookaround.core.android.appunta.renderer.impl.NoOverlapRenderer
 import com.lookaround.core.android.appunta.renderer.impl.SimplePointRenderer
 import com.lookaround.core.android.appunta.view.AppuntaView
 import com.lookaround.core.android.appunta.view.CameraView
@@ -32,6 +31,9 @@ class CameraFragment :
 
     private val binding: FragmentCameraBinding by viewBinding(FragmentCameraBinding::bind)
 
+    private val userLocation: Location = LocationFactory
+        .create(41.383873, 2.156574, 12.0)
+
     private val orientationManager: OrientationManager by lazy(LazyThreadSafetyMode.NONE) {
         OrientationManager(requireContext()).apply {
             axisMode = OrientationManager.MODE_AR
@@ -45,24 +47,21 @@ class CameraFragment :
 
     @NeedsPermission(Manifest.permission.CAMERA)
     internal fun initAR() {
-        val points = SamplePoints.get()
-        points.forEach(::ARObject)
-        val location = LocationFactory.create(41.383873, 2.156574, 12.0)
-        binding.initARViews(points, location)
+        binding.initARViews()
     }
 
-    private fun FragmentCameraBinding.initARViews(points: List<Point>, location: Location) {
+    private fun FragmentCameraBinding.initARViews(points: List<Point> = SamplePoints.get()) {
         eyeView.maxDistance = MAX_RENDER_DISTANCE_METERS
         eyeView.onPointPressedListener = this@CameraFragment
         eyeView.points = points
-        eyeView.pointRenderer = RectViewRenderer()
-        eyeView.location = location
+        eyeView.pointRenderer = NoOverlapRenderer(userLocation, points)
+        eyeView.location = userLocation
 
         radarView.maxDistance = MAX_RENDER_DISTANCE_METERS
         radarView.rotableBackground = R.drawable.radar_arrow
         radarView.points = points
         radarView.pointRenderer = SimplePointRenderer()
-        radarView.location = location
+        radarView.location = userLocation
 
         cameraContainer.addView(CameraView(requireContext()))
     }
@@ -83,11 +82,6 @@ class CameraFragment :
             "Camera access permission is required for AR camera to work.",
             Snackbar.LENGTH_LONG
         ).show()
-    }
-
-    override fun onDestroyView() {
-        ARObject.objects.clear()
-        super.onDestroyView()
     }
 
     override fun onRequestPermissionsResult(

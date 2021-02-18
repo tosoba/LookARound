@@ -8,7 +8,6 @@ import android.view.MotionEvent
 import android.view.View
 import com.lookaround.core.android.appunta.orientation.Orientation
 import com.lookaround.core.android.appunta.point.Point
-import com.lookaround.core.android.appunta.point.PointsUtil
 import com.lookaround.core.android.appunta.renderer.PointRenderer
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -39,7 +38,7 @@ abstract class AppuntaView : View {
     var location: Location = Location("")
         set(value) {
             field = value
-            PointsUtil.calculateDistance(points, field)
+            calculateDistances(points, field)
         }
     var maxDistance = DEFAULT_MAX_DISTANCE
         set(value) {
@@ -58,31 +57,12 @@ abstract class AppuntaView : View {
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
-
-    /**
-     * Given a screen coordinate, returns the nearest point to that coordinate
-     *
-     * @param x The X coordinate
-     * @param y The Y coordinate
-     * @return The nearest point to coordinate X,Y
-     */
-    protected fun findNearestPoint(x: Float, y: Float): Point? {
-        var nearest: Point? = null
-        var minorDistance = width.coerceAtLeast(height).toDouble()
-        for (point in points) {
-            val distance = sqrt((point.x - x).toDouble().pow(2.0) + (point.y - y).toDouble().pow(2.0))
-            if (distance < minorDistance) {
-                minorDistance = distance
-                nearest = point
-            }
-        }
-        return nearest
-    }
+    constructor(context: Context, attrs: AttributeSet?, defStyle: Int)
+            : super(context, attrs, defStyle)
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        PointsUtil.calculateDistance(points, location)
+        calculateDistances(points, location)
         preRender(canvas)
         for (point in points) {
             calculatePointCoordinates(point)
@@ -102,6 +82,27 @@ abstract class AppuntaView : View {
                 ?.let(listener::onPointPressed)
         }
         return super.onTouchEvent(event)
+    }
+
+    /**
+     * Given a screen coordinate, returns the nearest point to that coordinate
+     *
+     * @param x The X coordinate
+     * @param y The Y coordinate
+     * @return The nearest point to coordinate X,Y
+     */
+    private fun findNearestPoint(x: Float, y: Float): Point? {
+        var nearest: Point? = null
+        var minorDistance = width.coerceAtLeast(height).toDouble()
+        for (point in points) {
+            val distance =
+                sqrt((point.x - x).toDouble().pow(2.0) + (point.y - y).toDouble().pow(2.0))
+            if (distance < minorDistance) {
+                minorDistance = distance
+                nearest = point
+            }
+        }
+        return nearest
     }
 
     /**
@@ -131,7 +132,16 @@ abstract class AppuntaView : View {
         point.location.longitude - location.longitude
     )
 
-    protected fun getVerticalAngle(point: Point): Double = atan2(point.distance, location.altitude)
+    /***
+     * Calculate the distance from a given point to all the points stored and
+     * sets the distance property for all them
+     *
+     * @param location
+     * Latitude and longitude of the given point
+     */
+    private fun calculateDistances(points: List<Point>, location: Location) {
+        points.forEach { poi -> poi.distance = poi.location.distanceTo(location).toDouble() }
+    }
 
     /**
      * This interface represents an object able to be called when a point is pressed
