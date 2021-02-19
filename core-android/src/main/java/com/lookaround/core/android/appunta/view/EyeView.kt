@@ -21,7 +21,8 @@ class EyeView : AppuntaView {
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
+    constructor(context: Context, attrs: AttributeSet?, defStyle: Int)
+            : super(context, attrs, defStyle)
 
     init {
         screenRatio.z = SCREEN_DEPTH.toDouble()
@@ -35,7 +36,14 @@ class EyeView : AppuntaView {
         screenSize.y = height.toDouble()
         screenSize.x = width.toDouble()
         //Obtain the current camera rotation and related calculations based on phone orientation and rotation
-        Math3dUtil.getCamRotation(orientation, phoneRotation, camRot, camTrig, screenRot, screenRotTrig)
+        Math3dUtil.getCamRotation(
+            orientation,
+            phoneRotation,
+            camRot,
+            camTrig,
+            screenRot,
+            screenRotTrig
+        )
         //Transform current camera location into a position object;
         Math3dUtil.convertLocationToPosition(location, camPos)
     }
@@ -48,7 +56,13 @@ class EyeView : AppuntaView {
         //Rotates the point around the camera in order to set the camera rotation to <0,0,0>
         Math3dUtil.getRelativeRotation(relativePos, camTrig, relativeRotPos)
         //Converts a 3d position into a 2d position on screen
-        val drawn = Math3dUtil.convert3dTo2d(relativeRotPos, screenSize, screenRatio, screenRotTrig, screenPos)
+        val drawn = Math3dUtil.convert3dTo2d(
+            relativeRotPos,
+            screenSize,
+            screenRatio,
+            screenRotTrig,
+            screenPos
+        )
         //If drawn is false, the point is behind us, so no need to paint
         if (drawn) {
             point.x = screenPos.x.toFloat()

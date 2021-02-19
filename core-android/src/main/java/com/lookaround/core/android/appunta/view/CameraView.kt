@@ -14,7 +14,8 @@ class CameraView : SurfaceView, SurfaceHolder.Callback {
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
+    constructor(context: Context, attrs: AttributeSet?, defStyle: Int)
+            : super(context, attrs, defStyle)
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         camera = Camera.open()
@@ -60,7 +61,8 @@ class CameraView : SurfaceView, SurfaceHolder.Callback {
         val info = CameraInfo()
         Camera.getCameraInfo(0, info)
         val display = (context.getSystemService(
-            Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+            Context.WINDOW_SERVICE
+        ) as WindowManager).defaultDisplay
         val rotation = display.rotation
         var degrees = 0
         when (rotation) {

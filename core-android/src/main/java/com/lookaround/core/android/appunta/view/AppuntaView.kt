@@ -66,13 +66,16 @@ abstract class AppuntaView : View {
         preRender(canvas)
         for (point in points) {
             calculatePointCoordinates(point)
-            if (point.distance < maxDistance && point.isDrawn) {
+            if (shouldDraw(point)) {
                 point.renderer?.drawPoint(point, canvas, orientation)
                     ?: pointRenderer?.drawPoint(point, canvas, orientation)
             }
         }
         postRender(canvas)
     }
+
+    protected open fun shouldDraw(point: Point): Boolean =
+        point.distance < maxDistance && point.isDrawn
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         onPointPressedListener?.let { listener ->

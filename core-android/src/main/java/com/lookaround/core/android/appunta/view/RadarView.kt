@@ -19,7 +19,8 @@ class RadarView : AppuntaView {
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle)
+    constructor(context: Context, attrs: AttributeSet?, defStyle: Int)
+            : super(context, attrs, defStyle)
 
     /***
      * Returns the correct size of the control when needed (Basically
@@ -46,6 +47,8 @@ class RadarView : AppuntaView {
         drawBackground(canvas)
         compassAngle = orientation.y.toDouble()
     }
+
+    override fun shouldDraw(point: Point): Boolean = point.distance < maxDistance
 
     override fun postRender(canvas: Canvas) {
         val pointPaint = Paint(Paint.ANTI_ALIAS_FLAG)
