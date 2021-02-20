@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.camera.core.*
+import androidx.camera.view.PreviewView
 import androidx.fragment.app.Fragment
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.snackbar.Snackbar
@@ -17,12 +18,14 @@ import com.lookaround.core.android.appunta.renderer.impl.NoOverlapRenderer
 import com.lookaround.core.android.appunta.renderer.impl.SimplePointRenderer
 import com.lookaround.core.android.appunta.view.AppuntaView
 import com.lookaround.core.android.ext.init
+import com.lookaround.core.android.ext.observeOnce
 import com.lookaround.core.android.ext.phoneRotation
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
+import timber.log.Timber
 
 @RuntimePermissions
 class CameraFragment :
@@ -52,6 +55,10 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.initARViews(points: List<Point> = SamplePoints.get()) {
+        cameraPreview.previewStreamState.observeOnce(
+            this@CameraFragment,
+            ::onPreviewViewStreamStateChanged
+        )
         cameraPreview.init(this@CameraFragment)
 
         eyeView.maxDistance = MAX_RENDER_DISTANCE_METERS
@@ -65,6 +72,12 @@ class CameraFragment :
         radarView.points = points
         radarView.pointRenderer = SimplePointRenderer()
         radarView.location = userLocation
+    }
+
+    private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState): Boolean {
+        val isStreaming = state == PreviewView.StreamState.STREAMING
+        if (isStreaming) Timber.e("STREAMING")
+        return isStreaming
     }
 
     @OnPermissionDenied(Manifest.permission.CAMERA)

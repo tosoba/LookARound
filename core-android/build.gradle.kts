@@ -92,6 +92,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime:2.3.0")
     implementation("androidx.lifecycle:lifecycle-common-java8:2.3.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.0")
 
     implementation("ru.beryukhov:flowreactivenetwork:1.0.2")
 
