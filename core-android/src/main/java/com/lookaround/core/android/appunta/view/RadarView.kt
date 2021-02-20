@@ -8,14 +8,14 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class RadarView : AppuntaView {
-    var rotableBackground = 0
+    var rotableBackground: Int = 0
         set(value) {
             field = value
             rotableBackgroundBitmap = BitmapFactory.decodeResource(this.resources, value)
         }
-    private var center = 0f
+    private var center: Float = 0f
     private var rotableBackgroundBitmap: Bitmap? = null
-    private var compassAngle = 0.0
+    private var compassAngle: Double = 0.0
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)

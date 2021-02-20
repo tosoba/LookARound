@@ -5,7 +5,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.view.WindowManager
 import androidx.annotation.MainThread
 import kotlin.math.abs
 
@@ -21,28 +20,25 @@ class OrientationManager : SensorEventListener {
     private val remappedRotationM = FloatArray(9)
 
     private var sensorManager: SensorManager? = null
-    var orientation = Orientation()
+    var orientation: Orientation = Orientation()
     private var oldOrientation: Orientation? = null
-    private var sensorRunning = false
+    private var sensorRunning: Boolean = false
 
-    // Setters and getter for the three listeners (Bob, Moe and Curly)
-    var onCompassChangeListener: OnOrientationChangedListener? = null
-        private set
-    var axisMode = MODE_COMPASS
-        set(axisMode) {
-            field = axisMode
-            if (axisMode == MODE_COMPASS) {
+    var onOrientationChangedListener: OnOrientationChangedListener? = null
+    var axisMode: Mode = Mode.COMPASS
+        set(value) {
+            field = value
+            if (value == Mode.COMPASS) {
                 firstAxis = SensorManager.AXIS_Y
                 secondAxis = SensorManager.AXIS_MINUS_X
-            }
-            if (axisMode == MODE_AR) {
+            } else {
                 firstAxis = SensorManager.AXIS_X
                 secondAxis = SensorManager.AXIS_Z
             }
         }
-    private var firstAxis = SensorManager.AXIS_Y
-    private var secondAxis = SensorManager.AXIS_MINUS_X
-    private var failed = false
+    private var firstAxis: Int = SensorManager.AXIS_Y
+    private var secondAxis: Int = SensorManager.AXIS_MINUS_X
+    private var failed: Boolean = false
 
     /***
      * This constructor will generate and start a Compass Manager
@@ -124,7 +120,7 @@ class OrientationManager : SensorEventListener {
         }
 
         oldOrientation = orientation
-        onCompassChangeListener?.onOrientationChanged(orientation)
+        onOrientationChangedListener?.onOrientationChanged(orientation)
     }
 
     /**
@@ -134,23 +130,24 @@ class OrientationManager : SensorEventListener {
      * @param lowValue the old sensor value
      * @return and intermediate value
      */
-    private fun lowPass(newValue: Float, lowValue: Float): Float = if (abs(newValue - lowValue) < CIRCLE / 2) {
-        if (abs(newValue - lowValue) > SMOOTH_THRESHOLD) {
-            newValue
-        } else {
-            lowValue + SMOOTH_FACTOR * (newValue - lowValue)
-        }
-    } else {
-        if (CIRCLE - abs(newValue - lowValue) > SMOOTH_THRESHOLD) {
-            newValue
-        } else {
-            if (lowValue > newValue) {
-                ((lowValue + (SMOOTH_FACTOR * ((CIRCLE + newValue - lowValue) % CIRCLE)) + CIRCLE) % CIRCLE)
+    private fun lowPass(newValue: Float, lowValue: Float): Float =
+        if (abs(newValue - lowValue) < CIRCLE / 2) {
+            if (abs(newValue - lowValue) > SMOOTH_THRESHOLD) {
+                newValue
             } else {
-                ((lowValue - SMOOTH_FACTOR * ((CIRCLE - newValue + lowValue) % CIRCLE) + CIRCLE) % CIRCLE)
+                lowValue + SMOOTH_FACTOR * (newValue - lowValue)
+            }
+        } else {
+            if (CIRCLE - abs(newValue - lowValue) > SMOOTH_THRESHOLD) {
+                newValue
+            } else {
+                if (lowValue > newValue) {
+                    ((lowValue + (SMOOTH_FACTOR * ((CIRCLE + newValue - lowValue) % CIRCLE)) + CIRCLE) % CIRCLE)
+                } else {
+                    ((lowValue - SMOOTH_FACTOR * ((CIRCLE - newValue + lowValue) % CIRCLE) + CIRCLE) % CIRCLE)
+                }
             }
         }
-    }
 
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) = Unit
 
@@ -165,8 +162,8 @@ class OrientationManager : SensorEventListener {
         }
     }
 
-    fun setOnOrientationChangeListener(onOrientationChangeListener: OnOrientationChangedListener?) {
-        onCompassChangeListener = onOrientationChangeListener
+    enum class Mode {
+        COMPASS, AR
     }
 
     interface OnOrientationChangedListener {
@@ -181,11 +178,8 @@ class OrientationManager : SensorEventListener {
     }
 
     companion object {
-        const val MODE_COMPASS = 0
-        const val MODE_AR = 1
-
-        private const val CIRCLE = (Math.PI * 2).toFloat()
-        private const val SMOOTH_THRESHOLD = CIRCLE / 3 // originally: CIRCLE / 6
-        private const val SMOOTH_FACTOR = .03f // originally: SMOOTH_THRESHOLD / 5
+        private const val CIRCLE: Float = (Math.PI * 2).toFloat()
+        private const val SMOOTH_THRESHOLD: Float = CIRCLE / 3 // originally: CIRCLE / 6
+        private const val SMOOTH_FACTOR: Float = .03f // originally: SMOOTH_THRESHOLD / 5
     }
 }

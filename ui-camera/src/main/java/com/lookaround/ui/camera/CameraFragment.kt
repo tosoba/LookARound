@@ -37,8 +37,8 @@ class CameraFragment :
 
     private val orientationManager: OrientationManager by lazy(LazyThreadSafetyMode.NONE) {
         OrientationManager(requireContext()).apply {
-            axisMode = OrientationManager.MODE_AR
-            setOnOrientationChangeListener(this@CameraFragment)
+            axisMode = OrientationManager.Mode.AR
+            onOrientationChangedListener = this@CameraFragment
         }
     }
 

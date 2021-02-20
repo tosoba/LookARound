@@ -40,7 +40,7 @@ abstract class AppuntaView : View {
             field = value
             calculateDistances(points, field)
         }
-    var maxDistance = DEFAULT_MAX_DISTANCE
+    var maxDistance: Double = DEFAULT_MAX_DISTANCE
         set(value) {
             field = value
             invalidate()
@@ -53,7 +53,7 @@ abstract class AppuntaView : View {
             field = value
             invalidate()
         }
-    var phoneRotation = 0
+    var phoneRotation: Int = 0
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -96,12 +96,13 @@ abstract class AppuntaView : View {
      */
     private fun findNearestPoint(x: Float, y: Float): Point? {
         var nearest: Point? = null
-        var minorDistance = width.coerceAtLeast(height).toDouble()
+        var nearestPointDistance = width.coerceAtLeast(height).toDouble()
         for (point in points) {
-            val distance =
-                sqrt((point.x - x).toDouble().pow(2.0) + (point.y - y).toDouble().pow(2.0))
-            if (distance < minorDistance) {
-                minorDistance = distance
+            val distance = sqrt(
+                (point.x - x).toDouble().pow(2.0) + (point.y - y).toDouble().pow(2.0)
+            )
+            if (distance < nearestPointDistance) {
+                nearestPointDistance = distance
                 nearest = point
             }
         }
