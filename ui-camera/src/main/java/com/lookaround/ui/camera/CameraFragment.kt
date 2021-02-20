@@ -5,6 +5,7 @@ import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.camera.core.*
 import androidx.fragment.app.Fragment
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.snackbar.Snackbar
@@ -15,7 +16,7 @@ import com.lookaround.core.android.appunta.point.Point
 import com.lookaround.core.android.appunta.renderer.impl.NoOverlapRenderer
 import com.lookaround.core.android.appunta.renderer.impl.SimplePointRenderer
 import com.lookaround.core.android.appunta.view.AppuntaView
-import com.lookaround.core.android.appunta.view.CameraView
+import com.lookaround.core.android.ext.init
 import com.lookaround.core.android.ext.phoneRotation
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import permissions.dispatcher.NeedsPermission
@@ -51,6 +52,8 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.initARViews(points: List<Point> = SamplePoints.get()) {
+        cameraPreview.init(this@CameraFragment)
+
         eyeView.maxDistance = MAX_RENDER_DISTANCE_METERS
         eyeView.onPointPressedListener = this@CameraFragment
         eyeView.points = points
@@ -62,8 +65,6 @@ class CameraFragment :
         radarView.points = points
         radarView.pointRenderer = SimplePointRenderer()
         radarView.location = userLocation
-
-        cameraContainer.addView(CameraView(requireContext()))
     }
 
     @OnPermissionDenied(Manifest.permission.CAMERA)
