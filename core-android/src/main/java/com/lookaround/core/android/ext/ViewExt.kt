@@ -5,15 +5,21 @@ import android.animation.AnimatorListenerAdapter
 import android.view.View
 import com.facebook.shimmer.ShimmerFrameLayout
 
-fun View.fadeOut() {
+fun View.fadeOut(duration: Long = 500L) {
     animate()
-        .setDuration(500L)
+        .setDuration(duration)
         .alpha(0f)
         .setListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
                 visibility = View.GONE
             }
         })
+}
+
+fun View.fadeIn(duration: Long = 500L) {
+    alpha = 0f
+    visibility = View.VISIBLE
+    animate().setDuration(duration).alpha(1f)
 }
 
 fun ShimmerFrameLayout.showAndStart() {

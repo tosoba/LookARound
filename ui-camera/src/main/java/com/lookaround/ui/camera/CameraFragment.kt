@@ -52,10 +52,7 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.initARViews(points: List<Point> = SamplePoints.get()) {
-        blurBackground.visibility = View.VISIBLE
-        shimmerLayout.showAndStart()
-
-        cameraPreview.previewStreamState.observeOnce(
+        cameraPreview.previewStreamState.observe(
             this@CameraFragment,
             ::onPreviewViewStreamStateChanged
         )
@@ -74,13 +71,19 @@ class CameraFragment :
         radarView.location = userLocation
     }
 
-    private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState): Boolean {
-        val isStreaming = state == PreviewView.StreamState.STREAMING
-        if (isStreaming) {
-            binding.shimmerLayout.stopAndHide()
-            binding.blurBackground.fadeOut()
+    private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState) {
+        when (state) {
+            PreviewView.StreamState.IDLE -> with(binding) {
+                blurBackground.visibility = View.VISIBLE
+                shimmerLayout.showAndStart()
+            }
+            PreviewView.StreamState.STREAMING -> with(binding) {
+                shimmerLayout.stopAndHide()
+                blurBackground.fadeOut()
+                radarView.fadeIn()
+                eyeView.fadeIn()
+            }
         }
-        return isStreaming
     }
 
     @OnPermissionDenied(Manifest.permission.CAMERA)
@@ -113,6 +116,8 @@ class CameraFragment :
     }
 
     override fun onPause() {
+        binding.radarView.visibility = View.GONE
+        binding.eyeView.visibility = View.GONE
         orientationManager.stopSensor()
         super.onPause()
     }

@@ -77,6 +77,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
         if (sceneError == null) {
             lifecycleScope.launch { viewModel.intent(MapIntent.SceneLoaded) }
+
             binding.shimmerLayout.stopAndHide()
             binding.blurBackground.fadeOut()
         } else {
@@ -89,13 +90,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     private suspend fun MapController.loadScene(scene: MapScene) {
-        with(binding.blurBackground) {
-            if (visibility != View.VISIBLE) {
-                alpha = 0f
-                visibility = View.VISIBLE
-                animate().setDuration(500L).alpha(1f)
-            }
-        }
+        binding.blurBackground.fadeIn()
         binding.shimmerLayout.showAndStart()
 
         viewModel.intent(MapIntent.LoadingScene(scene))
