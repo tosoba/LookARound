@@ -17,15 +17,12 @@ import com.lookaround.core.android.appunta.point.Point
 import com.lookaround.core.android.appunta.renderer.impl.NoOverlapRenderer
 import com.lookaround.core.android.appunta.renderer.impl.SimplePointRenderer
 import com.lookaround.core.android.appunta.view.AppuntaView
-import com.lookaround.core.android.ext.init
-import com.lookaround.core.android.ext.observeOnce
-import com.lookaround.core.android.ext.phoneRotation
+import com.lookaround.core.android.ext.*
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
-import timber.log.Timber
 
 @RuntimePermissions
 class CameraFragment :
@@ -55,6 +52,9 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.initARViews(points: List<Point> = SamplePoints.get()) {
+        blurBackground.visibility = View.VISIBLE
+        shimmerLayout.showAndStart()
+
         cameraPreview.previewStreamState.observeOnce(
             this@CameraFragment,
             ::onPreviewViewStreamStateChanged
@@ -76,7 +76,10 @@ class CameraFragment :
 
     private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState): Boolean {
         val isStreaming = state == PreviewView.StreamState.STREAMING
-        if (isStreaming) Timber.e("STREAMING")
+        if (isStreaming) {
+            binding.shimmerLayout.stopAndHide()
+            binding.blurBackground.fadeOut()
+        }
         return isStreaming
     }
 

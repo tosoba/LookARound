@@ -1,7 +1,5 @@
 package com.lookaround.ui.map
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
@@ -79,20 +77,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
         if (sceneError == null) {
             lifecycleScope.launch { viewModel.intent(MapIntent.SceneLoaded) }
-
-            with(binding.shimmerLayout) {
-                stopShimmer()
-                visibility = View.GONE
-            }
-
-            binding.blurBackground.animate()
-                .setDuration(500L)
-                .alpha(0f)
-                .setListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        binding.blurBackground.visibility = View.GONE
-                    }
-                })
+            binding.shimmerLayout.stopAndHide()
+            binding.blurBackground.fadeOut()
         } else {
             Timber.e("Failed to load scene: $sceneId. Scene error: $sceneError")
         }
@@ -110,11 +96,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                 animate().setDuration(500L).alpha(1f)
             }
         }
-
-        with(binding.shimmerLayout) {
-            visibility = View.VISIBLE
-            startShimmer()
-        }
+        binding.shimmerLayout.showAndStart()
 
         viewModel.intent(MapIntent.LoadingScene(scene))
         loadSceneFile(
