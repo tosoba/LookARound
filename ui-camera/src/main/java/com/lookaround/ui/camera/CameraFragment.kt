@@ -92,7 +92,7 @@ class CameraFragment :
     }
 
     @OnNeverAskAgain(Manifest.permission.CAMERA)
-    internal fun onContactsNeverAskAgain() {
+    internal fun onNeverAskAgain() {
         showPermissionRequiredSnackbar()
     }
 
