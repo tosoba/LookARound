@@ -1,6 +1,7 @@
 package com.lookaround.ui.camera
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.location.Location
 import android.os.Bundle
 import android.view.View
@@ -8,8 +9,12 @@ import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.view.PreviewView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.android.gms.location.LocationRequest
 import com.google.android.material.snackbar.Snackbar
+import com.jintin.fancylocation.LocationData
+import com.jintin.fancylocation.LocationFlow
 import com.lookaround.core.android.appunta.location.LocationFactory
 import com.lookaround.core.android.appunta.orientation.Orientation
 import com.lookaround.core.android.appunta.orientation.OrientationManager
@@ -19,11 +24,16 @@ import com.lookaround.core.android.appunta.renderer.impl.SimplePointRenderer
 import com.lookaround.core.android.appunta.view.AppuntaView
 import com.lookaround.core.android.ext.*
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
+import timber.log.Timber
 
+@ExperimentalCoroutinesApi
 @RuntimePermissions
 class CameraFragment :
     Fragment(R.layout.fragment_camera),
@@ -46,9 +56,34 @@ class CameraFragment :
         initARWithPermissionCheck()
     }
 
-    @NeedsPermission(Manifest.permission.CAMERA)
+    @NeedsPermission(
+        Manifest.permission.CAMERA,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+    )
     internal fun initAR() {
         binding.initARViews()
+        initLocation()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun initLocation() {
+        val locationRequest = LocationRequest.create()
+            .setInterval(3000)
+            .setFastestInterval(3000)
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+        LocationFlow(requireContext(), locationRequest)
+            .get()
+            .onEach { locationData ->
+                when (locationData) {
+                    is LocationData.Success -> {
+                        binding.eyeView.location = locationData.location
+                        binding.radarView.location = locationData.location
+                    }
+                    is LocationData.Fail -> Timber.e("Location data fail.")
+                }
+            }
+            .launchIn(lifecycleScope)
     }
 
     private fun FragmentCameraBinding.initARViews(points: List<Point> = SamplePoints.get()) {

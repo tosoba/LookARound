@@ -58,6 +58,8 @@ dependencies {
     implementation("com.facebook.shimmer:shimmer:0.5.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
 
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
+
     implementation("com.google.dagger:hilt-android:2.31.2-alpha")
     kapt("com.google.dagger:hilt-android-compiler:2.31.2-alpha")
     kapt("androidx.hilt:hilt-compiler:1.0.0-alpha03")
@@ -69,6 +71,9 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.1.0-alpha01")
     implementation("androidx.camera:camera-lifecycle:1.1.0-alpha01")
     implementation("androidx.camera:camera-view:1.0.0-alpha21")
+
+    implementation("com.google.android.gms:play-services-location:18.0.0")
+    implementation("com.github.jintin:FancyLocationProvider:2.0.0")
 
     implementation("com.jakewharton.timber:timber:4.7.1")
 
