@@ -1,8 +1,6 @@
 package com.lookaround.ui.camera
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -11,11 +9,7 @@ import androidx.camera.view.PreviewView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.google.android.gms.location.LocationRequest
 import com.google.android.material.snackbar.Snackbar
-import com.jintin.fancylocation.LocationData
-import com.jintin.fancylocation.LocationFlow
-import com.lookaround.core.android.appunta.location.LocationFactory
 import com.lookaround.core.android.appunta.orientation.Orientation
 import com.lookaround.core.android.appunta.orientation.OrientationManager
 import com.lookaround.core.android.appunta.point.Point
@@ -24,17 +18,23 @@ import com.lookaround.core.android.appunta.renderer.impl.SimplePointRenderer
 import com.lookaround.core.android.appunta.view.AppuntaView
 import com.lookaround.core.android.ext.*
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.WithFragmentBindings
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
+import javax.inject.Inject
 
+@FlowPreview
 @ExperimentalCoroutinesApi
 @RuntimePermissions
+@AndroidEntryPoint
+@WithFragmentBindings
 class CameraFragment :
     Fragment(R.layout.fragment_camera),
     OrientationManager.OnOrientationChangedListener,
@@ -42,8 +42,13 @@ class CameraFragment :
 
     private val binding: FragmentCameraBinding by viewBinding(FragmentCameraBinding::bind)
 
-    private val userLocation: Location = LocationFactory
-        .create(41.383873, 2.156574, 12.0)
+    @Inject
+    internal lateinit var viewModelFactory: CameraViewModel.Factory
+    private val viewModel: CameraViewModel by assistedViewModel { viewModelFactory.create(it) }
+
+    private val eyeViewRenderer: NoOverlapRenderer by lazy(LazyThreadSafetyMode.NONE) {
+        NoOverlapRenderer()
+    }
 
     private val orientationManager: OrientationManager by lazy(LazyThreadSafetyMode.NONE) {
         OrientationManager(requireContext()).apply {
@@ -66,23 +71,19 @@ class CameraFragment :
         initLocation()
     }
 
-    @SuppressLint("MissingPermission")
     private fun initLocation() {
-        val locationRequest = LocationRequest.create()
-            .setInterval(3000)
-            .setFastestInterval(3000)
-            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-        LocationFlow(requireContext(), locationRequest)
-            .get()
-            .onEach { locationData ->
-                when (locationData) {
-                    is LocationData.Success -> {
-                        binding.eyeView.location = locationData.location
-                        binding.radarView.location = locationData.location
-                    }
-                    is LocationData.Fail -> Timber.e("Location data fail.")
-                }
+        viewModel.states
+            .map { it.location }
+            .filterNotNull()
+            .onEach {
+                binding.eyeView.location = it
+                binding.radarView.location = it
             }
+            .launchIn(lifecycleScope)
+
+        viewModel.signals
+            .filterIsInstance<CameraSignal.LocationUnavailable>()
+            .onEach { Timber.e("Location unavailable") }
             .launchIn(lifecycleScope)
     }
 
@@ -96,14 +97,12 @@ class CameraFragment :
         eyeView.maxDistance = MAX_RENDER_DISTANCE_METERS
         eyeView.onPointPressedListener = this@CameraFragment
         eyeView.points = points
-        eyeView.pointRenderer = NoOverlapRenderer(userLocation, points)
-        eyeView.location = userLocation
+        eyeView.pointRenderer = eyeViewRenderer
 
         radarView.maxDistance = MAX_RENDER_DISTANCE_METERS
         radarView.rotableBackground = R.drawable.radar_arrow
         radarView.points = points
         radarView.pointRenderer = SimplePointRenderer()
-        radarView.location = userLocation
     }
 
     private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState) {
@@ -121,11 +120,13 @@ class CameraFragment :
         }
     }
 
+    @Suppress("unused")
     @OnPermissionDenied(Manifest.permission.CAMERA)
     internal fun onPermissionsDenied() {
         showPermissionRequiredSnackbar()
     }
 
+    @Suppress("unused")
     @OnNeverAskAgain(Manifest.permission.CAMERA)
     internal fun onNeverAskAgain() {
         showPermissionRequiredSnackbar()

@@ -106,6 +106,9 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.1.0-alpha01")
     implementation("androidx.camera:camera-view:1.0.0-alpha21")
 
+    implementation("com.google.android.gms:play-services-location:18.0.0")
+    implementation("com.github.jintin:FancyLocationProvider:2.0.0")
+
     implementation("com.jakewharton.timber:timber:4.7.1")
 
     testImplementation("junit:junit:4.13.1")

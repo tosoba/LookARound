@@ -14,7 +14,7 @@ import java.util.*
 import kotlin.math.abs
 
 class NoOverlapRenderer(
-    var userLocation: Location,
+    var userLocation: Location = Location(""),
     points: List<Point> = emptyList(),
     private val dialogHeight: Float = 100f,
     private val dialogWidth: Float = 400f
