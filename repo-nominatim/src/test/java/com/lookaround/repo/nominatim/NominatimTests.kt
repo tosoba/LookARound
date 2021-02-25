@@ -14,9 +14,9 @@ class NominatimTests {
 
     @Test
     fun client() {
-        repo.getAddress(48.1166561643464, 1.64891269513038)
-            .elements
-            .forEach { println("${it.key} : ${it.value}") }
+        repo.getAddress(48.1166561643464, 1.64891269513038).elements.forEach {
+            println("${it.key} : ${it.value}")
+        }
     }
 
     @After

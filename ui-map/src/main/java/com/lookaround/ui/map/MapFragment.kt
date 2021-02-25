@@ -26,12 +26,10 @@ import javax.inject.Inject
 class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadListener {
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
 
-    @Inject
-    internal lateinit var viewModelFactory: MapViewModel.Factory
+    @Inject internal lateinit var viewModelFactory: MapViewModel.Factory
     private val viewModel: MapViewModel by assistedViewModel { viewModelFactory.create(it) }
 
-    @Inject
-    internal lateinit var mapTilesHttpHandler: HttpHandler
+    @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     private val mapController: Deferred<MapController> by lifecycleScope.lazyAsync {
         binding.map.init(mapTilesHttpHandler)
     }
@@ -44,7 +42,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
             zoomOnDoubleTap()
         }
 
-        viewModel.signals
+        viewModel
+            .signals
             .filterIsInstance<MapSignal.RetryLoadScene>()
             .onEach { mapController.await().loadScene(it.scene) }
             .launchIn(lifecycleScope)
@@ -95,8 +94,6 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
 
         viewModel.intent(MapIntent.LoadingScene(scene))
         loadSceneFile(
-            scene.url,
-            listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
-        )
+            scene.url, listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY)))
     }
 }

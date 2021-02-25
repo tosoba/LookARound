@@ -10,13 +10,15 @@ import kotlinx.coroutines.FlowPreview
 
 @ExperimentalCoroutinesApi
 @FlowPreview
-class MapViewModel @AssistedInject constructor(
+class MapViewModel
+@AssistedInject
+constructor(
     @Assisted savedStateHandle: SavedStateHandle,
     @Assisted initialState: MapState,
     processor: MapFlowProcessor
-) : FlowViewModel<MapIntent, MapStateUpdate, MapState, MapSignal>(
-    initialState, processor, savedStateHandle
-) {
+) :
+    FlowViewModel<MapIntent, MapStateUpdate, MapState, MapSignal>(
+        initialState, processor, savedStateHandle) {
     @AssistedFactory
     interface Factory {
         fun create(

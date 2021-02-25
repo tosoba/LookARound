@@ -40,15 +40,16 @@ inline fun <reified T : ViewModel> Fragment.assistedViewModel(
 inline fun <reified T : ViewModel> Fragment.assistedNavGraphViewModel(
     @IdRes navGraphId: Int,
     crossinline viewModelProducer: (SavedStateHandle) -> T
-): Lazy<T> = navGraphViewModels(navGraphId) {
-    object : AbstractSavedStateViewModelFactory(this, arguments) {
-        override fun <T : ViewModel> create(
-            key: String,
-            modelClass: Class<T>,
-            handle: SavedStateHandle
-        ) = viewModelProducer(handle) as T
+): Lazy<T> =
+    navGraphViewModels(navGraphId) {
+        object : AbstractSavedStateViewModelFactory(this, arguments) {
+            override fun <T : ViewModel> create(
+                key: String,
+                modelClass: Class<T>,
+                handle: SavedStateHandle
+            ) = viewModelProducer(handle) as T
+        }
     }
-}
 
 inline fun <reified T : ViewModel> Fragment.assistedActivityViewModel(
     crossinline viewModelProducer: (SavedStateHandle) -> T

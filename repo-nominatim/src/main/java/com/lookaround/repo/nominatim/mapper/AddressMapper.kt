@@ -11,33 +11,27 @@ import org.mapstruct.Qualifier
 @Mapper(componentModel = "jsr330")
 interface AddressMapper {
     @Mappings(
-        value = [
-            Mapping(source = "latitude", target = "lat"),
-            Mapping(source = "longitude", target = "lng"),
-            Mapping(
-                source = "addressElements",
-                target = "elements",
-                qualifiedBy = [ElementsArrayToMap::class]
-            ),
-            Mapping(
-                source = "nameDetails",
-                target = "details",
-                qualifiedBy = [ElementsArrayToMap::class]
-            ),
-        ]
-    )
+        value =
+            [
+                Mapping(source = "latitude", target = "lat"),
+                Mapping(source = "longitude", target = "lng"),
+                Mapping(
+                    source = "addressElements",
+                    target = "elements",
+                    qualifiedBy = [ElementsArrayToMap::class]),
+                Mapping(
+                    source = "nameDetails",
+                    target = "details",
+                    qualifiedBy = [ElementsArrayToMap::class]),
+            ])
     fun toDTO(node: Address): AddressDTO
 
-    @Qualifier
-    @Target(AnnotationTarget.FUNCTION)
-    private annotation class ElementsArrayToMap
+    @Qualifier @Target(AnnotationTarget.FUNCTION) private annotation class ElementsArrayToMap
 
     companion object {
         @ElementsArrayToMap
         @JvmStatic
-        fun elementsArrayToMap(elements: Array<Element>?): Map<String, String> = elements
-            ?.map { it.key to it.value }
-            ?.toMap()
-            ?: emptyMap()
+        fun elementsArrayToMap(elements: Array<Element>?): Map<String, String> =
+            elements?.map { it.key to it.value }?.toMap() ?: emptyMap()
     }
 }

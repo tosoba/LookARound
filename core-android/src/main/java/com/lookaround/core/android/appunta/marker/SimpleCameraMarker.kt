@@ -12,5 +12,5 @@ class SimpleCameraMarker(override val marker: Marker) : CameraMarker {
     override var isDrawn = true
     override var renderer: MarkerRenderer? = null
 
-    constructor( location: Location, name: String) : this(Marker(name, location))
+    constructor(location: Location, name: String) : this(Marker(name, location))
 }

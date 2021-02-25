@@ -10,13 +10,15 @@ import kotlinx.coroutines.FlowPreview
 
 @ExperimentalCoroutinesApi
 @FlowPreview
-class CameraViewModel @AssistedInject constructor(
+class CameraViewModel
+@AssistedInject
+constructor(
     @Assisted savedStateHandle: SavedStateHandle,
     @Assisted initialState: CameraState,
     processor: CameraFlowProcessor
-) : FlowViewModel<CameraIntent, CameraStateUpdate, CameraState, CameraSignal>(
-    initialState, processor, savedStateHandle
-) {
+) :
+    FlowViewModel<CameraIntent, CameraStateUpdate, CameraState, CameraSignal>(
+        initialState, processor, savedStateHandle) {
     @AssistedFactory
     interface Factory {
         fun create(

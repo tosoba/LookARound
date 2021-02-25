@@ -5,7 +5,7 @@ import com.lookaround.core.android.appunta.marker.CameraMarker
 import com.lookaround.core.android.appunta.marker.SimpleCameraMarker
 import java.util.*
 
-object SamplePoints {
+object SampleMarkers {
     fun get(): List<CameraMarker> {
         val cameraMarkers: MutableList<CameraMarker> = ArrayList()
         cameraMarkers.add(

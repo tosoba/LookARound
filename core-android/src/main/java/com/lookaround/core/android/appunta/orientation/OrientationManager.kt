@@ -9,8 +9,8 @@ import androidx.annotation.MainThread
 import kotlin.math.abs
 
 /**
- * This class is responsible for providing the measure of the compass (in the 3
- * axis) everytime it changes and dealing with the service
+ * This class is responsible for providing the measure of the compass (in the 3 axis) everytime it
+ * changes and dealing with the service
  */
 class OrientationManager : SensorEventListener {
     private val gravs = FloatArray(3)
@@ -40,27 +40,25 @@ class OrientationManager : SensorEventListener {
     private var secondAxis: Int = SensorManager.AXIS_MINUS_X
     private var failed: Boolean = false
 
-    /***
-     * This constructor will generate and start a Compass Manager
+    /**
+     * * This constructor will generate and start a Compass Manager
      *
-     * @param context
-     * The context where the service will work
+     * @param context The context where the service will work
      */
     constructor(context: Context) {
         startSensor(context)
     }
 
-    /***
-     * This constructor will generate a Compass Manager, but it will need to be
-     * started manually using [.startSensor]
+    /**
+     * * This constructor will generate a Compass Manager, but it will need to be started manually
+     * using [.startSensor]
      */
     constructor()
 
-    /***
-     * This method registers this class as a listener of the Sensor service
+    /**
+     * * This method registers this class as a listener of the Sensor service
      *
-     * @param context
-     * The context over this will work
+     * @param context The context over this will work
      */
     @MainThread
     fun startSensor(context: Context) {
@@ -69,21 +67,17 @@ class OrientationManager : SensorEventListener {
             manager.registerListener(
                 this,
                 manager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-                SensorManager.SENSOR_DELAY_UI
-            )
+                SensorManager.SENSOR_DELAY_UI)
             manager.registerListener(
                 this,
                 manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                SensorManager.SENSOR_DELAY_UI
-            )
+                SensorManager.SENSOR_DELAY_UI)
             sensorManager = manager
             sensorRunning = true
         }
     }
 
-    /***
-     * Detects a change in a sensor and warns the appropiate listener.
-     */
+    /** * Detects a change in a sensor and warns the appropiate listener. */
     override fun onSensorChanged(event: SensorEvent) {
         when (event.sensor.type) {
             Sensor.TYPE_ACCELEROMETER -> System.arraycopy(event.values, 0, gravs, 0, 3)
@@ -113,11 +107,12 @@ class OrientationManager : SensorEventListener {
             orientation.x = lowPass(x, it.x)
             orientation.y = lowPass(y, it.y)
             orientation.z = lowPass(z, it.z)
-        } ?: run {
-            orientation.x = x
-            orientation.y = y
-            orientation.z = z
         }
+            ?: run {
+                orientation.x = x
+                orientation.y = y
+                orientation.z = z
+            }
 
         oldOrientation = orientation
         onOrientationChangedListener?.onOrientationChanged(orientation)
@@ -142,18 +137,19 @@ class OrientationManager : SensorEventListener {
                 newValue
             } else {
                 if (lowValue > newValue) {
-                    ((lowValue + (SMOOTH_FACTOR * ((CIRCLE + newValue - lowValue) % CIRCLE)) + CIRCLE) % CIRCLE)
+                    ((lowValue +
+                        (SMOOTH_FACTOR * ((CIRCLE + newValue - lowValue) % CIRCLE)) +
+                        CIRCLE) % CIRCLE)
                 } else {
-                    ((lowValue - SMOOTH_FACTOR * ((CIRCLE - newValue + lowValue) % CIRCLE) + CIRCLE) % CIRCLE)
+                    ((lowValue - SMOOTH_FACTOR * ((CIRCLE - newValue + lowValue) % CIRCLE) +
+                        CIRCLE) % CIRCLE)
                 }
             }
         }
 
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) = Unit
 
-    /***
-     * We stop "hearing" the sensors
-     */
+    /** * We stop "hearing" the sensors */
     @MainThread
     fun stopSensor() {
         if (sensorRunning) {
@@ -163,16 +159,15 @@ class OrientationManager : SensorEventListener {
     }
 
     enum class Mode {
-        COMPASS, AR
+        COMPASS,
+        AR
     }
 
     interface OnOrientationChangedListener {
-        /***
-         * This method will be invoked when the magnetic orientation of the
-         * phone changed
+        /**
+         * * This method will be invoked when the magnetic orientation of the phone changed
          *
-         * @param orientation
-         * Orientation on degrees. 360-0 is north.
+         * @param orientation Orientation on degrees. 360-0 is north.
          */
         fun onOrientationChanged(orientation: Orientation)
     }

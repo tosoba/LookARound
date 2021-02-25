@@ -1,7 +1,7 @@
 package com.lookaround.repo.overpass.di
 
-import com.lookaround.repo.overpass.OverpassRepo
 import com.lookaround.core.di.CoreNetworkModule
+import com.lookaround.repo.overpass.OverpassRepo
 import dagger.Component
 import javax.inject.Singleton
 

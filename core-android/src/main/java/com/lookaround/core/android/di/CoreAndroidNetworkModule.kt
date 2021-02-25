@@ -16,16 +16,15 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object CoreAndroidNetworkModule {
-    @Provides
-    @Singleton
-    fun reactiveNetwork(): ReactiveNetwork = ReactiveNetwork()
+    @Provides @Singleton fun reactiveNetwork(): ReactiveNetwork = ReactiveNetwork()
 
     @Provides
     @Singleton
     fun mapTilesHttpHandler(tilesCacheConfig: MapTilesCacheConfig): HttpHandler {
         return object : DefaultHttpHandler(OkHttpClient.Builder().cache(tilesCacheConfig.cache)) {
             override fun configureRequest(url: HttpUrl, builder: Request.Builder) {
-                builder.cacheControl(tilesCacheConfig.cacheControl)
+                builder
+                    .cacheControl(tilesCacheConfig.cacheControl)
                     .header("User-Agent", MapTilesCacheConfig.USER_AGENT_HEADER)
             }
         }

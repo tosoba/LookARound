@@ -9,11 +9,12 @@ fun View.fadeOut(duration: Long = 500L) {
     animate()
         .setDuration(duration)
         .alpha(0f)
-        .setListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator) {
-                visibility = View.GONE
-            }
-        })
+        .setListener(
+            object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    visibility = View.GONE
+                }
+            })
 }
 
 fun View.fadeIn(duration: Long = 500L) {

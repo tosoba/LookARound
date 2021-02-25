@@ -13,15 +13,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import ru.beryukhov.reactivenetwork.ReactiveNetwork
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @ExperimentalCoroutinesApi
 @Singleton
-class AppRepo @Inject constructor(
+class AppRepo
+@Inject
+constructor(
     @ApplicationContext private val context: Context,
     private val reactiveNetwork: ReactiveNetwork
 ) : IAppRepo {
@@ -30,28 +30,27 @@ class AppRepo @Inject constructor(
         get() = reactiveNetwork.observeNetworkConnectivity(context).map { it.available }
 
     override val isLocationAvailable: Boolean
-        get() = LocationManagerCompat.isLocationEnabled(
-            context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        )
+        get() =
+            LocationManagerCompat.isLocationEnabled(
+                context.getSystemService(Context.LOCATION_SERVICE) as LocationManager)
 
     override val locationDataFlow: Flow<LocationDataDTO>
         @SuppressLint("MissingPermission")
         get() {
-            val locationRequest = LocationRequest.create()
-                .setInterval(3000L)
-                .setFastestInterval(3000L)
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-            return LocationFlow(context, locationRequest)
-                .get()
-                .map { locationData ->
-                    when (locationData) {
-                        is LocationData.Success -> LocationDataDTO.Success(
+            val locationRequest =
+                LocationRequest.create()
+                    .setInterval(3000L)
+                    .setFastestInterval(3000L)
+                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+            return LocationFlow(context, locationRequest).get().map { locationData ->
+                when (locationData) {
+                    is LocationData.Success ->
+                        LocationDataDTO.Success(
                             locationData.location.latitude,
                             locationData.location.longitude,
-                            locationData.location.altitude
-                        )
-                        is LocationData.Fail -> LocationDataDTO.Failure
-                    }
+                            locationData.location.altitude)
+                    is LocationData.Fail -> LocationDataDTO.Failure
                 }
+            }
         }
 }

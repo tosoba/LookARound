@@ -14,24 +14,6 @@ import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-/**
- * This is the base class in order to create Views using the Appunta system. The class has all
- * needed calculations and values to retrieve info from points.
- *
- * It's important to understand how this will work. All the stuff happens in the onDraw Method.
- *
- * The [.onDraw] method has three phases: **preRender**, **pointRendering** & **postRender**.
- *
- * * The **preRender** phase triggers the method [.preRender], used to draw all needed elements used
- * in the background.
- *
- * * In the **pointRendering** phase, the method calculatePointCoordinates(SimplePoint) is invoked
- * per each on of the points, in order to calculate the screen coordinates for each one of them.
- * Then, they are painted by calling their PaintRenderer.
- *
- * * In the **Post render** phase, the [.postRender] method is invoked in order to paint the
- * foreground layer.
- */
 abstract class AppuntaView : View {
     var location: Location = Location("")
         set(value) {

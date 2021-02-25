@@ -16,21 +16,20 @@ object PhotonModule {
     @Provides
     @Singleton
     @PhotonGsonConverterFactory
-    fun gsonConverterFactory(): GsonConverterFactory = GsonConverterFactory.create(
-        GsonBuilder()
-            .registerTypeAdapterFactory(GeometryAdapterFactory())
-            .create()
-    )
+    fun gsonConverterFactory(): GsonConverterFactory =
+        GsonConverterFactory.create(
+            GsonBuilder().registerTypeAdapterFactory(GeometryAdapterFactory()).create())
 
     @Provides
     @Singleton
     fun photonEndpoints(
         @PhotonGsonConverterFactory converterFactory: GsonConverterFactory,
         @TestHttpClient httpClient: OkHttpClient
-    ) = Retrofit.Builder()
-        .baseUrl(PhotonEndpoints.BASE_URL)
-        .addConverterFactory(converterFactory)
-        .client(httpClient)
-        .build()
-        .create(PhotonEndpoints::class.java)
+    ) =
+        Retrofit.Builder()
+            .baseUrl(PhotonEndpoints.BASE_URL)
+            .addConverterFactory(converterFactory)
+            .client(httpClient)
+            .build()
+            .create(PhotonEndpoints::class.java)
 }

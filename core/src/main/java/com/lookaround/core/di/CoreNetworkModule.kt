@@ -14,14 +14,12 @@ import javax.inject.Singleton
 object CoreNetworkModule {
     @Provides
     @Singleton
-    fun httpLoggingInterceptor(): HttpLoggingInterceptor = HttpLoggingInterceptor()
-        .apply { level = HttpLoggingInterceptor.Level.BODY }
+    fun httpLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
     @Provides
     @Singleton
     @TestHttpClient
-    fun testHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient = OkHttpClient
-        .Builder()
-        .addInterceptor(loggingInterceptor)
-        .build()
+    fun testHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
+        OkHttpClient.Builder().addInterceptor(loggingInterceptor).build()
 }

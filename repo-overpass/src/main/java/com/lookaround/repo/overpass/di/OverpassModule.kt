@@ -20,35 +20,33 @@ import javax.inject.Singleton
 
 @Module
 abstract class OverpassModule {
-    @Binds
-    abstract fun nodeMapper(nodeMapper: NodeMapperImpl): NodeMapper
+    @Binds abstract fun nodeMapper(nodeMapper: NodeMapperImpl): NodeMapper
 
     companion object {
-        @Provides
-        @Singleton
-        fun nodeMapperImpl(): NodeMapperImpl = NodeMapperImpl()
+        @Provides @Singleton fun nodeMapperImpl(): NodeMapperImpl = NodeMapperImpl()
 
         @Provides
         @Singleton
         @OverpassMoshiConverterFactory
-        fun moshiConverterFactory(): MoshiConverterFactory = MoshiConverterFactory.create(
-            Moshi.Builder()
-                .add(MemberAdapter())
-                .add(ElementAdapter())
-                .add(Date::class.java, Iso8601Adapter())
-                .build()
-        )
+        fun moshiConverterFactory(): MoshiConverterFactory =
+            MoshiConverterFactory.create(
+                Moshi.Builder()
+                    .add(MemberAdapter())
+                    .add(ElementAdapter())
+                    .add(Date::class.java, Iso8601Adapter())
+                    .build())
 
         @Provides
         @Singleton
         fun overpassEndpoints(
             @OverpassMoshiConverterFactory converterFactory: MoshiConverterFactory,
             @TestHttpClient httpClient: OkHttpClient,
-        ): OverpassEndpoints = Retrofit.Builder()
-            .baseUrl(OverpassEndpoints.BASE_URL)
-            .addConverterFactory(converterFactory)
-            .client(httpClient)
-            .build()
-            .create(OverpassEndpoints::class.java)
+        ): OverpassEndpoints =
+            Retrofit.Builder()
+                .baseUrl(OverpassEndpoints.BASE_URL)
+                .addConverterFactory(converterFactory)
+                .client(httpClient)
+                .build()
+                .create(OverpassEndpoints::class.java)
     }
 }

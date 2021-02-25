@@ -20,7 +20,6 @@ import com.lookaround.core.android.ext.*
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -29,6 +28,7 @@ import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
+import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -89,7 +89,7 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.initARViews(
-        cameraMarkers: List<CameraMarker> = SamplePoints.get()
+        cameraMarkers: List<CameraMarker> = SampleMarkers.get()
     ) {
         cameraPreview.previewStreamState.observe(
             this@CameraFragment, ::onPreviewViewStreamStateChanged)

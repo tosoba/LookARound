@@ -11,10 +11,11 @@ import javax.inject.Singleton
 
 @Singleton
 class MapTilesCacheConfig @Inject constructor(@ApplicationContext context: Context) {
-    val cacheControl = CacheControl.Builder()
-        .maxAge(TILE_CACHE_MAX_AGE_DAYS, TimeUnit.DAYS)
-        .maxStale(TILE_CACHE_MAX_STALE_DAYS, TimeUnit.DAYS)
-        .build()
+    val cacheControl =
+        CacheControl.Builder()
+            .maxAge(TILE_CACHE_MAX_AGE_DAYS, TimeUnit.DAYS)
+            .maxStale(TILE_CACHE_MAX_STALE_DAYS, TimeUnit.DAYS)
+            .build()
 
     val cache: Cache?
 

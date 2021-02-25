@@ -14,16 +14,12 @@ import javax.inject.Singleton
 
 @Module
 abstract class NominatimModule {
-    @Binds
-    abstract fun addressMapper(nodeMapper: AddressMapperImpl): AddressMapper
+    @Binds abstract fun addressMapper(nodeMapper: AddressMapperImpl): AddressMapper
 
-    @Binds
-    abstract fun geocodingRepo(nominatimRepo: NominatimRepo): GeocodingRepo
+    @Binds abstract fun geocodingRepo(nominatimRepo: NominatimRepo): GeocodingRepo
 
     companion object {
-        @Provides
-        @Singleton
-        fun addressMapperImpl(): AddressMapperImpl = AddressMapperImpl()
+        @Provides @Singleton fun addressMapperImpl(): AddressMapperImpl = AddressMapperImpl()
 
         @Provides
         @Singleton
@@ -33,9 +29,6 @@ abstract class NominatimModule {
         @Singleton
         fun jsonNominatimClient(httpClient: CloseableHttpClient): JsonNominatimClient =
             JsonNominatimClient(
-                "https://nominatim.openstreetmap.org/",
-                httpClient,
-                "therealmerengue@gmail.com"
-            )
+                "https://nominatim.openstreetmap.org/", httpClient, "therealmerengue@gmail.com")
     }
 }

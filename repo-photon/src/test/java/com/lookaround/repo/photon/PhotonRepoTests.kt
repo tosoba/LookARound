@@ -5,10 +5,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
 class PhotonRepoTests {
-    private val repo: PhotonRepo = DaggerPhotonComponent
-        .builder()
-        .build()
-        .photonRepo()
+    private val repo: PhotonRepo = DaggerPhotonComponent.builder().build().photonRepo()
 
     @Test
     fun search() {

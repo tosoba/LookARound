@@ -22,8 +22,7 @@ suspend fun MapView.init(
                 ?: continuation.resumeWithException(GetMapException)
         },
         glViewHolderFactory,
-        httpHandler
-    )
+        httpHandler)
 }
 
 fun MapController.zoomOnDoubleTap(
@@ -32,25 +31,29 @@ fun MapController.zoomOnDoubleTap(
     easeType: MapController.EaseType = MapController.EaseType.CUBIC
 ) {
     touchInput.setDoubleTapResponder { x, y ->
-        val tappedPosition = screenPositionToLngLat(PointF(x, y))
-            ?: return@setDoubleTapResponder false
+        val tappedPosition =
+            screenPositionToLngLat(PointF(x, y)) ?: return@setDoubleTapResponder false
         updateCameraPosition(
-            CameraUpdateFactory.newCameraPosition(cameraPosition.apply {
-                longitude = .5 * (tappedPosition.longitude + longitude)
-                latitude = .5 * (tappedPosition.latitude + latitude)
-                zoom += zoomIncrement
-            }),
+            CameraUpdateFactory.newCameraPosition(
+                cameraPosition.apply {
+                    longitude = .5 * (tappedPosition.longitude + longitude)
+                    latitude = .5 * (tappedPosition.latitude + latitude)
+                    zoom += zoomIncrement
+                }),
             durationMs,
-            easeType
-        )
+            easeType)
         true
     }
 }
 
 private const val PREF_ROTATION = "map_rotation"
+
 private const val PREF_TILT = "map_tilt"
+
 private const val PREF_ZOOM = "map_zoom"
+
 private const val PREF_LAT = "map_lat"
+
 private const val PREF_LON = "map_lon"
 
 fun MapController.saveCameraPosition(outState: Bundle) {
@@ -65,11 +68,13 @@ fun MapController.saveCameraPosition(outState: Bundle) {
 
 fun MapController.restoreCameraPosition(savedInstanceState: Bundle?) {
     if (savedInstanceState == null) return
-    updateCameraPosition(CameraUpdateFactory.newCameraPosition(CameraPosition().apply {
-        latitude = savedInstanceState.getDouble(PREF_LAT)
-        longitude = savedInstanceState.getDouble(PREF_LON)
-        rotation = savedInstanceState.getFloat(PREF_ROTATION)
-        tilt = savedInstanceState.getFloat(PREF_TILT)
-        zoom = savedInstanceState.getFloat(PREF_ZOOM)
-    }))
+    updateCameraPosition(
+        CameraUpdateFactory.newCameraPosition(
+            CameraPosition().apply {
+                latitude = savedInstanceState.getDouble(PREF_LAT)
+                longitude = savedInstanceState.getDouble(PREF_LON)
+                rotation = savedInstanceState.getFloat(PREF_ROTATION)
+                tilt = savedInstanceState.getFloat(PREF_TILT)
+                zoom = savedInstanceState.getFloat(PREF_ZOOM)
+            }))
 }

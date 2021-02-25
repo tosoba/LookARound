@@ -10,6 +10,5 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class CoreAndroidRepoModule {
-    @Binds
-    abstract fun appRepo(appRepo: AppRepo): IAppRepo
+    @Binds abstract fun appRepo(appRepo: AppRepo): IAppRepo
 }

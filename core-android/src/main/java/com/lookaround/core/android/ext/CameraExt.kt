@@ -17,47 +17,48 @@ fun PreviewView.init(
 ) {
     post {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-        cameraProviderFuture.addListener({
-            try {
-                val cameraSelector = CameraSelector.Builder()
-                    .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-                    .build()
+        cameraProviderFuture.addListener(
+            {
+                try {
+                    val cameraSelector =
+                        CameraSelector.Builder()
+                            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                            .build()
 
-                val metrics = DisplayMetrics()
-                    .also { display.getRealMetrics(it) }
-                val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
-                val rotation = display.rotation
+                    val metrics = DisplayMetrics().also { display.getRealMetrics(it) }
+                    val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
+                    val rotation = display.rotation
 
-                val preview = Preview.Builder()
-                    .setTargetAspectRatio(screenAspectRatio)
-                    .setTargetRotation(rotation)
-                    .build()
+                    val preview =
+                        Preview.Builder()
+                            .setTargetAspectRatio(screenAspectRatio)
+                            .setTargetRotation(rotation)
+                            .build()
 
-                val imageCapture = ImageCapture.Builder()
-                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                    .setTargetAspectRatio(screenAspectRatio)
-                    .setTargetRotation(rotation)
-                    .build()
+                    val imageCapture =
+                        ImageCapture.Builder()
+                            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                            .setTargetAspectRatio(screenAspectRatio)
+                            .setTargetRotation(rotation)
+                            .build()
 
-                val imageAnalyzer = ImageAnalysis.Builder()
-                    .setTargetAspectRatio(screenAspectRatio)
-                    .setTargetRotation(rotation)
-                    .build()
+                    val imageAnalyzer =
+                        ImageAnalysis.Builder()
+                            .setTargetAspectRatio(screenAspectRatio)
+                            .setTargetRotation(rotation)
+                            .build()
 
-                cameraProviderFuture.get()
-                    .bindToLifecycle(
-                        lifecycleOwner,
-                        cameraSelector,
-                        preview,
-                        imageCapture,
-                        imageAnalyzer
-                    )
+                    cameraProviderFuture
+                        .get()
+                        .bindToLifecycle(
+                            lifecycleOwner, cameraSelector, preview, imageCapture, imageAnalyzer)
 
-                preview.setSurfaceProvider(surfaceProvider)
-            } catch (ex: Exception) {
-                onError(ex)
-            }
-        }, ContextCompat.getMainExecutor(context))
+                    preview.setSurfaceProvider(surfaceProvider)
+                } catch (ex: Exception) {
+                    onError(ex)
+                }
+            },
+            ContextCompat.getMainExecutor(context))
     }
 }
 
@@ -71,4 +72,5 @@ private fun aspectRatio(width: Int, height: Int): Int {
 }
 
 private const val RATIO_4_3_VALUE = 4.0 / 3.0
+
 private const val RATIO_16_9_VALUE = 16.0 / 9.0

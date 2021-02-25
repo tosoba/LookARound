@@ -11,10 +11,7 @@ class OverpassRepoTests {
     private val warsawLng = 21.017532
     private val radius = 10_000.0f
 
-    private val repo: OverpassRepo = DaggerOverpassComponent
-        .builder()
-        .build()
-        .overpassService()
+    private val repo: OverpassRepo = DaggerOverpassComponent.builder().build().overpassService()
 
     @Test
     fun attractions() {

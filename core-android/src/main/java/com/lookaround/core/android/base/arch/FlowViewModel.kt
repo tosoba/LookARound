@@ -19,14 +19,16 @@ abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : 
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _signals: BroadcastChannel<Signal> = BroadcastChannel(Channel.BUFFERED)
-    val signals: Flow<Signal> get() = _signals.asFlow()
+    val signals: Flow<Signal>
+        get() = _signals.asFlow()
     suspend fun signal(signal: Signal) = _signals.send(signal)
 
     private val _intents: BroadcastChannel<Intent> = BroadcastChannel(Channel.CONFLATED)
     suspend fun intent(intent: Intent) = _intents.send(intent)
 
     private val _states: MutableStateFlow<State> = MutableStateFlow(initialState)
-    val states: StateFlow<State> get() = _states
+    val states: StateFlow<State>
+        get() = _states
     var state: State
         private set(value) = value.let { _states.value = it }
         get() = _states.value
@@ -39,8 +41,7 @@ abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : 
                 currentState = states::value,
                 states = states,
                 intent = ::intent,
-                signal = _signals::send
-            )
+                signal = _signals::send)
             .run {
                 if (BuildConfig.DEBUG && BuildConfig.LOG_STATES_UPDATES_FLOW) {
                     onEach { Log.e("STATE_UPDATE", it.toString()) }
@@ -67,8 +68,7 @@ abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : 
             coroutineScope = viewModelScope,
             currentState = states::value,
             states = states,
-            signal = _signals::send
-        )
+            signal = _signals::send)
     }
 
     override fun onCleared() {
