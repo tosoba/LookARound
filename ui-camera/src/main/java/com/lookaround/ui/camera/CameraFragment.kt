@@ -94,6 +94,8 @@ class CameraFragment :
         )
         cameraPreview.init(this@CameraFragment)
 
+        eyeViewRenderer += points
+
         eyeView.maxDistance = MAX_RENDER_DISTANCE_METERS
         eyeView.onPointPressedListener = this@CameraFragment
         eyeView.points = points

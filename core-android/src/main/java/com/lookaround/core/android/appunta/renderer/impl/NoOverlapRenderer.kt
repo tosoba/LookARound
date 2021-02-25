@@ -7,6 +7,7 @@ import android.graphics.RectF
 import android.location.Location
 import android.text.TextPaint
 import android.text.TextUtils
+import androidx.annotation.MainThread
 import com.lookaround.core.android.appunta.orientation.Orientation
 import com.lookaround.core.android.appunta.point.Point
 import com.lookaround.core.android.appunta.renderer.PointRenderer
@@ -15,14 +16,11 @@ import kotlin.math.abs
 
 class NoOverlapRenderer(
     var userLocation: Location = Location(""),
-    points: List<Point> = emptyList(),
     private val dialogHeight: Float = 100f,
     private val dialogWidth: Float = 400f
 ) : PointRenderer {
 
-    private val pointsMap: Map<UUID, PointWrapper> = points
-        .map { it.id to PointWrapper(it) }
-        .toMap()
+    private val pointsMap: MutableMap<UUID, WrappedPoint> = mutableMapOf()
 
     private val backgroundPaint: Paint by lazy(LazyThreadSafetyMode.NONE) {
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -43,10 +41,10 @@ class NoOverlapRenderer(
     }
 
     override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation) {
-        val wrapper = pointsMap[point.id] ?: return
-        point.y = wrapper.screenY ?: run {
-            val calculated = wrapper.calculateScreenY()
-            wrapper.screenY = calculated
+        val wrapped = pointsMap[point.id] ?: return
+        point.y = wrapped.screenY ?: run {
+            val calculated = wrapped.calculateScreenY()
+            wrapped.screenY = calculated
             calculated
         }
 
@@ -74,9 +72,9 @@ class NoOverlapRenderer(
         canvas.drawRoundRect(rect, 10f, 10f, backgroundPaint)
     }
 
-    private class PointWrapper(val wrapped: Point, var screenY: Float? = null)
+    private class WrappedPoint(val wrapped: Point, var screenY: Float? = null)
 
-    private fun PointWrapper.calculateScreenY(): Float {
+    private fun WrappedPoint.calculateScreenY(): Float {
         val taken = mutableSetOf<Float>()
         val bearingThis = userLocation.bearingTo(wrapped.location)
         for (point in pointsMap.values) {
@@ -95,6 +93,20 @@ class NoOverlapRenderer(
         var bestY = BASE_SCREEN_Y
         while (taken.contains(bestY)) bestY += dialogHeight
         return bestY
+    }
+
+    @MainThread
+    operator fun plusAssign(point: Point) {
+        if (pointsMap.contains(point.id)) return
+        pointsMap[point.id] = WrappedPoint(point)
+    }
+
+    @MainThread
+    operator fun plusAssign(points: Collection<Point>) {
+        points.forEach { point ->
+            if (pointsMap.contains(point.id)) return@forEach
+            pointsMap[point.id] = WrappedPoint(point)
+        }
     }
 
     companion object {
