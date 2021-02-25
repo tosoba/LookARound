@@ -3,7 +3,7 @@ package com.lookaround.core.android.appunta.view
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import com.lookaround.core.android.appunta.point.Point
+import com.lookaround.core.android.appunta.marker.CameraMarker
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -19,13 +19,13 @@ class RadarView : AppuntaView {
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyle: Int)
-            : super(context, attrs, defStyle)
+    constructor(
+        context: Context,
+        attrs: AttributeSet?,
+        defStyle: Int
+    ) : super(context, attrs, defStyle)
 
-    /***
-     * Returns the correct size of the control when needed (Basically
-     * maintaining the ratio)
-     */
+    /** * Returns the correct size of the control when needed (Basically maintaining the ratio) */
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val measuredWidth = getDefaultSize(suggestedMinimumWidth, widthMeasureSpec)
         val measuredHeight = getDefaultSize(suggestedMinimumHeight, heightMeasureSpec)
@@ -34,13 +34,13 @@ class RadarView : AppuntaView {
         setMeasuredDimension(size, size)
     }
 
-    override fun calculatePointCoordinates(point: Point) {
-        val pointAngle = getAngle(point) + compassAngle
-        val pixelDistance = point.distance * center / maxDistance
+    override fun calculatePointCoordinates(cameraMarker: CameraMarker) {
+        val pointAngle = getAngle(cameraMarker) + compassAngle
+        val pixelDistance = cameraMarker.distance * center / maxDistance
         val pointY = center - pixelDistance * sin(pointAngle)
         val pointX = center + pixelDistance * cos(pointAngle)
-        point.x = pointX.toFloat()
-        point.y = pointY.toFloat()
+        cameraMarker.x = pointX.toFloat()
+        cameraMarker.y = pointY.toFloat()
     }
 
     override fun preRender(canvas: Canvas) {
@@ -48,7 +48,8 @@ class RadarView : AppuntaView {
         compassAngle = orientation.y.toDouble()
     }
 
-    override fun shouldDraw(point: Point): Boolean = point.distance < maxDistance
+    override fun shouldDraw(cameraMarker: CameraMarker): Boolean =
+        cameraMarker.distance < maxDistance
 
     override fun postRender(canvas: Canvas) {
         val pointPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -61,12 +62,12 @@ class RadarView : AppuntaView {
             val transform = Matrix()
             transform.setRectToRect(
                 RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat()),
-                RectF(0f, 0f, width.toFloat(), width.toFloat()), Matrix.ScaleToFit.CENTER
-            )
+                RectF(0f, 0f, width.toFloat(), width.toFloat()),
+                Matrix.ScaleToFit.CENTER)
             transform.preRotate(
                 (-Math.toDegrees(compassAngle)).toFloat(),
-                bitmap.width.toFloat() / 2, bitmap.height.toFloat() / 2
-            )
+                bitmap.width.toFloat() / 2,
+                bitmap.height.toFloat() / 2)
             canvas.drawBitmap(bitmap, transform, null)
         }
     }

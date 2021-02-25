@@ -8,9 +8,9 @@ import android.location.Location
 import android.text.TextPaint
 import android.text.TextUtils
 import androidx.annotation.MainThread
+import com.lookaround.core.android.appunta.marker.CameraMarker
 import com.lookaround.core.android.appunta.orientation.Orientation
-import com.lookaround.core.android.appunta.point.Point
-import com.lookaround.core.android.appunta.renderer.PointRenderer
+import com.lookaround.core.android.appunta.renderer.MarkerRenderer
 import java.util.*
 import kotlin.math.abs
 
@@ -18,9 +18,8 @@ class NoOverlapRenderer(
     var userLocation: Location = Location(""),
     private val dialogHeight: Float = 100f,
     private val dialogWidth: Float = 400f
-) : PointRenderer {
-
-    private val pointsMap: MutableMap<UUID, WrappedPoint> = mutableMapOf()
+) : MarkerRenderer {
+    private val markers: MutableMap<UUID, WrappedPoint> = mutableMapOf()
 
     private val backgroundPaint: Paint by lazy(LazyThreadSafetyMode.NONE) {
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -40,54 +39,50 @@ class NoOverlapRenderer(
         }
     }
 
-    override fun drawPoint(point: Point, canvas: Canvas, orientation: Orientation) {
-        val wrapped = pointsMap[point.id] ?: return
-        point.y = wrapped.screenY ?: run {
-            val calculated = wrapped.calculateScreenY()
-            wrapped.screenY = calculated
-            calculated
-        }
+    override fun drawPoint(cameraMarker: CameraMarker, canvas: Canvas, orientation: Orientation) {
+        val wrapped = markers[cameraMarker.marker.id] ?: return
+        cameraMarker.y =
+            wrapped.screenY
+                ?: run {
+                    val calculated = wrapped.calculateScreenY()
+                    wrapped.screenY = calculated
+                    calculated
+                }
 
-        val rect = RectF(
-            point.x - dialogWidth / 2,
-            point.y - dialogHeight / 2,
-            point.x + dialogWidth / 2,
-            point.y + dialogHeight / 2
-        )
+        val rect =
+            RectF(
+                cameraMarker.x - dialogWidth / 2,
+                cameraMarker.y - dialogHeight / 2,
+                cameraMarker.x + dialogWidth / 2,
+                cameraMarker.y + dialogHeight / 2)
         val width = (rect.width() - 10).toInt() // 10 to keep some space on the right for the "..."
-        val text = TextUtils.ellipsize(
-            "The loooooong text",
-            textPaint,
-            width.toFloat(),
-            TextUtils.TruncateAt.END
-        )
+        val text =
+            TextUtils.ellipsize(
+                "The loooooong text", textPaint, width.toFloat(), TextUtils.TruncateAt.END)
         canvas.drawText(
             text,
             0,
             text.length,
-            point.x - dialogWidth / 2 + TEXT_OFFSET,
-            point.y,
-            textPaint
-        )
+            cameraMarker.x - dialogWidth / 2 + TEXT_OFFSET,
+            cameraMarker.y,
+            textPaint)
         canvas.drawRoundRect(rect, 10f, 10f, backgroundPaint)
     }
 
-    private class WrappedPoint(val wrapped: Point, var screenY: Float? = null)
+    private class WrappedPoint(val wrapped: CameraMarker, var screenY: Float? = null)
 
     private fun WrappedPoint.calculateScreenY(): Float {
         val taken = mutableSetOf<Float>()
-        val bearingThis = userLocation.bearingTo(wrapped.location)
-        for (point in pointsMap.values) {
-            if (point == this) continue
-            point.screenY?.let { screenY ->
-                val bearingCurrent = userLocation.bearingTo(point.wrapped.location)
-                if (
-                    abs(bearingCurrent - bearingThis) < TAKEN_BEARING_LIMIT
-                    && !taken.contains(screenY)
-                ) {
+        val bearingThis = userLocation.bearingTo(wrapped.marker.location)
+        markers.values.forEach { marker ->
+            if (marker == this) return@forEach
+            marker.screenY?.let { screenY ->
+                val bearingCurrent = userLocation.bearingTo(marker.wrapped.marker.location)
+                if (abs(bearingCurrent - bearingThis) < TAKEN_BEARING_LIMIT &&
+                    !taken.contains(screenY)) {
                     taken.add(screenY)
                 }
-            } ?: continue
+            }
         }
 
         var bestY = BASE_SCREEN_Y
@@ -96,16 +91,16 @@ class NoOverlapRenderer(
     }
 
     @MainThread
-    operator fun plusAssign(point: Point) {
-        if (pointsMap.contains(point.id)) return
-        pointsMap[point.id] = WrappedPoint(point)
+    operator fun plusAssign(cameraMarker: CameraMarker) {
+        if (markers.contains(cameraMarker.marker.id)) return
+        markers[cameraMarker.marker.id] = WrappedPoint(cameraMarker)
     }
 
     @MainThread
-    operator fun plusAssign(points: Collection<Point>) {
-        points.forEach { point ->
-            if (pointsMap.contains(point.id)) return@forEach
-            pointsMap[point.id] = WrappedPoint(point)
+    operator fun plusAssign(cameraMarkers: Collection<CameraMarker>) {
+        cameraMarkers.forEach { marker ->
+            if (markers.contains(marker.marker.id)) return@forEach
+            markers[marker.marker.id] = WrappedPoint(marker)
         }
     }
 

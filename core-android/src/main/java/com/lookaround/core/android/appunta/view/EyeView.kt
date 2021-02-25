@@ -3,8 +3,8 @@ package com.lookaround.core.android.appunta.view
 import android.content.Context
 import android.graphics.Canvas
 import android.util.AttributeSet
+import com.lookaround.core.android.appunta.marker.CameraMarker
 import com.lookaround.core.android.appunta.math3d.*
-import com.lookaround.core.android.appunta.point.Point
 
 class EyeView : AppuntaView {
     private val camRot = Vector3()
@@ -21,8 +21,11 @@ class EyeView : AppuntaView {
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyle: Int)
-            : super(context, attrs, defStyle)
+    constructor(
+        context: Context,
+        attrs: AttributeSet?,
+        defStyle: Int
+    ) : super(context, attrs, defStyle)
 
     init {
         screenRatio.z = SCREEN_DEPTH.toDouble()
@@ -35,40 +38,32 @@ class EyeView : AppuntaView {
         // Get the current size of the window
         screenSize.y = height.toDouble()
         screenSize.x = width.toDouble()
-        //Obtain the current camera rotation and related calculations based on phone orientation and rotation
+        // Obtain the current camera rotation and related calculations based on phone orientation
+        // and rotation
         Math3dUtil.getCamRotation(
-            orientation,
-            phoneRotation,
-            camRot,
-            camTrig,
-            screenRot,
-            screenRotTrig
-        )
-        //Transform current camera location into a position object;
+            orientation, phoneRotation, camRot, camTrig, screenRot, screenRotTrig)
+        // Transform current camera location into a position object;
         Math3dUtil.convertLocationToPosition(location, camPos)
     }
 
-    override fun calculatePointCoordinates(point: Point) {
-        //Transform point Location into a Position object
-        Math3dUtil.convertLocationToPosition(point.location, pointPos)
-        //Calculate relative position to the camera. Transforms angles of latitude and longitude into meters of distance.
+    override fun calculatePointCoordinates(cameraMarker: CameraMarker) {
+        // Transform point Location into a Position object
+        Math3dUtil.convertLocationToPosition(cameraMarker.marker.location, pointPos)
+        // Calculate relative position to the camera. Transforms angles of latitude and longitude
+        // into meters of distance.
         Math3dUtil.getRelativeTranslationInMeters(pointPos, camPos, relativePos)
-        //Rotates the point around the camera in order to set the camera rotation to <0,0,0>
+        // Rotates the point around the camera in order to set the camera rotation to <0,0,0>
         Math3dUtil.getRelativeRotation(relativePos, camTrig, relativeRotPos)
-        //Converts a 3d position into a 2d position on screen
-        val drawn = Math3dUtil.convert3dTo2d(
-            relativeRotPos,
-            screenSize,
-            screenRatio,
-            screenRotTrig,
-            screenPos
-        )
-        //If drawn is false, the point is behind us, so no need to paint
+        // Converts a 3d position into a 2d position on screen
+        val drawn =
+            Math3dUtil.convert3dTo2d(
+                relativeRotPos, screenSize, screenRatio, screenRotTrig, screenPos)
+        // If drawn is false, the point is behind us, so no need to paint
         if (drawn) {
-            point.x = screenPos.x.toFloat()
-            point.y = screenPos.y.toFloat()
+            cameraMarker.x = screenPos.x.toFloat()
+            cameraMarker.y = screenPos.y.toFloat()
         }
-        point.isDrawn = drawn
+        cameraMarker.isDrawn = drawn
     }
 
     override fun postRender(canvas: Canvas) = Unit
