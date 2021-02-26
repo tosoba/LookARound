@@ -31,6 +31,15 @@
         android:layout_height="match_parent"
         android:background="@drawable/background" />
 
+    <TextView
+        android:id="@+id/permissions_required_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/permissions_required_for_ar"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="25sp" />
+
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmer_layout"
         android:layout_width="wrap_content"
@@ -42,7 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="LOADING..."
+            android:text="@string/loading"
             android:textAlignment="center"
             android:textColor="@android:color/white"
             android:textSize="25sp" />

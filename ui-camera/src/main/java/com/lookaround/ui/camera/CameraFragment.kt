@@ -9,7 +9,6 @@ import androidx.camera.view.PreviewView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.google.android.material.snackbar.Snackbar
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.orientation.OrientationManager
@@ -111,7 +110,8 @@ class CameraFragment :
         when (state) {
             PreviewView.StreamState.IDLE ->
                 with(binding) {
-                    blurBackground.visibility = View.VISIBLE
+                    permissionsRequiredTextView.fadeOut()
+                    blurBackground.fadeIn()
                     shimmerLayout.showAndStart()
                 }
             PreviewView.StreamState.STREAMING ->
@@ -125,23 +125,28 @@ class CameraFragment :
     }
 
     @Suppress("unused")
-    @OnPermissionDenied(Manifest.permission.CAMERA)
+    @OnPermissionDenied(
+        Manifest.permission.CAMERA,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+    )
     internal fun onPermissionsDenied() {
-        showPermissionRequiredSnackbar()
+        showPermissionsRequiredView()
     }
 
     @Suppress("unused")
-    @OnNeverAskAgain(Manifest.permission.CAMERA)
+    @OnNeverAskAgain(
+        Manifest.permission.CAMERA,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+    )
     internal fun onNeverAskAgain() {
-        showPermissionRequiredSnackbar()
+        showPermissionsRequiredView()
     }
 
-    private fun showPermissionRequiredSnackbar() {
-        Snackbar.make(
-                binding.root,
-                "Camera access permission is required for AR camera to work.",
-                Snackbar.LENGTH_LONG)
-            .show()
+    private fun showPermissionsRequiredView() {
+        binding.blurBackground.fadeIn()
+        binding.permissionsRequiredTextView.fadeIn()
     }
 
     override fun onRequestPermissionsResult(
@@ -172,9 +177,7 @@ class CameraFragment :
 
     override fun onMarkerPressed(marker: ARMarker) {
         Toast.makeText(
-                requireContext(),
-                "Pressed marker with id: ${marker.wrapped.id}",
-                Toast.LENGTH_LONG)
+                requireContext(), "Pressed marker with id: ${marker.wrapped.id}", Toast.LENGTH_LONG)
             .show()
     }
 

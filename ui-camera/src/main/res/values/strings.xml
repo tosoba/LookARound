@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="permissions_required_for_ar">Camera and location permissions are required for AR to work.</string>
+</resources>
