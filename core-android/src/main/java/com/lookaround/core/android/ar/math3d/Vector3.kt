@@ -1,4 +1,4 @@
-package com.lookaround.core.android.appunta.math3d
+package com.lookaround.core.android.ar.math3d
 
 class Vector3 {
     var x = 0.0

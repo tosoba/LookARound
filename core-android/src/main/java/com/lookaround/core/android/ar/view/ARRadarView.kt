@@ -1,17 +1,17 @@
-package com.lookaround.core.android.appunta.view
+package com.lookaround.core.android.ar.view
 
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import com.lookaround.core.android.appunta.marker.CameraMarker
+import com.lookaround.core.android.ar.marker.ARMarker
 import kotlin.math.cos
 import kotlin.math.sin
 
-class RadarView : AppuntaView {
+class ARRadarView : ARView {
     var rotableBackground: Int = 0
         set(value) {
             field = value
-            rotableBackgroundBitmap = BitmapFactory.decodeResource(this.resources, value)
+            rotableBackgroundBitmap = BitmapFactory.decodeResource(resources, value)
         }
     private var center: Float = 0f
     private var rotableBackgroundBitmap: Bitmap? = null
@@ -34,13 +34,13 @@ class RadarView : AppuntaView {
         setMeasuredDimension(size, size)
     }
 
-    override fun calculatePointCoordinates(cameraMarker: CameraMarker) {
-        val pointAngle = getAngle(cameraMarker) + compassAngle
-        val pixelDistance = cameraMarker.distance * center / maxDistance
-        val pointY = center - pixelDistance * sin(pointAngle)
-        val pointX = center + pixelDistance * cos(pointAngle)
-        cameraMarker.x = pointX.toFloat()
-        cameraMarker.y = pointY.toFloat()
+    override fun calculateMarkerCoordinates(marker: ARMarker) {
+        val markerAngle = getAngle(marker) + compassAngle
+        val pixelDistance = marker.distance * center / maxDistance
+        val markerY = center - pixelDistance * sin(markerAngle)
+        val markerX = center + pixelDistance * cos(markerAngle)
+        marker.x = markerX.toFloat()
+        marker.y = markerY.toFloat()
     }
 
     override fun preRender(canvas: Canvas) {
@@ -48,13 +48,13 @@ class RadarView : AppuntaView {
         compassAngle = orientation.y.toDouble()
     }
 
-    override fun shouldDraw(cameraMarker: CameraMarker): Boolean =
-        cameraMarker.distance < maxDistance
+    override fun shouldDraw(marker: ARMarker): Boolean =
+        marker.distance < maxDistance
 
     override fun postRender(canvas: Canvas) {
-        val pointPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        pointPaint.color = -0xff5f2e
-        canvas.drawCircle(center, center, 5f, pointPaint)
+        val markerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        markerPaint.color = -0xff5f2e
+        canvas.drawCircle(center, center, 5f, markerPaint)
     }
 
     private fun drawBackground(canvas: Canvas) {

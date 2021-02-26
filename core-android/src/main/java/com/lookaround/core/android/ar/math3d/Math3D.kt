@@ -1,12 +1,11 @@
-package com.lookaround.core.android.appunta.math3d
+package com.lookaround.core.android.ar.math3d
 
 import android.location.Location
 import android.view.Surface
-import com.lookaround.core.android.appunta.orientation.Orientation
+import com.lookaround.core.android.ar.orientation.Orientation
 import kotlin.math.cos
 
-object Math3dUtil {
-    // Check
+object Math3D {
     // http://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters
     private const val METERS_IN_A_DEGREE = 111111.0
     private const val QUADRANT = Math.PI / 2

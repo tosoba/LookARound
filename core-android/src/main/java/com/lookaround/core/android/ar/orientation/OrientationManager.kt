@@ -1,4 +1,4 @@
-package com.lookaround.core.android.appunta.orientation
+package com.lookaround.core.android.ar.orientation
 
 import android.content.Context
 import android.hardware.Sensor

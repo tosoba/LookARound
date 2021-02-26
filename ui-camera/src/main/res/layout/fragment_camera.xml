@@ -10,14 +10,14 @@
         android:layout_height="match_parent"
         app:scaleType="fillCenter" />
 
-    <com.lookaround.core.android.appunta.view.EyeView
-        android:id="@+id/eye_view"
+    <com.lookaround.core.android.ar.view.ARCameraView
+        android:id="@+id/ar_camera_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone" />
 
-    <com.lookaround.core.android.appunta.view.RadarView
-        android:id="@+id/radar_view"
+    <com.lookaround.core.android.ar.view.ARRadarView
+        android:id="@+id/ar_radar_view"
         android:layout_width="96dp"
         android:layout_height="96dp"
         android:layout_gravity="top|right"

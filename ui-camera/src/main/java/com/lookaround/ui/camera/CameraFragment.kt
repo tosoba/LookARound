@@ -10,16 +10,17 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.snackbar.Snackbar
-import com.lookaround.core.android.appunta.marker.CameraMarker
-import com.lookaround.core.android.appunta.orientation.Orientation
-import com.lookaround.core.android.appunta.orientation.OrientationManager
-import com.lookaround.core.android.appunta.renderer.impl.NoOverlapRenderer
-import com.lookaround.core.android.appunta.renderer.impl.SimpleMarkerRenderer
-import com.lookaround.core.android.appunta.view.AppuntaView
+import com.lookaround.core.android.ar.marker.ARMarker
+import com.lookaround.core.android.ar.orientation.Orientation
+import com.lookaround.core.android.ar.orientation.OrientationManager
+import com.lookaround.core.android.ar.renderer.impl.CameraMarkerRenderer
+import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
+import com.lookaround.core.android.ar.view.ARView
 import com.lookaround.core.android.ext.*
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -28,7 +29,6 @@ import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
-import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -38,15 +38,15 @@ import javax.inject.Inject
 class CameraFragment :
     Fragment(R.layout.fragment_camera),
     OrientationManager.OnOrientationChangedListener,
-    AppuntaView.OnPointPressedListener {
+    ARView.OnMarkerPressedListener {
 
     private val binding: FragmentCameraBinding by viewBinding(FragmentCameraBinding::bind)
 
     @Inject internal lateinit var viewModelFactory: CameraViewModel.Factory
     private val viewModel: CameraViewModel by assistedViewModel { viewModelFactory.create(it) }
 
-    private val eyeViewRenderer: NoOverlapRenderer by lazy(LazyThreadSafetyMode.NONE) {
-        NoOverlapRenderer()
+    private val cameraRenderer: CameraMarkerRenderer by lazy(LazyThreadSafetyMode.NONE) {
+        CameraMarkerRenderer()
     }
 
     private val orientationManager: OrientationManager by lazy(LazyThreadSafetyMode.NONE) {
@@ -76,8 +76,9 @@ class CameraFragment :
             .map { it.location }
             .filterNotNull()
             .onEach {
-                binding.eyeView.location = it
-                binding.radarView.location = it
+                binding.arCameraView.location = it
+                binding.arRadarView.location = it
+                cameraRenderer.location = it
             }
             .launchIn(lifecycleScope)
 
@@ -88,24 +89,22 @@ class CameraFragment :
             .launchIn(lifecycleScope)
     }
 
-    private fun FragmentCameraBinding.initARViews(
-        cameraMarkers: List<CameraMarker> = SampleMarkers.get()
-    ) {
+    private fun FragmentCameraBinding.initARViews(markers: List<ARMarker> = SampleMarkers.get()) {
         cameraPreview.previewStreamState.observe(
             this@CameraFragment, ::onPreviewViewStreamStateChanged)
         cameraPreview.init(this@CameraFragment)
 
-        eyeViewRenderer += cameraMarkers
+        cameraRenderer += markers
 
-        eyeView.maxDistance = MAX_RENDER_DISTANCE_METERS
-        eyeView.onPointPressedListener = this@CameraFragment
-        eyeView.cameraMarkers = cameraMarkers
-        eyeView.markerRenderer = eyeViewRenderer
+        arCameraView.maxDistance = MAX_RENDER_DISTANCE_METERS
+        arCameraView.onMarkerPressedListener = this@CameraFragment
+        arCameraView.markers = markers
+        arCameraView.markerRenderer = cameraRenderer
 
-        radarView.maxDistance = MAX_RENDER_DISTANCE_METERS
-        radarView.rotableBackground = R.drawable.radar_arrow
-        radarView.cameraMarkers = cameraMarkers
-        radarView.markerRenderer = SimpleMarkerRenderer()
+        arRadarView.maxDistance = MAX_RENDER_DISTANCE_METERS
+        arRadarView.rotableBackground = R.drawable.radar_arrow
+        arRadarView.markers = markers
+        arRadarView.markerRenderer = RadarMarkerRenderer()
     }
 
     private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState) {
@@ -119,8 +118,8 @@ class CameraFragment :
                 with(binding) {
                     shimmerLayout.stopAndHide()
                     blurBackground.fadeOut()
-                    radarView.fadeIn()
-                    eyeView.fadeIn()
+                    arRadarView.fadeIn()
+                    arCameraView.fadeIn()
                 }
         }
     }
@@ -159,22 +158,22 @@ class CameraFragment :
     }
 
     override fun onPause() {
-        binding.radarView.visibility = View.GONE
-        binding.eyeView.visibility = View.GONE
+        binding.arRadarView.visibility = View.GONE
+        binding.arCameraView.visibility = View.GONE
         orientationManager.stopSensor()
         super.onPause()
     }
 
     override fun onOrientationChanged(orientation: Orientation) {
-        binding.eyeView.orientation = orientation
-        binding.eyeView.phoneRotation = requireContext().phoneRotation
-        binding.radarView.orientation = orientation
+        binding.arCameraView.orientation = orientation
+        binding.arCameraView.phoneRotation = requireContext().phoneRotation
+        binding.arRadarView.orientation = orientation
     }
 
-    override fun onPointPressed(cameraMarker: CameraMarker) {
+    override fun onMarkerPressed(marker: ARMarker) {
         Toast.makeText(
                 requireContext(),
-                "Pressed point with id: ${cameraMarker.marker.id}",
+                "Pressed marker with id: ${marker.wrapped.id}",
                 Toast.LENGTH_LONG)
             .show()
     }

@@ -1,10 +1,10 @@
-package com.lookaround.core.android.appunta.marker
+package com.lookaround.core.android.ar.marker
 
-import com.lookaround.core.android.appunta.renderer.MarkerRenderer
+import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.model.Marker
 
-interface CameraMarker {
-    val marker: Marker
+interface ARMarker {
+    val wrapped: Marker
     var distance: Double
     var renderer: MarkerRenderer?
     var x: Float
