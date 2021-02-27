@@ -63,6 +63,14 @@ dependencies {
 
     implementation("ru.beryukhov:flowreactivenetwork:1.0.2")
 
+    implementation("com.google.android.gms:play-services-location:18.0.0")
+    implementation("com.github.jintin:FancyLocationProvider:2.0.0")
+
+    implementation("org.permissionsdispatcher:permissionsdispatcher:4.8.0")
+    kapt("org.permissionsdispatcher:permissionsdispatcher-processor:4.8.0")
+
+    implementation("com.jakewharton.timber:timber:4.7.1")
+
     testImplementation("junit:junit:4.13.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.3.0")

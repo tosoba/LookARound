@@ -8,6 +8,5 @@ object LocationFactory {
             it.latitude = latitude
             it.longitude = longitude
             it.altitude = altitude
-            it.accuracy = 0f
         }
 }
