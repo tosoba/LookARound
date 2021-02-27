@@ -20,15 +20,19 @@ import kotlin.math.abs
 
 class CameraMarkerRenderer(
     context: Context,
+    var currentPage: Int = 0,
     var location: Location = Location(""),
 ) : MarkerRenderer {
     private val markerHeight: Float
     private val markerWidth: Float
     private val statusBarHeight: Float = context.statusBarHeight.toFloat()
     private val actionBarHeight: Float = context.actionBarHeight
+    private val screenHeight: Float
 
     init {
         val displayMetrics = context.resources.displayMetrics
+        screenHeight = displayMetrics.heightPixels.toFloat()
+
         val orientation = context.resources.configuration.orientation
 
         val numberOfRows =
@@ -72,13 +76,8 @@ class CameraMarkerRenderer(
 
     override fun draw(marker: ARMarker, canvas: Canvas, orientation: Orientation) {
         val wrapped = markersMap[marker.wrapped.id] ?: return
-        marker.y =
-            wrapped.screenY
-                ?: run {
-                    val calculated = wrapped.calculateScreenY()
-                    wrapped.screenY = calculated
-                    calculated
-                }
+        marker.y = wrapped.pagedPosition?.y ?: wrapped.calculatePagedPosition().y
+        if (wrapped.pagedPosition?.page != currentPage) return
 
         val rect =
             RectF(
@@ -95,25 +94,34 @@ class CameraMarkerRenderer(
         canvas.drawRoundRect(rect, 10f, 10f, backgroundPaint)
     }
 
-    private class CameraMarker(val wrapped: ARMarker, var screenY: Float? = null)
+    private class CameraMarker(val wrapped: ARMarker, var pagedPosition: PagedPosition? = null)
+    private data class PagedPosition(var y: Float, var page: Int)
 
-    private fun CameraMarker.calculateScreenY(): Float {
-        val taken = mutableSetOf<Float>()
+    private fun CameraMarker.calculatePagedPosition(): PagedPosition {
+        val takenPositions = mutableSetOf<PagedPosition>()
         val bearingThis = location.bearingTo(wrapped.wrapped.location)
         markersMap.values.forEach { marker ->
-            if (marker == this) return@forEach
-            marker.screenY?.let { screenY ->
+            if (marker === this) return@forEach
+            marker.pagedPosition?.let { pagedPosition ->
                 val bearingCurrent = location.bearingTo(marker.wrapped.wrapped.location)
                 if (abs(bearingCurrent - bearingThis) < TAKEN_BEARING_LIMIT &&
-                    !taken.contains(screenY)) {
-                    taken.add(screenY)
+                    !takenPositions.contains(pagedPosition)) {
+                    takenPositions.add(pagedPosition)
                 }
             }
         }
 
-        var bestY = statusBarHeight + actionBarHeight
-        while (taken.contains(bestY)) bestY += (markerHeight + MARKER_VERTICAL_SPACING)
-        return bestY
+        val baseY = statusBarHeight + actionBarHeight
+        val position = PagedPosition(baseY, 0)
+        while (takenPositions.contains(position)) {
+            position.y += markerHeight + MARKER_VERTICAL_SPACING
+            if (position.y >= screenHeight) {
+                position.y = baseY
+                ++position.page
+            }
+        }
+        pagedPosition = position
+        return position
     }
 
     @MainThread
