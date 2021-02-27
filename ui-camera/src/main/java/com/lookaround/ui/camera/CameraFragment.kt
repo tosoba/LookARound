@@ -145,8 +145,11 @@ class CameraFragment :
     }
 
     private fun showPermissionsRequiredView() {
-        binding.blurBackground.fadeIn()
-        binding.permissionsRequiredTextView.fadeIn()
+        with(binding) {
+            blurBackground.fadeIn()
+            shimmerLayout.stopAndHide()
+            permissionsRequiredTextView.fadeIn()
+        }
     }
 
     override fun onRequestPermissionsResult(
