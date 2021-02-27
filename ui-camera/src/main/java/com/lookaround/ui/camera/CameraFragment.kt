@@ -57,6 +57,7 @@ class CameraFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         initARWithPermissionCheck()
+        binding.grantPermissionsButton.setOnClickListener { initARWithPermissionCheck() }
     }
 
     @NeedsPermission(
@@ -110,7 +111,7 @@ class CameraFragment :
         when (state) {
             PreviewView.StreamState.IDLE ->
                 with(binding) {
-                    permissionsRequiredTextView.fadeOut()
+                    permissionsViewsGroup.visibility = View.GONE
                     blurBackground.fadeIn()
                     shimmerLayout.showAndStart()
                 }
@@ -148,7 +149,7 @@ class CameraFragment :
         with(binding) {
             blurBackground.fadeIn()
             shimmerLayout.stopAndHide()
-            permissionsRequiredTextView.fadeIn()
+            permissionsViewsGroup.fadeIn()
         }
     }
 
