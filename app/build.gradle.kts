@@ -40,10 +40,12 @@ kapt {
 }
 
 dependencies {
-    implementation(project(":ui-main"))
-    implementation(project(":ui-map"))
     implementation(project(":core"))
     implementation(project(":core-android"))
+    implementation(project(":ui-camera"))
+    implementation(project(":ui-main"))
+    implementation(project(":ui-map"))
+    implementation(project(":ui-place-types"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
