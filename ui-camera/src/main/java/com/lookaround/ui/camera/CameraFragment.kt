@@ -45,7 +45,7 @@ class CameraFragment :
     private val viewModel: CameraViewModel by assistedViewModel { viewModelFactory.create(it) }
 
     private val cameraRenderer: CameraMarkerRenderer by lazy(LazyThreadSafetyMode.NONE) {
-        CameraMarkerRenderer()
+        CameraMarkerRenderer(requireContext())
     }
 
     private val orientationManager: OrientationManager by lazy(LazyThreadSafetyMode.NONE) {

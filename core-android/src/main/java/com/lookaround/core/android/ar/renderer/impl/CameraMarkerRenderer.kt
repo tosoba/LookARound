@@ -1,5 +1,7 @@
 package com.lookaround.core.android.ar.renderer.impl
 
+import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -11,14 +13,43 @@ import androidx.annotation.MainThread
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
+import com.lookaround.core.android.ext.actionBarHeight
+import com.lookaround.core.android.ext.statusBarHeight
 import java.util.*
 import kotlin.math.abs
 
 class CameraMarkerRenderer(
+    context: Context,
     var location: Location = Location(""),
-    private val dialogHeight: Float = 100f,
-    private val dialogWidth: Float = 400f
 ) : MarkerRenderer {
+    private val markerHeight: Float
+    private val markerWidth: Float
+    private val statusBarHeight: Float = context.statusBarHeight.toFloat()
+    private val actionBarHeight: Float = context.actionBarHeight
+
+    init {
+        val displayMetrics = context.resources.displayMetrics
+        val orientation = context.resources.configuration.orientation
+
+        val numberOfRows =
+            if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                NUMBER_OF_ROWS_PORTRAIT
+            } else {
+                NUMBER_OF_ROWS_LANDSCAPE
+            }
+        markerHeight =
+            (displayMetrics.heightPixels - statusBarHeight - actionBarHeight) / numberOfRows -
+                MARKER_VERTICAL_SPACING
+
+        val markerWidthDivisor =
+            if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                MARKER_WIDTH_DIVISOR_PORTRAIT
+            } else {
+                MARKER_WIDTH_DIVISOR_LANDSCAPE
+            }
+        markerWidth = (displayMetrics.widthPixels / markerWidthDivisor).toFloat()
+    }
+
     private val markersMap: MutableMap<UUID, CameraMarker> = mutableMapOf()
 
     private val backgroundPaint: Paint by lazy(LazyThreadSafetyMode.NONE) {
@@ -51,16 +82,16 @@ class CameraMarkerRenderer(
 
         val rect =
             RectF(
-                marker.x - dialogWidth / 2,
-                marker.y - dialogHeight / 2,
-                marker.x + dialogWidth / 2,
-                marker.y + dialogHeight / 2)
+                marker.x - markerWidth / 2,
+                marker.y - markerHeight / 2,
+                marker.x + markerWidth / 2,
+                marker.y + markerHeight / 2)
         val width = (rect.width() - 10).toInt() // 10 to keep some space on the right for the "..."
         val text =
             TextUtils.ellipsize(
                 "The loooooong text", textPaint, width.toFloat(), TextUtils.TruncateAt.END)
         canvas.drawText(
-            text, 0, text.length, marker.x - dialogWidth / 2 + TEXT_OFFSET, marker.y, textPaint)
+            text, 0, text.length, marker.x - markerWidth / 2 + TEXT_OFFSET, marker.y, textPaint)
         canvas.drawRoundRect(rect, 10f, 10f, backgroundPaint)
     }
 
@@ -80,8 +111,8 @@ class CameraMarkerRenderer(
             }
         }
 
-        var bestY = BASE_SCREEN_Y
-        while (taken.contains(bestY)) bestY += dialogHeight
+        var bestY = statusBarHeight + actionBarHeight
+        while (taken.contains(bestY)) bestY += (markerHeight + MARKER_VERTICAL_SPACING)
         return bestY
     }
 
@@ -100,8 +131,12 @@ class CameraMarkerRenderer(
     }
 
     companion object {
-        private const val BASE_SCREEN_Y = 100f
         private const val TEXT_OFFSET = 20f
-        private const val TAKEN_BEARING_LIMIT = 45.0
+        private const val TAKEN_BEARING_LIMIT = 45.0f
+        private const val MARKER_VERTICAL_SPACING = 50.0f
+        private const val NUMBER_OF_ROWS_PORTRAIT = 4
+        private const val NUMBER_OF_ROWS_LANDSCAPE = 2
+        private const val MARKER_WIDTH_DIVISOR_PORTRAIT = 2
+        private const val MARKER_WIDTH_DIVISOR_LANDSCAPE = 4
     }
 }
