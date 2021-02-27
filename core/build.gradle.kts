@@ -11,9 +11,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-kapt {
-    correctErrorTypes = true
-}
+kapt { correctErrorTypes = true }
 
 dependencies {
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))

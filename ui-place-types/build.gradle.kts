@@ -26,20 +26,13 @@ android {
             isMinifyEnabled = false
             setProguardFiles(
                 listOf(
-                    getDefaultProguardFile("proguard-android-optimize.txt"),
-                    "proguard-rules.pro"
-                )
-            )
+                    getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"))
         }
     }
-    
-    buildFeatures {
-        compose = true
-    }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.0.0-alpha11"
-    }
+    buildFeatures { compose = true }
+
+    composeOptions { kotlinCompilerExtensionVersion = "1.0.0-alpha11" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

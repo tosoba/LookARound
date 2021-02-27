@@ -27,8 +27,7 @@ android {
                 project.properties["log.statesFlow"] as String
             } else {
                 System.getenv("LOG_STATES_FLOW")
-            }
-        )
+            })
 
         buildConfigField(
             "Boolean",
@@ -37,8 +36,7 @@ android {
                 project.properties["log.stateUpdatesFlow"] as String
             } else {
                 System.getenv("LOG_STATE_UPDATES_FLOW")
-            }
-        )
+            })
     }
 
     buildTypes {
@@ -46,10 +44,7 @@ android {
             isMinifyEnabled = false
             setProguardFiles(
                 listOf(
-                    getDefaultProguardFile("proguard-android-optimize.txt"),
-                    "proguard-rules.pro"
-                )
-            )
+                    getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"))
         }
     }
 
@@ -58,18 +53,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+    kotlinOptions { jvmTarget = "1.8" }
 
-    buildFeatures {
-        viewBinding = true
-    }
+    buildFeatures { viewBinding = true }
 }
 
-kapt {
-    correctErrorTypes = true
-}
+kapt { correctErrorTypes = true }
 
 dependencies {
     implementation(project(":core"))
