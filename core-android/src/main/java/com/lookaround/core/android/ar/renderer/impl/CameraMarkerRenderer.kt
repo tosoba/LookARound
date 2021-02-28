@@ -32,7 +32,6 @@ class CameraMarkerRenderer(
     init {
         val displayMetrics = context.resources.displayMetrics
         screenHeight = displayMetrics.heightPixels.toFloat()
-
         val orientation = context.resources.configuration.orientation
 
         val numberOfRows =
@@ -54,7 +53,7 @@ class CameraMarkerRenderer(
         markerWidth = (displayMetrics.widthPixels / markerWidthDivisor).toFloat()
     }
 
-    private val markersMap: MutableMap<UUID, CameraMarker> = mutableMapOf()
+    private val markersMap: LinkedHashMap<UUID, CameraMarker> = LinkedHashMap()
 
     private val backgroundPaint: Paint by lazy(LazyThreadSafetyMode.NONE) {
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -136,6 +135,20 @@ class CameraMarkerRenderer(
             if (markersMap.contains(marker.wrapped.id)) return@forEach
             markersMap[marker.wrapped.id] = CameraMarker(marker)
         }
+    }
+
+    @MainThread
+    operator fun minusAssign(marker: ARMarker) {
+        markersMap.remove(marker.wrapped.id)?.let { resetPaging() }
+    }
+
+    @MainThread
+    operator fun minusAssign(markers: Collection<ARMarker>) {
+        markers.map { markersMap.remove(it.wrapped.id) }.find { it != null }?.let { resetPaging() }
+    }
+
+    private fun resetPaging() {
+        markersMap.values.forEach { it.pagedPosition = null }
     }
 
     companion object {
