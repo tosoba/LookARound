@@ -76,9 +76,9 @@ class CameraFragment :
             .map { it.location }
             .filterNotNull()
             .onEach {
-                binding.arCameraView.location = it
-                binding.arRadarView.location = it
-                cameraRenderer.location = it
+                binding.arCameraView.povLocation = it
+                binding.arRadarView.povLocation = it
+                cameraRenderer.povLocation = it
             }
             .launchIn(lifecycleScope)
 
@@ -186,6 +186,6 @@ class CameraFragment :
     }
 
     companion object {
-        private const val MAX_RENDER_DISTANCE_METERS = 100_000.0
+        private const val MAX_RENDER_DISTANCE_METERS = 10_000.0
     }
 }

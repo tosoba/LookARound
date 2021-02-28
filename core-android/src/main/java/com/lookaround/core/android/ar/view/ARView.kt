@@ -15,10 +15,10 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 abstract class ARView : View {
-    var location: Location = Location("")
+    var povLocation: Location = Location("")
         set(value) {
             field = value
-            calculateDistances(markers, field)
+            calculateDistancesTo(field, markers)
         }
     var maxDistance: Double = DEFAULT_MAX_DISTANCE
         set(value) {
@@ -45,7 +45,7 @@ abstract class ARView : View {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        calculateDistances(markers, location)
+        calculateDistancesTo(povLocation, markers)
         preRender(canvas)
         for (marker in markers) {
             calculateMarkerCoordinates(marker)
@@ -117,8 +117,8 @@ abstract class ARView : View {
 
     protected fun getAngle(marker: ARMarker): Double =
         atan2(
-            marker.wrapped.location.latitude - location.latitude,
-            marker.wrapped.location.longitude - location.longitude)
+            marker.wrapped.location.latitude - povLocation.latitude,
+            marker.wrapped.location.longitude - povLocation.longitude)
 
     /**
      * * Calculate the distance from a given marker to all the markers stored and sets the distance
@@ -126,7 +126,7 @@ abstract class ARView : View {
      *
      * @param location Latitude and longitude of the given marker
      */
-    private fun calculateDistances(markers: List<ARMarker>, location: Location) {
+    private fun calculateDistancesTo(location: Location, markers: List<ARMarker>) {
         markers.forEach { marker ->
             marker.distance = marker.wrapped.location.distanceTo(location).toDouble()
         }

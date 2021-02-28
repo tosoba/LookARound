@@ -43,7 +43,7 @@ class ARCameraView : ARView {
         Math3D.getCamRotation(
             orientation, phoneRotation, camRot, camTrig, screenRot, screenRotTrig)
         // Transform current camera location into a position object;
-        Math3D.convertLocationToPosition(location, camPos)
+        Math3D.convertLocationToPosition(povLocation, camPos)
     }
 
     override fun calculateMarkerCoordinates(marker: ARMarker) {
