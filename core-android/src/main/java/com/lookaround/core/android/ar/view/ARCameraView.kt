@@ -2,11 +2,14 @@ package com.lookaround.core.android.ar.view
 
 import android.content.Context
 import android.graphics.Canvas
+import android.location.Location
 import android.util.AttributeSet
+import androidx.annotation.MainThread
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.math3d.*
+import com.lookaround.core.android.ar.renderer.impl.CameraMarkerRenderer
 
-class ARCameraView : ARView {
+class ARCameraView : ARView<CameraMarkerRenderer> {
     private val camRot = Vector3()
     private val camTrig = Trig3()
     private val camPos = Vector3()
@@ -18,6 +21,14 @@ class ARCameraView : ARView {
     private val screenSize = Vector2()
     private val screenRot = Vector1()
     private val screenRotTrig = Trig1()
+
+    override var povLocation: Location?
+        get() = super.povLocation
+        @MainThread
+        set(value) {
+            super.povLocation = value
+            markerRenderer?.povLocation = value
+        }
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -31,7 +42,7 @@ class ARCameraView : ARView {
         screenRatio.z = SCREEN_DEPTH.toDouble()
     }
 
-    override fun preRender(canvas: Canvas) {
+    override fun preRender(canvas: Canvas, location: Location) {
         // For the moment we set a square as ratio. Size is arithmetic mean of width and height
         screenRatio.y = ((width + height).toFloat() / 2).toDouble()
         screenRatio.x = ((width + height).toFloat() / 2).toDouble()
@@ -40,13 +51,12 @@ class ARCameraView : ARView {
         screenSize.x = width.toDouble()
         // Obtain the current camera rotation and related calculations based on phone orientation
         // and rotation
-        Math3D.getCamRotation(
-            orientation, phoneRotation, camRot, camTrig, screenRot, screenRotTrig)
+        Math3D.getCamRotation(orientation, phoneRotation, camRot, camTrig, screenRot, screenRotTrig)
         // Transform current camera location into a position object;
-        Math3D.convertLocationToPosition(povLocation, camPos)
+        Math3D.convertLocationToPosition(location, camPos)
     }
 
-    override fun calculateMarkerCoordinates(marker: ARMarker) {
+    override fun calculateMarkerScreenPosition(marker: ARMarker, location: Location) {
         // Transform marker Location into a Position object
         Math3D.convertLocationToPosition(marker.wrapped.location, markerPos)
         // Calculate relative position to the camera. Transforms angles of latitude and longitude
@@ -56,8 +66,7 @@ class ARCameraView : ARView {
         Math3D.getRelativeRotation(relativePos, camTrig, relativeRotPos)
         // Converts a 3d position into a 2d position on screen
         val drawn =
-            Math3D.convert3dTo2d(
-                relativeRotPos, screenSize, screenRatio, screenRotTrig, screenPos)
+            Math3D.convert3dTo2d(relativeRotPos, screenSize, screenRatio, screenRotTrig, screenPos)
         // If drawn is false, the marker is behind us, so no need to paint
         if (drawn) {
             marker.x = screenPos.x.toFloat()
@@ -66,7 +75,7 @@ class ARCameraView : ARView {
         marker.isDrawn = drawn
     }
 
-    override fun postRender(canvas: Canvas) = Unit
+    override fun postRender(canvas: Canvas, location: Location) = Unit
 
     companion object {
         private const val SCREEN_DEPTH = 1

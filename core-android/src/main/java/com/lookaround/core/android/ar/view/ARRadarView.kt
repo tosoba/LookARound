@@ -2,12 +2,14 @@ package com.lookaround.core.android.ar.view
 
 import android.content.Context
 import android.graphics.*
+import android.location.Location
 import android.util.AttributeSet
 import com.lookaround.core.android.ar.marker.ARMarker
+import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
 import kotlin.math.cos
 import kotlin.math.sin
 
-class ARRadarView : ARView {
+class ARRadarView : ARView<RadarMarkerRenderer> {
     var rotableBackground: Int = 0
         set(value) {
             field = value
@@ -25,7 +27,6 @@ class ARRadarView : ARView {
         defStyle: Int
     ) : super(context, attrs, defStyle)
 
-    /** * Returns the correct size of the control when needed (Basically maintaining the ratio) */
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val measuredWidth = getDefaultSize(suggestedMinimumWidth, widthMeasureSpec)
         val measuredHeight = getDefaultSize(suggestedMinimumHeight, heightMeasureSpec)
@@ -34,8 +35,8 @@ class ARRadarView : ARView {
         setMeasuredDimension(size, size)
     }
 
-    override fun calculateMarkerCoordinates(marker: ARMarker) {
-        val markerAngle = getAngle(marker) + compassAngle
+    override fun calculateMarkerScreenPosition(marker: ARMarker, location: Location) {
+        val markerAngle = getAngleBetween(marker, location) + compassAngle
         val pixelDistance = marker.distance * center / maxDistance
         val markerY = center - pixelDistance * sin(markerAngle)
         val markerX = center + pixelDistance * cos(markerAngle)
@@ -43,15 +44,14 @@ class ARRadarView : ARView {
         marker.y = markerY.toFloat()
     }
 
-    override fun preRender(canvas: Canvas) {
+    override fun preRender(canvas: Canvas, location: Location) {
         drawBackground(canvas)
         compassAngle = orientation.y.toDouble()
     }
 
-    override fun shouldDraw(marker: ARMarker): Boolean =
-        marker.distance < maxDistance
+    override fun shouldDraw(marker: ARMarker): Boolean = marker.distance < maxDistance
 
-    override fun postRender(canvas: Canvas) {
+    override fun postRender(canvas: Canvas, location: Location) {
         val markerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         markerPaint.color = -0xff5f2e
         canvas.drawCircle(center, center, 5f, markerPaint)

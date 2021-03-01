@@ -6,6 +6,7 @@ import android.location.Location
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import androidx.annotation.MainThread
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
@@ -14,26 +15,34 @@ import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-abstract class ARView : View {
-    var povLocation: Location = Location("")
+abstract class ARView<R : MarkerRenderer> : View {
+    open var povLocation: Location? = null
+        @MainThread
         set(value) {
             field = value
-            calculateDistancesTo(field, markers)
+            if (value == null) return
+            calculateDistancesTo(value, markers)
         }
     var maxDistance: Double = DEFAULT_MAX_DISTANCE
+        @MainThread
         set(value) {
             field = value
             invalidate()
         }
     var markers: List<ARMarker> = emptyList()
+        @MainThread set
     var onMarkerPressedListener: OnMarkerPressedListener? = null
-    var markerRenderer: MarkerRenderer? = null
+        @MainThread set
+    var markerRenderer: R? = null
+        @MainThread set
     var orientation: Orientation = Orientation()
+        @MainThread
         set(value) {
             field = value
             invalidate()
         }
     var phoneRotation: Int = 0
+        @MainThread set
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -45,16 +54,17 @@ abstract class ARView : View {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        calculateDistancesTo(povLocation, markers)
-        preRender(canvas)
+        val povLocation = this.povLocation ?: return
+        preRender(canvas, povLocation)
         for (marker in markers) {
-            calculateMarkerCoordinates(marker)
+            calculateMarkerScreenPosition(marker, povLocation)
             if (shouldDraw(marker)) {
                 marker.renderer?.draw(marker, canvas, orientation)
                     ?: markerRenderer?.draw(marker, canvas, orientation)
             }
         }
-        postRender(canvas)
+        markerRenderer?.postDrawAll()
+        postRender(canvas, povLocation)
     }
 
     protected open fun shouldDraw(marker: ARMarker): Boolean =
@@ -70,13 +80,6 @@ abstract class ARView : View {
         return super.onTouchEvent(event)
     }
 
-    /**
-     * Given a screen coordinate, returns the nearest marker to that coordinate
-     *
-     * @param x The X coordinate
-     * @param y The Y coordinate
-     * @return The nearest marker to coordinate X,Y
-     */
     private fun findNearestMarker(x: Float, y: Float): ARMarker? {
         var nearest: ARMarker? = null
         var nearestMarkerDistance = width.coerceAtLeast(height).toDouble()
@@ -91,54 +94,26 @@ abstract class ARView : View {
         return nearest
     }
 
-    /**
-     * This is the first method called during the painting process. It's used to draw the background
-     * layer
-     *
-     * @param canvas The canvas where to draw
-     */
-    protected abstract fun preRender(canvas: Canvas)
+    protected abstract fun preRender(canvas: Canvas, location: Location)
+    protected abstract fun calculateMarkerScreenPosition(marker: ARMarker, location: Location)
+    protected abstract fun postRender(canvas: Canvas, location: Location)
 
-    /**
-     * This method will be called for each marker on the rendering process, in order to determine
-     * where this marker should be drawn in the screen
-     *
-     * @param marker The marker to calculate
-     */
-    protected abstract fun calculateMarkerCoordinates(marker: ARMarker)
-
-    /**
-     * This is the last method called during the painting process. It's used to draw the foreground
-     * layer
-     *
-     * @param canvas The canvas where to draw
-     */
-    protected abstract fun postRender(canvas: Canvas)
-
-    protected fun getAngle(marker: ARMarker): Double =
+    protected fun getAngleBetween(marker: ARMarker, location: Location): Double =
         atan2(
-            marker.wrapped.location.latitude - povLocation.latitude,
-            marker.wrapped.location.longitude - povLocation.longitude)
+            marker.wrapped.location.latitude - location.latitude,
+            marker.wrapped.location.longitude - location.longitude)
 
-    /**
-     * * Calculate the distance from a given marker to all the markers stored and sets the distance
-     * property for all them
-     *
-     * @param location Latitude and longitude of the given marker
-     */
     private fun calculateDistancesTo(location: Location, markers: List<ARMarker>) {
         markers.forEach { marker ->
             marker.distance = marker.wrapped.location.distanceTo(location).toDouble()
         }
     }
 
-    /** This interface represents an object able to be called when a marker is pressed */
     interface OnMarkerPressedListener {
         fun onMarkerPressed(marker: ARMarker)
     }
 
     companion object {
-        /** The default max distance that will be shown if not changed */
         private const val DEFAULT_MAX_DISTANCE = 1000.0
     }
 }

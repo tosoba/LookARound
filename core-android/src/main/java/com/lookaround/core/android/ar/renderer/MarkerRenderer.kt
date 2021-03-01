@@ -6,4 +6,5 @@ import com.lookaround.core.android.ar.orientation.Orientation
 
 interface MarkerRenderer {
     fun draw(marker: ARMarker, canvas: Canvas, orientation: Orientation)
+    fun postDrawAll() = Unit
 }

@@ -19,6 +19,7 @@ import com.lookaround.core.android.ext.*
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -75,10 +76,10 @@ class CameraFragment :
             .states
             .map { it.location }
             .filterNotNull()
+            .distinctUntilChangedBy { Objects.hash(it.latitude, it.longitude) }
             .onEach {
                 binding.arCameraView.povLocation = it
                 binding.arRadarView.povLocation = it
-                cameraRenderer.povLocation = it
             }
             .launchIn(lifecycleScope)
 
