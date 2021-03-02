@@ -56,14 +56,19 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private var maxPage: Int = 0
 
     var currentPage: Int = 0
-        @MainThread set
-    var povLocation: Location? = null
         @MainThread
         set(value) {
+            assert(value >= 0)
             field = value
-            if (value == null) return
+        }
+    var povLocation: Location? = null
+        @MainThread
+        internal set(value) {
+            field = value
             markerBearingsMap.clear()
-            markersMap.values.forEach { marker -> calculateBearingBetween(value, marker) }
+            markersMap.values.forEach { marker ->
+                calculateBearingBetween(requireNotNull(value), marker)
+            }
         }
 
     private val markersMap: LinkedHashMap<UUID, CameraMarker> = LinkedHashMap()
@@ -110,6 +115,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     override fun postDrawAll() {
         maxPageStateFlow.value = maxPage
+        if (maxPage > currentPage) currentPage = maxPage
         maxPage = 0
     }
 

@@ -96,6 +96,11 @@ class CameraFragment :
         cameraPreview.init(this@CameraFragment)
 
         cameraRenderer += markers
+        cameraRenderer
+            .maxPageFlow
+            .distinctUntilChanged()
+            .onEach { if (it == 0) {} else {} }
+            .launchIn(lifecycleScope)
 
         arCameraView.maxDistance = MAX_RENDER_DISTANCE_METERS
         arCameraView.onMarkerPressedListener = this@CameraFragment

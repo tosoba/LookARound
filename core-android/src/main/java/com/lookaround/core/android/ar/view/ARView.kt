@@ -20,8 +20,7 @@ abstract class ARView<R : MarkerRenderer> : View {
         @MainThread
         set(value) {
             field = value
-            if (value == null) return
-            calculateDistancesTo(value, markers)
+            calculateDistancesTo(requireNotNull(value), markers)
         }
     var maxDistance: Double = DEFAULT_MAX_DISTANCE
         @MainThread
