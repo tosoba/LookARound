@@ -1,5 +1,6 @@
 package com.lookaround.ui.camera
 
+import abak.tr.com.boxedverticalseekbar.BoxedVertical
 import android.Manifest
 import android.os.Bundle
 import android.view.View
@@ -91,6 +92,8 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.initARViews(markers: List<ARMarker> = SampleMarkers.get()) {
+        initARCameraPageViews()
+
         cameraPreview.previewStreamState.observe(
             this@CameraFragment, ::onPreviewViewStreamStateChanged)
         cameraPreview.init(this@CameraFragment)
@@ -111,6 +114,22 @@ class CameraFragment :
         arRadarView.rotableBackground = R.drawable.radar_arrow
         arRadarView.markers = markers
         arRadarView.markerRenderer = RadarMarkerRenderer()
+    }
+
+    private fun FragmentCameraBinding.initARCameraPageViews() {
+        arCameraPageSeekbar.setOnBoxedPointsChangeListener(
+            object : BoxedVertical.OnValuesChangeListener {
+                var latestPoints = 0
+                override fun onPointsChanged(boxedPoints: BoxedVertical, points: Int) {
+                    latestPoints = points
+                }
+
+                override fun onStartTrackingTouch(boxedPoints: BoxedVertical) = Unit
+
+                override fun onStopTrackingTouch(boxedPoints: BoxedVertical) {
+                    boxedPoints.value = latestPoints
+                }
+            })
     }
 
     private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState) {
