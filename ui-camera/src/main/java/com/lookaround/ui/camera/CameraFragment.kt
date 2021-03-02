@@ -117,16 +117,28 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.initARCameraPageViews() {
-        arCameraPageSeekbar.setOnBoxedPointsChangeListener(
-            object : BoxedVerticalSeekbar.OnValuesChangeListener {
-                override fun onPointsChanged(seekbar: BoxedVerticalSeekbar, points: Int) = Unit
+        fun updatePageButtonsEnabled(points: Int) {
+            arCameraPageUpBtn.isEnabled = points < arCameraPageSeekbar.max
+            arCameraPageDownBtn.isEnabled = points > arCameraPageSeekbar.min
+        }
 
-                override fun onStartTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
+        arCameraPageUpBtn.setOnClickListener {
+            ++arCameraPageSeekbar.value
+            updatePageButtonsEnabled(arCameraPageSeekbar.value)
+        }
+        arCameraPageDownBtn.setOnClickListener {
+            --arCameraPageSeekbar.value
+            updatePageButtonsEnabled(arCameraPageSeekbar.value)
+        }
+        arCameraPageSeekbar.setOnBoxedPointsChangeListener(object : BoxedVerticalSeekbar.OnValuesChangeListener {
+            override fun onPointsChanged(seekbar: BoxedVerticalSeekbar, points: Int) {
+               updatePageButtonsEnabled(points)
+            }
 
-                override fun onStopTrackingTouch(seekbar: BoxedVerticalSeekbar, roundedPoints: Int) {
-                    seekbar.value = roundedPoints
-                }
-            })
+            override fun onStartTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
+
+            override fun onStopTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
+        })
     }
 
     private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState) {

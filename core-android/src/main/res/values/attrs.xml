@@ -24,5 +24,6 @@
         <attr name="touchDisabled" format="boolean" />
         <attr name="textEnabled" format="boolean" />
         <attr name="imageEnabled" format="boolean" />
+        <attr name="snapEnabled" format="boolean" />
     </declare-styleable>
 </resources>

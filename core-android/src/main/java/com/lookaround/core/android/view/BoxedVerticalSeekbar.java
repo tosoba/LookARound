@@ -66,6 +66,8 @@ public class BoxedVerticalSeekbar extends View {
      */
     private boolean imageEnabled = false;
 
+    private boolean snapEnabled = true;
+
     /**
      * mTouchDisabled touches will not move the slider only swipe motion will activate it
      */
@@ -151,6 +153,7 @@ public class BoxedVerticalSeekbar extends View {
             enabled = a.getBoolean(R.styleable.BoxedVertical_enabled, enabled);
             touchDisabled = a.getBoolean(R.styleable.BoxedVertical_touchDisabled, touchDisabled);
             textEnabled = a.getBoolean(R.styleable.BoxedVertical_textEnabled, textEnabled);
+            snapEnabled = a.getBoolean(R.styleable.BoxedVertical_snapEnabled, snapEnabled);
 
             points = defaultValue;
 
@@ -281,9 +284,9 @@ public class BoxedVerticalSeekbar extends View {
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
                     if (onValuesChangeListener != null) {
-                        onValuesChangeListener.onStopTrackingTouch(
-                                this, Math.round((scrHeight - progressSweep) / scrHeight * (max - min)));
+                        onValuesChangeListener.onStopTrackingTouch(this);
                     }
+                    if (snapEnabled) setValue(getRoundedProgress());
                     setPressed(false);
                     this.getParent().requestDisallowInterceptTouchEvent(false);
                     break;
@@ -339,9 +342,13 @@ public class BoxedVerticalSeekbar extends View {
             onValuesChangeListener.onPointsChanged(this, points);
         }
 
-        pointsText = String.valueOf(Math.round((scrHeight - progressSweep) / scrHeight * (max - min)));
+        pointsText = String.valueOf(getRoundedProgress());
 
         invalidate();
+    }
+
+    private int getRoundedProgress() {
+        return Math.round((scrHeight - progressSweep) / scrHeight * (max - min));
     }
 
     /**
@@ -364,6 +371,8 @@ public class BoxedVerticalSeekbar extends View {
             onValuesChangeListener.onPointsChanged(this, points);
         }
 
+        pointsText = String.valueOf(value);
+
         invalidate();
     }
 
@@ -378,7 +387,7 @@ public class BoxedVerticalSeekbar extends View {
 
         void onStartTrackingTouch(BoxedVerticalSeekbar seekbar);
 
-        void onStopTrackingTouch(BoxedVerticalSeekbar seekbar, int roundedPoints);
+        void onStopTrackingTouch(BoxedVerticalSeekbar seekbar);
     }
 
     public void setValue(int points) {
@@ -398,6 +407,14 @@ public class BoxedVerticalSeekbar extends View {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public int getMin() {
+        return min;
+    }
+
+    public void setMin(int min) {
+        this.min = min;
     }
 
     public int getMax() {
@@ -442,6 +459,14 @@ public class BoxedVerticalSeekbar extends View {
 
     public void setImageEnabled(boolean mImageEnabled) {
         this.imageEnabled = mImageEnabled;
+    }
+
+    public boolean isSnapEnabled() {
+        return snapEnabled;
+    }
+
+    public void setSnapEnabled(boolean snapEnabled) {
+        this.snapEnabled = snapEnabled;
     }
 
     public void setOnBoxedPointsChangeListener(OnValuesChangeListener onValuesChangeListener) {
