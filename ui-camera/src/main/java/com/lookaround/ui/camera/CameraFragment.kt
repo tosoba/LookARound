@@ -125,8 +125,7 @@ class CameraFragment :
                 with(binding) {
                     shimmerLayout.stopAndHide()
                     blurBackground.fadeOut()
-                    arRadarView.fadeIn()
-                    arCameraView.fadeIn()
+                    arViewsGroup.fadeIn()
                 }
         }
     }
@@ -173,8 +172,7 @@ class CameraFragment :
     }
 
     override fun onPause() {
-        binding.arRadarView.visibility = View.GONE
-        binding.arCameraView.visibility = View.GONE
+        binding.arViewsGroup.visibility = View.GONE
         orientationManager.stopSensor()
         super.onPause()
     }

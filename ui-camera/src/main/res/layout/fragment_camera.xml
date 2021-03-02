@@ -10,6 +10,12 @@
         android:layout_height="match_parent"
         app:scaleType="fillCenter" />
 
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/ar_views_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="ar_camera_view,ar_radar_view" />
+
     <com.lookaround.core.android.ar.view.ARCameraView
         android:id="@+id/ar_camera_view"
         android:layout_width="match_parent"
