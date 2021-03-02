@@ -112,48 +112,48 @@ public class BoxedVerticalSeekbar extends View {
         defaultValue = max / 2;
 
         if (attrs != null) {
-            final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.BoxedVertical, 0, 0);
+            final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.BoxedVerticalSeekbar, 0, 0);
 
-            points = a.getInteger(R.styleable.BoxedVertical_points, points);
-            max = a.getInteger(R.styleable.BoxedVertical_max, max);
-            min = a.getInteger(R.styleable.BoxedVertical_min, min);
-            step = a.getInteger(R.styleable.BoxedVertical_step, step);
-            defaultValue = a.getInteger(R.styleable.BoxedVertical_defaultValue, defaultValue);
-            cornerRadius = a.getInteger(R.styleable.BoxedVertical_libCornerRadius, cornerRadius);
+            points = a.getInteger(R.styleable.BoxedVerticalSeekbar_points, points);
+            max = a.getInteger(R.styleable.BoxedVerticalSeekbar_max, max);
+            min = a.getInteger(R.styleable.BoxedVerticalSeekbar_min, min);
+            step = a.getInteger(R.styleable.BoxedVerticalSeekbar_step, step);
+            defaultValue = a.getInteger(R.styleable.BoxedVerticalSeekbar_defaultValue, defaultValue);
+            cornerRadius = a.getInteger(R.styleable.BoxedVerticalSeekbar_libCornerRadius, cornerRadius);
             textBottomPadding =
-                    a.getInteger(R.styleable.BoxedVertical_textBottomPadding, textBottomPadding);
+                    a.getInteger(R.styleable.BoxedVerticalSeekbar_textBottomPadding, textBottomPadding);
             // Images
-            imageEnabled = a.getBoolean(R.styleable.BoxedVertical_imageEnabled, imageEnabled);
+            imageEnabled = a.getBoolean(R.styleable.BoxedVerticalSeekbar_imageEnabled, imageEnabled);
 
             if (imageEnabled) {
-                if (a.getDrawable(R.styleable.BoxedVertical_defaultImage) == null) {
+                if (a.getDrawable(R.styleable.BoxedVerticalSeekbar_defaultImage) == null) {
                     throw new IllegalArgumentException(
                             "When images are enabled, defaultImage can not be null. Please assign a drawable in the layout XML file");
                 }
-                if (a.getDrawable(R.styleable.BoxedVertical_minImage) == null) {
+                if (a.getDrawable(R.styleable.BoxedVerticalSeekbar_minImage) == null) {
                     throw new IllegalArgumentException(
                             "When images are enabled, minImage can not be null. Please assign a drawable in the layout XML file");
                 }
-                if (a.getDrawable(R.styleable.BoxedVertical_maxImage) == null) {
+                if (a.getDrawable(R.styleable.BoxedVerticalSeekbar_maxImage) == null) {
                     throw new IllegalArgumentException(
                             "When images are enabled, maxImage can not be null. Please assign a drawable in the layout XML file");
                 }
                 defaultImage =
-                        ((BitmapDrawable) a.getDrawable(R.styleable.BoxedVertical_defaultImage)).getBitmap();
-                minImage = ((BitmapDrawable) a.getDrawable(R.styleable.BoxedVertical_minImage)).getBitmap();
-                maxImage = ((BitmapDrawable) a.getDrawable(R.styleable.BoxedVertical_maxImage)).getBitmap();
+                        ((BitmapDrawable) a.getDrawable(R.styleable.BoxedVerticalSeekbar_defaultImage)).getBitmap();
+                minImage = ((BitmapDrawable) a.getDrawable(R.styleable.BoxedVerticalSeekbar_minImage)).getBitmap();
+                maxImage = ((BitmapDrawable) a.getDrawable(R.styleable.BoxedVerticalSeekbar_maxImage)).getBitmap();
             }
 
-            progressColor = a.getColor(R.styleable.BoxedVertical_progressColor, progressColor);
-            backgroundColor = a.getColor(R.styleable.BoxedVertical_backgroundColor, backgroundColor);
+            progressColor = a.getColor(R.styleable.BoxedVerticalSeekbar_progressColor, progressColor);
+            backgroundColor = a.getColor(R.styleable.BoxedVerticalSeekbar_backgroundColor, backgroundColor);
 
-            textSize = (int) a.getDimension(R.styleable.BoxedVertical_textSize, textSize);
-            textColor = a.getColor(R.styleable.BoxedVertical_textColor, textColor);
+            textSize = (int) a.getDimension(R.styleable.BoxedVerticalSeekbar_textSize, textSize);
+            textColor = a.getColor(R.styleable.BoxedVerticalSeekbar_textColor, textColor);
 
-            enabled = a.getBoolean(R.styleable.BoxedVertical_enabled, enabled);
-            touchDisabled = a.getBoolean(R.styleable.BoxedVertical_touchDisabled, touchDisabled);
-            textEnabled = a.getBoolean(R.styleable.BoxedVertical_textEnabled, textEnabled);
-            snapEnabled = a.getBoolean(R.styleable.BoxedVertical_snapEnabled, snapEnabled);
+            enabled = a.getBoolean(R.styleable.BoxedVerticalSeekbar_enabled, enabled);
+            touchDisabled = a.getBoolean(R.styleable.BoxedVerticalSeekbar_touchDisabled, touchDisabled);
+            textEnabled = a.getBoolean(R.styleable.BoxedVerticalSeekbar_textEnabled, textEnabled);
+            snapEnabled = a.getBoolean(R.styleable.BoxedVerticalSeekbar_snapEnabled, snapEnabled);
 
             points = defaultValue;
 
@@ -193,10 +193,10 @@ public class BoxedVerticalSeekbar extends View {
 
         paint.setAlpha(255);
         canvas.translate(0, 0);
-        Path mPath = new Path();
-        mPath.addRoundRect(
+        Path path = new Path();
+        path.addRoundRect(
                 new RectF(0, 0, scrWidth, scrHeight), cornerRadius, cornerRadius, Path.Direction.CCW);
-        canvas.clipPath(mPath, Region.Op.INTERSECT);
+        canvas.clipPath(path, Region.Op.INTERSECT);
         paint.setColor(backgroundColor);
         paint.setAntiAlias(true);
         canvas.drawRect(0, 0, scrWidth, scrHeight, paint);

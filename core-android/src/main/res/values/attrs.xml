@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="BoxedVertical">
+    <declare-styleable name="BoxedVerticalSeekbar">
         <attr name="points" format="integer" />
         <attr name="max" format="integer" />
         <attr name="min" format="integer" />
