@@ -41,7 +41,8 @@ abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : 
                 currentState = states::value,
                 states = states,
                 intent = ::intent,
-                signal = _signals::send)
+                signal = _signals::send
+            )
             .run {
                 if (BuildConfig.DEBUG && BuildConfig.LOG_STATES_UPDATES_FLOW) {
                     onEach { Log.e("STATE_UPDATE", it.toString()) }
@@ -68,7 +69,8 @@ abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : 
             coroutineScope = viewModelScope,
             currentState = states::value,
             states = states,
-            signal = _signals::send)
+            signal = _signals::send
+        )
     }
 
     override fun onCleared() {

@@ -94,6 +94,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
 
         viewModel.intent(MapIntent.LoadingScene(scene))
         loadSceneFile(
-            scene.url, listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY)))
+            scene.url,
+            listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
+        )
     }
 }

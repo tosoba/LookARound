@@ -24,7 +24,8 @@ android {
                 "\"${project.properties["nextzen.apiKey"] as String}\""
             } else {
                 System.getenv("NEXTZEN_API_KEY")
-            })
+            }
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -35,7 +36,10 @@ android {
             isMinifyEnabled = false
             setProguardFiles(
                 listOf(
-                    getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"))
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro"
+                )
+            )
         }
     }
 

@@ -18,7 +18,10 @@ constructor(
     processor: CameraFlowProcessor
 ) :
     FlowViewModel<CameraIntent, CameraStateUpdate, CameraState, CameraSignal>(
-        initialState, processor, savedStateHandle) {
+        initialState,
+        processor,
+        savedStateHandle
+    ) {
     @AssistedFactory
     interface Factory {
         fun create(

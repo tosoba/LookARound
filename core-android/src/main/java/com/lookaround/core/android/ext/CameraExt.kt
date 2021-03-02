@@ -51,14 +51,20 @@ fun PreviewView.init(
                     cameraProviderFuture
                         .get()
                         .bindToLifecycle(
-                            lifecycleOwner, cameraSelector, preview, imageCapture, imageAnalyzer)
+                            lifecycleOwner,
+                            cameraSelector,
+                            preview,
+                            imageCapture,
+                            imageAnalyzer
+                        )
 
                     preview.setSurfaceProvider(surfaceProvider)
                 } catch (ex: Exception) {
                     onError(ex)
                 }
             },
-            ContextCompat.getMainExecutor(context))
+            ContextCompat.getMainExecutor(context)
+        )
     }
 }
 

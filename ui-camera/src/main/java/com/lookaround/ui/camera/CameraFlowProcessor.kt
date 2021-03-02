@@ -39,6 +39,7 @@ constructor(
                         latitude = it.lat
                         longitude = it.lng
                         altitude = it.alt
-                    })
+                    }
+                )
             }
 }

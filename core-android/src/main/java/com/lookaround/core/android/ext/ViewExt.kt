@@ -15,7 +15,8 @@ fun View.fadeOut(duration: Long = 500L) {
                 override fun onAnimationEnd(animation: Animator) {
                     visibility = View.GONE
                 }
-            })
+            }
+        )
 }
 
 fun View.fadeIn(duration: Long = 500L) {

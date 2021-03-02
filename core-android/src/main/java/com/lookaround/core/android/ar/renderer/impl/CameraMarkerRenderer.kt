@@ -15,9 +15,9 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.ext.actionBarHeight
 import com.lookaround.core.android.ext.statusBarHeight
-import java.util.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.util.*
 
 class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private val markerHeight: Float
@@ -103,13 +103,24 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 marker.x - markerWidth / 2,
                 marker.y - markerHeight / 2,
                 marker.x + markerWidth / 2,
-                marker.y + markerHeight / 2)
+                marker.y + markerHeight / 2
+            )
         val width = (rect.width() - 10).toInt() // 10 to keep some space on the right for the "..."
         val text =
             TextUtils.ellipsize(
-                marker.wrapped.name, textPaint, width.toFloat(), TextUtils.TruncateAt.END)
+                marker.wrapped.name,
+                textPaint,
+                width.toFloat(),
+                TextUtils.TruncateAt.END
+            )
         canvas.drawText(
-            text, 0, text.length, marker.x - markerWidth / 2 + TEXT_OFFSET, marker.y, textPaint)
+            text,
+            0,
+            text.length,
+            marker.x - markerWidth / 2 + TEXT_OFFSET,
+            marker.y,
+            textPaint
+        )
         canvas.drawRoundRect(rect, 10f, 10f, backgroundPaint)
     }
 

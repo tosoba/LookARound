@@ -22,7 +22,8 @@ suspend fun MapView.init(
                 ?: continuation.resumeWithException(GetMapException)
         },
         glViewHolderFactory,
-        httpHandler)
+        httpHandler
+    )
 }
 
 fun MapController.zoomOnDoubleTap(
@@ -39,9 +40,11 @@ fun MapController.zoomOnDoubleTap(
                     longitude = .5 * (tappedPosition.longitude + longitude)
                     latitude = .5 * (tappedPosition.latitude + latitude)
                     zoom += zoomIncrement
-                }),
+                }
+            ),
             durationMs,
-            easeType)
+            easeType
+        )
         true
     }
 }
@@ -76,5 +79,7 @@ fun MapController.restoreCameraPosition(savedInstanceState: Bundle?) {
                 rotation = savedInstanceState.getFloat(PREF_ROTATION)
                 tilt = savedInstanceState.getFloat(PREF_TILT)
                 zoom = savedInstanceState.getFloat(PREF_ZOOM)
-            }))
+            }
+        )
+    )
 }

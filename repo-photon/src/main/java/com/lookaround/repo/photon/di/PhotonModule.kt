@@ -18,7 +18,8 @@ object PhotonModule {
     @PhotonGsonConverterFactory
     fun gsonConverterFactory(): GsonConverterFactory =
         GsonConverterFactory.create(
-            GsonBuilder().registerTypeAdapterFactory(GeometryAdapterFactory()).create())
+            GsonBuilder().registerTypeAdapterFactory(GeometryAdapterFactory()).create()
+        )
 
     @Provides
     @Singleton

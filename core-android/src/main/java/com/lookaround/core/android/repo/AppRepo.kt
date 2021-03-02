@@ -32,7 +32,8 @@ constructor(
     override val isLocationAvailable: Boolean
         get() =
             LocationManagerCompat.isLocationEnabled(
-                context.getSystemService(Context.LOCATION_SERVICE) as LocationManager)
+                context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            )
 
     override val locationDataFlow: Flow<LocationDataDTO>
         @SuppressLint("MissingPermission")
@@ -48,7 +49,8 @@ constructor(
                         LocationDataDTO.Success(
                             locationData.location.latitude,
                             locationData.location.longitude,
-                            locationData.location.altitude)
+                            locationData.location.altitude
+                        )
                     is LocationData.Fail -> LocationDataDTO.Failure
                 }
             }

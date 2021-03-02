@@ -14,5 +14,6 @@ object SampleMarkers {
             SimpleARMarker(
                 "SGGW",
                 LocationFactory.create(52.164851, 21.047542, 30.0),
-            ))
+            )
+        )
 }

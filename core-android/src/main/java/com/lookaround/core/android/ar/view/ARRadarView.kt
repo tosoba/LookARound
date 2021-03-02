@@ -63,11 +63,13 @@ class ARRadarView : ARView<RadarMarkerRenderer> {
             transform.setRectToRect(
                 RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat()),
                 RectF(0f, 0f, width.toFloat(), width.toFloat()),
-                Matrix.ScaleToFit.CENTER)
+                Matrix.ScaleToFit.CENTER
+            )
             transform.preRotate(
                 (-Math.toDegrees(compassAngle)).toFloat(),
                 bitmap.width.toFloat() / 2,
-                bitmap.height.toFloat() / 2)
+                bitmap.height.toFloat() / 2
+            )
             canvas.drawBitmap(bitmap, transform, null)
         }
     }

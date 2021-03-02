@@ -18,7 +18,10 @@ constructor(
     processor: MapFlowProcessor
 ) :
     FlowViewModel<MapIntent, MapStateUpdate, MapState, MapSignal>(
-        initialState, processor, savedStateHandle) {
+        initialState,
+        processor,
+        savedStateHandle
+    ) {
     @AssistedFactory
     interface Factory {
         fun create(

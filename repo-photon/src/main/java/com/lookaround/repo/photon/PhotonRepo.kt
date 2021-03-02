@@ -23,7 +23,8 @@ class PhotonRepo @Inject constructor(private val photonEndpoints: PhotonEndpoint
                 PointDTO(
                     name = it.properties().getValue("name").asJsonPrimitive.asString,
                     lat = point.lat(),
-                    lng = point.lon())
+                    lng = point.lon()
+                )
             }
             ?: emptyList()
 }

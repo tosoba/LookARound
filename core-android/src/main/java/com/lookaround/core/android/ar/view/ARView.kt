@@ -100,7 +100,8 @@ abstract class ARView<R : MarkerRenderer> : View {
     protected fun getAngleBetween(marker: ARMarker, location: Location): Double =
         atan2(
             marker.wrapped.location.latitude - location.latitude,
-            marker.wrapped.location.longitude - location.longitude)
+            marker.wrapped.location.longitude - location.longitude
+        )
 
     private fun calculateDistancesTo(location: Location, markers: List<ARMarker>) {
         markers.forEach { marker ->

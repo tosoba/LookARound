@@ -67,11 +67,13 @@ class OrientationManager : SensorEventListener {
             manager.registerListener(
                 this,
                 manager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-                SensorManager.SENSOR_DELAY_UI)
+                SensorManager.SENSOR_DELAY_UI
+            )
             manager.registerListener(
                 this,
                 manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                SensorManager.SENSOR_DELAY_UI)
+                SensorManager.SENSOR_DELAY_UI
+            )
             sensorManager = manager
             sensorRunning = true
         }

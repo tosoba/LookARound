@@ -34,7 +34,8 @@ abstract class OverpassModule {
                     .add(MemberAdapter())
                     .add(ElementAdapter())
                     .add(Date::class.java, Iso8601Adapter())
-                    .build())
+                    .build()
+            )
 
         @Provides
         @Singleton

@@ -1,6 +1,5 @@
 package com.lookaround.ui.camera
 
-import com.lookaround.core.android.view.BoxedVerticalSeekbar
 import android.Manifest
 import android.os.Bundle
 import android.view.View
@@ -17,11 +16,10 @@ import com.lookaround.core.android.ar.renderer.impl.CameraMarkerRenderer
 import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
 import com.lookaround.core.android.ar.view.ARView
 import com.lookaround.core.android.ext.*
+import com.lookaround.core.android.view.BoxedVerticalSeekbar
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import java.util.*
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -30,6 +28,8 @@ import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
+import java.util.*
+import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -95,7 +95,9 @@ class CameraFragment :
         initARCameraPageViews()
 
         cameraPreview.previewStreamState.observe(
-            this@CameraFragment, ::onPreviewViewStreamStateChanged)
+            this@CameraFragment,
+            ::onPreviewViewStreamStateChanged
+        )
         cameraPreview.init(this@CameraFragment)
 
         cameraRenderer += markers
@@ -130,15 +132,17 @@ class CameraFragment :
             --arCameraPageSeekbar.value
             updatePageButtonsEnabled(arCameraPageSeekbar.value)
         }
-        arCameraPageSeekbar.setOnBoxedPointsChangeListener(object : BoxedVerticalSeekbar.OnValuesChangeListener {
-            override fun onPointsChanged(seekbar: BoxedVerticalSeekbar, points: Int) {
-               updatePageButtonsEnabled(points)
+        arCameraPageSeekbar.setOnBoxedPointsChangeListener(
+            object : BoxedVerticalSeekbar.OnValuesChangeListener {
+                override fun onPointsChanged(seekbar: BoxedVerticalSeekbar, points: Int) {
+                    updatePageButtonsEnabled(points)
+                }
+
+                override fun onStartTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
+
+                override fun onStopTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
             }
-
-            override fun onStartTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
-
-            override fun onStopTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
-        })
+        )
     }
 
     private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState) {
@@ -217,7 +221,10 @@ class CameraFragment :
 
     override fun onMarkerPressed(marker: ARMarker) {
         Toast.makeText(
-                requireContext(), "Pressed marker with id: ${marker.wrapped.id}", Toast.LENGTH_LONG)
+                requireContext(),
+                "Pressed marker with id: ${marker.wrapped.id}",
+                Toast.LENGTH_LONG
+            )
             .show()
     }
 

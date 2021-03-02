@@ -7,11 +7,11 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import ru.beryukhov.reactivenetwork.ReactiveNetwork
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
