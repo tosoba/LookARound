@@ -126,6 +126,7 @@ class CameraFragment :
                     shimmerLayout.stopAndHide()
                     blurBackground.fadeOut()
                     arViewsGroup.fadeIn()
+                    arCameraPageViewsGroup.fadeIn()
                 }
         }
     }
@@ -152,8 +153,10 @@ class CameraFragment :
 
     private fun showPermissionsRequiredView() {
         with(binding) {
-            blurBackground.fadeIn()
+            arViewsGroup.visibility = View.GONE
+            arCameraPageViewsGroup.visibility = View.GONE
             shimmerLayout.stopAndHide()
+            blurBackground.fadeIn()
             permissionsViewsGroup.fadeIn()
         }
     }
@@ -172,6 +175,7 @@ class CameraFragment :
     }
 
     override fun onPause() {
+        binding.arCameraPageViewsGroup.visibility = View.GONE
         binding.arViewsGroup.visibility = View.GONE
         orientationManager.stopSensor()
         super.onPause()
