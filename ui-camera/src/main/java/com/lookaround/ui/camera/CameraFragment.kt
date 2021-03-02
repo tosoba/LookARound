@@ -1,6 +1,6 @@
 package com.lookaround.ui.camera
 
-import abak.tr.com.boxedverticalseekbar.BoxedVertical
+import com.lookaround.core.android.view.BoxedVerticalSeekbar
 import android.Manifest
 import android.os.Bundle
 import android.view.View
@@ -118,16 +118,13 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.initARCameraPageViews() {
         arCameraPageSeekbar.setOnBoxedPointsChangeListener(
-            object : BoxedVertical.OnValuesChangeListener {
-                var latestPoints = 0
-                override fun onPointsChanged(boxedPoints: BoxedVertical, points: Int) {
-                    latestPoints = points
-                }
+            object : BoxedVerticalSeekbar.OnValuesChangeListener {
+                override fun onPointsChanged(seekbar: BoxedVerticalSeekbar, points: Int) = Unit
 
-                override fun onStartTrackingTouch(boxedPoints: BoxedVertical) = Unit
+                override fun onStartTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
 
-                override fun onStopTrackingTouch(boxedPoints: BoxedVertical) {
-                    boxedPoints.value = latestPoints
+                override fun onStopTrackingTouch(seekbar: BoxedVerticalSeekbar, roundedPoints: Int) {
+                    seekbar.value = roundedPoints
                 }
             })
     }

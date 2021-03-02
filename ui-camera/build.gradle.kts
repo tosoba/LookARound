@@ -51,7 +51,6 @@ dependencies {
     implementation("com.google.android.material:material:1.3.0")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
-    implementation("com.github.alpbak:BoxedVerticalSeekBar:1.1.1")
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
 
