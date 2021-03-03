@@ -2,26 +2,22 @@ package com.lookaround.core.android.view
 
 import android.annotation.SuppressLint
 import android.content.Context
-import com.lookaround.core.android.R
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
+import com.lookaround.core.android.R
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
 class BoxedVerticalSeekbar : View {
-    /**
-     * The min value of progress value.
-     */
+    /** The min value of progress value. */
     var min = 0
 
-    /**
-     * The Maximum value that this SeekArc can be set to
-     */
+    /** The Maximum value that this SeekArc can be set to */
     var max = 100
         set(value) {
             require(value > min) { "Max should not be less than min value" }
@@ -34,46 +30,32 @@ class BoxedVerticalSeekbar : View {
             field = value
         }
 
-    /**
-     * The increment/decrement value for each movement of progress.
-     */
+    /** The increment/decrement value for each movement of progress. */
     var step = 10
 
-    /**
-     * The corner radius of the view.
-     */
+    /** The corner radius of the view. */
     var cornerRadius = 10
         set(value) {
             field = value
             invalidate()
         }
 
-    /**
-     * Text size in SP.
-     */
+    /** Text size in SP. */
     private var textSize = 26f
 
-    /**
-     * Text bottom padding in pixel.
-     */
+    /** Text bottom padding in pixel. */
     private var textBottomPadding = 20
     private var points = 0
     private var enabled = true
 
-    /**
-     * Enable or disable text .
-     */
+    /** Enable or disable text . */
     private var textEnabled = true
 
-    /**
-     * Enable or disable image .
-     */
+    /** Enable or disable image . */
     var isImageEnabled = false
     var isSnapEnabled = true
 
-    /**
-     * mTouchDisabled touches will not move the slider only swipe motion will activate it
-     */
+    /** mTouchDisabled touches will not move the slider only swipe motion will activate it */
     private var touchDisabled = true
     private var progressSweep = 0f
     private val seekbarPaint = Paint()
@@ -135,17 +117,31 @@ class BoxedVerticalSeekbar : View {
                 )
             if (isImageEnabled) {
                 defaultImage =
-                    requireNotNull(styledAttrs.getDrawable(R.styleable.BoxedVerticalSeekbar_defaultImage) as? BitmapDrawable) {
-                        "When images are enabled, defaultImage can not be null. Please assign a drawable in the layout XML file"
-                    }.bitmap
+                    requireNotNull(
+                            styledAttrs.getDrawable(
+                                R.styleable.BoxedVerticalSeekbar_defaultImage
+                            ) as?
+                                BitmapDrawable
+                        ) {
+                            "When images are enabled, defaultImage can not be null. Please assign a drawable in the layout XML file"
+                        }
+                        .bitmap
                 minImage =
-                    requireNotNull(styledAttrs.getDrawable(R.styleable.BoxedVerticalSeekbar_minImage) as? BitmapDrawable) {
-                        "When images are enabled, minImage can not be null. Please assign a drawable in the layout XML file"
-                    }.bitmap
+                    requireNotNull(
+                            styledAttrs.getDrawable(R.styleable.BoxedVerticalSeekbar_minImage) as?
+                                BitmapDrawable
+                        ) {
+                            "When images are enabled, minImage can not be null. Please assign a drawable in the layout XML file"
+                        }
+                        .bitmap
                 maxImage =
-                    requireNotNull(styledAttrs.getDrawable(R.styleable.BoxedVerticalSeekbar_maxImage) as? BitmapDrawable) {
-                        "When images are enabled, maxImage can not be null. Please assign a drawable in the layout XML file"
-                    }.bitmap
+                    requireNotNull(
+                            styledAttrs.getDrawable(R.styleable.BoxedVerticalSeekbar_maxImage) as?
+                                BitmapDrawable
+                        ) {
+                            "When images are enabled, maxImage can not be null. Please assign a drawable in the layout XML file"
+                        }
+                        .bitmap
             }
 
             progressColor =
@@ -155,8 +151,7 @@ class BoxedVerticalSeekbar : View {
                     R.styleable.BoxedVerticalSeekbar_backgroundColor,
                     backgroundColor
                 )
-            textSize =
-                styledAttrs.getDimension(R.styleable.BoxedVerticalSeekbar_textSize, textSize)
+            textSize = styledAttrs.getDimension(R.styleable.BoxedVerticalSeekbar_textSize, textSize)
             textColor = styledAttrs.getColor(R.styleable.BoxedVerticalSeekbar_textColor, textColor)
             enabled = styledAttrs.getBoolean(R.styleable.BoxedVerticalSeekbar_enabled, enabled)
             touchDisabled =
@@ -307,11 +302,12 @@ class BoxedVerticalSeekbar : View {
         updateProgress(progress)
     }
 
-    private fun convertTouchEventPoint(yPos: Float): Double = when {
-        yPos > scrHeight * 2 -> (scrHeight * 2).toFloat()
-        yPos < 0 -> 0f
-        else -> yPos
-    }.toDouble()
+    private fun convertTouchEventPoint(yPos: Float): Double =
+        when {
+            yPos > scrHeight * 2 -> (scrHeight * 2).toFloat()
+            yPos < 0 -> 0f
+            else -> yPos
+        }.toDouble()
 
     private fun updateProgress(progress: Int) {
         progressSweep = progress.toFloat()
