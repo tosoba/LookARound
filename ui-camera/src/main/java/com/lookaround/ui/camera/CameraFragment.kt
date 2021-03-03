@@ -132,7 +132,7 @@ class CameraFragment :
             --arCameraPageSeekbar.value
             updatePageButtonsEnabled(arCameraPageSeekbar.value)
         }
-        arCameraPageSeekbar.setOnBoxedPointsChangeListener(
+        arCameraPageSeekbar.onValuesChangeListener =
             object : BoxedVerticalSeekbar.OnValuesChangeListener {
                 override fun onPointsChanged(seekbar: BoxedVerticalSeekbar, points: Int) {
                     updatePageButtonsEnabled(points)
@@ -142,7 +142,6 @@ class CameraFragment :
 
                 override fun onStopTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
             }
-        )
     }
 
     private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState) {
