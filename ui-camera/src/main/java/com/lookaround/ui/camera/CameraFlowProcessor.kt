@@ -5,12 +5,11 @@ import com.lookaround.core.android.base.arch.FlowProcessor
 import com.lookaround.core.model.LocationDataDTO
 import com.lookaround.core.usecase.IsLocationAvailable
 import com.lookaround.core.usecase.LocationDataFlow
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 class CameraFlowProcessor
 @Inject
@@ -26,10 +25,12 @@ constructor(
         intent: suspend (CameraIntent) -> Unit,
         signal: suspend (CameraSignal) -> Unit
     ): Flow<CameraStateUpdate> =
-        locationDataFlow()
+        locationDataFlow(LOCATION_UPDATES_INTERVAL_MILLIS)
+            .distinctUntilChangedBy { it::class }
             .onEach {
-                if (it is LocationDataDTO.Failure && !isLocationAvailable()) {
+                if (it is LocationDataDTO.Failure) {
                     signal(CameraSignal.LocationUnavailable)
+                    coroutineScope.launch { observeLocationAvailability(signal) }
                 }
             }
             .filterIsInstance<LocationDataDTO.Success>()
@@ -42,4 +43,15 @@ constructor(
                     }
                 )
             }
+
+    private suspend fun observeLocationAvailability(signal: suspend (CameraSignal) -> Unit) {
+        do {
+            delay(LOCATION_UPDATES_INTERVAL_MILLIS)
+        } while (!isLocationAvailable())
+        signal(CameraSignal.LocationLoading)
+    }
+
+    companion object {
+        private const val LOCATION_UPDATES_INTERVAL_MILLIS = 3000L
+    }
 }

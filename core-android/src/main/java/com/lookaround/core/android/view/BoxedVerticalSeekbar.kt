@@ -20,7 +20,7 @@ class BoxedVerticalSeekbar : View {
     /** The Maximum value that this SeekArc can be set to */
     var max = 100
         set(value) {
-            require(value > min) { "Max should not be less than min value" }
+            require(value > min) { "Max should not be less or equal than min value" }
             field = value
         }
 

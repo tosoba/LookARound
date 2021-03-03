@@ -6,5 +6,5 @@ import kotlinx.coroutines.flow.Flow
 interface IAppRepo {
     val isConnectedFlow: Flow<Boolean>
     val isLocationAvailable: Boolean
-    val locationDataFlow: Flow<LocationDataDTO>
+    fun getLocationDataFlow(intervalMillis: Long): Flow<LocationDataDTO>
 }

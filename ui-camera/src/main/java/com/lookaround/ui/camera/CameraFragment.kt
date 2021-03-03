@@ -87,7 +87,13 @@ class CameraFragment :
         viewModel
             .signals
             .filterIsInstance<CameraSignal.LocationUnavailable>()
-            .onEach { Timber.e("Location unavailable") }
+            .onEach { Timber.tag("LOC_U").d("Location unavailable") }
+            .launchIn(lifecycleScope)
+
+        viewModel
+            .signals
+            .filterIsInstance<CameraSignal.LocationLoading>()
+            .onEach { Timber.tag("LOC_L").d("Location loading...") }
             .launchIn(lifecycleScope)
     }
 
@@ -107,7 +113,7 @@ class CameraFragment :
             .onEach { (maxPage, setCurrentPage) ->
                 arCameraPageViewsGroup.apply { if (maxPage == 0) fadeOut() else fadeIn() }
                 if (setCurrentPage) arCameraPageSeekbar.value = maxPage
-                arCameraPageSeekbar.max = maxPage
+                if (maxPage > 0) arCameraPageSeekbar.max = maxPage
                 if (setCurrentPage) binding.updatePageButtonsEnabled(maxPage)
             }
             .launchIn(lifecycleScope)

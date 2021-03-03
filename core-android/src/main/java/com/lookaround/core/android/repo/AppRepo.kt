@@ -10,12 +10,12 @@ import com.jintin.fancylocation.LocationFlow
 import com.lookaround.core.model.LocationDataDTO
 import com.lookaround.core.repo.IAppRepo
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ru.beryukhov.reactivenetwork.ReactiveNetwork
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @ExperimentalCoroutinesApi
 @Singleton
@@ -35,15 +35,17 @@ constructor(
                 context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             )
 
-    override val locationDataFlow: Flow<LocationDataDTO>
-        @SuppressLint("MissingPermission")
-        get() {
-            val locationRequest =
+    @SuppressLint("MissingPermission")
+    override fun getLocationDataFlow(intervalMillis: Long): Flow<LocationDataDTO> =
+        LocationFlow(
+                context,
                 LocationRequest.create()
-                    .setInterval(3000L)
-                    .setFastestInterval(3000L)
+                    .setInterval(intervalMillis)
+                    .setFastestInterval(intervalMillis)
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-            return LocationFlow(context, locationRequest).get().map { locationData ->
+            )
+            .get()
+            .map { locationData ->
                 when (locationData) {
                     is LocationData.Success ->
                         LocationDataDTO.Success(
@@ -54,5 +56,4 @@ constructor(
                     is LocationData.Fail -> LocationDataDTO.Failure
                 }
             }
-        }
 }
