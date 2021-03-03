@@ -20,6 +20,8 @@ import com.lookaround.core.android.view.BoxedVerticalSeekbar
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import java.util.*
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -28,8 +30,6 @@ import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
-import java.util.*
-import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -104,7 +104,12 @@ class CameraFragment :
         cameraRenderer
             .maxPageFlow
             .distinctUntilChanged()
-            .onEach { if (it == 0) {} else {} }
+            .onEach { (maxPage, setCurrentPage) ->
+                arCameraPageViewsGroup.apply { if (maxPage == 0) fadeOut() else fadeIn() }
+                if (setCurrentPage) arCameraPageSeekbar.value = maxPage
+                arCameraPageSeekbar.max = maxPage
+                if (setCurrentPage) binding.updatePageButtonsEnabled(maxPage)
+            }
             .launchIn(lifecycleScope)
 
         arCameraView.maxDistance = MAX_RENDER_DISTANCE_METERS
@@ -119,11 +124,6 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.initARCameraPageViews() {
-        fun updatePageButtonsEnabled(points: Int) {
-            arCameraPageUpBtn.isEnabled = points < arCameraPageSeekbar.max
-            arCameraPageDownBtn.isEnabled = points > arCameraPageSeekbar.min
-        }
-
         arCameraPageUpBtn.setOnClickListener {
             ++arCameraPageSeekbar.value
             updatePageButtonsEnabled(arCameraPageSeekbar.value)
@@ -136,12 +136,18 @@ class CameraFragment :
             object : BoxedVerticalSeekbar.OnValuesChangeListener {
                 override fun onPointsChanged(seekbar: BoxedVerticalSeekbar, points: Int) {
                     updatePageButtonsEnabled(points)
+                    cameraRenderer.currentPage = points
                 }
 
                 override fun onStartTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
 
                 override fun onStopTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
             }
+    }
+
+    private fun FragmentCameraBinding.updatePageButtonsEnabled(points: Int) {
+        arCameraPageUpBtn.isEnabled = points < arCameraPageSeekbar.max
+        arCameraPageDownBtn.isEnabled = points > arCameraPageSeekbar.min
     }
 
     private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState) {
@@ -157,7 +163,6 @@ class CameraFragment :
                     shimmerLayout.stopAndHide()
                     blurBackground.fadeOut()
                     arViewsGroup.fadeIn()
-                    arCameraPageViewsGroup.fadeIn()
                 }
         }
     }

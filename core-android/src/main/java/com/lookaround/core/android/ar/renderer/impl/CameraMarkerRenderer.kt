@@ -15,9 +15,9 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.ext.actionBarHeight
 import com.lookaround.core.android.ext.statusBarHeight
+import java.util.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.util.*
 
 class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private val markerHeight: Float
@@ -50,8 +50,9 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         markerWidth = (displayMetrics.widthPixels / markerWidthDivisor).toFloat()
     }
 
-    private val maxPageStateFlow: MutableStateFlow<Int> = MutableStateFlow(0)
-    val maxPageFlow: Flow<Int>
+    private val maxPageStateFlow: MutableStateFlow<MaxPageChanged> =
+        MutableStateFlow(MaxPageChanged(0, false))
+    val maxPageFlow: Flow<MaxPageChanged>
         get() = maxPageStateFlow
     private var maxPage: Int = 0
 
@@ -125,8 +126,9 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     override fun postDrawAll() {
-        maxPageStateFlow.value = maxPage
-        if (maxPage > currentPage) currentPage = maxPage
+        val changeCurrent = currentPage > maxPage
+        maxPageStateFlow.value = MaxPageChanged(maxPage, changeCurrent)
+        if (changeCurrent) currentPage = maxPage
         maxPage = 0
     }
 
@@ -215,6 +217,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     private data class PagedPosition(var y: Float, var page: Int)
+
+    data class MaxPageChanged(val maxPage: Int, val setCurrentPage: Boolean)
 
     companion object {
         private const val TEXT_OFFSET = 20f
