@@ -138,10 +138,6 @@ class CameraFragment :
                     updatePageButtonsEnabled(points)
                     cameraRenderer.currentPage = points
                 }
-
-                override fun onStartTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
-
-                override fun onStopTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
             }
     }
 

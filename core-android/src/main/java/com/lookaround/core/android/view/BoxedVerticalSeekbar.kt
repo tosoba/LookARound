@@ -349,9 +349,9 @@ class BoxedVerticalSeekbar : View {
     }
 
     interface OnValuesChangeListener {
-        fun onPointsChanged(seekbar: BoxedVerticalSeekbar, points: Int)
-        fun onStartTrackingTouch(seekbar: BoxedVerticalSeekbar)
-        fun onStopTrackingTouch(seekbar: BoxedVerticalSeekbar)
+        fun onPointsChanged(seekbar: BoxedVerticalSeekbar, points: Int) = Unit
+        fun onStartTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
+        fun onStopTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
     }
 
     var value: Int
