@@ -20,18 +20,18 @@ import androidx.core.content.ContextCompat;
 import com.lookaround.core.android.R;
 
 public class BoxedVerticalSeekbar extends View {
-    private static final int MAX = 100;
-    private static final int MIN = 0;
+    private static final int DEFAULT_MAX = 100;
+    private static final int DEFAULT_MIN = 0;
 
     /**
      * The min value of progress value.
      */
-    private int min = MIN;
+    private int min = DEFAULT_MIN;
 
     /**
      * The Maximum value that this SeekArc can be set to
      */
-    private int max = MAX;
+    private int max = DEFAULT_MAX;
 
     /**
      * The increment/decrement value for each movement of progress.
@@ -74,12 +74,12 @@ public class BoxedVerticalSeekbar extends View {
     private boolean touchDisabled = true;
 
     private float progressSweep = 0;
+    private final Paint seekbarPaint = new Paint();
     private Paint progressPaint;
     private Paint textPaint;
     private int scrWidth;
     private int scrHeight;
     private OnValuesChangeListener onValuesChangeListener;
-    private int backgroundColor;
     private int defaultValue;
     private Bitmap defaultImage;
     private Bitmap minImage;
@@ -99,15 +99,13 @@ public class BoxedVerticalSeekbar extends View {
     }
 
     private void init(Context context, AttributeSet attrs) {
-        System.out.println("INIT");
         float density = getResources().getDisplayMetrics().density;
 
-        // Defaults, may need to link this into theme settings
+        // Defaults, may need to link this into theme settings.
         int progressColor = ContextCompat.getColor(context, R.color.color_progress);
-        backgroundColor = ContextCompat.getColor(context, R.color.color_background);
-        backgroundColor = ContextCompat.getColor(context, R.color.color_background);
-
+        int backgroundColor = ContextCompat.getColor(context, R.color.color_background);
         int textColor = ContextCompat.getColor(context, R.color.color_text);
+
         textSize = (int) (textSize * density);
         defaultValue = max / 2;
 
@@ -122,9 +120,9 @@ public class BoxedVerticalSeekbar extends View {
             cornerRadius = a.getInteger(R.styleable.BoxedVerticalSeekbar_libCornerRadius, cornerRadius);
             textBottomPadding =
                     a.getInteger(R.styleable.BoxedVerticalSeekbar_textBottomPadding, textBottomPadding);
+
             // Images
             imageEnabled = a.getBoolean(R.styleable.BoxedVerticalSeekbar_imageEnabled, imageEnabled);
-
             if (imageEnabled) {
                 if (a.getDrawable(R.styleable.BoxedVerticalSeekbar_defaultImage) == null) {
                     throw new IllegalArgumentException(
@@ -175,6 +173,10 @@ public class BoxedVerticalSeekbar extends View {
         textPaint.setStyle(Paint.Style.FILL);
         textPaint.setTextSize(textSize);
 
+        seekbarPaint.setAlpha(255);
+        seekbarPaint.setColor(backgroundColor);
+        seekbarPaint.setAntiAlias(true);
+
         scrHeight = context.getResources().getDisplayMetrics().heightPixels;
     }
 
@@ -189,22 +191,18 @@ public class BoxedVerticalSeekbar extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        Paint paint = new Paint();
-
-        paint.setAlpha(255);
         canvas.translate(0, 0);
         Path path = new Path();
         path.addRoundRect(
                 new RectF(0, 0, scrWidth, scrHeight), cornerRadius, cornerRadius, Path.Direction.CCW);
         canvas.clipPath(path, Region.Op.INTERSECT);
-        paint.setColor(backgroundColor);
-        paint.setAntiAlias(true);
-        canvas.drawRect(0, 0, scrWidth, scrHeight, paint);
+
+        canvas.drawRect(0, 0, scrWidth, scrHeight, seekbarPaint);
 
         canvas.drawLine(
-                canvas.getWidth() / 2,
-                canvas.getHeight(),
-                canvas.getWidth() / 2,
+                (float) getWidth() / 2,
+                (float) getHeight(),
+                (float) getWidth() / 2,
                 progressSweep,
                 progressPaint);
 
@@ -245,9 +243,9 @@ public class BoxedVerticalSeekbar extends View {
                 bitmap,
                 null,
                 new RectF(
-                        (canvas.getWidth() / 2) - (bitmap.getWidth() / 2),
+                        (float) canvas.getWidth() / 2 - (float) bitmap.getWidth() / 2,
                         canvas.getHeight() - bitmap.getHeight(),
-                        (canvas.getWidth() / 3) + bitmap.getWidth(),
+                        (float) canvas.getWidth() / 3 + bitmap.getWidth(),
                         canvas.getHeight()),
                 null);
     }
@@ -363,7 +361,7 @@ public class BoxedVerticalSeekbar extends View {
         points = Math.max(points, min);
 
         // convert min-max range to progress
-        progressSweep = (points - min) * scrHeight / (max - min);
+        progressSweep = (float) ((points - min) * scrHeight / (max - min));
         // reverse value because progress is descending
         progressSweep = scrHeight - progressSweep;
 
