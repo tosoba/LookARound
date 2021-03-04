@@ -25,6 +25,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
@@ -68,11 +69,13 @@ class CameraFragment :
         Manifest.permission.ACCESS_FINE_LOCATION,
     )
     internal fun initAR() {
-        binding.initARViews()
         initLocation()
+        binding.initARViews()
     }
 
     private fun initLocation() {
+        lifecycleScope.launch { viewModel.signal(CameraSignal.LocationLoading) }
+
         viewModel
             .states
             .map { it.location }
@@ -158,11 +161,11 @@ class CameraFragment :
                 with(binding) {
                     permissionsViewsGroup.visibility = View.GONE
                     blurBackground.fadeIn()
-                    shimmerLayout.showAndStart()
+                    loadingShimmerLayout.showAndStart()
                 }
             PreviewView.StreamState.STREAMING ->
                 with(binding) {
-                    shimmerLayout.stopAndHide()
+                    loadingShimmerLayout.stopAndHide()
                     blurBackground.fadeOut()
                     arViewsGroup.fadeIn()
                 }
@@ -193,7 +196,7 @@ class CameraFragment :
         with(binding) {
             arViewsGroup.visibility = View.GONE
             arCameraPageViewsGroup.visibility = View.GONE
-            shimmerLayout.stopAndHide()
+            loadingShimmerLayout.stopAndHide()
             blurBackground.fadeIn()
             permissionsViewsGroup.fadeIn()
         }

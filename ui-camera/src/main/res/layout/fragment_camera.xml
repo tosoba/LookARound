@@ -125,7 +125,7 @@
         app:layout_constraintTop_toBottomOf="@id/permissions_required_text_view" />
 
     <com.facebook.shimmer.ShimmerFrameLayout
-        android:id="@+id/shimmer_layout"
+        android:id="@+id/loading_shimmer_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -135,6 +135,7 @@
         app:shimmer_duration="1000">
 
         <TextView
+            android:id="@+id/loading_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
