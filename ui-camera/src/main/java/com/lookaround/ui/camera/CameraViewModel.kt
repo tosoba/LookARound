@@ -2,6 +2,10 @@ package com.lookaround.ui.camera
 
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.base.arch.FlowViewModel
+import com.lookaround.ui.camera.model.CameraIntent
+import com.lookaround.ui.camera.model.CameraSignal
+import com.lookaround.ui.camera.model.CameraState
+import com.lookaround.ui.camera.model.CameraStateUpdate
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject

@@ -4,4 +4,5 @@
     <string name="grant_permissions">Grant permissions</string>
     <string name="page_up">Page up</string>
     <string name="page_down">Page down</string>
+    <string name="location_required_for_ar">Location must be enabled for AR to work.</string>
 </resources>

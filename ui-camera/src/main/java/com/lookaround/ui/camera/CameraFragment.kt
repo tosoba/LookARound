@@ -1,6 +1,7 @@
 package com.lookaround.ui.camera
 
 import android.Manifest
+import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -15,9 +16,15 @@ import com.lookaround.core.android.ar.orientation.OrientationManager
 import com.lookaround.core.android.ar.renderer.impl.CameraMarkerRenderer
 import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
 import com.lookaround.core.android.ar.view.ARView
+import com.lookaround.core.android.exception.LocationDisabledException
+import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.ext.*
+import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.BoxedVerticalSeekbar
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
+import com.lookaround.ui.camera.model.CameraIntent
+import com.lookaround.ui.camera.model.CameraPreviewState
+import com.lookaround.ui.camera.model.SampleMarkers
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
@@ -30,7 +37,6 @@ import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
-import timber.log.Timber
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -59,6 +65,23 @@ class CameraFragment :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        lifecycleScope.launch { viewModel.intent(CameraIntent.CameraViewCreated) }
+        viewModel
+            .states
+            .map { (locationState, cameraPreviewState) ->
+                ((locationState is Failed &&
+                    locationState.error is LocationPermissionDeniedException) ||
+                    (cameraPreviewState is CameraPreviewState.PermissionDenied)) to
+                    (locationState is Failed && locationState.error is LocationDisabledException)
+            }
+            .distinctUntilChanged()
+            .filter { (anyPermissionDenied, locationDisabled) ->
+                anyPermissionDenied || locationDisabled
+            }
+            .onEach { (anyPermissionDenied, locationDisabled) ->
+                showARDisabledViews(anyPermissionDenied, locationDisabled)
+            }
+            .launchIn(lifecycleScope)
         initARWithPermissionCheck()
         binding.grantPermissionsButton.setOnClickListener { initARWithPermissionCheck() }
     }
@@ -69,45 +92,70 @@ class CameraFragment :
         Manifest.permission.ACCESS_FINE_LOCATION,
     )
     internal fun initAR() {
+        viewModel
+            .states
+            .map { (locationState, cameraPreviewState) ->
+                (locationState is LoadingInProgress) to
+                    (cameraPreviewState is CameraPreviewState.Initial ||
+                        (cameraPreviewState is CameraPreviewState.Active &&
+                            cameraPreviewState.streamState == PreviewView.StreamState.IDLE))
+            }
+            .distinctUntilChanged()
+            .filter { (loadingLocation, loadingCamera) -> loadingLocation || loadingCamera }
+            .onEach {
+                with(binding) {
+                    locationDisabledTextView.visibility = View.GONE
+                    permissionsViewsGroup.visibility = View.GONE
+                    blurBackground.visibility = View.VISIBLE
+                    loadingShimmerLayout.showAndStart()
+                }
+            }
+            .launchIn(lifecycleScope)
         initLocation()
         binding.initARViews()
     }
 
     private fun initLocation() {
-        lifecycleScope.launch { viewModel.signal(CameraSignal.LocationLoading) }
+        lifecycleScope.launch { viewModel.intent(CameraIntent.LocationPermissionGranted) }
 
         viewModel
             .states
-            .map { it.location }
-            .filterNotNull()
+            .map { it.locationState }
+            .filterIsInstance<WithValue<Location>>()
+            .map { it.value }
             .distinctUntilChangedBy { Objects.hash(it.latitude, it.longitude) }
             .onEach {
                 binding.arCameraView.povLocation = it
                 binding.arRadarView.povLocation = it
             }
             .launchIn(lifecycleScope)
-
-        viewModel
-            .signals
-            .filterIsInstance<CameraSignal.LocationUnavailable>()
-            .onEach { Timber.tag("LOC_U").d("Location unavailable") }
-            .launchIn(lifecycleScope)
-
-        viewModel
-            .signals
-            .filterIsInstance<CameraSignal.LocationLoading>()
-            .onEach { Timber.tag("LOC_L").d("Location loading...") }
-            .launchIn(lifecycleScope)
     }
 
     private fun FragmentCameraBinding.initARViews(markers: List<ARMarker> = SampleMarkers.get()) {
         initARCameraPageViews()
 
-        cameraPreview.previewStreamState.observe(
-            this@CameraFragment,
-            ::onPreviewViewStreamStateChanged
-        )
+        cameraPreview.previewStreamState.observe(this@CameraFragment) {
+            lifecycleScope.launch { viewModel.intent(CameraIntent.CameraStreamStateChanged(it)) }
+        }
         cameraPreview.init(this@CameraFragment)
+
+        viewModel
+            .states
+            .map { (locationState, cameraPreviewState) ->
+                (locationState is Ready) to
+                    (cameraPreviewState is CameraPreviewState.Active &&
+                        cameraPreviewState.streamState == PreviewView.StreamState.STREAMING)
+            }
+            .distinctUntilChanged()
+            .filter { (locationReady, cameraStreaming) -> locationReady && cameraStreaming }
+            .onEach {
+                locationDisabledTextView.visibility = View.GONE
+                permissionsViewsGroup.visibility = View.GONE
+                loadingShimmerLayout.stopAndHide()
+                blurBackground.visibility = View.GONE
+                arViewsGroup.visibility = View.VISIBLE
+            }
+            .launchIn(lifecycleScope)
 
         cameraRenderer += markers
         cameraRenderer
@@ -155,50 +203,44 @@ class CameraFragment :
         arCameraPageDownBtn.isEnabled = points > arCameraPageSeekbar.min
     }
 
-    private fun onPreviewViewStreamStateChanged(state: PreviewView.StreamState) {
-        when (state) {
-            PreviewView.StreamState.IDLE ->
-                with(binding) {
-                    permissionsViewsGroup.visibility = View.GONE
-                    blurBackground.visibility = View.VISIBLE
-                    loadingShimmerLayout.showAndStart()
-                }
-            PreviewView.StreamState.STREAMING ->
-                with(binding) {
-                    loadingShimmerLayout.stopAndHide()
-                    blurBackground.visibility = View.GONE
-                    arViewsGroup.visibility = View.VISIBLE
-                }
-        }
+    @Suppress("unused")
+    @OnPermissionDenied(Manifest.permission.CAMERA)
+    internal fun onCameraPermissionDenied() {
+        lifecycleScope.launch { viewModel.intent(CameraIntent.CameraPermissionDenied) }
     }
 
     @Suppress("unused")
     @OnPermissionDenied(
-        Manifest.permission.CAMERA,
         Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION
     )
-    internal fun onPermissionsDenied() {
-        showPermissionsRequiredView()
+    internal fun onLocationPermissionDenied() {
+        lifecycleScope.launch { viewModel.intent(CameraIntent.LocationPermissionDenied) }
+    }
+
+    @Suppress("unused")
+    @OnNeverAskAgain(Manifest.permission.CAMERA)
+    internal fun onCameraPermissionNeverAskAgain() {
+        lifecycleScope.launch { viewModel.intent(CameraIntent.CameraPermissionDenied) }
     }
 
     @Suppress("unused")
     @OnNeverAskAgain(
-        Manifest.permission.CAMERA,
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.ACCESS_FINE_LOCATION,
     )
-    internal fun onNeverAskAgain() {
-        showPermissionsRequiredView()
+    internal fun onLocationPermissionNeverAskAgain() {
+        lifecycleScope.launch { viewModel.intent(CameraIntent.LocationPermissionDenied) }
     }
 
-    private fun showPermissionsRequiredView() {
+    private fun showARDisabledViews(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
         with(binding) {
             arViewsGroup.visibility = View.GONE
             arCameraPageViewsGroup.visibility = View.GONE
             loadingShimmerLayout.stopAndHide()
             blurBackground.visibility = View.VISIBLE
-            permissionsViewsGroup.visibility = View.VISIBLE
+            if (anyPermissionDenied) permissionsViewsGroup.visibility = View.VISIBLE
+            if (locationDisabled) locationDisabledTextView.visibility = View.VISIBLE
         }
     }
 

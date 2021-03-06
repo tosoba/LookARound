@@ -1,4 +1,4 @@
-package com.lookaround.core.android.ar.location
+package com.lookaround.core.android.model
 
 import android.location.Location
 

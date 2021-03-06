@@ -92,10 +92,27 @@
         android:layout_height="match_parent"
         android:background="@drawable/background" />
 
+    <TextView
+        android:id="@+id/location_disabled_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:text="@string/location_required_for_ar"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="25sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/permissions_required_text_view"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
     <androidx.constraintlayout.widget.Group
         android:id="@+id/permissions_views_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         app:constraint_referenced_ids="grant_permissions_button,permissions_required_text_view" />
 
     <TextView
@@ -107,19 +124,16 @@
         android:textAlignment="center"
         android:textColor="@android:color/white"
         android:textSize="25sp"
-        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/grant_permissions_button"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toBottomOf="@id/location_disabled_text_view" />
 
     <Button
         android:id="@+id/grant_permissions_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/grant_permissions"
-        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

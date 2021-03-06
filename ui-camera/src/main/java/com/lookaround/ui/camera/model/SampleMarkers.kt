@@ -1,6 +1,6 @@
-package com.lookaround.ui.camera
+package com.lookaround.ui.camera.model
 
-import com.lookaround.core.android.ar.location.LocationFactory
+import com.lookaround.core.android.model.LocationFactory
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.marker.SimpleARMarker
 
