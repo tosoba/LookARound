@@ -114,7 +114,7 @@ class CameraFragment :
             .maxPageFlow
             .distinctUntilChanged()
             .onEach { (maxPage, setCurrentPage) ->
-                arCameraPageViewsGroup.apply { if (maxPage == 0) fadeOut() else fadeIn() }
+                arCameraPageViewsGroup.visibility = if (maxPage == 0) View.GONE else View.VISIBLE
                 if (setCurrentPage) arCameraPageSeekbar.value = maxPage
                 if (maxPage > 0) arCameraPageSeekbar.max = maxPage
                 if (setCurrentPage) binding.updatePageButtonsEnabled(maxPage)
@@ -160,14 +160,14 @@ class CameraFragment :
             PreviewView.StreamState.IDLE ->
                 with(binding) {
                     permissionsViewsGroup.visibility = View.GONE
-                    blurBackground.fadeIn()
+                    blurBackground.visibility = View.VISIBLE
                     loadingShimmerLayout.showAndStart()
                 }
             PreviewView.StreamState.STREAMING ->
                 with(binding) {
                     loadingShimmerLayout.stopAndHide()
-                    blurBackground.fadeOut()
-                    arViewsGroup.fadeIn()
+                    blurBackground.visibility = View.GONE
+                    arViewsGroup.visibility = View.VISIBLE
                 }
         }
     }
@@ -197,8 +197,8 @@ class CameraFragment :
             arViewsGroup.visibility = View.GONE
             arCameraPageViewsGroup.visibility = View.GONE
             loadingShimmerLayout.stopAndHide()
-            blurBackground.fadeIn()
-            permissionsViewsGroup.fadeIn()
+            blurBackground.visibility = View.VISIBLE
+            permissionsViewsGroup.visibility = View.VISIBLE
         }
     }
 

@@ -78,7 +78,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
             lifecycleScope.launch { viewModel.intent(MapIntent.SceneLoaded) }
 
             binding.shimmerLayout.stopAndHide()
-            binding.blurBackground.fadeOut()
+            binding.blurBackground.visibility = View.GONE
         } else {
             Timber.e("Failed to load scene: $sceneId. Scene error: $sceneError")
         }
@@ -89,7 +89,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     private suspend fun MapController.loadScene(scene: MapScene) {
-        binding.blurBackground.fadeIn()
+        binding.blurBackground.visibility = View.VISIBLE
         binding.shimmerLayout.showAndStart()
 
         viewModel.intent(MapIntent.LoadingScene(scene))
