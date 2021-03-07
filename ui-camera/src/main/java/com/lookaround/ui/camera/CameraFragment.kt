@@ -1,12 +1,10 @@
 package com.lookaround.ui.camera
 
 import android.Manifest
-import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.camera.core.*
-import androidx.camera.view.PreviewView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -16,15 +14,11 @@ import com.lookaround.core.android.ar.orientation.OrientationManager
 import com.lookaround.core.android.ar.renderer.impl.CameraMarkerRenderer
 import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
 import com.lookaround.core.android.ar.view.ARView
-import com.lookaround.core.android.exception.LocationDisabledException
-import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.BoxedVerticalSeekbar
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
-import com.lookaround.ui.camera.model.CameraIntent
-import com.lookaround.ui.camera.model.CameraPreviewState
-import com.lookaround.ui.camera.model.SampleMarkers
+import com.lookaround.ui.camera.model.*
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
@@ -66,23 +60,16 @@ class CameraFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         lifecycleScope.launch { viewModel.intent(CameraIntent.CameraViewCreated) }
+
         viewModel
-            .states
-            .map { (locationState, cameraPreviewState) ->
-                ((locationState is Failed &&
-                    locationState.error is LocationPermissionDeniedException) ||
-                    (cameraPreviewState is CameraPreviewState.PermissionDenied)) to
-                    (locationState is Failed && locationState.error is LocationDisabledException)
-            }
-            .distinctUntilChanged()
-            .filter { (anyPermissionDenied, locationDisabled) ->
-                anyPermissionDenied || locationDisabled
-            }
+            .arDisabledUpdates
             .onEach { (anyPermissionDenied, locationDisabled) ->
-                showARDisabledViews(anyPermissionDenied, locationDisabled)
+                binding.onARDisabled(anyPermissionDenied, locationDisabled)
             }
             .launchIn(lifecycleScope)
+
         initARWithPermissionCheck()
+
         binding.grantPermissionsButton.setOnClickListener { initARWithPermissionCheck() }
     }
 
@@ -92,38 +79,19 @@ class CameraFragment :
         Manifest.permission.ACCESS_FINE_LOCATION,
     )
     internal fun initAR() {
-        viewModel
-            .states
-            .map { (locationState, cameraPreviewState) ->
-                (locationState is LoadingInProgress) to
-                    (cameraPreviewState is CameraPreviewState.Initial ||
-                        (cameraPreviewState is CameraPreviewState.Active &&
-                            cameraPreviewState.streamState == PreviewView.StreamState.IDLE))
-            }
-            .distinctUntilChanged()
-            .filter { (loadingLocation, loadingCamera) -> loadingLocation || loadingCamera }
-            .onEach {
-                with(binding) {
-                    locationDisabledTextView.visibility = View.GONE
-                    permissionsViewsGroup.visibility = View.GONE
-                    blurBackground.visibility = View.VISIBLE
-                    loadingShimmerLayout.showAndStart()
-                }
-            }
-            .launchIn(lifecycleScope)
-        initLocation()
-        binding.initARViews()
-    }
-
-    private fun initLocation() {
         lifecycleScope.launch { viewModel.intent(CameraIntent.LocationPermissionGranted) }
 
         viewModel
-            .states
-            .map { it.locationState }
-            .filterIsInstance<WithValue<Location>>()
-            .map { it.value }
-            .distinctUntilChangedBy { Objects.hash(it.latitude, it.longitude) }
+            .loadingStartedUpdates
+            .onEach { binding.onLoadingStarted() }
+            .launchIn(lifecycleScope)
+
+        binding.initARViews()
+
+        viewModel.arEnabledUpdates.onEach { binding.onAREnabled() }.launchIn(lifecycleScope)
+
+        viewModel
+            .locationReadyUpdates
             .onEach {
                 binding.arCameraView.povLocation = it
                 binding.arRadarView.povLocation = it
@@ -139,34 +107,11 @@ class CameraFragment :
         }
         cameraPreview.init(this@CameraFragment)
 
-        viewModel
-            .states
-            .map { (locationState, cameraPreviewState) ->
-                (locationState is Ready) to
-                    (cameraPreviewState is CameraPreviewState.Active &&
-                        cameraPreviewState.streamState == PreviewView.StreamState.STREAMING)
-            }
-            .distinctUntilChanged()
-            .filter { (locationReady, cameraStreaming) -> locationReady && cameraStreaming }
-            .onEach {
-                locationDisabledTextView.visibility = View.GONE
-                permissionsViewsGroup.visibility = View.GONE
-                loadingShimmerLayout.stopAndHide()
-                blurBackground.visibility = View.GONE
-                arViewsGroup.visibility = View.VISIBLE
-            }
-            .launchIn(lifecycleScope)
-
         cameraRenderer += markers
         cameraRenderer
             .maxPageFlow
             .distinctUntilChanged()
-            .onEach { (maxPage, setCurrentPage) ->
-                arCameraPageViewsGroup.visibility = if (maxPage == 0) View.GONE else View.VISIBLE
-                if (setCurrentPage) arCameraPageSeekbar.value = maxPage
-                if (maxPage > 0) arCameraPageSeekbar.max = maxPage
-                if (setCurrentPage) binding.updatePageButtonsEnabled(maxPage)
-            }
+            .onEach { (maxPage, setCurrentPage) -> onCameraMaxPageChanged(maxPage, setCurrentPage) }
             .launchIn(lifecycleScope)
 
         arCameraView.maxDistance = MAX_RENDER_DISTANCE_METERS
@@ -203,6 +148,63 @@ class CameraFragment :
         arCameraPageDownBtn.isEnabled = points > arCameraPageSeekbar.min
     }
 
+    private fun FragmentCameraBinding.onLoadingStarted() {
+        locationDisabledTextView.visibility = View.GONE
+        permissionsViewsGroup.visibility = View.GONE
+        blurBackground.visibility = View.VISIBLE
+        loadingShimmerLayout.showAndStart()
+    }
+
+    private fun FragmentCameraBinding.onAREnabled() {
+        locationDisabledTextView.visibility = View.GONE
+        permissionsViewsGroup.visibility = View.GONE
+        loadingShimmerLayout.stopAndHide()
+        blurBackground.visibility = View.GONE
+        arViewsGroup.visibility = View.VISIBLE
+    }
+
+    private fun FragmentCameraBinding.onARDisabled(
+        anyPermissionDenied: Boolean,
+        locationDisabled: Boolean
+    ) {
+        arViewsGroup.visibility = View.GONE
+        arCameraPageViewsGroup.visibility = View.GONE
+        loadingShimmerLayout.stopAndHide()
+        blurBackground.visibility = View.VISIBLE
+        if (anyPermissionDenied) permissionsViewsGroup.visibility = View.VISIBLE
+        if (locationDisabled) locationDisabledTextView.visibility = View.VISIBLE
+    }
+
+    private fun FragmentCameraBinding.onCameraMaxPageChanged(
+        maxPage: Int,
+        setCurrentPage: Boolean
+    ) {
+        arCameraPageViewsGroup.visibility = if (maxPage == 0) View.GONE else View.VISIBLE
+        if (setCurrentPage) arCameraPageSeekbar.value = maxPage
+        if (maxPage > 0) arCameraPageSeekbar.max = maxPage
+        if (setCurrentPage) binding.updatePageButtonsEnabled(maxPage)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        orientationManager.startSensor(requireContext())
+    }
+
+    override fun onPause() {
+        binding.arCameraPageViewsGroup.visibility = View.GONE
+        binding.arViewsGroup.visibility = View.GONE
+        orientationManager.stopSensor()
+        super.onPause()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        onRequestPermissionsResult(requestCode, grantResults)
+    }
+
     @Suppress("unused")
     @OnPermissionDenied(Manifest.permission.CAMERA)
     internal fun onCameraPermissionDenied() {
@@ -231,37 +233,6 @@ class CameraFragment :
     )
     internal fun onLocationPermissionNeverAskAgain() {
         lifecycleScope.launch { viewModel.intent(CameraIntent.LocationPermissionDenied) }
-    }
-
-    private fun showARDisabledViews(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
-        with(binding) {
-            arViewsGroup.visibility = View.GONE
-            arCameraPageViewsGroup.visibility = View.GONE
-            loadingShimmerLayout.stopAndHide()
-            blurBackground.visibility = View.VISIBLE
-            if (anyPermissionDenied) permissionsViewsGroup.visibility = View.VISIBLE
-            if (locationDisabled) locationDisabledTextView.visibility = View.VISIBLE
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        onRequestPermissionsResult(requestCode, grantResults)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        orientationManager.startSensor(requireContext())
-    }
-
-    override fun onPause() {
-        binding.arCameraPageViewsGroup.visibility = View.GONE
-        binding.arViewsGroup.visibility = View.GONE
-        orientationManager.stopSensor()
-        super.onPause()
     }
 
     override fun onOrientationChanged(orientation: Orientation) {
