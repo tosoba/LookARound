@@ -6,8 +6,8 @@
     tools:context=".MainActivity">
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/map_fragment"
-        android:name="com.lookaround.ui.camera.CameraFragment"
+        android:id="@+id/main_fragment"
+        android:name="com.lookaround.ui.place.types.PlaceTypesFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
