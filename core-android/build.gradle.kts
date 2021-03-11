@@ -58,9 +58,17 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    kotlinOptions { jvmTarget = "1.8" }
+    kotlinOptions {
+        jvmTarget = "1.8"
+        useIR = true
+    }
 
-    buildFeatures { viewBinding = true }
+    buildFeatures {
+        viewBinding = true
+        compose = true
+    }
+
+    composeOptions { kotlinCompilerExtensionVersion = "1.0.0-beta01" }
 }
 
 kapt { correctErrorTypes = true }
@@ -69,6 +77,15 @@ dependencies {
     implementation(project(":core"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
+    implementation("androidx.compose.runtime:runtime:1.0.0-beta01")
+    implementation("androidx.compose.compiler:compiler:1.0.0-beta01")
+    implementation("androidx.compose.ui:ui:1.0.0-beta01")
+    implementation("androidx.compose.ui:ui-tooling:1.0.0-beta01")
+    implementation("androidx.compose.foundation:foundation:1.0.0-beta01")
+    implementation("androidx.compose.material:material:1.0.0-beta01")
+    implementation("androidx.compose.material:material-icons-core:1.0.0-beta01")
+    implementation("androidx.compose.material:material-icons-extended:1.0.0-beta01")
+
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 
     implementation("androidx.core:core-ktx:1.3.2")

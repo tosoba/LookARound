@@ -1,13 +1,13 @@
-package com.lookaround.ui.place.types.theme
+package com.lookaround.core.android.view.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
-import com.lookaround.ui.place.types.LocalSysUiController
+import com.lookaround.core.android.view.LocalSysUiController
 
-private val LightColorPalette = JetsnackColors(
+private val LightColorPalette = LookARoundColors(
     brand = Shadow5,
     uiBackground = Neutral0,
     uiBorder = Neutral4,
@@ -29,7 +29,7 @@ private val LightColorPalette = JetsnackColors(
     isDark = false
 )
 
-private val DarkColorPalette = JetsnackColors(
+private val DarkColorPalette = LookARoundColors(
     brand = Shadow1,
     uiBackground = Neutral8,
     uiBorder = Neutral3,
@@ -54,7 +54,7 @@ private val DarkColorPalette = JetsnackColors(
 )
 
 @Composable
-fun JetsnackTheme(
+fun LookARoundTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
@@ -67,7 +67,7 @@ fun JetsnackTheme(
         )
     }
 
-    ProvideJetsnackColors(colors) {
+    ProvideLookARoundColors(colors) {
         MaterialTheme(
             colors = debugColors(darkTheme),
             typography = Typography,
@@ -77,17 +77,14 @@ fun JetsnackTheme(
     }
 }
 
-object JetsnackTheme {
-    val colors: JetsnackColors
+object LookARoundTheme {
+    val colors: LookARoundColors
         @Composable
-        get() = LocalJetsnackColors.current
+        get() = LocalLookARoundColors.current
 }
 
-/**
- * Jetsnack custom Color Palette
- */
 @Stable
-class JetsnackColors(
+class LookARoundColors(
     gradient6_1: List<Color>,
     gradient6_2: List<Color>,
     gradient3_1: List<Color>,
@@ -165,7 +162,7 @@ class JetsnackColors(
     var isDark by mutableStateOf(isDark)
         private set
 
-    fun update(other: JetsnackColors) {
+    fun update(other: LookARoundColors) {
         gradient6_1 = other.gradient6_1
         gradient6_2 = other.gradient6_2
         gradient3_1 = other.gradient3_1
@@ -195,22 +192,22 @@ class JetsnackColors(
 }
 
 @Composable
-fun ProvideJetsnackColors(
-    colors: JetsnackColors,
+fun ProvideLookARoundColors(
+    colors: LookARoundColors,
     content: @Composable () -> Unit
 ) {
     val colorPalette = remember { colors }
     colorPalette.update(colors)
-    CompositionLocalProvider(LocalJetsnackColors provides colorPalette, content = content)
+    CompositionLocalProvider(LocalLookARoundColors provides colorPalette, content = content)
 }
 
-private val LocalJetsnackColors = staticCompositionLocalOf<JetsnackColors> {
-    error("No JetsnackColorPalette provided")
+private val LocalLookARoundColors = staticCompositionLocalOf<LookARoundColors> {
+    error("No LookARoundColors provided")
 }
 
 /**
  * A Material [Colors] implementation which sets all colors to [debugColor] to discourage usage of
- * [MaterialTheme.colors] in preference to [JetsnackTheme.colors].
+ * [MaterialTheme.colors] in preference to [LookARoundTheme.colors].
  */
 fun debugColors(
     darkTheme: Boolean,

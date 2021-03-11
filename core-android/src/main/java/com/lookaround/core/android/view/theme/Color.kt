@@ -1,4 +1,4 @@
-package com.lookaround.ui.place.types.theme
+package com.lookaround.core.android.view.theme
 
 import androidx.compose.ui.graphics.Color
 

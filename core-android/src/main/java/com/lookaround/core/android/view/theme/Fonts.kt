@@ -1,4 +1,4 @@
-package com.lookaround.ui.place.types.theme
+package com.lookaround.core.android.view.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle
@@ -6,7 +6,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.lookaround.ui.place.types.R
+import com.lookaround.core.android.R
 
 private val Montserrat =
     FontFamily(

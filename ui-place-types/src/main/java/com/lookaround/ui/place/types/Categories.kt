@@ -22,7 +22,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.lookaround.ui.place.types.theme.JetsnackTheme
+import com.lookaround.core.android.view.composable.Surface
+import com.lookaround.core.android.view.composable.VerticalGrid
+import com.lookaround.core.android.view.theme.LookARoundTheme
 import dev.chrisbanes.accompanist.coil.CoilImage
 import kotlin.math.max
 
@@ -42,7 +44,7 @@ fun SnackImage(
     modifier: Modifier = Modifier,
     elevation: Dp = 0.dp
 ) {
-    JetsnackSurface(
+    Surface(
         color = Color.LightGray,
         elevation = elevation,
         shape = CircleShape,
@@ -77,7 +79,7 @@ private fun SearchCategoryCollection(
         Text(
             text = collection.name,
             style = MaterialTheme.typography.h6,
-            color = JetsnackTheme.colors.textPrimary,
+            color = LookARoundTheme.colors.textPrimary,
             modifier =
                 Modifier.heightIn(min = 56.dp)
                     .padding(horizontal = 24.dp, vertical = 4.dp)
@@ -86,8 +88,8 @@ private fun SearchCategoryCollection(
         VerticalGrid(Modifier.padding(horizontal = 16.dp)) {
             val gradient =
                 when (index % 2) {
-                    0 -> JetsnackTheme.colors.gradient2_2
-                    else -> JetsnackTheme.colors.gradient3_2
+                    0 -> LookARoundTheme.colors.gradient2_2
+                    else -> LookARoundTheme.colors.gradient3_2
                 }
             collection.categories.forEach { category ->
                 SearchCategory(
@@ -123,7 +125,7 @@ private fun SearchCategory(
             Text(
                 text = category.name,
                 style = MaterialTheme.typography.subtitle1,
-                color = JetsnackTheme.colors.textSecondary,
+                color = LookARoundTheme.colors.textSecondary,
                 modifier = Modifier.padding(4.dp).padding(start = 8.dp)
             )
             SnackImage(
@@ -158,10 +160,10 @@ private fun SearchCategory(
 @Preview("Category")
 @Composable
 private fun SearchCategoryPreview() {
-    JetsnackTheme {
+    LookARoundTheme {
         SearchCategory(
             category = SearchCategory(name = "Desserts", imageUrl = ""),
-            gradient = JetsnackTheme.colors.gradient3_2
+            gradient = LookARoundTheme.colors.gradient3_2
         )
     }
 }
@@ -169,10 +171,10 @@ private fun SearchCategoryPreview() {
 @Preview("Category • Dark")
 @Composable
 private fun SearchCategoryDarkPreview() {
-    JetsnackTheme(darkTheme = true) {
+    LookARoundTheme(darkTheme = true) {
         SearchCategory(
             category = SearchCategory(name = "Desserts", imageUrl = ""),
-            gradient = JetsnackTheme.colors.gradient3_2
+            gradient = LookARoundTheme.colors.gradient3_2
         )
     }
 }

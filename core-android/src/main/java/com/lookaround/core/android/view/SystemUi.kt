@@ -1,4 +1,4 @@
-package com.lookaround.ui.place.types
+package com.lookaround.core.android.view
 
 import android.os.Build
 import android.view.View

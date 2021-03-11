@@ -1,20 +1,4 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.lookaround.ui.place.types
+package com.lookaround.core.android.view.composable
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -33,19 +17,15 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.lookaround.ui.place.types.theme.JetsnackTheme
+import com.lookaround.core.android.view.theme.LookARoundTheme
 import kotlin.math.ln
 
-/**
- * An alternative to [androidx.compose.material.Surface] utilizing
- * [com.example.jetsnack.ui.theme.JetsnackColors]
- */
 @Composable
-fun JetsnackSurface(
+fun Surface(
     modifier: Modifier = Modifier,
     shape: Shape = RectangleShape,
-    color: Color = JetsnackTheme.colors.uiBackground,
-    contentColor: Color = JetsnackTheme.colors.textSecondary,
+    color: Color = LookARoundTheme.colors.uiBackground,
+    contentColor: Color = LookARoundTheme.colors.textSecondary,
     border: BorderStroke? = null,
     elevation: Dp = 0.dp,
     content: @Composable () -> Unit
@@ -67,8 +47,8 @@ fun JetsnackSurface(
 @Composable
 private fun getBackgroundColorForElevation(color: Color, elevation: Dp): Color {
     return if (elevation > 0.dp // && https://issuetracker.google.com/issues/161429530
-        // JetsnackTheme.colors.isDark //&&
-        // color == JetsnackTheme.colors.uiBackground
+        // LookARoundTheme.colors.isDark //&&
+        // color == LookARoundTheme.colors.uiBackground
     ) {
         color.withElevation(elevation)
     } else {

@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
-import com.lookaround.ui.place.types.theme.JetsnackTheme
+import com.lookaround.core.android.view.theme.LookARoundTheme
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 
 class PlaceTypesFragment : Fragment() {
@@ -76,7 +76,7 @@ class PlaceTypesFragment : Fragment() {
         ComposeView(requireContext()).apply {
             setContent {
                 ProvideWindowInsets {
-                    JetsnackTheme { SearchCategories(searchCategoryCollections) }
+                    LookARoundTheme { SearchCategories(searchCategoryCollections) }
                 }
             }
         }
