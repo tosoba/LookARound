@@ -31,8 +31,10 @@ import dev.chrisbanes.accompanist.coil.CoilImage
 import kotlin.math.max
 
 @Composable
-fun PlaceTypes(groups: List<PlaceTypeGroup>) {
-    LazyColumn { itemsIndexed(groups) { index, group -> PlaceTypeGroup(group, index) } }
+fun PlaceTypes(groups: List<PlaceTypeGroup>, onClick: (PlaceType) -> Unit = {}) {
+    LazyColumn {
+        itemsIndexed(groups) { index, group -> PlaceTypeGroup(group, index, onClick = onClick) }
+    }
     Spacer(Modifier.height(8.dp))
 }
 
@@ -59,7 +61,12 @@ private fun PlaceTypeImage(
 }
 
 @Composable
-private fun PlaceTypeGroup(group: PlaceTypeGroup, index: Int, modifier: Modifier = Modifier) {
+private fun PlaceTypeGroup(
+    group: PlaceTypeGroup,
+    index: Int,
+    modifier: Modifier = Modifier,
+    onClick: (PlaceType) -> Unit = {}
+) {
     Column(modifier) {
         Text(
             text = group.name,
@@ -80,7 +87,8 @@ private fun PlaceTypeGroup(group: PlaceTypeGroup, index: Int, modifier: Modifier
                 PlaceType(
                     placeType = placeType,
                     gradient = gradient,
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier.padding(8.dp),
+                    onClick = onClick
                 )
             }
         }
@@ -93,7 +101,12 @@ private val PlaceTypeShape = RoundedCornerShape(10.dp)
 private const val PlaceTypeTextProportion = 0.55f
 
 @Composable
-private fun PlaceType(placeType: PlaceType, gradient: List<Color>, modifier: Modifier = Modifier) {
+private fun PlaceType(
+    placeType: PlaceType,
+    gradient: List<Color>,
+    modifier: Modifier = Modifier,
+    onClick: (PlaceType) -> Unit = {}
+) {
     Layout(
         modifier =
             modifier
@@ -101,7 +114,7 @@ private fun PlaceType(placeType: PlaceType, gradient: List<Color>, modifier: Mod
                 .shadow(elevation = 3.dp, shape = PlaceTypeShape)
                 .clip(PlaceTypeShape)
                 .background(Brush.horizontalGradient(gradient))
-                .clickable {},
+                .clickable { onClick(placeType) },
         content = {
             Text(
                 text = placeType.wrapped.label,

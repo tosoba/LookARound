@@ -6,12 +6,26 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.Amenity
+import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.WithFragmentBindings
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
+import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.launch
 
+@FlowPreview
+@ExperimentalCoroutinesApi
+@AndroidEntryPoint
+@WithFragmentBindings
 class PlaceTypesFragment : Fragment() {
     private val placeTypeGroups =
         listOf(
@@ -39,12 +53,27 @@ class PlaceTypesFragment : Fragment() {
             ),
         )
 
+    @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
+    private val viewModel: MainViewModel by assistedActivityViewModel {
+        viewModelFactory.create(it)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View =
         ComposeView(requireContext()).apply {
-            setContent { ProvideWindowInsets { LookARoundTheme { PlaceTypes(placeTypeGroups) } } }
+            setContent {
+                ProvideWindowInsets {
+                    LookARoundTheme {
+                        PlaceTypes(placeTypeGroups) {
+                            lifecycleScope.launch {
+                                viewModel.intent(MainIntent.LoadPlaces(it.wrapped))
+                            }
+                        }
+                    }
+                }
+            }
         }
 }

@@ -45,6 +45,7 @@ kapt { correctErrorTypes = true }
 dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
+    implementation(project(":core-android-model"))
     implementation(project(":ui-camera"))
     implementation(project(":ui-main"))
     implementation(project(":ui-map"))
