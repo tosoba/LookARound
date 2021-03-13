@@ -3,10 +3,10 @@ package com.lookaround.repo.overpass
 import com.lookaround.core.model.NodeDTO
 import com.lookaround.core.repo.PlacesRepo
 import com.lookaround.repo.overpass.mapper.NodeMapper
+import javax.inject.Inject
 import nice.fontaine.overpass.models.query.statements.NodeQuery
 import nice.fontaine.overpass.models.response.OverpassResponse
 import nice.fontaine.overpass.models.response.geometries.Node
-import javax.inject.Inject
 
 class OverpassRepo
 @Inject
@@ -37,7 +37,7 @@ constructor(
         radiusInMeters: Float
     ): List<String> =
         nodesAround(lat, lng, radiusInMeters) { ilike("image", "http") }.mapNotNull {
-            it.tags["image"]
+            it.tags?.get("image")
         }
 
     private suspend fun nodesAround(
@@ -45,7 +45,7 @@ constructor(
         lng: Double,
         radiusInMeters: Float,
         compose: NodeQuery.Builder.() -> NodeQuery.Builder
-    ) =
+    ): List<Node> =
         endpoints.interpreter(NodeQuery.Builder().compose().aroundQuery(lat, lng, radiusInMeters))
             .nodes
 
@@ -56,5 +56,5 @@ constructor(
     ): String = around(lat, lng, radiusInMeters).build().toQuery()
 
     private val OverpassResponse.nodes: List<Node>
-        get() = elements.toList().filterIsInstance<Node>()
+        get() = elements.toList().filterIsInstance<Node>().filter { it.tags?.get("name") != null }
 }
