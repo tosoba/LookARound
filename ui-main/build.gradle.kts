@@ -45,16 +45,9 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
     implementation(project(":core-android-model"))
-    implementation(project(":ui-camera"))
-    implementation(project(":ui-map"))
-    implementation(project(":ui-place-types"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("androidx.core:core-ktx:1.3.2")
-    implementation("androidx.appcompat:appcompat:1.2.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
-    implementation("com.google.android.material:material:1.3.0")
-
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
 
     implementation("com.google.dagger:hilt-android:2.31.2-alpha")

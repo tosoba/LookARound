@@ -1,4 +1,4 @@
-package com.lookaround.ui.main
+package com.lookaround
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
