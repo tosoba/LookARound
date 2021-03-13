@@ -2,7 +2,7 @@ package com.lookaround.core.model
 
 import java.util.*
 
-enum class Amenity(val description: String, val count: Int) {
+enum class Amenity(override val description: String, override val count: Int) : IPlaceType {
     PARKING("A place for parking cars", 3784858),
     BENCH("A place for people to sit; allows room for several people.", 1448454),
     PLACE_OF_WORSHIP("A place where religious services are conducted", 1242549),
@@ -296,7 +296,7 @@ enum class Amenity(val description: String, val count: Int) {
     LOUNGER("An object for people to lie down.", 792),
     POLLING_STATION("A place where one can cast a ballot.", 769);
 
-    val label: String
+    override val label: String
         get() =
             name.replace("_", " ").toLowerCase(Locale.getDefault()).capitalize(Locale.getDefault())
 }

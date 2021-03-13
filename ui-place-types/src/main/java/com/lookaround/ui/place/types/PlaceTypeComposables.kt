@@ -24,16 +24,15 @@ import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.view.composable.Surface
 import com.lookaround.core.android.view.composable.VerticalGrid
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.core.model.Amenity
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
 import dev.chrisbanes.accompanist.coil.CoilImage
 import kotlin.math.max
 
 @Composable
-fun PlaceTypes(placeTypes: List<PlaceTypeGroup>) {
-    LazyColumn {
-        itemsIndexed(placeTypes) { index, collection -> PlaceTypeGroup(collection, index) }
-    }
+fun PlaceTypes(groups: List<PlaceTypeGroup>) {
+    LazyColumn { itemsIndexed(groups) { index, group -> PlaceTypeGroup(group, index) } }
     Spacer(Modifier.height(8.dp))
 }
 
@@ -60,14 +59,10 @@ private fun PlaceTypeImage(
 }
 
 @Composable
-private fun PlaceTypeGroup(
-    collection: PlaceTypeGroup,
-    index: Int,
-    modifier: Modifier = Modifier
-) {
+private fun PlaceTypeGroup(group: PlaceTypeGroup, index: Int, modifier: Modifier = Modifier) {
     Column(modifier) {
         Text(
-            text = collection.name,
+            text = group.name,
             style = MaterialTheme.typography.h6,
             color = LookARoundTheme.colors.textPrimary,
             modifier =
@@ -81,9 +76,9 @@ private fun PlaceTypeGroup(
                     0 -> LookARoundTheme.colors.gradient2_2
                     else -> LookARoundTheme.colors.gradient3_2
                 }
-            collection.placeTypes.forEach { category ->
+            group.placeTypes.forEach { placeType ->
                 PlaceType(
-                    category = category,
+                    placeType = placeType,
                     gradient = gradient,
                     modifier = Modifier.padding(8.dp)
                 )
@@ -94,39 +89,35 @@ private fun PlaceTypeGroup(
 }
 
 private val MinImageSize = 134.dp
-private val CategoryShape = RoundedCornerShape(10.dp)
-private const val CategoryTextProportion = 0.55f
+private val PlaceTypeShape = RoundedCornerShape(10.dp)
+private const val PlaceTypeTextProportion = 0.55f
 
 @Composable
-private fun PlaceType(
-    category: PlaceType,
-    gradient: List<Color>,
-    modifier: Modifier = Modifier
-) {
+private fun PlaceType(placeType: PlaceType, gradient: List<Color>, modifier: Modifier = Modifier) {
     Layout(
         modifier =
             modifier
                 .aspectRatio(1.45f)
-                .shadow(elevation = 3.dp, shape = CategoryShape)
-                .clip(CategoryShape)
+                .shadow(elevation = 3.dp, shape = PlaceTypeShape)
+                .clip(PlaceTypeShape)
                 .background(Brush.horizontalGradient(gradient))
                 .clickable {},
         content = {
             Text(
-                text = category.name,
+                text = placeType.wrapped.label,
                 style = MaterialTheme.typography.subtitle1,
                 color = LookARoundTheme.colors.textSecondary,
                 modifier = Modifier.padding(4.dp).padding(start = 8.dp)
             )
             PlaceTypeImage(
-                imageUrl = category.imageUrl,
+                imageUrl = placeType.imageUrl,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize()
             )
         }
     ) { measurables, constraints ->
         // Text given a set proportion of width (which is determined by the aspect ratio)
-        val textWidth = (constraints.maxWidth * CategoryTextProportion).toInt()
+        val textWidth = (constraints.maxWidth * PlaceTypeTextProportion).toInt()
         val textPlaceable = measurables[0].measure(Constraints.fixedWidth(textWidth))
 
         // Image is sized to the larger of height of item, or a minimum value
@@ -147,23 +138,23 @@ private fun PlaceType(
     }
 }
 
-@Preview("Category")
+@Preview("PlaceType")
 @Composable
 private fun PlaceTypePreview() {
     LookARoundTheme {
         PlaceType(
-            category = PlaceType(name = "Desserts", imageUrl = ""),
+            placeType = PlaceType(wrapped = Amenity.BANK, imageUrl = ""),
             gradient = LookARoundTheme.colors.gradient3_2
         )
     }
 }
 
-@Preview("Category • Dark")
+@Preview("PlaceType • Dark")
 @Composable
 private fun PlaceTypeDarkPreview() {
     LookARoundTheme(darkTheme = true) {
         PlaceType(
-            category = PlaceType(name = "Desserts", imageUrl = ""),
+            placeType = PlaceType(wrapped = Amenity.BANK, imageUrl = ""),
             gradient = LookARoundTheme.colors.gradient3_2
         )
     }

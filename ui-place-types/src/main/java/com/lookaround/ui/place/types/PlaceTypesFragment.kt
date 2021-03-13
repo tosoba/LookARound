@@ -20,19 +20,19 @@ class PlaceTypesFragment : Fragment() {
                 placeTypes =
                     listOf(
                         PlaceType(
-                            name = Amenity.PARKING.label,
+                            wrapped = Amenity.PARKING,
                             imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
                         ),
                         PlaceType(
-                            name = Amenity.RESTAURANT.label,
+                            wrapped = Amenity.RESTAURANT,
                             imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
                         ),
                         PlaceType(
-                            name = Amenity.FUEL.label,
+                            wrapped = Amenity.FUEL,
                             imageUrl = "https://source.unsplash.com/_jk8KIyN_uA"
                         ),
                         PlaceType(
-                            name = Amenity.BANK.label,
+                            wrapped = Amenity.BANK,
                             imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
                         )
                     )
