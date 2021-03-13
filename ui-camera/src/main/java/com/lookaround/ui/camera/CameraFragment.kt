@@ -99,7 +99,7 @@ class CameraFragment :
             .launchIn(lifecycleScope)
     }
 
-    private fun FragmentCameraBinding.initARViews(markers: List<ARMarker> = SampleMarkers.get()) {
+    private fun FragmentCameraBinding.initARViews(markers: List<ARMarker> = SampleARMarkers.get()) {
         initARCameraPageViews()
 
         cameraPreview.previewStreamState.observe(this@CameraFragment) {
