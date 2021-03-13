@@ -1,6 +1,6 @@
 package com.lookaround.repo.nominatim.di
 
-import com.lookaround.core.repo.GeocodingRepo
+import com.lookaround.core.repo.IGeocodingRepo
 import com.lookaround.repo.nominatim.NominatimRepo
 import com.lookaround.repo.nominatim.mapper.AddressMapper
 import com.lookaround.repo.nominatim.mapper.AddressMapperImpl
@@ -16,7 +16,7 @@ import javax.inject.Singleton
 abstract class NominatimModule {
     @Binds abstract fun addressMapper(nodeMapper: AddressMapperImpl): AddressMapper
 
-    @Binds abstract fun geocodingRepo(nominatimRepo: NominatimRepo): GeocodingRepo
+    @Binds abstract fun geocodingRepo(nominatimRepo: NominatimRepo): IGeocodingRepo
 
     companion object {
         @Provides @Singleton fun addressMapperImpl(): AddressMapperImpl = AddressMapperImpl()

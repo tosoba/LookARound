@@ -42,6 +42,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":core"))
+    implementation(project(":core-android"))
     implementation(project(":ui-camera"))
     implementation(project(":ui-map"))
     implementation(project(":ui-place-types"))

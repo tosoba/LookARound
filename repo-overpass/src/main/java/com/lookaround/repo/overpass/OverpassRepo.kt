@@ -1,7 +1,8 @@
 package com.lookaround.repo.overpass
 
+import com.lookaround.core.model.IPlaceType
 import com.lookaround.core.model.NodeDTO
-import com.lookaround.core.repo.PlacesRepo
+import com.lookaround.core.repo.IPlacesRepo
 import com.lookaround.repo.overpass.mapper.NodeMapper
 import javax.inject.Inject
 import nice.fontaine.overpass.models.query.statements.NodeQuery
@@ -13,8 +14,7 @@ class OverpassRepo
 constructor(
     private val endpoints: OverpassEndpoints,
     private val nodeMapper: NodeMapper,
-) : PlacesRepo {
-
+) : IPlacesRepo {
     override suspend fun attractionsAround(
         lat: Double,
         lng: Double,
@@ -24,12 +24,13 @@ constructor(
             .map(nodeMapper::toDTO)
 
     override suspend fun placesOfTypeAround(
-        type: String,
+        placeType: IPlaceType,
         lat: Double,
         lng: Double,
         radiusInMeters: Float
     ): List<NodeDTO> =
-        nodesAround(lat, lng, radiusInMeters) { equal("amenity", type) }.map(nodeMapper::toDTO)
+        nodesAround(lat, lng, radiusInMeters) { equal(placeType.typeKey, placeType.typeValue) }
+            .map(nodeMapper::toDTO)
 
     override suspend fun imagesAround(
         lat: Double,

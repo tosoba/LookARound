@@ -1,5 +1,6 @@
 package com.lookaround.repo.overpass
 
+import com.lookaround.core.model.Amenity
 import com.lookaround.repo.overpass.di.DaggerOverpassComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -25,6 +26,6 @@ class OverpassRepoTests {
 
     @Test
     fun placesOfType() {
-        runBlocking { repo.placesOfTypeAround("restaurant", warsawLat, warsawLng, radius) }
+        runBlocking { repo.placesOfTypeAround(Amenity.RESTAURANT, warsawLat, warsawLng, radius) }
     }
 }

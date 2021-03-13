@@ -3,11 +3,11 @@ package com.lookaround.repo.photon
 import com.github.filosganga.geogson.model.Point
 import com.google.gson.JsonPrimitive
 import com.lookaround.core.model.PointDTO
-import com.lookaround.core.repo.PlacesAutocompleteRepo
+import com.lookaround.core.repo.IPlacesAutocompleteRepo
 import javax.inject.Inject
 
 class PhotonRepo @Inject constructor(private val photonEndpoints: PhotonEndpoints) :
-    PlacesAutocompleteRepo {
+    IPlacesAutocompleteRepo {
     override suspend fun searchPoints(query: String): List<PointDTO> =
         photonEndpoints
             .search(query)
