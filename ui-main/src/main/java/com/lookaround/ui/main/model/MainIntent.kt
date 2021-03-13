@@ -1,4 +1,4 @@
-package com.lookaround.ui.main
+package com.lookaround.ui.main.model
 
 import com.lookaround.core.model.IPlaceType
 
