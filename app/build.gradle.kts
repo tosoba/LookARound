@@ -38,6 +38,8 @@ android {
             )
         }
     }
+
+    packagingOptions { resources { excludes += "META-INF/DEPENDENCIES" } }
 }
 
 kapt { correctErrorTypes = true }
@@ -46,6 +48,9 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
     implementation(project(":core-android-model"))
+    implementation(project(":repo-nominatim"))
+    implementation(project(":repo-overpass"))
+    implementation(project(":repo-photon"))
     implementation(project(":ui-camera"))
     implementation(project(":ui-main"))
     implementation(project(":ui-map"))
@@ -79,6 +84,12 @@ dependencies {
     kapt("org.permissionsdispatcher:permissionsdispatcher-processor:4.8.0")
 
     implementation("com.jakewharton.timber:timber:4.7.1")
+
+    implementation("com.squareup.moshi:moshi:1.9.2")
+    implementation("com.squareup.moshi:moshi-adapters:1.9.2")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.6.2")
+    implementation("com.squareup.retrofit2:retrofit:2.7.1")
 
     testImplementation("junit:junit:4.13.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")

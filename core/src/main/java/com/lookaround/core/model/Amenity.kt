@@ -304,5 +304,5 @@ enum class Amenity(override val description: String, override val count: Int) : 
         get() = "amenity"
 
     override val typeValue: String
-        get() = name
+        get() = name.toLowerCase(Locale.getDefault())
 }

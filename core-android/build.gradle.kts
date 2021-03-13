@@ -75,6 +75,9 @@ kapt { correctErrorTypes = true }
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":repo-nominatim"))
+    implementation(project(":repo-overpass"))
+    implementation(project(":repo-photon"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("androidx.compose.runtime:runtime:1.0.0-beta01")

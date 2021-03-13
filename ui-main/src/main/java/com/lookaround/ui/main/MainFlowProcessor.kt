@@ -10,7 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.transformLatest
 
 @ExperimentalCoroutinesApi
 class MainFlowProcessor @Inject constructor(private val getPlacesOfType: GetPlacesOfType) :
@@ -23,12 +23,13 @@ class MainFlowProcessor @Inject constructor(private val getPlacesOfType: GetPlac
         intent: suspend (MainIntent) -> Unit,
         signal: suspend (Unit) -> Unit
     ): Flow<MainStateUpdate> =
-        intents.filterIsInstance<MainIntent.LoadPlaces>().mapLatest { (type) ->
+        intents.filterIsInstance<MainIntent.LoadPlaces>().transformLatest { (type) ->
+            emit(MainStateUpdate.LoadingPlaces)
             try {
                 val places = getPlacesOfType(type, 52.237049, 21.017532, 10_000f)
-                MainStateUpdate.PlacesLoaded(places)
+                emit(MainStateUpdate.PlacesLoaded(places))
             } catch (throwable: Throwable) {
-                MainStateUpdate.PlacesError(throwable)
+                emit(MainStateUpdate.PlacesError(throwable))
             }
         }
 }

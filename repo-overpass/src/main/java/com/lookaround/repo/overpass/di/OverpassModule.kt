@@ -1,7 +1,9 @@
 package com.lookaround.repo.overpass.di
 
 import com.lookaround.core.di.annotation.TestHttpClient
+import com.lookaround.core.repo.IPlacesRepo
 import com.lookaround.repo.overpass.OverpassEndpoints
+import com.lookaround.repo.overpass.OverpassRepo
 import com.lookaround.repo.overpass.di.annotation.OverpassMoshiConverterFactory
 import com.lookaround.repo.overpass.mapper.NodeMapper
 import com.lookaround.repo.overpass.mapper.NodeMapperImpl
@@ -21,6 +23,8 @@ import javax.inject.Singleton
 @Module
 abstract class OverpassModule {
     @Binds abstract fun nodeMapper(nodeMapper: NodeMapperImpl): NodeMapper
+
+    @Binds abstract fun overpassRepo(overpassRepo: OverpassRepo): IPlacesRepo
 
     companion object {
         @Provides @Singleton fun nodeMapperImpl(): NodeMapperImpl = NodeMapperImpl()
