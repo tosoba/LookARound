@@ -7,65 +7,36 @@ import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.core.model.Amenity
+import com.lookaround.ui.place.types.model.PlaceType
+import com.lookaround.ui.place.types.model.PlaceTypeGroup
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 
 class PlaceTypesFragment : Fragment() {
-    private val searchCategoryCollections =
+    private val placeTypeGroups =
         listOf(
-            SearchCategoryCollection(
-                id = 0L,
-                name = "Categories",
-                categories =
+            PlaceTypeGroup(
+                name = "General",
+                placeTypes =
                     listOf(
-                        SearchCategory(
-                            name = "Chips & crackers",
+                        PlaceType(
+                            name = Amenity.PARKING.label,
                             imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
                         ),
-                        SearchCategory(
-                            name = "Fruit snacks",
+                        PlaceType(
+                            name = Amenity.RESTAURANT.label,
                             imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
                         ),
-                        SearchCategory(
-                            name = "Desserts",
+                        PlaceType(
+                            name = Amenity.FUEL.label,
                             imageUrl = "https://source.unsplash.com/_jk8KIyN_uA"
                         ),
-                        SearchCategory(
-                            name = "Nuts ",
+                        PlaceType(
+                            name = Amenity.BANK.label,
                             imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
                         )
                     )
             ),
-            SearchCategoryCollection(
-                id = 1L,
-                name = "Lifestyles",
-                categories =
-                    listOf(
-                        SearchCategory(
-                            name = "Organic",
-                            imageUrl = "https://source.unsplash.com/7meCnGCJ5Ms"
-                        ),
-                        SearchCategory(
-                            name = "Gluten Free",
-                            imageUrl = "https://source.unsplash.com/m741tj4Cz7M"
-                        ),
-                        SearchCategory(
-                            name = "Paleo",
-                            imageUrl = "https://source.unsplash.com/dt5-8tThZKg"
-                        ),
-                        SearchCategory(
-                            name = "Vegan",
-                            imageUrl = "https://source.unsplash.com/ReXxkS1m1H0"
-                        ),
-                        SearchCategory(
-                            name = "Vegitarian",
-                            imageUrl = "https://source.unsplash.com/IGfIGP5ONV0"
-                        ),
-                        SearchCategory(
-                            name = "Whole30",
-                            imageUrl = "https://source.unsplash.com/9MzCd76xLGk"
-                        )
-                    )
-            )
         )
 
     override fun onCreateView(
@@ -74,10 +45,6 @@ class PlaceTypesFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View =
         ComposeView(requireContext()).apply {
-            setContent {
-                ProvideWindowInsets {
-                    LookARoundTheme { SearchCategories(searchCategoryCollections) }
-                }
-            }
+            setContent { ProvideWindowInsets { LookARoundTheme { PlaceTypes(placeTypeGroups) } } }
         }
 }

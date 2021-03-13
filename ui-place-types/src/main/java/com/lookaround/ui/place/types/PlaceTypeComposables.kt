@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -25,20 +24,21 @@ import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.view.composable.Surface
 import com.lookaround.core.android.view.composable.VerticalGrid
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.ui.place.types.model.PlaceType
+import com.lookaround.ui.place.types.model.PlaceTypeGroup
 import dev.chrisbanes.accompanist.coil.CoilImage
 import kotlin.math.max
 
-@Immutable
-data class SearchCategoryCollection(
-    val id: Long,
-    val name: String,
-    val categories: List<SearchCategory>
-)
-
-@Immutable data class SearchCategory(val name: String, val imageUrl: String)
+@Composable
+fun PlaceTypes(placeTypes: List<PlaceTypeGroup>) {
+    LazyColumn {
+        itemsIndexed(placeTypes) { index, collection -> PlaceTypeGroup(collection, index) }
+    }
+    Spacer(Modifier.height(8.dp))
+}
 
 @Composable
-fun SnackImage(
+private fun PlaceTypeImage(
     imageUrl: String,
     contentDescription: String?,
     modifier: Modifier = Modifier,
@@ -60,18 +60,8 @@ fun SnackImage(
 }
 
 @Composable
-fun SearchCategories(categories: List<SearchCategoryCollection>) {
-    LazyColumn {
-        itemsIndexed(categories) { index, collection ->
-            SearchCategoryCollection(collection, index)
-        }
-    }
-    Spacer(Modifier.height(8.dp))
-}
-
-@Composable
-private fun SearchCategoryCollection(
-    collection: SearchCategoryCollection,
+private fun PlaceTypeGroup(
+    collection: PlaceTypeGroup,
     index: Int,
     modifier: Modifier = Modifier
 ) {
@@ -91,8 +81,8 @@ private fun SearchCategoryCollection(
                     0 -> LookARoundTheme.colors.gradient2_2
                     else -> LookARoundTheme.colors.gradient3_2
                 }
-            collection.categories.forEach { category ->
-                SearchCategory(
+            collection.placeTypes.forEach { category ->
+                PlaceType(
                     category = category,
                     gradient = gradient,
                     modifier = Modifier.padding(8.dp)
@@ -108,8 +98,8 @@ private val CategoryShape = RoundedCornerShape(10.dp)
 private const val CategoryTextProportion = 0.55f
 
 @Composable
-private fun SearchCategory(
-    category: SearchCategory,
+private fun PlaceType(
+    category: PlaceType,
     gradient: List<Color>,
     modifier: Modifier = Modifier
 ) {
@@ -128,7 +118,7 @@ private fun SearchCategory(
                 color = LookARoundTheme.colors.textSecondary,
                 modifier = Modifier.padding(4.dp).padding(start = 8.dp)
             )
-            SnackImage(
+            PlaceTypeImage(
                 imageUrl = category.imageUrl,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize()
@@ -159,10 +149,10 @@ private fun SearchCategory(
 
 @Preview("Category")
 @Composable
-private fun SearchCategoryPreview() {
+private fun PlaceTypePreview() {
     LookARoundTheme {
-        SearchCategory(
-            category = SearchCategory(name = "Desserts", imageUrl = ""),
+        PlaceType(
+            category = PlaceType(name = "Desserts", imageUrl = ""),
             gradient = LookARoundTheme.colors.gradient3_2
         )
     }
@@ -170,10 +160,10 @@ private fun SearchCategoryPreview() {
 
 @Preview("Category • Dark")
 @Composable
-private fun SearchCategoryDarkPreview() {
+private fun PlaceTypeDarkPreview() {
     LookARoundTheme(darkTheme = true) {
-        SearchCategory(
-            category = SearchCategory(name = "Desserts", imageUrl = ""),
+        PlaceType(
+            category = PlaceType(name = "Desserts", imageUrl = ""),
             gradient = LookARoundTheme.colors.gradient3_2
         )
     }
