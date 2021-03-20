@@ -3,6 +3,8 @@ package com.lookaround.core.android.ar.view
 import android.content.Context
 import android.graphics.Canvas
 import android.location.Location
+import android.os.Bundle
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -14,6 +16,7 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sqrt
+import kotlinx.parcelize.Parcelize
 
 abstract class ARView<R : MarkerRenderer> : View {
     open var povLocation: Location? = null
@@ -108,6 +111,21 @@ abstract class ARView<R : MarkerRenderer> : View {
             marker.distance = marker.wrapped.location.distanceTo(location).toDouble()
         }
     }
+
+    override fun onSaveInstanceState(): Parcelable? =
+        SavedState(super.onSaveInstanceState(), markerRenderer?.onSaveInstanceState())
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        val savedState = state as? SavedState
+        super.onRestoreInstanceState(savedState?.superSavedState ?: state)
+        markerRenderer?.onRestoreInstanceState(savedState?.rendererBundle)
+    }
+
+    @Parcelize
+    internal class SavedState(
+        val superSavedState: Parcelable?,
+        val rendererBundle: Bundle?,
+    ) : BaseSavedState(superSavedState), Parcelable
 
     interface OnMarkerPressedListener {
         fun onMarkerPressed(marker: ARMarker)

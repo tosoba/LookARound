@@ -7,9 +7,11 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.location.Location
+import android.os.Bundle
 import android.text.TextPaint
 import android.text.TextUtils
 import androidx.annotation.MainThread
+import androidx.core.os.bundleOf
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
@@ -132,6 +134,19 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         maxPage = 0
     }
 
+    override fun onSaveInstanceState(): Bundle =
+        bundleOf(
+            SavedStateKeys.CURRENT_PAGE.name to currentPage,
+            SavedStateKeys.MAX_PAGE.name to maxPage
+        )
+
+    override fun onRestoreInstanceState(bundle: Bundle?) {
+        bundle?.let {
+            currentPage = it.getInt(SavedStateKeys.CURRENT_PAGE.name)
+            maxPage = it.getInt(SavedStateKeys.MAX_PAGE.name)
+        }
+    }
+
     private fun CameraMarker.calculatePagedPosition(): PagedPosition {
         val bearingThis = povLocationBearing ?: throw IllegalStateException()
         val takenPositions =
@@ -219,6 +234,11 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private data class PagedPosition(var y: Float, var page: Int)
 
     data class MaxPageChanged(val maxPage: Int, val setCurrentPage: Boolean)
+
+    private enum class SavedStateKeys {
+        MAX_PAGE,
+        CURRENT_PAGE
+    }
 
     companion object {
         private const val TEXT_OFFSET = 20f
