@@ -38,7 +38,7 @@ constructor(
             intents
                 .filterIsInstance<CameraIntent.LocationPermissionGranted>()
                 .take(1)
-                .flatMapLatest(::locationStateUpdatesFlow),
+                .flatMapLatest { locationStateUpdatesFlow },
             intents.filterIsInstance<CameraIntent.LocationPermissionDenied>().map {
                 CameraStateUpdate.LocationPermissionDenied
             },
@@ -50,32 +50,31 @@ constructor(
             }
         )
 
-    private fun locationStateUpdatesFlow(
-        permissionGrantedIntent: CameraIntent.LocationPermissionGranted
-    ): Flow<CameraStateUpdate> =
-        locationDataFlow(LOCATION_UPDATES_INTERVAL_MILLIS)
-            .distinctUntilChangedBy { it::class }
-            .transformLatest {
-                when (it) {
-                    is LocationDataDTO.Failure -> {
-                        emit(CameraStateUpdate.LocationDisabled)
-                        do {
-                            delay(LOCATION_UPDATES_INTERVAL_MILLIS)
-                        } while (!isLocationAvailable())
-                        emit(CameraStateUpdate.LoadingLocation)
-                    }
-                    is LocationDataDTO.Success ->
-                        emit(
-                            CameraStateUpdate.LocationLoaded(
-                                LocationFactory.create(
-                                    latitude = it.lat,
-                                    longitude = it.lng,
-                                    altitude = it.alt
+    private val locationStateUpdatesFlow: Flow<CameraStateUpdate>
+        get() =
+            locationDataFlow(LOCATION_UPDATES_INTERVAL_MILLIS)
+                .distinctUntilChangedBy { it::class }
+                .transformLatest {
+                    when (it) {
+                        is LocationDataDTO.Failure -> {
+                            emit(CameraStateUpdate.LocationDisabled)
+                            do {
+                                delay(LOCATION_UPDATES_INTERVAL_MILLIS)
+                            } while (!isLocationAvailable())
+                            emit(CameraStateUpdate.LoadingLocation)
+                        }
+                        is LocationDataDTO.Success ->
+                            emit(
+                                CameraStateUpdate.LocationLoaded(
+                                    LocationFactory.create(
+                                        latitude = it.lat,
+                                        longitude = it.lng,
+                                        altitude = it.alt
+                                    )
                                 )
                             )
-                        )
+                    }
                 }
-            }
 
     companion object {
         private const val LOCATION_UPDATES_INTERVAL_MILLIS = 3_000L
