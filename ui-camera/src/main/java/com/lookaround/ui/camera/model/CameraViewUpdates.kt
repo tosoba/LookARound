@@ -9,6 +9,7 @@ import com.lookaround.core.android.model.LoadingInProgress
 import com.lookaround.core.android.model.Ready
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.ui.camera.CameraViewModel
+import com.lookaround.ui.main.MainViewModel
 import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -16,20 +17,23 @@ import kotlinx.coroutines.flow.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal val CameraViewModel.arEnabledUpdates: Flow<Pair<Boolean, Boolean>>
-    get() =
-        states
-            .map { (locationState, cameraPreviewState) ->
-                (locationState is Ready) to
-                    (cameraPreviewState is CameraPreviewState.Active &&
-                        cameraPreviewState.streamState == PreviewView.StreamState.STREAMING)
-            }
-            .distinctUntilChanged()
-            .filter { (locationReady, cameraStreaming) -> locationReady && cameraStreaming }
+internal fun arEnabledUpdates(
+    mainViewModel: MainViewModel,
+    cameraViewModel: CameraViewModel
+): Flow<Pair<Boolean, Boolean>> =
+    mainViewModel
+        .states
+        .combine(cameraViewModel.states) { mainState, cameraState ->
+            (mainState.locationState is Ready) to
+                (cameraState.previewState is CameraPreviewState.Active &&
+                    cameraState.previewState.streamState == PreviewView.StreamState.STREAMING)
+        }
+        .distinctUntilChanged()
+        .filter { (locationReady, cameraStreaming) -> locationReady && cameraStreaming }
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal val CameraViewModel.locationReadyUpdates: Flow<Location>
+internal val MainViewModel.locationReadyUpdates: Flow<Location>
     get() =
         states
             .map { it.locationState }
@@ -39,30 +43,35 @@ internal val CameraViewModel.locationReadyUpdates: Flow<Location>
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal val CameraViewModel.loadingStartedUpdates: Flow<Pair<Boolean, Boolean>>
-    get() =
-        states
-            .map { (locationState, cameraPreviewState) ->
-                (locationState is LoadingInProgress) to
-                    (cameraPreviewState is CameraPreviewState.Initial ||
-                        (cameraPreviewState is CameraPreviewState.Active &&
-                            cameraPreviewState.streamState == PreviewView.StreamState.IDLE))
-            }
-            .distinctUntilChanged()
-            .filter { (loadingLocation, loadingCamera) -> loadingLocation || loadingCamera }
+internal fun loadingStartedUpdates(
+    mainViewModel: MainViewModel,
+    cameraViewModel: CameraViewModel
+): Flow<Pair<Boolean, Boolean>> =
+    mainViewModel
+        .states
+        .combine(cameraViewModel.states) { mainState, cameraState ->
+            (mainState.locationState is LoadingInProgress) to
+                (cameraState.previewState is CameraPreviewState.Initial ||
+                    (cameraState.previewState is CameraPreviewState.Active &&
+                        cameraState.previewState.streamState == PreviewView.StreamState.IDLE))
+        }
+        .distinctUntilChanged()
+        .filter { (loadingLocation, loadingCamera) -> loadingLocation || loadingCamera }
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal val CameraViewModel.arDisabledUpdates: Flow<Pair<Boolean, Boolean>>
-    get() =
-        states
-            .map { (locationState, cameraPreviewState) ->
-                ((locationState is Failed &&
-                    locationState.error is LocationPermissionDeniedException) ||
-                    (cameraPreviewState is CameraPreviewState.PermissionDenied)) to
-                    (locationState is Failed && locationState.error is LocationDisabledException)
-            }
-            .distinctUntilChanged()
-            .filter { (anyPermissionDenied, locationDisabled) ->
-                anyPermissionDenied || locationDisabled
-            }
+internal fun arDisabledUpdates(
+    mainViewModel: MainViewModel,
+    cameraViewModel: CameraViewModel
+): Flow<Pair<Boolean, Boolean>> =
+    mainViewModel
+        .states
+        .combine(cameraViewModel.states) { mainState, cameraState ->
+            ((mainState.locationState as? Failed)?.error is LocationPermissionDeniedException ||
+                (cameraState.previewState is CameraPreviewState.PermissionDenied)) to
+                ((mainState.locationState as? Failed)?.error is LocationDisabledException)
+        }
+        .distinctUntilChanged()
+        .filter { (anyPermissionDenied, locationDisabled) ->
+            anyPermissionDenied || locationDisabled
+        }

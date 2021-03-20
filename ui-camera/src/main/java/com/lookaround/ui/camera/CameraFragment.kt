@@ -19,6 +19,8 @@ import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.BoxedVerticalSeekbar
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import com.lookaround.ui.camera.model.*
+import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.model.MainIntent
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
@@ -41,11 +43,17 @@ class CameraFragment :
     Fragment(R.layout.fragment_camera),
     OrientationManager.OnOrientationChangedListener,
     ARView.OnMarkerPressedListener {
-
     private val binding: FragmentCameraBinding by viewBinding(FragmentCameraBinding::bind)
 
-    @Inject internal lateinit var viewModelFactory: CameraViewModel.Factory
-    private val viewModel: CameraViewModel by assistedViewModel { viewModelFactory.create(it) }
+    @Inject internal lateinit var cameraViewModelFactory: CameraViewModel.Factory
+    private val cameraViewModel: CameraViewModel by assistedViewModel {
+        cameraViewModelFactory.create(it)
+    }
+
+    @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
+    private val mainViewModel: MainViewModel by assistedActivityViewModel {
+        mainViewModelFactory.create(it)
+    }
 
     private val cameraRenderer: CameraMarkerRenderer by lazy(LazyThreadSafetyMode.NONE) {
         CameraMarkerRenderer(requireContext())
@@ -59,10 +67,9 @@ class CameraFragment :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        lifecycleScope.launch { viewModel.intent(CameraIntent.CameraViewCreated) }
+        lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
 
-        viewModel
-            .arDisabledUpdates
+        arDisabledUpdates(mainViewModel, cameraViewModel)
             .onEach { (anyPermissionDenied, locationDisabled) ->
                 binding.onARDisabled(anyPermissionDenied, locationDisabled)
             }
@@ -76,21 +83,22 @@ class CameraFragment :
     @NeedsPermission(
         Manifest.permission.CAMERA,
         Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION
     )
     internal fun initAR() {
-        lifecycleScope.launch { viewModel.intent(CameraIntent.LocationPermissionGranted) }
+        lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionGranted) }
 
-        viewModel
-            .loadingStartedUpdates
+        loadingStartedUpdates(mainViewModel, cameraViewModel)
             .onEach { binding.onLoadingStarted() }
             .launchIn(lifecycleScope)
 
         binding.initARViews()
 
-        viewModel.arEnabledUpdates.onEach { binding.onAREnabled() }.launchIn(lifecycleScope)
+        arEnabledUpdates(mainViewModel, cameraViewModel)
+            .onEach { binding.onAREnabled() }
+            .launchIn(lifecycleScope)
 
-        viewModel
+        mainViewModel
             .locationReadyUpdates
             .onEach {
                 binding.arCameraView.povLocation = it
@@ -103,7 +111,9 @@ class CameraFragment :
         initARCameraPageViews()
 
         cameraPreview.previewStreamState.observe(this@CameraFragment) {
-            lifecycleScope.launch { viewModel.intent(CameraIntent.CameraStreamStateChanged(it)) }
+            lifecycleScope.launch {
+                cameraViewModel.intent(CameraIntent.CameraStreamStateChanged(it))
+            }
         }
         cameraPreview.init(this@CameraFragment)
 
@@ -208,7 +218,13 @@ class CameraFragment :
     @Suppress("unused")
     @OnPermissionDenied(Manifest.permission.CAMERA)
     internal fun onCameraPermissionDenied() {
-        lifecycleScope.launch { viewModel.intent(CameraIntent.CameraPermissionDenied) }
+        lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraPermissionDenied) }
+    }
+
+    @Suppress("unused")
+    @OnNeverAskAgain(Manifest.permission.CAMERA)
+    internal fun onCameraPermissionNeverAskAgain() {
+        lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraPermissionDenied) }
     }
 
     @Suppress("unused")
@@ -217,13 +233,7 @@ class CameraFragment :
         Manifest.permission.ACCESS_FINE_LOCATION
     )
     internal fun onLocationPermissionDenied() {
-        lifecycleScope.launch { viewModel.intent(CameraIntent.LocationPermissionDenied) }
-    }
-
-    @Suppress("unused")
-    @OnNeverAskAgain(Manifest.permission.CAMERA)
-    internal fun onCameraPermissionNeverAskAgain() {
-        lifecycleScope.launch { viewModel.intent(CameraIntent.CameraPermissionDenied) }
+        lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionDenied) }
     }
 
     @Suppress("unused")
@@ -232,7 +242,7 @@ class CameraFragment :
         Manifest.permission.ACCESS_FINE_LOCATION,
     )
     internal fun onLocationPermissionNeverAskAgain() {
-        lifecycleScope.launch { viewModel.intent(CameraIntent.LocationPermissionDenied) }
+        lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionDenied) }
     }
 
     override fun onOrientationChanged(orientation: Orientation) {

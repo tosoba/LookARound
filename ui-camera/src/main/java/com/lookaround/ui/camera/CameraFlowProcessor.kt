@@ -1,10 +1,6 @@
 package com.lookaround.ui.camera
 
 import com.lookaround.core.android.base.arch.FlowProcessor
-import com.lookaround.core.android.model.LocationFactory
-import com.lookaround.core.model.LocationDataDTO
-import com.lookaround.core.usecase.IsLocationAvailable
-import com.lookaround.core.usecase.LocationDataFlow
 import com.lookaround.ui.camera.model.CameraIntent
 import com.lookaround.ui.camera.model.CameraSignal
 import com.lookaround.ui.camera.model.CameraState
@@ -12,17 +8,14 @@ import com.lookaround.ui.camera.model.CameraStateUpdate
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 
 @ExperimentalCoroutinesApi
-class CameraFlowProcessor
-@Inject
-constructor(
-    private val isLocationAvailable: IsLocationAvailable,
-    private val locationDataFlow: LocationDataFlow
-) : FlowProcessor<CameraIntent, CameraStateUpdate, CameraState, CameraSignal> {
-
+class CameraFlowProcessor @Inject constructor() :
+    FlowProcessor<CameraIntent, CameraStateUpdate, CameraState, CameraSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
         intents: Flow<CameraIntent>,
@@ -35,48 +28,11 @@ constructor(
             intents.filterIsInstance<CameraIntent.CameraViewCreated>().map {
                 CameraStateUpdate.CameraViewCreated
             },
-            intents
-                .filterIsInstance<CameraIntent.LocationPermissionGranted>()
-                .take(1)
-                .flatMapLatest { locationStateUpdatesFlow },
-            intents.filterIsInstance<CameraIntent.LocationPermissionDenied>().map {
-                CameraStateUpdate.LocationPermissionDenied
+            intents.filterIsInstance<CameraIntent.CameraStreamStateChanged>().map { (streamState) ->
+                CameraStateUpdate.CameraStreamStateChanged(streamState)
             },
             intents.filterIsInstance<CameraIntent.CameraPermissionDenied>().map {
                 CameraStateUpdate.CameraPermissionDenied
             },
-            intents.filterIsInstance<CameraIntent.CameraStreamStateChanged>().map { (streamState) ->
-                CameraStateUpdate.CameraStreamStateChanged(streamState)
-            }
         )
-
-    private val locationStateUpdatesFlow: Flow<CameraStateUpdate>
-        get() =
-            locationDataFlow(LOCATION_UPDATES_INTERVAL_MILLIS)
-                .distinctUntilChangedBy { it::class }
-                .transformLatest {
-                    when (it) {
-                        is LocationDataDTO.Failure -> {
-                            emit(CameraStateUpdate.LocationDisabled)
-                            do {
-                                delay(LOCATION_UPDATES_INTERVAL_MILLIS)
-                            } while (!isLocationAvailable())
-                            emit(CameraStateUpdate.LoadingLocation)
-                        }
-                        is LocationDataDTO.Success ->
-                            emit(
-                                CameraStateUpdate.LocationLoaded(
-                                    LocationFactory.create(
-                                        latitude = it.lat,
-                                        longitude = it.lng,
-                                        altitude = it.alt
-                                    )
-                                )
-                            )
-                    }
-                }
-
-    companion object {
-        private const val LOCATION_UPDATES_INTERVAL_MILLIS = 3_000L
-    }
 }

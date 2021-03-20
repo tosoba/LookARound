@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
     implementation(project(":core-android-model"))
+    implementation(project(":ui-main"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("androidx.appcompat:appcompat:1.2.0")
