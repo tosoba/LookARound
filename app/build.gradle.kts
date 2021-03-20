@@ -40,6 +40,8 @@ android {
     }
 
     packagingOptions { resources { excludes += "META-INF/DEPENDENCIES" } }
+
+    kotlinOptions { jvmTarget = "1.8" }
 }
 
 kapt { correctErrorTypes = true }

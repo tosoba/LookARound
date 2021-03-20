@@ -3,7 +3,11 @@ package com.lookaround.ui.main.model
 import com.lookaround.core.android.base.arch.StateUpdate
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
-import com.lookaround.core.android.model.*
+import com.lookaround.core.android.exception.LocationUpdateFailureException
+import com.lookaround.core.android.model.Marker
+import com.lookaround.core.android.model.ParcelableList
+import com.lookaround.core.android.model.Ready
+import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.model.NodeDTO
 
 sealed class MainStateUpdate : StateUpdate<MainState> {
@@ -33,29 +37,24 @@ sealed class MainStateUpdate : StateUpdate<MainState> {
 
     object LoadingLocation : MainStateUpdate() {
         override fun invoke(state: MainState): MainState =
-            state.copy(
-                locationState =
-                    if (state.locationState is WithValue) LoadingNext(state.locationState.value)
-                    else LoadingFirst
-            )
+            state.copy(locationState = state.locationState.copyWithLoadingInProgress)
     }
 
     object LocationPermissionDenied : MainStateUpdate() {
         override fun invoke(state: MainState): MainState =
-            state.copy(
-                locationState = state.locationState.copyWithError(LocationPermissionDeniedException)
-            )
+            state.copyWithLocationException(LocationPermissionDeniedException)
     }
 
     object LocationDisabled : MainStateUpdate() {
         override fun invoke(state: MainState): MainState =
-            state.copy(
-                locationState =
-                    if (state.locationState is WithValue) {
-                        FailedNext(state.locationState.value, LocationDisabledException)
-                    } else {
-                        FailedFirst(LocationDisabledException)
-                    }
-            )
+            state.copyWithLocationException(LocationDisabledException)
     }
+
+    object FailedToUpdateLocation : MainStateUpdate() {
+        override fun invoke(state: MainState): MainState =
+            state.copyWithLocationException(LocationUpdateFailureException)
+    }
+
+    protected fun MainState.copyWithLocationException(throwable: Throwable): MainState =
+        copy(locationState = locationState.copyWithError(throwable))
 }

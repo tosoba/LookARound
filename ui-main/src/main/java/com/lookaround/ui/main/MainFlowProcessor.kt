@@ -56,11 +56,15 @@ constructor(
                 .transformLatest {
                     when (it) {
                         is LocationDataDTO.Failure -> {
-                            emit(MainStateUpdate.LocationDisabled)
-                            do {
-                                delay(LOCATION_UPDATES_INTERVAL_MILLIS)
-                            } while (!isLocationAvailable())
-                            emit(MainStateUpdate.LoadingLocation)
+                            if (!isLocationAvailable()) {
+                                emit(MainStateUpdate.LocationDisabled)
+                                do {
+                                    delay(LOCATION_UPDATES_INTERVAL_MILLIS)
+                                } while (!isLocationAvailable())
+                                emit(MainStateUpdate.LoadingLocation)
+                            } else {
+                                emit(MainStateUpdate.FailedToUpdateLocation)
+                            }
                         }
                         is LocationDataDTO.Success ->
                             emit(
@@ -76,6 +80,6 @@ constructor(
                 }
 
     companion object {
-        private const val LOCATION_UPDATES_INTERVAL_MILLIS = 3_000L
+        private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L
     }
 }
