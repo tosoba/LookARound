@@ -1,12 +1,16 @@
 package com.lookaround.ui.main
 
+import android.location.Location
 import com.lookaround.core.android.base.arch.FlowProcessor
 import com.lookaround.core.android.model.LocationFactory
+import com.lookaround.core.android.model.WithValue
+import com.lookaround.core.model.IPlaceType
 import com.lookaround.core.model.LocationDataDTO
 import com.lookaround.core.usecase.GetPlacesOfType
 import com.lookaround.core.usecase.IsLocationAvailable
 import com.lookaround.core.usecase.LocationDataFlow
 import com.lookaround.ui.main.model.MainIntent
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.main.model.MainStateUpdate
 import javax.inject.Inject
@@ -22,24 +26,24 @@ constructor(
     private val getPlacesOfType: GetPlacesOfType,
     private val isLocationAvailable: IsLocationAvailable,
     private val locationDataFlow: LocationDataFlow
-) : FlowProcessor<MainIntent, MainStateUpdate, MainState, Unit> {
+) : FlowProcessor<MainIntent, MainStateUpdate, MainState, MainSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
         intents: Flow<MainIntent>,
         currentState: () -> MainState,
         states: Flow<MainState>,
         intent: suspend (MainIntent) -> Unit,
-        signal: suspend (Unit) -> Unit
+        signal: suspend (MainSignal) -> Unit
     ): Flow<MainStateUpdate> =
         merge(
             intents.filterIsInstance<MainIntent.LoadPlaces>().transformLatest { (type) ->
-                emit(MainStateUpdate.LoadingPlaces)
-                try {
-                    val places = getPlacesOfType(type, 52.237049, 21.017532, 10_000f)
-                    emit(MainStateUpdate.PlacesLoaded(places))
-                } catch (throwable: Throwable) {
-                    emit(MainStateUpdate.PlacesError(throwable))
+                val currentLocation = currentState().locationState
+                if (currentLocation !is WithValue) {
+                    signal(MainSignal.UnableToLoadPlacesWithoutLocation)
+                    return@transformLatest
                 }
+
+                loadPlacesUpdates(placeType = type, location = currentLocation.value)
             },
             intents.filterIsInstance<MainIntent.LocationPermissionGranted>().take(1).flatMapLatest {
                 locationStateUpdatesFlow
@@ -48,6 +52,22 @@ constructor(
                 MainStateUpdate.LocationPermissionDenied
             },
         )
+
+    private suspend fun FlowCollector<MainStateUpdate>.loadPlacesUpdates(
+        placeType: IPlaceType,
+        location: Location
+    ) {
+        emit(MainStateUpdate.LoadingPlaces)
+        try {
+            emit(
+                MainStateUpdate.PlacesLoaded(
+                    getPlacesOfType(placeType, location.latitude, location.longitude, 10_000f)
+                )
+            )
+        } catch (throwable: Throwable) {
+            emit(MainStateUpdate.PlacesError(throwable))
+        }
+    }
 
     private val locationStateUpdatesFlow: Flow<MainStateUpdate>
         get() =

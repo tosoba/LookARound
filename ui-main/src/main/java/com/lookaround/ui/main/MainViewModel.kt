@@ -3,6 +3,7 @@ package com.lookaround.ui.main
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.base.arch.FlowViewModel
 import com.lookaround.ui.main.model.MainIntent
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.main.model.MainStateUpdate
 import dagger.assisted.Assisted
@@ -20,7 +21,7 @@ constructor(
     @Assisted initialState: MainState,
     processor: MainFlowProcessor
 ) :
-    FlowViewModel<MainIntent, MainStateUpdate, MainState, Unit>(
+    FlowViewModel<MainIntent, MainStateUpdate, MainState, MainSignal>(
         initialState,
         processor,
         savedStateHandle

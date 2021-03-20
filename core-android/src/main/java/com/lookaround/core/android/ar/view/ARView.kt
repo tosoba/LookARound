@@ -22,7 +22,7 @@ abstract class ARView<R : MarkerRenderer> : View {
             field = value
             calculateDistancesTo(requireNotNull(value), markers)
         }
-    var maxDistance: Double = DEFAULT_MAX_DISTANCE
+    var maxDistance: Double = DEFAULT_MAX_DISTANCE_METERS
         @MainThread
         set(value) {
             field = value
@@ -114,6 +114,6 @@ abstract class ARView<R : MarkerRenderer> : View {
     }
 
     companion object {
-        private const val DEFAULT_MAX_DISTANCE = 1000.0
+        private const val DEFAULT_MAX_DISTANCE_METERS = 1000.0
     }
 }
