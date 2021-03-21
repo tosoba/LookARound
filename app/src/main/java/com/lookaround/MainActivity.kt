@@ -36,30 +36,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        binding.placeTypesView.setContent {
-            PlaceTypesView {
-                lifecycleScope.launch { viewModel.intent(MainIntent.LoadPlaces(it)) }
-            }
-        }
-
-        val bottomSheetBehavior = BottomSheetBehavior.from(binding.placeTypesView)
-        bottomSheetBehavior.addBottomSheetCallback(
-            object : BottomSheetBehavior.BottomSheetCallback() {
-                override fun onStateChanged(bottomSheet: View, newState: Int) {
-                    when (newState) {
-                        BottomSheetBehavior.STATE_COLLAPSED -> {}
-                        BottomSheetBehavior.STATE_DRAGGING -> {}
-                        BottomSheetBehavior.STATE_EXPANDED -> {}
-                        BottomSheetBehavior.STATE_HALF_EXPANDED -> {}
-                        BottomSheetBehavior.STATE_HIDDEN -> {}
-                        BottomSheetBehavior.STATE_SETTLING -> {}
-                    }
-                }
-
-                override fun onSlide(bottomSheet: View, slideOffset: Float) {}
-            }
-        )
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        binding.initPlaceTypes()
 
         viewModel
             .locationUpdateFailureUpdates
@@ -71,5 +48,33 @@ class MainActivity : AppCompatActivity() {
             .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutLocation>()
             .onEach { Timber.tag("PLACES").e("Failed to load places without location.") }
             .launchIn(lifecycleScope)
+    }
+
+    private fun ActivityMainBinding.initPlaceTypes() {
+        placeTypesView.setContent {
+            PlaceTypesView { placeType ->
+                lifecycleScope.launch { viewModel.intent(MainIntent.LoadPlaces(placeType)) }
+            }
+        }
+
+        with(BottomSheetBehavior.from(placeTypesView)) {
+            addBottomSheetCallback(
+                object : BottomSheetBehavior.BottomSheetCallback() {
+                    override fun onStateChanged(bottomSheet: View, newState: Int) {
+                        when (newState) {
+                            BottomSheetBehavior.STATE_COLLAPSED -> {}
+                            BottomSheetBehavior.STATE_DRAGGING -> {}
+                            BottomSheetBehavior.STATE_EXPANDED -> {}
+                            BottomSheetBehavior.STATE_HALF_EXPANDED -> {}
+                            BottomSheetBehavior.STATE_HIDDEN -> {}
+                            BottomSheetBehavior.STATE_SETTLING -> {}
+                        }
+                    }
+
+                    override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
+                }
+            )
+            state = BottomSheetBehavior.STATE_COLLAPSED
+        }
     }
 }
