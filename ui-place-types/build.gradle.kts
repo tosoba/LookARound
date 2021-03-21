@@ -55,13 +55,14 @@ dependencies {
     implementation(project(":ui-main"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
-    implementation("androidx.appcompat:appcompat:1.2.0")
+    implementation("androidx.appcompat:appcompat:1.3.0-beta01")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
     implementation("com.google.android.material:material:1.3.0")
     implementation("dev.chrisbanes.accompanist:accompanist-insets:0.6.0")
     implementation("dev.chrisbanes.accompanist:accompanist-coil:0.6.0")
 
     implementation("androidx.core:core-ktx:1.3.2")
+    implementation("androidx.fragment:fragment-ktx:1.3.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
 
     implementation("com.google.dagger:hilt-android:2.31.2-alpha")

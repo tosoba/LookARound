@@ -5,8 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.Amenity
@@ -16,7 +16,6 @@ import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -26,7 +25,7 @@ import kotlinx.coroutines.launch
 @ExperimentalCoroutinesApi
 @AndroidEntryPoint
 @WithFragmentBindings
-class PlaceTypesFragment : Fragment() {
+class PlaceTypesFragment : BottomSheetDialogFragment() {
     private val placeTypeGroups =
         listOf(
             PlaceTypeGroup(
@@ -63,14 +62,12 @@ class PlaceTypesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View =
-        ComposeView(requireContext()).apply {
-            setContent {
-                ProvideWindowInsets {
-                    LookARoundTheme {
-                        PlaceTypes(placeTypeGroups) {
-                            lifecycleScope.launch {
-                                viewModel.intent(MainIntent.LoadPlaces(it.wrapped))
-                            }
+        inflater.inflate(R.layout.fragment_place_types, container, false).apply {
+            findViewById<ComposeView>(R.id.place_types_view).setContent {
+                LookARoundTheme {
+                    PlaceTypes(placeTypeGroups) {
+                        lifecycleScope.launch {
+                            viewModel.intent(MainIntent.LoadPlaces(it.wrapped))
                         }
                     }
                 }
