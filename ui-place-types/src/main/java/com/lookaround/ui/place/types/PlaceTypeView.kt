@@ -25,13 +25,47 @@ import com.lookaround.core.android.view.composable.Surface
 import com.lookaround.core.android.view.composable.VerticalGrid
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.Amenity
+import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
 import dev.chrisbanes.accompanist.coil.CoilImage
 import kotlin.math.max
 
 @Composable
-fun PlaceTypes(groups: List<PlaceTypeGroup>, onClick: (PlaceType) -> Unit = {}) {
+fun PlaceTypesView(onPlaceTypeClicked: (IPlaceType) -> Unit) {
+    LookARoundTheme {
+        PlaceTypes(
+            listOf(
+                PlaceTypeGroup(
+                    name = "General",
+                    placeTypes =
+                        listOf(
+                            PlaceType(
+                                wrapped = Amenity.PARKING,
+                                imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.RESTAURANT,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.FUEL,
+                                imageUrl = "https://source.unsplash.com/_jk8KIyN_uA"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.BANK,
+                                imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
+                            )
+                        )
+                ),
+            ),
+            onPlaceTypeClicked
+        )
+    }
+}
+
+@Composable
+private fun PlaceTypes(groups: List<PlaceTypeGroup>, onClick: (IPlaceType) -> Unit = {}) {
     LazyColumn {
         itemsIndexed(groups) { index, group -> PlaceTypeGroup(group, index, onClick = onClick) }
     }
@@ -65,7 +99,7 @@ private fun PlaceTypeGroup(
     group: PlaceTypeGroup,
     index: Int,
     modifier: Modifier = Modifier,
-    onClick: (PlaceType) -> Unit = {}
+    onClick: (IPlaceType) -> Unit = {}
 ) {
     Column(modifier) {
         Text(
@@ -105,7 +139,7 @@ private fun PlaceType(
     placeType: PlaceType,
     gradient: List<Color>,
     modifier: Modifier = Modifier,
-    onClick: (PlaceType) -> Unit = {}
+    onClick: (IPlaceType) -> Unit = {}
 ) {
     Layout(
         modifier =
@@ -114,7 +148,7 @@ private fun PlaceType(
                 .shadow(elevation = 3.dp, shape = PlaceTypeShape)
                 .clip(PlaceTypeShape)
                 .background(Brush.horizontalGradient(gradient))
-                .clickable { onClick(placeType) },
+                .clickable { onClick(placeType.wrapped) },
         content = {
             Text(
                 text = placeType.wrapped.label,
