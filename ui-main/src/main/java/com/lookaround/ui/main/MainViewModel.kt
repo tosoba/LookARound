@@ -28,9 +28,13 @@ constructor(
     ) {
     @AssistedFactory
     interface Factory {
-        fun create(
-            savedStateHandle: SavedStateHandle,
-            initialState: MainState = MainState()
-        ): MainViewModel
+        fun create(savedStateHandle: SavedStateHandle, initialState: MainState): MainViewModel
+    }
+
+    companion object {
+        fun create(factory: Factory, savedStateHandle: SavedStateHandle): MainViewModel {
+            val initialState = savedStateHandle[MainState::class.java.simpleName] ?: MainState()
+            return factory.create(savedStateHandle, initialState)
+        }
     }
 }

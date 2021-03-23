@@ -1,5 +1,6 @@
 package com.lookaround.ui.main.model
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.base.arch.StateUpdate
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
@@ -53,6 +54,12 @@ sealed class MainStateUpdate : StateUpdate<MainState> {
     object FailedToUpdateLocation : MainStateUpdate() {
         override fun invoke(state: MainState): MainState =
             state.copyWithLocationException(LocationUpdateFailureException)
+    }
+
+    data class BottomSheetStateChanged(
+        @BottomSheetBehavior.State val sheetState: Int,
+    ) : MainStateUpdate() {
+        override fun invoke(state: MainState): MainState = state.copy(bottomSheetState = sheetState)
     }
 
     protected fun MainState.copyWithLocationException(throwable: Throwable): MainState =

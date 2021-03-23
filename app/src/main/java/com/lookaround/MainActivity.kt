@@ -8,9 +8,11 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.databinding.ActivityMainBinding
+import com.lookaround.ui.camera.ARStateListener
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
+import com.lookaround.ui.main.model.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.locationUpdateFailureUpdates
 import com.lookaround.ui.place.types.PlaceTypesView
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,11 +28,13 @@ import timber.log.Timber
 @FlowPreview
 @ExperimentalCoroutinesApi
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ARStateListener {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
-    private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
+    private val viewModel: MainViewModel by assistedViewModel { savedState ->
+        MainViewModel.create(viewModelFactory, savedState)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,21 +64,28 @@ class MainActivity : AppCompatActivity() {
         with(BottomSheetBehavior.from(placeTypesView)) {
             addBottomSheetCallback(
                 object : BottomSheetBehavior.BottomSheetCallback() {
-                    override fun onStateChanged(bottomSheet: View, newState: Int) {
-                        when (newState) {
-                            BottomSheetBehavior.STATE_COLLAPSED -> {}
-                            BottomSheetBehavior.STATE_DRAGGING -> {}
-                            BottomSheetBehavior.STATE_EXPANDED -> {}
-                            BottomSheetBehavior.STATE_HALF_EXPANDED -> {}
-                            BottomSheetBehavior.STATE_HIDDEN -> {}
-                            BottomSheetBehavior.STATE_SETTLING -> {}
-                        }
-                    }
-
+                    override fun onStateChanged(bottomSheet: View, newState: Int) =
+                        onBottomSheetStateChanged(newState)
                     override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
                 }
             )
-            state = BottomSheetBehavior.STATE_COLLAPSED
+            viewModel.bottomSheetStateUpdates.onEach { state = it }.launchIn(lifecycleScope)
         }
+    }
+
+    override fun onAREnabled() {
+        onBottomSheetStateChanged(BottomSheetBehavior.STATE_COLLAPSED)
+    }
+
+    override fun onARLoading() {
+        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN)
+    }
+
+    override fun onARDisabled(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
+        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN)
+    }
+
+    private fun onBottomSheetStateChanged(@BottomSheetBehavior.State newState: Int) {
+        lifecycleScope.launch { viewModel.intent(MainIntent.BottomSheetStateChanged(newState)) }
     }
 }

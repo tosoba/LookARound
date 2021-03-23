@@ -1,6 +1,7 @@
 package com.lookaround.ui.main
 
 import android.location.Location
+import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.base.arch.FlowProcessor
 import com.lookaround.core.android.model.LocationFactory
 import com.lookaround.core.android.model.WithValue
@@ -51,7 +52,19 @@ constructor(
             intents.filterIsInstance<MainIntent.LocationPermissionDenied>().map {
                 MainStateUpdate.LocationPermissionDenied
             },
+            intents.filterIsInstance<MainIntent.BottomSheetStateChanged>().map { (sheetState) ->
+                MainStateUpdate.BottomSheetStateChanged(sheetState)
+            },
         )
+
+    override fun stateWillUpdate(
+        currentState: MainState,
+        nextState: MainState,
+        update: MainStateUpdate,
+        savedStateHandle: SavedStateHandle
+    ) {
+        savedStateHandle[MainState::class.java.simpleName] = nextState
+    }
 
     private suspend fun FlowCollector<MainStateUpdate>.loadPlacesUpdates(
         placeType: IPlaceType,

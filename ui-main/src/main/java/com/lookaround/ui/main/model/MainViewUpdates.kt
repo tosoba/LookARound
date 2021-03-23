@@ -28,3 +28,8 @@ val MainViewModel.locationUpdateFailureUpdates: Flow<Unit>
             .map { it.locationState }
             .filter { (it as? Failed)?.error is LocationUpdateFailureException }
             .map {}
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+val MainViewModel.bottomSheetStateUpdates: Flow<Int>
+    get() = states.map { it.bottomSheetState }

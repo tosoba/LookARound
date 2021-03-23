@@ -53,7 +53,7 @@ class CameraFragment :
 
     @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
     private val mainViewModel: MainViewModel by assistedActivityViewModel {
-        mainViewModelFactory.create(it)
+        MainViewModel.create(mainViewModelFactory, it)
     }
 
     private val cameraRenderer: CameraMarkerRenderer by lazy(LazyThreadSafetyMode.NONE) {
@@ -72,6 +72,7 @@ class CameraFragment :
 
         arDisabledUpdates(mainViewModel, cameraViewModel)
             .onEach { (anyPermissionDenied, locationDisabled) ->
+                (activity as? ARStateListener)?.onARDisabled(anyPermissionDenied, locationDisabled)
                 binding.onARDisabled(anyPermissionDenied, locationDisabled)
             }
             .launchIn(lifecycleScope)
@@ -90,13 +91,19 @@ class CameraFragment :
         lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionGranted) }
 
         loadingStartedUpdates(mainViewModel, cameraViewModel)
-            .onEach { binding.onLoadingStarted() }
+            .onEach {
+                (activity as? ARStateListener)?.onARLoading()
+                binding.onLoadingStarted()
+            }
             .launchIn(lifecycleScope)
 
         binding.initARViews()
 
         arEnabledUpdates(mainViewModel, cameraViewModel)
-            .onEach { binding.onAREnabled() }
+            .onEach {
+                (activity as? ARStateListener)?.onAREnabled()
+                binding.onAREnabled()
+            }
             .launchIn(lifecycleScope)
 
         mainViewModel
