@@ -2,6 +2,7 @@ package com.lookaround.ui.main
 
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.base.arch.FlowViewModel
+import com.lookaround.core.android.ext.initialState
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
@@ -18,23 +19,15 @@ class MainViewModel
 @AssistedInject
 constructor(
     @Assisted savedStateHandle: SavedStateHandle,
-    @Assisted initialState: MainState,
     processor: MainFlowProcessor
 ) :
     FlowViewModel<MainIntent, MainStateUpdate, MainState, MainSignal>(
-        initialState,
+        savedStateHandle.initialState(),
         processor,
         savedStateHandle
     ) {
     @AssistedFactory
     interface Factory {
-        fun create(savedStateHandle: SavedStateHandle, initialState: MainState): MainViewModel
-    }
-
-    companion object {
-        fun create(factory: Factory, savedStateHandle: SavedStateHandle): MainViewModel {
-            val initialState = savedStateHandle[MainState::class.java.simpleName] ?: MainState()
-            return factory.create(savedStateHandle, initialState)
-        }
+        fun create(savedStateHandle: SavedStateHandle): MainViewModel
     }
 }

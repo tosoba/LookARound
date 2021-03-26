@@ -2,6 +2,7 @@ package com.lookaround.ui.camera
 
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.base.arch.FlowViewModel
+import com.lookaround.core.android.ext.initialState
 import com.lookaround.ui.camera.model.CameraIntent
 import com.lookaround.ui.camera.model.CameraSignal
 import com.lookaround.ui.camera.model.CameraState
@@ -18,19 +19,15 @@ class CameraViewModel
 @AssistedInject
 constructor(
     @Assisted savedStateHandle: SavedStateHandle,
-    @Assisted initialState: CameraState,
     processor: CameraFlowProcessor
 ) :
     FlowViewModel<CameraIntent, CameraStateUpdate, CameraState, CameraSignal>(
-        initialState,
+        savedStateHandle.initialState(),
         processor,
         savedStateHandle
     ) {
     @AssistedFactory
     interface Factory {
-        fun create(
-            savedStateHandle: SavedStateHandle,
-            initialState: CameraState = CameraState()
-        ): CameraViewModel
+        fun create(savedStateHandle: SavedStateHandle): CameraViewModel
     }
 }

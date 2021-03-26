@@ -32,9 +32,7 @@ class MainActivity : AppCompatActivity(), ARStateListener {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
-    private val viewModel: MainViewModel by assistedViewModel { savedState ->
-        MainViewModel.create(viewModelFactory, savedState)
-    }
+    private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +64,7 @@ class MainActivity : AppCompatActivity(), ARStateListener {
                 object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) =
                         onBottomSheetStateChanged(newState)
+
                     override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
                 }
             )

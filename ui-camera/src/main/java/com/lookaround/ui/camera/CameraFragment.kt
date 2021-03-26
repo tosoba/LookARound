@@ -53,7 +53,7 @@ class CameraFragment :
 
     @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
     private val mainViewModel: MainViewModel by assistedActivityViewModel {
-        MainViewModel.create(mainViewModelFactory, it)
+        mainViewModelFactory.create(it)
     }
 
     private val cameraRenderer: CameraMarkerRenderer by lazy(LazyThreadSafetyMode.NONE) {

@@ -2,6 +2,7 @@ package com.lookaround.ui.map
 
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.base.arch.FlowViewModel
+import com.lookaround.core.android.ext.initialState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -14,19 +15,15 @@ class MapViewModel
 @AssistedInject
 constructor(
     @Assisted savedStateHandle: SavedStateHandle,
-    @Assisted initialState: MapState,
     processor: MapFlowProcessor
 ) :
     FlowViewModel<MapIntent, MapStateUpdate, MapState, MapSignal>(
-        initialState,
+        savedStateHandle.initialState(),
         processor,
         savedStateHandle
     ) {
     @AssistedFactory
     interface Factory {
-        fun create(
-            savedStateHandle: SavedStateHandle,
-            initialState: MapState = MapState()
-        ): MapViewModel
+        fun create(savedStateHandle: SavedStateHandle): MapViewModel
     }
 }
