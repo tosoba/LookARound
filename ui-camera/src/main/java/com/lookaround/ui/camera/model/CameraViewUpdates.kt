@@ -1,19 +1,16 @@
 package com.lookaround.ui.camera.model
 
 import androidx.camera.view.PreviewView
+import com.lookaround.core.android.ar.marker.ARMarker
+import com.lookaround.core.android.ar.marker.SimpleARMarker
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
-import com.lookaround.core.android.model.Failed
-import com.lookaround.core.android.model.LoadingInProgress
-import com.lookaround.core.android.model.Ready
+import com.lookaround.core.android.model.*
 import com.lookaround.ui.camera.CameraViewModel
 import com.lookaround.ui.main.MainViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -64,4 +61,12 @@ internal fun arDisabledUpdates(
         .distinctUntilChanged()
         .filter { (anyPermissionDenied, locationDisabled) ->
             anyPermissionDenied || locationDisabled
+        }
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+internal val MainViewModel.markerUpdates: Flow<List<ARMarker>>
+    get() =
+        states.map { it.markers }.filterIsInstance<WithValue<ParcelableList<Marker>>>().map {
+            it.value.items.map(::SimpleARMarker)
         }

@@ -8,6 +8,7 @@ import androidx.camera.core.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.lookaround.core.android.ar.listener.ARStateListener
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.orientation.OrientationManager
@@ -115,7 +116,7 @@ class CameraFragment :
             .launchIn(lifecycleScope)
     }
 
-    private fun FragmentCameraBinding.initARViews(markers: List<ARMarker> = SampleARMarkers.get()) {
+    private fun FragmentCameraBinding.initARViews() {
         initARCameraPageViews()
 
         cameraPreview.previewStreamState.observe(this@CameraFragment) {
@@ -125,7 +126,6 @@ class CameraFragment :
         }
         cameraPreview.init(this@CameraFragment)
 
-        cameraRenderer += markers
         cameraRenderer
             .maxPageFlow
             .distinctUntilChanged()
@@ -134,13 +134,20 @@ class CameraFragment :
 
         arCameraView.maxDistance = MAX_RENDER_DISTANCE_METERS
         arCameraView.onMarkerPressedListener = this@CameraFragment
-        arCameraView.markers = markers
         arCameraView.markerRenderer = cameraRenderer
 
         arRadarView.maxDistance = MAX_RENDER_DISTANCE_METERS
         arRadarView.rotableBackground = R.drawable.radar_arrow
-        arRadarView.markers = markers
         arRadarView.markerRenderer = RadarMarkerRenderer()
+
+        mainViewModel
+            .markerUpdates
+            .onEach { markers ->
+                cameraRenderer += markers
+                arCameraView.markers = markers
+                arRadarView.markers = markers
+            }
+            .launchIn(lifecycleScope)
     }
 
     private fun FragmentCameraBinding.initARCameraPageViews() {

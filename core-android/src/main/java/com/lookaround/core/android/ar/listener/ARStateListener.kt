@@ -1,4 +1,4 @@
-package com.lookaround.ui.camera
+package com.lookaround.core.android.ar.listener
 
 interface ARStateListener {
     fun onAREnabled()

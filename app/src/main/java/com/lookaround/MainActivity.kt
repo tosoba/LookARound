@@ -8,7 +8,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.databinding.ActivityMainBinding
-import com.lookaround.ui.camera.ARStateListener
+import com.lookaround.core.android.ar.listener.ARStateListener
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
