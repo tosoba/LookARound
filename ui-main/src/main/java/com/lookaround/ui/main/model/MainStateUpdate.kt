@@ -1,14 +1,10 @@
 package com.lookaround.ui.main.model
 
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.base.arch.StateUpdate
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.exception.LocationUpdateFailureException
-import com.lookaround.core.android.model.Marker
-import com.lookaround.core.android.model.ParcelableList
-import com.lookaround.core.android.model.Ready
-import com.lookaround.core.android.model.WithValue
+import com.lookaround.core.android.model.*
 import com.lookaround.core.model.NodeDTO
 
 sealed class MainStateUpdate : StateUpdate<MainState> {
@@ -56,9 +52,7 @@ sealed class MainStateUpdate : StateUpdate<MainState> {
             state.copyWithLocationException(LocationUpdateFailureException)
     }
 
-    data class BottomSheetStateChanged(
-        @BottomSheetBehavior.State val sheetState: Int,
-    ) : MainStateUpdate() {
+    data class BottomSheetStateChanged(val sheetState: BottomSheetState) : MainStateUpdate() {
         override fun invoke(state: MainState): MainState = state.copy(bottomSheetState = sheetState)
     }
 

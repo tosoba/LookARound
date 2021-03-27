@@ -1,11 +1,10 @@
 package com.lookaround.ui.main
 
-import android.location.Location
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.base.arch.FlowProcessor
+import com.lookaround.core.android.model.BottomSheetState
 import com.lookaround.core.android.model.LocationFactory
 import com.lookaround.core.android.model.WithValue
-import com.lookaround.core.model.IPlaceType
 import com.lookaround.core.model.LocationDataDTO
 import com.lookaround.core.usecase.GetPlacesOfType
 import com.lookaround.core.usecase.IsLocationAvailable
@@ -28,6 +27,7 @@ constructor(
     private val isLocationAvailable: IsLocationAvailable,
     private val locationDataFlow: LocationDataFlow
 ) : FlowProcessor<MainIntent, MainStateUpdate, MainState, MainSignal> {
+
     override fun updates(
         coroutineScope: CoroutineScope,
         intents: Flow<MainIntent>,
@@ -37,24 +37,14 @@ constructor(
         signal: suspend (MainSignal) -> Unit
     ): Flow<MainStateUpdate> =
         merge(
-            intents.filterIsInstance<MainIntent.LoadPlaces>().transformLatest { (type) ->
-                val currentLocation = currentState().locationState
-                if (currentLocation !is WithValue) {
-                    signal(MainSignal.UnableToLoadPlacesWithoutLocation)
-                    return@transformLatest
-                }
-
-                loadPlacesUpdates(placeType = type, location = currentLocation.value)
-            },
+            loadPlacesUpdates(intents, currentState, signal),
             intents.filterIsInstance<MainIntent.LocationPermissionGranted>().take(1).flatMapLatest {
                 locationStateUpdatesFlow
             },
             intents.filterIsInstance<MainIntent.LocationPermissionDenied>().map {
                 MainStateUpdate.LocationPermissionDenied
             },
-            intents.filterIsInstance<MainIntent.BottomSheetStateChanged>().map { (sheetState) ->
-                MainStateUpdate.BottomSheetStateChanged(sheetState)
-            },
+            bottomSheetStateUpdates(intents, currentState),
         )
 
     override fun stateWillUpdate(
@@ -66,21 +56,34 @@ constructor(
         savedStateHandle[MainState::class.java.simpleName] = nextState
     }
 
-    private suspend fun FlowCollector<MainStateUpdate>.loadPlacesUpdates(
-        placeType: IPlaceType,
-        location: Location
-    ) {
-        emit(MainStateUpdate.LoadingPlaces)
-        try {
-            emit(
-                MainStateUpdate.PlacesLoaded(
-                    getPlacesOfType(placeType, location.latitude, location.longitude, 10_000f)
+    private fun loadPlacesUpdates(
+        intents: Flow<MainIntent>,
+        currentState: () -> MainState,
+        signal: suspend (MainSignal) -> Unit
+    ): Flow<MainStateUpdate> =
+        intents.filterIsInstance<MainIntent.LoadPlaces>().transformLatest { (type) ->
+            val currentLocation = currentState().locationState
+            if (currentLocation !is WithValue) {
+                signal(MainSignal.UnableToLoadPlacesWithoutLocation)
+                return@transformLatest
+            }
+
+            emit(MainStateUpdate.LoadingPlaces)
+            try {
+                emit(
+                    MainStateUpdate.PlacesLoaded(
+                        getPlacesOfType(
+                            type,
+                            currentLocation.value.latitude,
+                            currentLocation.value.longitude,
+                            10_000f
+                        )
+                    )
                 )
-            )
-        } catch (throwable: Throwable) {
-            emit(MainStateUpdate.PlacesError(throwable))
+            } catch (throwable: Throwable) {
+                emit(MainStateUpdate.PlacesError(throwable))
+            }
         }
-    }
 
     private val locationStateUpdatesFlow: Flow<MainStateUpdate>
         get() =
@@ -111,6 +114,21 @@ constructor(
                             )
                     }
                 }
+
+    private fun bottomSheetStateUpdates(
+        intents: Flow<MainIntent>,
+        currentState: () -> MainState
+    ): Flow<MainStateUpdate.BottomSheetStateChanged> =
+        intents
+            .filterIsInstance<MainIntent.BottomSheetStateChanged>()
+            .distinctUntilChanged()
+            .filterNot { (newSheetState, isChangedByUser) ->
+                val (currentSheetState, wasChangedByUser) = currentState().bottomSheetState
+                currentSheetState == newSheetState && !wasChangedByUser && isChangedByUser
+            }
+            .map { (sheetState, changedByUser) ->
+                MainStateUpdate.BottomSheetStateChanged(BottomSheetState(sheetState, changedByUser))
+            }
 
     companion object {
         private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L

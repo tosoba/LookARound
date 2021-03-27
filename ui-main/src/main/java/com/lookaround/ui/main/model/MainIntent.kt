@@ -7,5 +7,8 @@ sealed class MainIntent {
     data class LoadPlaces(val type: IPlaceType) : MainIntent()
     object LocationPermissionGranted : MainIntent()
     object LocationPermissionDenied : MainIntent()
-    data class BottomSheetStateChanged(@BottomSheetBehavior.State val state: Int) : MainIntent()
+    data class BottomSheetStateChanged(
+        @BottomSheetBehavior.State val state: Int,
+        val changedByUser: Boolean,
+    ) : MainIntent()
 }

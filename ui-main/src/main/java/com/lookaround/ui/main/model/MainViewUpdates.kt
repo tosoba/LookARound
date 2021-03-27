@@ -2,6 +2,7 @@ package com.lookaround.ui.main.model
 
 import android.location.Location
 import com.lookaround.core.android.exception.LocationUpdateFailureException
+import com.lookaround.core.android.model.BottomSheetState
 import com.lookaround.core.android.model.Failed
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.ui.main.MainViewModel
@@ -31,5 +32,5 @@ val MainViewModel.locationUpdateFailureUpdates: Flow<Unit>
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-val MainViewModel.bottomSheetStateUpdates: Flow<Int>
+val MainViewModel.bottomSheetStateUpdates: Flow<BottomSheetState>
     get() = states.map { it.bottomSheetState }

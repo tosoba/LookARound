@@ -63,28 +63,46 @@ class MainActivity : AppCompatActivity(), ARStateListener {
             addBottomSheetCallback(
                 object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) =
-                        onBottomSheetStateChanged(newState)
+                        onBottomSheetStateChanged(newState, true)
 
                     override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
                 }
             )
-            viewModel.bottomSheetStateUpdates.onEach { state = it }.launchIn(lifecycleScope)
+
+            viewModel
+                .bottomSheetStateUpdates
+                .onEach { (sheetState, changedByUser) ->
+                    state = sheetState
+                    if (changedByUser) {
+                        showPlaceTypesBtn.apply {
+                            if (sheetState == BottomSheetBehavior.STATE_HIDDEN) show() else hide()
+                        }
+                    }
+                }
+                .launchIn(lifecycleScope)
+
+            showPlaceTypesBtn.setOnClickListener { state = BottomSheetBehavior.STATE_HALF_EXPANDED }
         }
     }
 
     override fun onAREnabled() {
-        onBottomSheetStateChanged(BottomSheetBehavior.STATE_COLLAPSED)
+        onBottomSheetStateChanged(BottomSheetBehavior.STATE_COLLAPSED, false)
     }
 
     override fun onARLoading() {
-        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN)
+        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
     }
 
     override fun onARDisabled(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
-        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN)
+        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
     }
 
-    private fun onBottomSheetStateChanged(@BottomSheetBehavior.State newState: Int) {
-        lifecycleScope.launch { viewModel.intent(MainIntent.BottomSheetStateChanged(newState)) }
+    private fun onBottomSheetStateChanged(
+        @BottomSheetBehavior.State newState: Int,
+        changedByUser: Boolean
+    ) {
+        lifecycleScope.launch {
+            viewModel.intent(MainIntent.BottomSheetStateChanged(newState, changedByUser))
+        }
     }
 }
