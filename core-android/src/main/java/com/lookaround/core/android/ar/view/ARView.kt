@@ -32,7 +32,11 @@ abstract class ARView<R : MarkerRenderer> : View {
             invalidate()
         }
     var markers: List<ARMarker> = emptyList()
-        @MainThread set
+        @MainThread
+        set(value) {
+            field = value
+            povLocation?.let { calculateDistancesTo(it, value) }
+        }
     var onMarkerPressedListener: OnMarkerPressedListener? = null
         @MainThread set
     var markerRenderer: R? = null

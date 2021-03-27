@@ -65,6 +65,8 @@ internal fun arDisabledUpdates(
 @ExperimentalCoroutinesApi
 internal val MainViewModel.markerUpdates: Flow<List<Marker>>
     get() =
-        states.map { it.markers }.filterIsInstance<WithValue<ParcelableList<Marker>>>().map {
-            it.value.items
-        }
+        states
+            .map { it.markers }
+            .distinctUntilChanged()
+            .filterIsInstance<WithValue<ParcelableList<Marker>>>()
+            .map { it.value.items }
