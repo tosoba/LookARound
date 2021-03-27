@@ -1,8 +1,6 @@
 package com.lookaround.ui.camera.model
 
 import androidx.camera.view.PreviewView
-import com.lookaround.core.android.ar.marker.ARMarker
-import com.lookaround.core.android.ar.marker.SimpleARMarker
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.model.*
@@ -65,8 +63,8 @@ internal fun arDisabledUpdates(
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal val MainViewModel.markerUpdates: Flow<List<ARMarker>>
+internal val MainViewModel.markerUpdates: Flow<List<Marker>>
     get() =
         states.map { it.markers }.filterIsInstance<WithValue<ParcelableList<Marker>>>().map {
-            it.value.items.map(::SimpleARMarker)
+            it.value.items
         }

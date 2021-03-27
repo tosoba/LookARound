@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ar.listener.ARStateListener
 import com.lookaround.core.android.ar.marker.ARMarker
+import com.lookaround.core.android.ar.marker.SimpleARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.orientation.OrientationManager
 import com.lookaround.core.android.ar.renderer.impl.CameraMarkerRenderer
@@ -143,9 +144,10 @@ class CameraFragment :
         mainViewModel
             .markerUpdates
             .onEach { markers ->
-                cameraRenderer += markers
-                arCameraView.markers = markers
-                arRadarView.markers = markers
+                val cameraARMarkers = markers.map(::SimpleARMarker)
+                cameraRenderer += cameraARMarkers
+                arCameraView.markers = cameraARMarkers
+                arRadarView.markers = markers.map(::SimpleARMarker)
             }
             .launchIn(lifecycleScope)
     }
