@@ -56,7 +56,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         MutableStateFlow(MaxPageChanged(0, false))
     val maxPageFlow: Flow<MaxPageChanged>
         get() = maxPageStateFlow
-    private var maxPage: Int = 0
+    var maxPage: Int = 0
+        private set
 
     var currentPage: Int = 0
         @MainThread

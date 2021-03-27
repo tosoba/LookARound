@@ -128,8 +128,8 @@ class CameraFragment :
 
         cameraRenderer
             .maxPageFlow
-            .distinctUntilChanged()
             .onEach { (maxPage, setCurrentPage) -> onCameraMaxPageChanged(maxPage, setCurrentPage) }
+            .onStart { onCameraMaxPageChanged(cameraRenderer.maxPage, false) }
             .launchIn(lifecycleScope)
 
         arCameraView.maxDistance = MAX_RENDER_DISTANCE_METERS
@@ -174,6 +174,8 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.onLoadingStarted() {
+        arViewsGroup.visibility = View.GONE
+        arCameraPageViewsGroup.visibility = View.GONE
         locationDisabledTextView.visibility = View.GONE
         permissionsViewsGroup.visibility = View.GONE
         blurBackground.visibility = View.VISIBLE
