@@ -50,13 +50,9 @@ fun MapController.zoomOnDoubleTap(
 }
 
 private const val PREF_ROTATION = "map_rotation"
-
 private const val PREF_TILT = "map_tilt"
-
 private const val PREF_ZOOM = "map_zoom"
-
 private const val PREF_LAT = "map_lat"
-
 private const val PREF_LON = "map_lon"
 
 fun MapController.saveCameraPosition(outState: Bundle) {
