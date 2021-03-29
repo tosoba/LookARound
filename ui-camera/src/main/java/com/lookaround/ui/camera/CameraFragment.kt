@@ -18,7 +18,7 @@ import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
 import com.lookaround.core.android.ar.view.ARView
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
-import com.lookaround.core.android.view.BoxedVerticalSeekbar
+import com.lookaround.core.android.view.BoxedSeekbar
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import com.lookaround.ui.camera.model.*
 import com.lookaround.ui.main.MainViewModel
@@ -162,8 +162,8 @@ class CameraFragment :
             updatePageButtonsEnabled(arCameraPageSeekbar.value)
         }
         arCameraPageSeekbar.onValuesChangeListener =
-            object : BoxedVerticalSeekbar.OnValuesChangeListener {
-                override fun onPointsChanged(seekbar: BoxedVerticalSeekbar, points: Int) {
+            object : BoxedSeekbar.OnValuesChangeListener {
+                override fun onPointsChanged(seekbar: BoxedSeekbar, points: Int) {
                     updatePageButtonsEnabled(points)
                     cameraRenderer.currentPage = points
                 }

@@ -52,7 +52,7 @@
         app:layout_constraintRight_toRightOf="@id/ar_camera_page_seekbar"
         app:layout_constraintTop_toBottomOf="@id/ar_radar_view" />
 
-    <com.lookaround.core.android.view.BoxedVerticalSeekbar
+    <com.lookaround.core.android.view.BoxedSeekbar
         android:id="@+id/ar_camera_page_seekbar"
         android:layout_width="40dp"
         android:layout_height="0dp"

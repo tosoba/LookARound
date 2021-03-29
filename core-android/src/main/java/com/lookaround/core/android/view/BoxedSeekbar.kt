@@ -13,7 +13,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class BoxedVerticalSeekbar : View {
+class BoxedSeekbar : View {
     /** The min value of progress value. */
     var min = 0
 
@@ -67,9 +67,16 @@ class BoxedVerticalSeekbar : View {
     private var defaultImage: Bitmap? = null
     private var minImage: Bitmap? = null
     private var maxImage: Bitmap? = null
-    private val rect = Rect()
+    private val canvasClipBoundsRect = Rect()
     private var firstRun = true
     private var pointsText = defaultValue.toString()
+    private var orientation: Orientation = Orientation.VERTICAL
+
+    private val thickness: Int
+        get() = if (orientation == Orientation.VERTICAL) scrWidth else scrHeight
+
+    private val length: Int
+        get() = if (orientation == Orientation.HORIZONTAL) scrWidth else scrHeight
 
     constructor(context: Context) : super(context) {
         init(context, null)
@@ -90,37 +97,30 @@ class BoxedVerticalSeekbar : View {
         defaultValue = max / 2
 
         if (attrs != null) {
-            val styledAttrs =
-                context.obtainStyledAttributes(attrs, R.styleable.BoxedVerticalSeekbar, 0, 0)
-            points = styledAttrs.getInteger(R.styleable.BoxedVerticalSeekbar_points, points)
-            max = styledAttrs.getInteger(R.styleable.BoxedVerticalSeekbar_max, max)
-            min = styledAttrs.getInteger(R.styleable.BoxedVerticalSeekbar_min, min)
-            step = styledAttrs.getInteger(R.styleable.BoxedVerticalSeekbar_step, step)
+            val styledAttrs = context.obtainStyledAttributes(attrs, R.styleable.BoxedSeekbar, 0, 0)
+            orientation =
+                Orientation.values()[styledAttrs.getInt(R.styleable.BoxedSeekbar_orientation, 0)]
+            points = styledAttrs.getInteger(R.styleable.BoxedSeekbar_points, points)
+            max = styledAttrs.getInteger(R.styleable.BoxedSeekbar_max, max)
+            min = styledAttrs.getInteger(R.styleable.BoxedSeekbar_min, min)
+            step = styledAttrs.getInteger(R.styleable.BoxedSeekbar_step, step)
             defaultValue =
-                styledAttrs.getInteger(R.styleable.BoxedVerticalSeekbar_defaultValue, defaultValue)
+                styledAttrs.getInteger(R.styleable.BoxedSeekbar_defaultValue, defaultValue)
             cornerRadius =
-                styledAttrs.getInteger(
-                    R.styleable.BoxedVerticalSeekbar_libCornerRadius,
-                    cornerRadius
-                )
+                styledAttrs.getInteger(R.styleable.BoxedSeekbar_libCornerRadius, cornerRadius)
             textBottomPadding =
                 styledAttrs.getInteger(
-                    R.styleable.BoxedVerticalSeekbar_textBottomPadding,
+                    R.styleable.BoxedSeekbar_textBottomPadding,
                     textBottomPadding
                 )
 
             // Images
             isImageEnabled =
-                styledAttrs.getBoolean(
-                    R.styleable.BoxedVerticalSeekbar_imageEnabled,
-                    isImageEnabled
-                )
+                styledAttrs.getBoolean(R.styleable.BoxedSeekbar_imageEnabled, isImageEnabled)
             if (isImageEnabled) {
                 defaultImage =
                     requireNotNull(
-                            styledAttrs.getDrawable(
-                                R.styleable.BoxedVerticalSeekbar_defaultImage
-                            ) as?
+                            styledAttrs.getDrawable(R.styleable.BoxedSeekbar_defaultImage) as?
                                 BitmapDrawable
                         ) {
                             "When images are enabled, defaultImage can not be null. Please assign a drawable in the layout XML file"
@@ -128,7 +128,7 @@ class BoxedVerticalSeekbar : View {
                         .bitmap
                 minImage =
                     requireNotNull(
-                            styledAttrs.getDrawable(R.styleable.BoxedVerticalSeekbar_minImage) as?
+                            styledAttrs.getDrawable(R.styleable.BoxedSeekbar_minImage) as?
                                 BitmapDrawable
                         ) {
                             "When images are enabled, minImage can not be null. Please assign a drawable in the layout XML file"
@@ -136,7 +136,7 @@ class BoxedVerticalSeekbar : View {
                         .bitmap
                 maxImage =
                     requireNotNull(
-                            styledAttrs.getDrawable(R.styleable.BoxedVerticalSeekbar_maxImage) as?
+                            styledAttrs.getDrawable(R.styleable.BoxedSeekbar_maxImage) as?
                                 BitmapDrawable
                         ) {
                             "When images are enabled, maxImage can not be null. Please assign a drawable in the layout XML file"
@@ -145,24 +145,17 @@ class BoxedVerticalSeekbar : View {
             }
 
             progressColor =
-                styledAttrs.getColor(R.styleable.BoxedVerticalSeekbar_progressColor, progressColor)
+                styledAttrs.getColor(R.styleable.BoxedSeekbar_progressColor, progressColor)
             backgroundColor =
-                styledAttrs.getColor(
-                    R.styleable.BoxedVerticalSeekbar_backgroundColor,
-                    backgroundColor
-                )
-            textSize = styledAttrs.getDimension(R.styleable.BoxedVerticalSeekbar_textSize, textSize)
-            textColor = styledAttrs.getColor(R.styleable.BoxedVerticalSeekbar_textColor, textColor)
-            enabled = styledAttrs.getBoolean(R.styleable.BoxedVerticalSeekbar_enabled, enabled)
+                styledAttrs.getColor(R.styleable.BoxedSeekbar_backgroundColor, backgroundColor)
+            textSize = styledAttrs.getDimension(R.styleable.BoxedSeekbar_textSize, textSize)
+            textColor = styledAttrs.getColor(R.styleable.BoxedSeekbar_textColor, textColor)
+            enabled = styledAttrs.getBoolean(R.styleable.BoxedSeekbar_enabled, enabled)
             touchDisabled =
-                styledAttrs.getBoolean(
-                    R.styleable.BoxedVerticalSeekbar_touchDisabled,
-                    touchDisabled
-                )
-            textEnabled =
-                styledAttrs.getBoolean(R.styleable.BoxedVerticalSeekbar_textEnabled, textEnabled)
+                styledAttrs.getBoolean(R.styleable.BoxedSeekbar_touchDisabled, touchDisabled)
+            textEnabled = styledAttrs.getBoolean(R.styleable.BoxedSeekbar_textEnabled, textEnabled)
             isSnapEnabled =
-                styledAttrs.getBoolean(R.styleable.BoxedVerticalSeekbar_snapEnabled, isSnapEnabled)
+                styledAttrs.getBoolean(R.styleable.BoxedSeekbar_snapEnabled, isSnapEnabled)
             points = defaultValue
             styledAttrs.recycle()
         }
@@ -190,7 +183,7 @@ class BoxedVerticalSeekbar : View {
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         scrWidth = getDefaultSize(suggestedMinimumWidth, widthMeasureSpec)
         scrHeight = getDefaultSize(suggestedMinimumHeight, heightMeasureSpec)
-        progressPaint.strokeWidth = scrWidth.toFloat()
+        progressPaint.strokeWidth = thickness.toFloat()
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
@@ -198,33 +191,46 @@ class BoxedVerticalSeekbar : View {
         canvas.translate(0f, 0f)
         val path = Path()
         path.addRoundRect(
-            RectF(0f, 0f, scrWidth.toFloat(), scrHeight.toFloat()),
+            if (orientation == Orientation.VERTICAL) {
+                RectF(0f, 0f, thickness.toFloat(), length.toFloat())
+            } else {
+                RectF(0f, 0f, length.toFloat(), thickness.toFloat())
+            },
             cornerRadius.toFloat(),
             cornerRadius.toFloat(),
             Path.Direction.CCW
         )
         canvas.clipPath(path, Region.Op.INTERSECT)
-        canvas.drawRect(0f, 0f, scrWidth.toFloat(), scrHeight.toFloat(), seekbarPaint)
-        canvas.drawLine(
-            width.toFloat() / 2,
-            height.toFloat(),
-            width.toFloat() / 2,
-            progressSweep,
-            progressPaint
-        )
+        if (orientation == Orientation.VERTICAL) {
+            canvas.drawRect(0f, 0f, thickness.toFloat(), length.toFloat(), seekbarPaint)
+            canvas.drawLine(
+                width.toFloat() / 2,
+                height.toFloat(),
+                width.toFloat() / 2,
+                progressSweep,
+                progressPaint
+            )
+        } else {
+            canvas.drawRect(0f, 0f, length.toFloat(), thickness.toFloat(), seekbarPaint)
+            canvas.drawLine(
+                0f,
+                height.toFloat() / 2,
+                progressSweep,
+                height.toFloat() / 2,
+                progressPaint
+            )
+        }
+
         if (isImageEnabled) {
-            // If image is enabled, text will not be shown
             when (points) {
                 max -> drawIcon(requireNotNull(maxImage), canvas)
                 min -> drawIcon(requireNotNull(minImage), canvas)
                 else -> drawIcon(requireNotNull(defaultImage), canvas)
             }
-        } else {
-            // If image is disabled and text is enabled show text
-            if (textEnabled) {
-                drawText(canvas, textPaint, pointsText)
-            }
+        } else if (textEnabled) {
+            drawText(canvas, textPaint, pointsText)
         }
+
         if (firstRun) {
             firstRun = false
             value = points
@@ -232,11 +238,12 @@ class BoxedVerticalSeekbar : View {
     }
 
     private fun drawText(canvas: Canvas, paint: Paint, text: String) {
-        canvas.getClipBounds(rect)
-        val cWidth = rect.width()
+        canvas.getClipBounds(canvasClipBoundsRect)
+        val canvasWidth = canvasClipBoundsRect.width()
         paint.textAlign = Paint.Align.LEFT
-        paint.getTextBounds(text, 0, text.length, rect)
-        val x = cWidth / 2f - rect.width() / 2f - rect.left
+        paint.getTextBounds(text, 0, text.length, canvasClipBoundsRect)
+        // TODO:
+        val x = canvasWidth / 2f - canvasClipBoundsRect.width() / 2f - canvasClipBoundsRect.left
         canvas.drawText(text, x, (canvas.height - textBottomPadding).toFloat(), paint)
     }
 
@@ -329,6 +336,18 @@ class BoxedVerticalSeekbar : View {
     private val roundedProgress: Int
         get() = ((scrHeight - progressSweep) / scrHeight * (max - min)).roundToInt()
 
+    var value: Int
+        get() = points
+        set(points) {
+            updateProgressByValue(max(min(points, max), min))
+        }
+
+    override fun isEnabled(): Boolean = enabled
+
+    override fun setEnabled(enabled: Boolean) {
+        this.enabled = enabled
+    }
+
     /**
      * Gets a value, converts it to progress for the seekBar and updates it.
      *
@@ -349,20 +368,13 @@ class BoxedVerticalSeekbar : View {
     }
 
     interface OnValuesChangeListener {
-        fun onPointsChanged(seekbar: BoxedVerticalSeekbar, points: Int) = Unit
-        fun onStartTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
-        fun onStopTrackingTouch(seekbar: BoxedVerticalSeekbar) = Unit
+        fun onPointsChanged(seekbar: BoxedSeekbar, points: Int) = Unit
+        fun onStartTrackingTouch(seekbar: BoxedSeekbar) = Unit
+        fun onStopTrackingTouch(seekbar: BoxedSeekbar) = Unit
     }
 
-    var value: Int
-        get() = points
-        set(points) {
-            updateProgressByValue(max(min(points, max), min))
-        }
-
-    override fun isEnabled(): Boolean = enabled
-
-    override fun setEnabled(enabled: Boolean) {
-        this.enabled = enabled
+    private enum class Orientation {
+        VERTICAL,
+        HORIZONTAL
     }
 }
