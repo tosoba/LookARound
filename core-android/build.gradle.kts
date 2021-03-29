@@ -75,7 +75,6 @@ kapt { correctErrorTypes = true }
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":core-android"))
     implementation(project(":repo-nominatim"))
     implementation(project(":repo-overpass"))
     implementation(project(":repo-photon"))

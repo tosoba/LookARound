@@ -22,9 +22,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun LocationBitmapLoadingMapView(
     // TODO: maybe send it markers in lists of 3 to 5 and call conflate on locationFlow
-    // so loading frames can be cancelled when user swipes the list hard and starts loading multiple places at once
+    // so loading frames can be cancelled when user swipes the list hard and starts loading multiple
+    // places at once
     // https://stackoverflow.com/questions/66712286/get-last-visible-item-index-in-jetpack-compose-lazycolumn
-    // check if state.layoutInfo.visibleItemsInfo or smth similar can be used to retrieve visible items' locations
+    // check if state.layoutInfo.visibleItemsInfo or smth similar can be used to retrieve visible
+    // items' locations
     locationsFlow: Flow<Location>,
     bitmapsFlow: MutableStateFlow<Bitmap>,
     httpHandler: HttpHandler? = null,
@@ -37,13 +39,7 @@ fun LocationBitmapLoadingMapView(
         val controller = mapView.init(httpHandler, glViewHolderFactory)
         locationsFlow.collect {
             controller.updateCameraPosition(
-                CameraUpdateFactory.newLngLatZoom(
-                    LngLat(
-                        it.longitude,
-                        it.latitude
-                    ),
-                    13f
-                )
+                CameraUpdateFactory.newLngLatZoom(LngLat(it.longitude, it.latitude), 13f)
             )
             bitmapsFlow.emit(controller.captureFrame())
         }

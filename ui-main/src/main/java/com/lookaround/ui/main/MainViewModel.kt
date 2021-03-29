@@ -2,6 +2,7 @@ package com.lookaround.ui.main
 
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.base.arch.FlowViewModel
+import com.lookaround.core.android.base.arch.SavedStateViewModelFactory
 import com.lookaround.core.android.ext.initialState
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
@@ -17,17 +18,11 @@ import kotlinx.coroutines.FlowPreview
 @FlowPreview
 class MainViewModel
 @AssistedInject
-constructor(
-    @Assisted savedStateHandle: SavedStateHandle,
-    processor: MainFlowProcessor
-) :
+constructor(@Assisted savedStateHandle: SavedStateHandle, processor: MainFlowProcessor) :
     FlowViewModel<MainIntent, MainStateUpdate, MainState, MainSignal>(
         savedStateHandle.initialState(),
         processor,
         savedStateHandle
     ) {
-    @AssistedFactory
-    interface Factory {
-        fun create(savedStateHandle: SavedStateHandle): MainViewModel
-    }
+    @AssistedFactory interface Factory : SavedStateViewModelFactory<MainViewModel>
 }
