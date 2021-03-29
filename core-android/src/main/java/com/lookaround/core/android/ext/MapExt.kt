@@ -1,5 +1,6 @@
 package com.lookaround.core.android.ext
 
+import android.graphics.Bitmap
 import android.graphics.PointF
 import android.os.Bundle
 import com.mapzen.tangram.*
@@ -48,6 +49,11 @@ fun MapController.zoomOnDoubleTap(
         true
     }
 }
+
+suspend fun MapController.captureFrame(waitForCompleteView: Boolean = true): Bitmap =
+    suspendCoroutine {
+        captureFrame(it::resume, waitForCompleteView)
+    }
 
 private const val PREF_ROTATION = "map_rotation"
 private const val PREF_TILT = "map_tilt"
