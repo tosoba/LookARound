@@ -161,11 +161,11 @@ class CameraFragment :
             --arCameraPageSeekbar.value
             updatePageButtonsEnabled(arCameraPageSeekbar.value)
         }
-        arCameraPageSeekbar.onValuesChangeListener =
-            object : BoxedSeekbar.OnValuesChangeListener {
-                override fun onPointsChanged(seekbar: BoxedSeekbar, points: Int) {
-                    updatePageButtonsEnabled(points)
-                    cameraRenderer.currentPage = points
+        arCameraPageSeekbar.onValueChangeListener =
+            object : BoxedSeekbar.OnValueChangeListener {
+                override fun onValueChanged(seekbar: BoxedSeekbar, value: Int) {
+                    updatePageButtonsEnabled(value)
+                    cameraRenderer.currentPage = value
                 }
             }
     }

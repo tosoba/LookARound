@@ -14,69 +14,55 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 class BoxedSeekbar : View {
-    /** The min value of progress value. */
     var min = 0
-
-    /** The Maximum value that this SeekArc can be set to */
     var max = 100
         set(value) {
             require(value > min) { "Max should not be less or equal than min value" }
             field = value
         }
-
     var defaultValue = 0
         set(value) {
             require(value <= max) { "Default value should not be bigger than max value." }
             field = value
         }
-
-    /** The increment/decrement value for each movement of progress. */
     var step = 10
+    private var currentValue = 0
+    var onValueChangeListener: OnValueChangeListener? = null
 
-    /** The corner radius of the view. */
-    var cornerRadius = 10
+    private var enabled = true
+    private var firstRun = true
+    private var orientation: Orientation = Orientation.VERTICAL
+
+    private var textEnabled = true
+    private var textSizeSp = 26f
+    private var textBottomPaddingPx = 20
+    private var pointsText = defaultValue.toString()
+
+    var isImageEnabled = false
+    var isSnapEnabled = true
+    private var touchDisabled = true
+    private var progressSweep = 0f
+    private var cornerRadius = 10
         set(value) {
             field = value
             invalidate()
         }
 
-    /** Text size in SP. */
-    private var textSize = 26f
-
-    /** Text bottom padding in pixel. */
-    private var textBottomPadding = 20
-    private var points = 0
-    private var enabled = true
-
-    /** Enable or disable text . */
-    private var textEnabled = true
-
-    /** Enable or disable image . */
-    var isImageEnabled = false
-    var isSnapEnabled = true
-
-    /** mTouchDisabled touches will not move the slider only swipe motion will activate it */
-    private var touchDisabled = true
-    private var progressSweep = 0f
     private val seekbarPaint = Paint()
     private val progressPaint: Paint = Paint()
     private val textPaint: Paint = Paint()
+
     private var scrWidth = 0
     private var scrHeight = 0
-    var onValuesChangeListener: OnValuesChangeListener? = null
+    private val thickness: Int
+        get() = if (orientation == Orientation.VERTICAL) scrWidth else scrHeight
+    private val length: Int
+        get() = if (orientation == Orientation.HORIZONTAL) scrWidth else scrHeight
+
     private var defaultImage: Bitmap? = null
     private var minImage: Bitmap? = null
     private var maxImage: Bitmap? = null
     private val canvasClipBoundsRect = Rect()
-    private var firstRun = true
-    private var pointsText = defaultValue.toString()
-    private var orientation: Orientation = Orientation.VERTICAL
-
-    private val thickness: Int
-        get() = if (orientation == Orientation.VERTICAL) scrWidth else scrHeight
-
-    private val length: Int
-        get() = if (orientation == Orientation.HORIZONTAL) scrWidth else scrHeight
 
     constructor(context: Context) : super(context) {
         init(context, null)
@@ -93,14 +79,14 @@ class BoxedSeekbar : View {
         var progressColor = ContextCompat.getColor(context, R.color.color_progress)
         var backgroundColor = ContextCompat.getColor(context, R.color.color_background)
         var textColor = ContextCompat.getColor(context, R.color.color_text)
-        textSize *= density
+        textSizeSp *= density
         defaultValue = max / 2
 
         if (attrs != null) {
             val styledAttrs = context.obtainStyledAttributes(attrs, R.styleable.BoxedSeekbar, 0, 0)
             orientation =
                 Orientation.values()[styledAttrs.getInt(R.styleable.BoxedSeekbar_orientation, 0)]
-            points = styledAttrs.getInteger(R.styleable.BoxedSeekbar_points, points)
+            currentValue = styledAttrs.getInteger(R.styleable.BoxedSeekbar_points, currentValue)
             max = styledAttrs.getInteger(R.styleable.BoxedSeekbar_max, max)
             min = styledAttrs.getInteger(R.styleable.BoxedSeekbar_min, min)
             step = styledAttrs.getInteger(R.styleable.BoxedSeekbar_step, step)
@@ -108,10 +94,10 @@ class BoxedSeekbar : View {
                 styledAttrs.getInteger(R.styleable.BoxedSeekbar_defaultValue, defaultValue)
             cornerRadius =
                 styledAttrs.getInteger(R.styleable.BoxedSeekbar_libCornerRadius, cornerRadius)
-            textBottomPadding =
+            textBottomPaddingPx =
                 styledAttrs.getInteger(
                     R.styleable.BoxedSeekbar_textBottomPadding,
-                    textBottomPadding
+                    textBottomPaddingPx
                 )
 
             // Images
@@ -148,7 +134,7 @@ class BoxedSeekbar : View {
                 styledAttrs.getColor(R.styleable.BoxedSeekbar_progressColor, progressColor)
             backgroundColor =
                 styledAttrs.getColor(R.styleable.BoxedSeekbar_backgroundColor, backgroundColor)
-            textSize = styledAttrs.getDimension(R.styleable.BoxedSeekbar_textSize, textSize)
+            textSizeSp = styledAttrs.getDimension(R.styleable.BoxedSeekbar_textSize, textSizeSp)
             textColor = styledAttrs.getColor(R.styleable.BoxedSeekbar_textColor, textColor)
             enabled = styledAttrs.getBoolean(R.styleable.BoxedSeekbar_enabled, enabled)
             touchDisabled =
@@ -156,13 +142,13 @@ class BoxedSeekbar : View {
             textEnabled = styledAttrs.getBoolean(R.styleable.BoxedSeekbar_textEnabled, textEnabled)
             isSnapEnabled =
                 styledAttrs.getBoolean(R.styleable.BoxedSeekbar_snapEnabled, isSnapEnabled)
-            points = defaultValue
+            currentValue = defaultValue
             styledAttrs.recycle()
         }
 
         // range check
-        points = min(points, max)
-        points = max(points, min)
+        currentValue = min(currentValue, max)
+        currentValue = max(currentValue, min)
 
         progressPaint.color = progressColor
         progressPaint.isAntiAlias = true
@@ -171,7 +157,7 @@ class BoxedSeekbar : View {
         textPaint.color = textColor
         textPaint.isAntiAlias = true
         textPaint.style = Paint.Style.FILL
-        textPaint.textSize = textSize
+        textPaint.textSize = textSizeSp
 
         seekbarPaint.alpha = 255
         seekbarPaint.color = backgroundColor
@@ -222,7 +208,7 @@ class BoxedSeekbar : View {
         }
 
         if (isImageEnabled) {
-            when (points) {
+            when (currentValue) {
                 max -> drawIcon(requireNotNull(maxImage), canvas)
                 min -> drawIcon(requireNotNull(minImage), canvas)
                 else -> drawIcon(requireNotNull(defaultImage), canvas)
@@ -233,7 +219,7 @@ class BoxedSeekbar : View {
 
         if (firstRun) {
             firstRun = false
-            value = points
+            value = currentValue
         }
     }
 
@@ -242,20 +228,43 @@ class BoxedSeekbar : View {
         val canvasWidth = canvasClipBoundsRect.width()
         paint.textAlign = Paint.Align.LEFT
         paint.getTextBounds(text, 0, text.length, canvasClipBoundsRect)
-        // TODO:
-        val x = canvasWidth / 2f - canvasClipBoundsRect.width() / 2f - canvasClipBoundsRect.left
-        canvas.drawText(text, x, (canvas.height - textBottomPadding).toFloat(), paint)
+        val x =
+            if (orientation == Orientation.VERTICAL) {
+                canvasWidth / 2f - canvasClipBoundsRect.width() / 2f - canvasClipBoundsRect.left
+            } else {
+                textBottomPaddingPx.toFloat()
+            }
+        canvas.drawText(
+            text,
+            x,
+            if (orientation == Orientation.VERTICAL) {
+                (canvas.height - textBottomPaddingPx).toFloat()
+            } else {
+                (canvas.height / 2 + textBottomPaddingPx / 2).toFloat()
+            },
+            paint
+        )
     }
 
     private fun drawIcon(bitmap: Bitmap, canvas: Canvas) {
-        val resizedBitmap = getResizedBitmap(bitmap, canvas.width / 2, canvas.width / 2)
+        val newDimension =
+            if (orientation == Orientation.VERTICAL) canvas.width / 2 else canvas.height / 2
+        val resizedBitmap = getResizedBitmap(bitmap, newDimension, newDimension)
         canvas.drawBitmap(
             resizedBitmap,
             null,
             RectF(
-                canvas.width.toFloat() / 2 - resizedBitmap.width.toFloat() / 2,
+                if (orientation == Orientation.VERTICAL) {
+                    canvas.width.toFloat() / 2 - resizedBitmap.width.toFloat() / 2
+                } else {
+                    resizedBitmap.width.toFloat() / 2
+                },
                 (canvas.height - resizedBitmap.height).toFloat(),
-                canvas.width.toFloat() / 3 + resizedBitmap.width,
+                if (orientation == Orientation.VERTICAL) {
+                    canvas.width.toFloat() / 3 + resizedBitmap.width
+                } else {
+                    resizedBitmap.width.toFloat() * 3 / 2
+                },
                 canvas.height.toFloat()
             ),
             null
@@ -267,77 +276,67 @@ class BoxedSeekbar : View {
         val height = bm.height
         val scaleWidth = newWidth.toFloat() / width
         val scaleHeight = newHeight.toFloat() / height
-        // create a matrix for the manipulation
         val matrix = Matrix()
-        // resize the bit map
         matrix.postScale(scaleWidth, scaleHeight)
-        // recreate the new Bitmap
         return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false)
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (enabled) {
-            this.parent.requestDisallowInterceptTouchEvent(true)
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    onValuesChangeListener?.onStartTrackingTouch(this)
-                    if (!touchDisabled) updateOnTouch(event)
-                }
-                MotionEvent.ACTION_MOVE -> updateOnTouch(event)
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    onValuesChangeListener?.onStopTrackingTouch(this)
-                    if (isSnapEnabled) value = roundedProgress
-                    isPressed = false
-                    this.parent.requestDisallowInterceptTouchEvent(false)
-                }
+        if (!enabled) return false
+        parent.requestDisallowInterceptTouchEvent(true)
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                onValueChangeListener?.onStartTrackingTouch(this)
+                if (!touchDisabled) updateOnTouch(event)
             }
-            return true
+            MotionEvent.ACTION_MOVE -> updateOnTouch(event)
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                onValueChangeListener?.onStopTrackingTouch(this)
+                if (isSnapEnabled) value = roundedProgress
+                isPressed = false
+                parent.requestDisallowInterceptTouchEvent(false)
+            }
         }
-        return false
+        return true
     }
 
-    /**
-     * Update the UI components on touch events.
-     *
-     * @param event MotionEvent
-     */
     private fun updateOnTouch(event: MotionEvent) {
         isPressed = true
-        val touchPoint = convertTouchEventPoint(event.y)
-        val progress = touchPoint.roundToInt()
-        updateProgress(progress)
+        val touchPoint =
+            convertTouchEventPoint(if (orientation == Orientation.VERTICAL) event.y else event.x)
+        updateProgress(touchPoint.roundToInt())
     }
 
-    private fun convertTouchEventPoint(yPos: Float): Double =
+    private fun convertTouchEventPoint(position: Float): Double =
         when {
-            yPos > scrHeight * 2 -> (scrHeight * 2).toFloat()
-            yPos < 0 -> 0f
-            else -> yPos
+            position > length * 2 -> (length * 2).toFloat()
+            position < 0 -> 0f
+            else -> position
         }.toDouble()
 
     private fun updateProgress(progress: Int) {
         progressSweep = progress.toFloat()
-        val coalescedProgress = max(min(progress, scrHeight), 0)
+        val coalescedProgress = max(min(progress, length), 0)
 
         // convert progress to min-max range
-        points = coalescedProgress * (max - min) / scrHeight + min
+        currentValue = coalescedProgress * (max - min) / length + min
         // reverse value because progress is descending
-        points = max + min - points
+        if (orientation == Orientation.VERTICAL) currentValue = max + min - currentValue
         // if value is not max or min, apply step
-        if (points != max && points != min) {
-            points = points - points % step + min % step
+        if (currentValue != max && currentValue != min) {
+            currentValue = currentValue - currentValue % step + min % step
         }
-        onValuesChangeListener?.onPointsChanged(this, points)
+        onValueChangeListener?.onValueChanged(this, currentValue)
         pointsText = roundedProgress.toString()
         invalidate()
     }
 
     private val roundedProgress: Int
-        get() = ((scrHeight - progressSweep) / scrHeight * (max - min)).roundToInt()
+        get() = ((length - progressSweep) / length * (max - min)).roundToInt()
 
     var value: Int
-        get() = points
+        get() = currentValue
         set(points) {
             updateProgressByValue(max(min(points, max), min))
         }
@@ -348,27 +347,21 @@ class BoxedSeekbar : View {
         this.enabled = enabled
     }
 
-    /**
-     * Gets a value, converts it to progress for the seekBar and updates it.
-     *
-     * @param value The value given
-     */
     private fun updateProgressByValue(value: Int) {
-        points = value
-        points = min(points, max)
-        points = max(points, min)
-
+        currentValue = value
+        currentValue = min(currentValue, max)
+        currentValue = max(currentValue, min)
         // convert min-max range to progress
-        progressSweep = ((points - min) * scrHeight / (max - min)).toFloat()
+        progressSweep = ((currentValue - min) * length / (max - min)).toFloat()
         // reverse value because progress is descending
-        progressSweep = scrHeight - progressSweep
-        onValuesChangeListener?.onPointsChanged(this, points)
+        if (orientation == Orientation.VERTICAL) progressSweep = length - progressSweep
+        onValueChangeListener?.onValueChanged(this, currentValue)
         pointsText = value.toString()
         invalidate()
     }
 
-    interface OnValuesChangeListener {
-        fun onPointsChanged(seekbar: BoxedSeekbar, points: Int) = Unit
+    interface OnValueChangeListener {
+        fun onValueChanged(seekbar: BoxedSeekbar, value: Int) = Unit
         fun onStartTrackingTouch(seekbar: BoxedSeekbar) = Unit
         fun onStopTrackingTouch(seekbar: BoxedSeekbar) = Unit
     }
