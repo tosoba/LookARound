@@ -71,10 +71,13 @@ class BoxedSeekbar : View {
     private val length: Int
         get() = if (orientation == Orientation.HORIZONTAL) scrWidth else scrHeight
 
+    private val seekbarRect = RectF()
+    private val seekbarPath = Path()
+    private val canvasClipBoundsRect = Rect()
+
     private var defaultImage: Bitmap? = null
     private var minImage: Bitmap? = null
     private var maxImage: Bitmap? = null
-    private val canvasClipBoundsRect = Rect()
 
     constructor(context: Context) : super(context) {
         init(context, null)
@@ -87,7 +90,6 @@ class BoxedSeekbar : View {
     private fun init(context: Context, attrs: AttributeSet?) {
         val density = resources.displayMetrics.density
 
-        // Defaults, may need to link this into theme settings.
         var progressColor = ContextCompat.getColor(context, R.color.color_progress)
         var backgroundColor = ContextCompat.getColor(context, R.color.color_background)
         var textColor = ContextCompat.getColor(context, R.color.color_text)
@@ -112,7 +114,6 @@ class BoxedSeekbar : View {
                     textBottomPaddingPx
                 )
 
-            // Images
             isImageEnabled =
                 styledAttrs.getBoolean(R.styleable.BoxedSeekbar_imageEnabled, isImageEnabled)
             if (isImageEnabled) {
@@ -158,7 +159,6 @@ class BoxedSeekbar : View {
             styledAttrs.recycle()
         }
 
-        // range check
         currentValue = min(currentValue, max)
         currentValue = max(currentValue, min)
 
@@ -187,18 +187,19 @@ class BoxedSeekbar : View {
 
     override fun onDraw(canvas: Canvas) {
         canvas.translate(0f, 0f)
-        val path = Path()
-        path.addRoundRect(
-            if (orientation == Orientation.VERTICAL) {
-                RectF(0f, 0f, thickness.toFloat(), length.toFloat())
-            } else {
-                RectF(0f, 0f, length.toFloat(), thickness.toFloat())
-            },
+        seekbarPath.reset()
+        if (orientation == Orientation.VERTICAL) {
+            seekbarRect.set(0f, 0f, thickness.toFloat(), length.toFloat())
+        } else {
+            seekbarRect.set(0f, 0f, length.toFloat(), thickness.toFloat())
+        }
+        seekbarPath.addRoundRect(
+            seekbarRect,
             cornerRadius.toFloat(),
             cornerRadius.toFloat(),
             Path.Direction.CCW
         )
-        canvas.clipPath(path, Region.Op.INTERSECT)
+        canvas.clipPath(seekbarPath, Region.Op.INTERSECT)
         if (orientation == Orientation.VERTICAL) {
             canvas.drawRect(0f, 0f, thickness.toFloat(), length.toFloat(), seekbarPaint)
             canvas.drawLine(
