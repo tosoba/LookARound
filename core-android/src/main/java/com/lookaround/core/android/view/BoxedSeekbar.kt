@@ -27,6 +27,18 @@ class BoxedSeekbar : View {
         }
     var step = 10
     private var currentValue = 0
+    var value: Int
+        get() = currentValue
+        set(points) {
+            updateProgressByValue(max(min(points, max), min))
+        }
+    private val roundedProgress: Int
+        get() =
+            if (orientation == Orientation.VERTICAL) {
+                ((length - progressSweep) / length * (max - min)).roundToInt()
+            } else {
+                (progressSweep / length * (max - min)).roundToInt()
+            }
     var onValueChangeListener: OnValueChangeListener? = null
 
     private var enabled = true
@@ -325,26 +337,16 @@ class BoxedSeekbar : View {
         if (orientation == Orientation.VERTICAL) currentValue = max + min - currentValue
         // if value is not max or min, apply step
         if (currentValue != max && currentValue != min) {
-            currentValue = currentValue - currentValue % step + min % step
+            currentValue =
+                if (orientation == Orientation.VERTICAL) {
+                    currentValue - currentValue % step + min % step
+                } else {
+                    currentValue + currentValue % step + min % step
+                }
         }
         onValueChangeListener?.onValueChanged(this, currentValue)
         pointsText = roundedProgress.toString()
         invalidate()
-    }
-
-    private val roundedProgress: Int
-        get() = ((length - progressSweep) / length * (max - min)).roundToInt()
-
-    var value: Int
-        get() = currentValue
-        set(points) {
-            updateProgressByValue(max(min(points, max), min))
-        }
-
-    override fun isEnabled(): Boolean = enabled
-
-    override fun setEnabled(enabled: Boolean) {
-        this.enabled = enabled
     }
 
     private fun updateProgressByValue(value: Int) {
@@ -358,6 +360,12 @@ class BoxedSeekbar : View {
         onValueChangeListener?.onValueChanged(this, currentValue)
         pointsText = value.toString()
         invalidate()
+    }
+
+    override fun isEnabled(): Boolean = enabled
+
+    override fun setEnabled(enabled: Boolean) {
+        this.enabled = enabled
     }
 
     interface OnValueChangeListener {
