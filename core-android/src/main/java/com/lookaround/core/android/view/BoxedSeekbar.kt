@@ -99,7 +99,7 @@ class BoxedSeekbar : View {
         if (attrs != null) {
             val styledAttrs = context.obtainStyledAttributes(attrs, R.styleable.BoxedSeekbar, 0, 0)
             orientation =
-                Orientation.values()[styledAttrs.getInt(R.styleable.BoxedSeekbar_orientation, 0)]
+                Orientation.values()[styledAttrs.getInt(R.styleable.BoxedSeekbar_android_orientation, 1)]
             currentValue = styledAttrs.getInteger(R.styleable.BoxedSeekbar_points, currentValue)
             max = styledAttrs.getInteger(R.styleable.BoxedSeekbar_max, max)
             min = styledAttrs.getInteger(R.styleable.BoxedSeekbar_min, min)
@@ -376,7 +376,7 @@ class BoxedSeekbar : View {
     }
 
     private enum class Orientation {
-        VERTICAL,
-        HORIZONTAL
+        HORIZONTAL,
+        VERTICAL
     }
 }

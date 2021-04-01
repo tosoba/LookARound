@@ -19,10 +19,7 @@
         <attr name="textSize" format="dimension" />
         <attr name="textColor" format="color" />
 
-        <attr name="orientation" format="enum">
-            <enum name="VERTICAL" value="0" />
-            <enum name="HORIZONTAL" value="1" />
-        </attr>
+        <attr name="android:orientation"/>
         <attr name="enabled" format="boolean" />
         <attr name="touchDisabled" format="boolean" />
         <attr name="textEnabled" format="boolean" />
