@@ -17,9 +17,9 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.ext.actionBarHeight
 import com.lookaround.core.android.ext.statusBarHeight
-import java.util.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.util.*
 
 class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private val markerHeight: Float

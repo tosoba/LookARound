@@ -29,6 +29,9 @@ abstract class NominatimModule {
         @Singleton
         fun jsonNominatimClient(httpClient: CloseableHttpClient): JsonNominatimClient =
             JsonNominatimClient(
-                "https://nominatim.openstreetmap.org/", httpClient, "therealmerengue@gmail.com")
+                "https://nominatim.openstreetmap.org/",
+                httpClient,
+                "therealmerengue@gmail.com"
+            )
     }
 }

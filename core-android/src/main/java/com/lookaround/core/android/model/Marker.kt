@@ -3,8 +3,8 @@ package com.lookaround.core.android.model
 import android.location.Location
 import android.os.Parcelable
 import com.lookaround.core.model.NodeDTO
-import java.util.*
 import kotlinx.parcelize.Parcelize
+import java.util.*
 
 @Parcelize
 class Marker(

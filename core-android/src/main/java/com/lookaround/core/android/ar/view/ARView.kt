@@ -12,11 +12,11 @@ import androidx.annotation.MainThread
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
+import kotlinx.parcelize.Parcelize
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sqrt
-import kotlinx.parcelize.Parcelize
 
 abstract class ARView<R : MarkerRenderer> : View {
     open var povLocation: Location? = null

@@ -6,9 +6,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.lookaround.core.android.ar.listener.ARStateListener
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.databinding.ActivityMainBinding
-import com.lookaround.core.android.ar.listener.ARStateListener
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
@@ -16,7 +16,6 @@ import com.lookaround.ui.main.model.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.locationUpdateFailureUpdates
 import com.lookaround.ui.place.types.PlaceTypesView
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.filterIsInstance
@@ -24,6 +23,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi

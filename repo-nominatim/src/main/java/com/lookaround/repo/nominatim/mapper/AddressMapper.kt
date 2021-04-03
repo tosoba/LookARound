@@ -18,12 +18,15 @@ interface AddressMapper {
                 Mapping(
                     source = "addressElements",
                     target = "elements",
-                    qualifiedBy = [ElementsArrayToMap::class]),
+                    qualifiedBy = [ElementsArrayToMap::class]
+                ),
                 Mapping(
                     source = "nameDetails",
                     target = "details",
-                    qualifiedBy = [ElementsArrayToMap::class]),
-            ])
+                    qualifiedBy = [ElementsArrayToMap::class]
+                ),
+            ]
+    )
     fun toDTO(node: Address): AddressDTO
 
     @Qualifier @Target(AnnotationTarget.FUNCTION) private annotation class ElementsArrayToMap

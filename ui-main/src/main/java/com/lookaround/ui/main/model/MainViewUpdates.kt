@@ -6,10 +6,10 @@ import com.lookaround.core.android.model.BottomSheetState
 import com.lookaround.core.android.model.Failed
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.ui.main.MainViewModel
-import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
+import java.util.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi

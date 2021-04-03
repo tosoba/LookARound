@@ -51,9 +51,9 @@ fun MapController.zoomOnDoubleTap(
 }
 
 suspend fun MapController.captureFrame(waitForCompleteView: Boolean = true): Bitmap =
-    suspendCoroutine {
-        captureFrame(it::resume, waitForCompleteView)
-    }
+        suspendCoroutine {
+    captureFrame(it::resume, waitForCompleteView)
+}
 
 private const val PREF_ROTATION = "map_rotation"
 private const val PREF_TILT = "map_tilt"

@@ -7,57 +7,56 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import com.lookaround.core.android.view.LocalSysUiController
 
-private val LightColorPalette = LookARoundColors(
-    brand = Shadow5,
-    uiBackground = Neutral0,
-    uiBorder = Neutral4,
-    uiFloated = FunctionalGrey,
-    textSecondary = Neutral7,
-    textHelp = Neutral6,
-    textInteractive = Neutral0,
-    textLink = Ocean11,
-    iconSecondary = Neutral7,
-    iconInteractive = Neutral0,
-    iconInteractiveInactive = Neutral1,
-    error = FunctionalRed,
-    gradient6_1 = listOf(Shadow4, Ocean3, Shadow2, Ocean3, Shadow4),
-    gradient6_2 = listOf(Rose4, Lavender3, Rose2, Lavender3, Rose4),
-    gradient3_1 = listOf(Shadow2, Ocean3, Shadow4),
-    gradient3_2 = listOf(Rose2, Lavender3, Rose4),
-    gradient2_1 = listOf(Shadow4, Shadow11),
-    gradient2_2 = listOf(Ocean3, Shadow3),
-    isDark = false
-)
+private val LightColorPalette =
+    LookARoundColors(
+        brand = Shadow5,
+        uiBackground = Neutral0,
+        uiBorder = Neutral4,
+        uiFloated = FunctionalGrey,
+        textSecondary = Neutral7,
+        textHelp = Neutral6,
+        textInteractive = Neutral0,
+        textLink = Ocean11,
+        iconSecondary = Neutral7,
+        iconInteractive = Neutral0,
+        iconInteractiveInactive = Neutral1,
+        error = FunctionalRed,
+        gradient6_1 = listOf(Shadow4, Ocean3, Shadow2, Ocean3, Shadow4),
+        gradient6_2 = listOf(Rose4, Lavender3, Rose2, Lavender3, Rose4),
+        gradient3_1 = listOf(Shadow2, Ocean3, Shadow4),
+        gradient3_2 = listOf(Rose2, Lavender3, Rose4),
+        gradient2_1 = listOf(Shadow4, Shadow11),
+        gradient2_2 = listOf(Ocean3, Shadow3),
+        isDark = false
+    )
 
-private val DarkColorPalette = LookARoundColors(
-    brand = Shadow1,
-    uiBackground = Neutral8,
-    uiBorder = Neutral3,
-    uiFloated = FunctionalDarkGrey,
-    textPrimary = Shadow1,
-    textSecondary = Neutral0,
-    textHelp = Neutral1,
-    textInteractive = Neutral7,
-    textLink = Ocean2,
-    iconPrimary = Shadow1,
-    iconSecondary = Neutral0,
-    iconInteractive = Neutral7,
-    iconInteractiveInactive = Neutral6,
-    error = FunctionalRedDark,
-    gradient6_1 = listOf(Shadow5, Ocean7, Shadow9, Ocean7, Shadow5),
-    gradient6_2 = listOf(Rose11, Lavender7, Rose8, Lavender7, Rose11),
-    gradient3_1 = listOf(Shadow9, Ocean7, Shadow5),
-    gradient3_2 = listOf(Rose8, Lavender7, Rose11),
-    gradient2_1 = listOf(Ocean3, Shadow3),
-    gradient2_2 = listOf(Ocean7, Shadow7),
-    isDark = true
-)
+private val DarkColorPalette =
+    LookARoundColors(
+        brand = Shadow1,
+        uiBackground = Neutral8,
+        uiBorder = Neutral3,
+        uiFloated = FunctionalDarkGrey,
+        textPrimary = Shadow1,
+        textSecondary = Neutral0,
+        textHelp = Neutral1,
+        textInteractive = Neutral7,
+        textLink = Ocean2,
+        iconPrimary = Shadow1,
+        iconSecondary = Neutral0,
+        iconInteractive = Neutral7,
+        iconInteractiveInactive = Neutral6,
+        error = FunctionalRedDark,
+        gradient6_1 = listOf(Shadow5, Ocean7, Shadow9, Ocean7, Shadow5),
+        gradient6_2 = listOf(Rose11, Lavender7, Rose8, Lavender7, Rose11),
+        gradient3_1 = listOf(Shadow9, Ocean7, Shadow5),
+        gradient3_2 = listOf(Rose8, Lavender7, Rose11),
+        gradient2_1 = listOf(Ocean3, Shadow3),
+        gradient2_2 = listOf(Ocean7, Shadow7),
+        isDark = true
+    )
 
 @Composable
-fun LookARoundTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
-) {
+fun LookARoundTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val colors = if (darkTheme) DarkColorPalette else LightColorPalette
 
     val sysUiController = LocalSysUiController.current
@@ -79,8 +78,7 @@ fun LookARoundTheme(
 
 object LookARoundTheme {
     val colors: LookARoundColors
-        @Composable
-        get() = LocalLookARoundColors.current
+        @Composable get() = LocalLookARoundColors.current
 }
 
 @Stable
@@ -192,38 +190,32 @@ class LookARoundColors(
 }
 
 @Composable
-fun ProvideLookARoundColors(
-    colors: LookARoundColors,
-    content: @Composable () -> Unit
-) {
+fun ProvideLookARoundColors(colors: LookARoundColors, content: @Composable () -> Unit) {
     val colorPalette = remember { colors }
     colorPalette.update(colors)
     CompositionLocalProvider(LocalLookARoundColors provides colorPalette, content = content)
 }
 
-private val LocalLookARoundColors = staticCompositionLocalOf<LookARoundColors> {
-    error("No LookARoundColors provided")
-}
+private val LocalLookARoundColors =
+    staticCompositionLocalOf<LookARoundColors> { error("No LookARoundColors provided") }
 
 /**
  * A Material [Colors] implementation which sets all colors to [debugColor] to discourage usage of
  * [MaterialTheme.colors] in preference to [LookARoundTheme.colors].
  */
-fun debugColors(
-    darkTheme: Boolean,
-    debugColor: Color = Color.Magenta
-) = Colors(
-    primary = debugColor,
-    primaryVariant = debugColor,
-    secondary = debugColor,
-    secondaryVariant = debugColor,
-    background = debugColor,
-    surface = debugColor,
-    error = debugColor,
-    onPrimary = debugColor,
-    onSecondary = debugColor,
-    onBackground = debugColor,
-    onSurface = debugColor,
-    onError = debugColor,
-    isLight = !darkTheme
-)
+fun debugColors(darkTheme: Boolean, debugColor: Color = Color.Magenta) =
+    Colors(
+        primary = debugColor,
+        primaryVariant = debugColor,
+        secondary = debugColor,
+        secondaryVariant = debugColor,
+        background = debugColor,
+        surface = debugColor,
+        error = debugColor,
+        onPrimary = debugColor,
+        onSecondary = debugColor,
+        onBackground = debugColor,
+        onSurface = debugColor,
+        onError = debugColor,
+        isLight = !darkTheme
+    )

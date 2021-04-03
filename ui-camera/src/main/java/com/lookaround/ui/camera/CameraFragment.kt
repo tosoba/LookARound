@@ -26,8 +26,6 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.locationReadyUpdates
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import java.util.*
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -36,6 +34,8 @@ import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
+import java.util.*
+import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi

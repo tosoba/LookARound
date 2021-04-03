@@ -2,15 +2,18 @@ package com.lookaround.ui.map
 
 import com.lookaround.core.android.base.arch.FlowProcessor
 import com.lookaround.core.usecase.IsConnectedFlow
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
-class MapFlowProcessor @Inject constructor(private val isConnectedFlow: IsConnectedFlow) :
-    FlowProcessor<MapIntent, MapStateUpdate, MapState, MapSignal> {
+class MapFlowProcessor
+@Inject
+constructor(
+    private val isConnectedFlow: IsConnectedFlow,
+) : FlowProcessor<MapIntent, MapStateUpdate, MapState, MapSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
         intents: Flow<MapIntent>,
