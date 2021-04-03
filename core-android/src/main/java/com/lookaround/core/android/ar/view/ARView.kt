@@ -6,17 +6,13 @@ import android.location.Location
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.AttributeSet
-import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.MainThread
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
-import kotlinx.parcelize.Parcelize
-import kotlin.math.abs
 import kotlin.math.atan2
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlinx.parcelize.Parcelize
 
 abstract class ARView<R : MarkerRenderer> : View {
     open var povLocation: Location? = null
@@ -37,8 +33,6 @@ abstract class ARView<R : MarkerRenderer> : View {
             field = value
             povLocation?.let { calculateDistancesTo(it, value) }
         }
-    var onMarkerPressedListener: OnMarkerPressedListener? = null
-        @MainThread set
     var markerRenderer: R? = null
         @MainThread set
     var orientation: Orientation = Orientation()
@@ -49,6 +43,11 @@ abstract class ARView<R : MarkerRenderer> : View {
         }
     var phoneRotation: Int = 0
         @MainThread set
+
+    protected val markerWidth: Float
+        get() = markerRenderer?.markerWidth ?: MarkerRenderer.DEFAULT_MARKER_DIMENSION
+    protected val markerHeight: Float
+        get() = markerRenderer?.markerHeight ?: MarkerRenderer.DEFAULT_MARKER_DIMENSION
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -75,30 +74,6 @@ abstract class ARView<R : MarkerRenderer> : View {
 
     protected open fun shouldDraw(marker: ARMarker): Boolean =
         marker.distance < maxDistance && marker.isDrawn
-
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        onMarkerPressedListener?.let { listener ->
-            if (event.action != MotionEvent.ACTION_DOWN) return@let
-            findNearestMarker(event.x, event.y)
-                ?.takeIf { marker -> abs(marker.x - event.x) < 50 && abs(marker.y - event.y) < 50 }
-                ?.let(listener::onMarkerPressed)
-        }
-        return super.onTouchEvent(event)
-    }
-
-    private fun findNearestMarker(x: Float, y: Float): ARMarker? {
-        var nearest: ARMarker? = null
-        var nearestMarkerDistance = width.coerceAtLeast(height).toDouble()
-        for (marker in markers) {
-            val distance =
-                sqrt((marker.x - x).toDouble().pow(2.0) + (marker.y - y).toDouble().pow(2.0))
-            if (distance < nearestMarkerDistance) {
-                nearestMarkerDistance = distance
-                nearest = marker
-            }
-        }
-        return nearest
-    }
 
     protected abstract fun preRender(canvas: Canvas, location: Location)
     protected abstract fun calculateMarkerScreenPosition(marker: ARMarker, location: Location)
@@ -130,10 +105,6 @@ abstract class ARView<R : MarkerRenderer> : View {
         val superSavedState: Parcelable?,
         val rendererBundle: Bundle?,
     ) : BaseSavedState(superSavedState), Parcelable
-
-    interface OnMarkerPressedListener {
-        fun onMarkerPressed(marker: ARMarker)
-    }
 
     companion object {
         private const val DEFAULT_MAX_DISTANCE_METERS = 1000.0

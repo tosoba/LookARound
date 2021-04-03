@@ -17,13 +17,13 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.ext.actionBarHeight
 import com.lookaround.core.android.ext.statusBarHeight
+import java.util.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.util.*
 
 class CameraMarkerRenderer(context: Context) : MarkerRenderer {
-    private val markerHeight: Float
-    private val markerWidth: Float
+    override val markerHeight: Float
+    override val markerWidth: Float
     private val statusBarHeight: Float = context.statusBarHeight.toFloat()
     private val actionBarHeight: Float = context.actionBarHeight
     private val screenHeight: Float
@@ -220,6 +220,9 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private fun resetPaging() {
         markersMap.values.forEach { it.pagedPosition = null }
     }
+
+    internal fun isOnCurrentPage(marker: ARMarker): Boolean =
+        markersMap[marker.wrapped.id]?.pagedPosition?.page == currentPage
 
     private class CameraMarker(
         val wrapped: ARMarker,

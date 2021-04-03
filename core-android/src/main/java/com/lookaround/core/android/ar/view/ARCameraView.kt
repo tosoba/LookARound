@@ -1,13 +1,18 @@
 package com.lookaround.core.android.ar.view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.location.Location
 import android.util.AttributeSet
+import android.view.MotionEvent
 import androidx.annotation.MainThread
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.math3d.*
 import com.lookaround.core.android.ar.renderer.impl.CameraMarkerRenderer
+import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class ARCameraView : ARView<CameraMarkerRenderer> {
     private val camRot = Vector3()
@@ -29,6 +34,11 @@ class ARCameraView : ARView<CameraMarkerRenderer> {
             super.povLocation = value
             markerRenderer?.povLocation = value
         }
+
+    var onMarkerPressed: ((ARMarker) -> Unit)? = null
+        @MainThread set
+    var onTouch: (() -> Unit)? = null
+        @MainThread set
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -76,6 +86,35 @@ class ARCameraView : ARView<CameraMarkerRenderer> {
     }
 
     override fun postRender(canvas: Canvas, location: Location) = Unit
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val markerPressed =
+            onMarkerPressed?.let { listener ->
+                if (event.action != MotionEvent.ACTION_DOWN) return@let false
+                val pressedMarker =
+                    findNearestMarker(event.x, event.y)?.takeIf { marker ->
+                        abs(marker.x - event.x) < markerWidth &&
+                            abs(marker.y - event.y) < markerHeight
+                    }
+                if (pressedMarker != null) {
+                    listener(pressedMarker)
+                    true
+                } else {
+                    false
+                }
+            }
+                ?: false
+        if (!markerPressed) onTouch?.invoke()
+        return super.onTouchEvent(event)
+    }
+
+    private fun findNearestMarker(x: Float, y: Float): ARMarker? =
+        markers
+            .filter { marker -> marker.isDrawn && markerRenderer?.isOnCurrentPage(marker) ?: true }
+            .minByOrNull { marker ->
+                sqrt((marker.x - x).toDouble().pow(2.0) + (marker.y - y).toDouble().pow(2.0))
+            }
 
     companion object {
         private const val SCREEN_DEPTH = 1

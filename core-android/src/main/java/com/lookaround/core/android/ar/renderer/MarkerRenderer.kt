@@ -10,4 +10,12 @@ interface MarkerRenderer {
     fun postDrawAll() = Unit
     fun onRestoreInstanceState(bundle: Bundle?) = Unit
     fun onSaveInstanceState(): Bundle? = null
+    val markerWidth: Float
+        get() = DEFAULT_MARKER_DIMENSION
+    val markerHeight: Float
+        get() = DEFAULT_MARKER_DIMENSION
+
+    companion object {
+        const val DEFAULT_MARKER_DIMENSION = 50f
+    }
 }

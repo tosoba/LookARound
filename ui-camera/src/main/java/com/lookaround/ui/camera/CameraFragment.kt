@@ -3,7 +3,6 @@ package com.lookaround.ui.camera
 import android.Manifest
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.camera.core.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -15,7 +14,6 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.orientation.OrientationManager
 import com.lookaround.core.android.ar.renderer.impl.CameraMarkerRenderer
 import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
-import com.lookaround.core.android.ar.view.ARView
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.BoxedSeekbar
@@ -26,6 +24,8 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.locationReadyUpdates
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import java.util.*
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -34,8 +34,7 @@ import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
-import java.util.*
-import javax.inject.Inject
+import timber.log.Timber
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -43,9 +42,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 @WithFragmentBindings
 class CameraFragment :
-    Fragment(R.layout.fragment_camera),
-    OrientationManager.OnOrientationChangedListener,
-    ARView.OnMarkerPressedListener {
+    Fragment(R.layout.fragment_camera), OrientationManager.OnOrientationChangedListener {
     private val binding: FragmentCameraBinding by viewBinding(FragmentCameraBinding::bind)
 
     @Inject internal lateinit var cameraViewModelFactory: CameraViewModel.Factory
@@ -134,7 +131,8 @@ class CameraFragment :
             .launchIn(lifecycleScope)
 
         arCameraView.maxDistance = MAX_RENDER_DISTANCE_METERS
-        arCameraView.onMarkerPressedListener = this@CameraFragment
+        arCameraView.onMarkerPressed = ::onMarkerPressed
+        arCameraView.onTouch = ::onCameraTouch
         arCameraView.markerRenderer = cameraRenderer
 
         arRadarView.maxDistance = MAX_RENDER_DISTANCE_METERS
@@ -270,13 +268,13 @@ class CameraFragment :
         binding.arRadarView.orientation = orientation
     }
 
-    override fun onMarkerPressed(marker: ARMarker) {
-        Toast.makeText(
-                requireContext(),
-                "Pressed marker with id: ${marker.wrapped.id}",
-                Toast.LENGTH_LONG
-            )
-            .show()
+    private fun onMarkerPressed(marker: ARMarker) {
+        Timber.tag("MP")
+            .d("Pressed marker with id: ${marker.wrapped.id}; name: ${marker.wrapped.name}")
+    }
+
+    private fun onCameraTouch() {
+        Timber.tag("CT").d("Camera touched")
     }
 
     companion object {
