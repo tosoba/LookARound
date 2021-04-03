@@ -15,17 +15,23 @@ import kotlin.math.roundToInt
 
 class BoxedSeekbar : View {
     var min = 0
+        set(value) {
+            require(value < max) { "Min should be less than max value." }
+            field = value
+            updateProgressByValue(currentValue)
+        }
     var max = 100
         set(value) {
-            require(value > min) { "Max should not be less or equal than min value" }
+            require(value > min) { "Max should be greater than min value." }
             field = value
+            updateProgressByValue(currentValue)
         }
-    var defaultValue = 0
+    private var defaultValue = 0
         set(value) {
-            require(value <= max) { "Default value should not be bigger than max value." }
+            require(value in min..max) { "Default value should be within min..max range." }
             field = value
         }
-    var step = 10
+    private var step = 10
     private var currentValue = 0
     var value: Int
         get() = currentValue
@@ -50,8 +56,8 @@ class BoxedSeekbar : View {
     private var textBottomPaddingPx = 20
     private var pointsText = defaultValue.toString()
 
-    var isImageEnabled = false
-    var isSnapEnabled = true
+    private var isImageEnabled = false
+    private var isSnapEnabled = true
     private var touchDisabled = true
     private var progressSweep = 0f
     private var cornerRadius = 10
@@ -99,7 +105,8 @@ class BoxedSeekbar : View {
         if (attrs != null) {
             val styledAttrs = context.obtainStyledAttributes(attrs, R.styleable.BoxedSeekbar, 0, 0)
             orientation =
-                Orientation.values()[styledAttrs.getInt(R.styleable.BoxedSeekbar_android_orientation, 1)]
+                Orientation.values()[
+                    styledAttrs.getInt(R.styleable.BoxedSeekbar_android_orientation, 1)]
             currentValue = styledAttrs.getInteger(R.styleable.BoxedSeekbar_points, currentValue)
             max = styledAttrs.getInteger(R.styleable.BoxedSeekbar_max, max)
             min = styledAttrs.getInteger(R.styleable.BoxedSeekbar_min, min)

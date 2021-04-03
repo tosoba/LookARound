@@ -211,7 +211,7 @@ class CameraFragment :
         arCameraPageViewsGroup.visibility = if (maxPage == 0) View.GONE else View.VISIBLE
         if (setCurrentPage) arCameraPageSeekbar.value = maxPage
         if (maxPage > 0) arCameraPageSeekbar.max = maxPage
-        if (setCurrentPage) binding.updatePageButtonsEnabled(maxPage)
+        binding.updatePageButtonsEnabled(maxPage)
     }
 
     override fun onResume() {
