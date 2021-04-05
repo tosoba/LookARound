@@ -94,8 +94,8 @@ class ARCameraView : ARView<CameraMarkerRenderer> {
                 if (event.action != MotionEvent.ACTION_DOWN) return@let false
                 val pressedMarker =
                     findNearestMarker(event.x, event.y)?.takeIf { marker ->
-                        abs(marker.x - event.x) < markerWidth &&
-                            abs(marker.y - event.y) < markerHeight
+                        abs(marker.x - event.x) < markerWidth / 2 &&
+                            abs(marker.y - event.y) < markerHeight / 2
                     }
                 if (pressedMarker != null) {
                     listener(pressedMarker)
