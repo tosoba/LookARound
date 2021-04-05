@@ -98,7 +98,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     override fun draw(marker: ARMarker, canvas: Canvas, orientation: Orientation) {
         val wrapped = markersMap[marker.wrapped.id] ?: return
-        marker.y = wrapped.pagedPosition?.y ?: wrapped.calculatePagedPosition().y
+        marker.y = wrapped.pagedPosition?.y ?: calculatePagedPositionOf(wrapped).y
         wrapped.pagedPosition?.page?.let { if (it > maxPage) maxPage = it }
         if (wrapped.pagedPosition?.page != currentPage) return
 
@@ -148,8 +148,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         }
     }
 
-    private fun CameraMarker.calculatePagedPosition(): PagedPosition {
-        val bearingThis = povLocationBearing ?: throw IllegalStateException()
+    private fun calculatePagedPositionOf(marker: CameraMarker): PagedPosition {
+        val bearingThis = marker.povLocationBearing ?: throw IllegalStateException()
         val takenPositions =
             markerBearingsMap
                 .subMap(bearingThis - TAKEN_BEARING_LIMIT, bearingThis + TAKEN_BEARING_LIMIT)
@@ -165,7 +165,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 ++position.page
             }
         }
-        pagedPosition = position
+        marker.pagedPosition = position
         return position
     }
 
