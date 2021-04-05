@@ -12,3 +12,7 @@ fun ShimmerFrameLayout.stopAndHide() {
     stopShimmer()
     visibility = View.GONE
 }
+
+fun View.toggleVisibility() {
+    visibility = if (visibility == View.GONE) View.VISIBLE else View.GONE
+}

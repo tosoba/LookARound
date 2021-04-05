@@ -274,7 +274,7 @@ class CameraFragment :
     }
 
     private fun onCameraTouch() {
-        Timber.tag("CT").d("Camera touched")
+        if (binding.arCameraPageSeekbar.max > 0) binding.arCameraPageViewsGroup.toggleVisibility()
     }
 
     companion object {
