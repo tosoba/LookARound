@@ -49,7 +49,7 @@ class BoxedSeekbar : View {
 
     private var enabled = true
     private var firstRun = true
-    private var orientation: Orientation = Orientation.VERTICAL
+    private var orientation = Orientation.VERTICAL
 
     private var textEnabled = true
     private var textSizeSp = 26f
@@ -67,8 +67,8 @@ class BoxedSeekbar : View {
         }
 
     private val seekbarPaint = Paint()
-    private val progressPaint: Paint = Paint()
-    private val textPaint: Paint = Paint()
+    private val progressPaint = Paint()
+    private val textPaint = Paint()
 
     private var scrWidth = 0
     private var scrHeight = 0
