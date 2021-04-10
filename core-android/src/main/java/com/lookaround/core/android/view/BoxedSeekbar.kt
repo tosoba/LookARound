@@ -32,7 +32,7 @@ class BoxedSeekbar : View {
             field = value
         }
     private var step = 10
-    private var currentValue = 0
+    private var currentValue = defaultValue
     var value: Int
         get() = currentValue
         set(points) {
@@ -55,6 +55,11 @@ class BoxedSeekbar : View {
     private var textSizeSp = 26f
     private var textBottomPaddingPx = 20
     private var pointsText = defaultValue.toString()
+    var valueToPointsText: ((Int) -> String)? = null
+        set(value) {
+            field = value
+            if (value != null) pointsText = value(currentValue)
+        }
 
     private var isImageEnabled = false
     private var isSnapEnabled = true
@@ -353,7 +358,7 @@ class BoxedSeekbar : View {
                 }
         }
         onValueChangeListener?.onValueChanged(this, currentValue)
-        pointsText = roundedProgress.toString()
+        pointsText = valueToPointsText?.invoke(roundedProgress) ?: roundedProgress.toString()
         invalidate()
     }
 
@@ -366,7 +371,7 @@ class BoxedSeekbar : View {
         // reverse value because progress is descending
         if (orientation == Orientation.VERTICAL) progressSweep = length - progressSweep
         onValueChangeListener?.onValueChanged(this, currentValue)
-        pointsText = value.toString()
+        pointsText = valueToPointsText?.invoke(roundedProgress) ?: value.toString()
         invalidate()
     }
 
