@@ -131,12 +131,10 @@ class CameraFragment :
             .onStart { onCameraMaxPageChanged(cameraRenderer.maxPage, false) }
             .launchIn(lifecycleScope)
 
-        arCameraView.maxRange = MAX_CAMERA_RANGE_METERS
         arCameraView.onMarkerPressed = ::onMarkerPressed
         arCameraView.onTouch = ::onCameraTouch
         arCameraView.markerRenderer = cameraRenderer
 
-        arRadarView.maxRange = MAX_CAMERA_RANGE_METERS
         arRadarView.rotableBackground = R.drawable.radar_arrow
         arRadarView.markerRenderer = RadarMarkerRenderer()
 
@@ -181,7 +179,14 @@ class CameraFragment :
                         upBtn = arCameraRangeUpBtn,
                         downBtn = arCameraRangeDownBtn,
                     )
+                    val meters = Range.metersFrom(ordinal = value)
+                    arCameraView.maxRange = meters
+                    arRadarView.maxRange = meters
                 }
+            }
+        arCameraRangeSeekbar.valueToPointsText =
+            { value ->
+                Range.labelFrom(ordinal = value.coerceAtMost(Range.values().size - 1))
             }
     }
 
@@ -225,7 +230,7 @@ class CameraFragment :
         arCameraPageViewsGroup.visibility = if (maxPage == 0) View.GONE else View.VISIBLE
         if (setCurrentPage) arCameraPageSeekbar.value = maxPage
         if (maxPage > 0) arCameraPageSeekbar.max = maxPage
-        binding.arCameraPageSeekbar.updateValueButtonsEnabled(
+        arCameraPageSeekbar.updateValueButtonsEnabled(
             upBtn = arCameraPageUpBtn,
             downBtn = arCameraPageDownBtn,
         )
@@ -298,9 +303,5 @@ class CameraFragment :
     private fun onCameraTouch() {
         if (binding.arCameraPageSeekbar.max > 0) binding.arCameraPageViewsGroup.toggleVisibility()
         binding.arCameraRangeViewsGroup.toggleVisibility()
-    }
-
-    companion object {
-        private const val MAX_CAMERA_RANGE_METERS = 10_000.0
     }
 }

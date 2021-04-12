@@ -11,6 +11,7 @@ import androidx.annotation.MainThread
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
+import com.lookaround.core.android.model.Range
 import kotlin.math.atan2
 import kotlinx.parcelize.Parcelize
 
@@ -21,7 +22,7 @@ abstract class ARView<R : MarkerRenderer> : View {
             field = value
             calculateDistancesTo(requireNotNull(value), markers)
         }
-    var maxRange: Double = DEFAULT_MAX_DISTANCE_METERS
+    var maxRange: Double = Range.DEFAULT_METERS
         @MainThread
         set(value) {
             field = value
@@ -92,21 +93,19 @@ abstract class ARView<R : MarkerRenderer> : View {
     }
 
     override fun onSaveInstanceState(): Parcelable? =
-        SavedState(super.onSaveInstanceState(), markerRenderer?.onSaveInstanceState())
+        SavedState(super.onSaveInstanceState(), markerRenderer?.onSaveInstanceState(), maxRange)
 
     override fun onRestoreInstanceState(state: Parcelable?) {
         val savedState = state as? SavedState
         super.onRestoreInstanceState(savedState?.superSavedState ?: state)
         markerRenderer?.onRestoreInstanceState(savedState?.rendererBundle)
+        savedState?.maxRangeMeters?.let(::maxRange::set)
     }
 
     @Parcelize
     internal class SavedState(
         val superSavedState: Parcelable?,
         val rendererBundle: Bundle?,
+        val maxRangeMeters: Double,
     ) : BaseSavedState(superSavedState), Parcelable
-
-    companion object {
-        private const val DEFAULT_MAX_DISTANCE_METERS = 1000.0
-    }
 }
