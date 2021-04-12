@@ -45,26 +45,25 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="15dp"
-        android:layout_marginBottom="76dp"
         android:contentDescription="@string/page_up"
         android:src="@drawable/plus"
         app:fabCustomSize="32dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/ar_camera_page_seekbar"
         app:layout_constraintLeft_toRightOf="@id/ar_camera_page_seekbar"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/ar_camera_page_seekbar" />
 
     <com.lookaround.core.android.view.BoxedSeekbar
         android:id="@+id/ar_camera_page_seekbar"
         android:layout_width="0dp"
-        android:layout_height="32dp"
-        android:layout_gravity="center"
-        android:layout_marginBottom="76dp"
+        android:layout_height="25dp"
+        android:layout_marginBottom="20dp"
         android:orientation="horizontal"
         app:backgroundColor="@color/color_background"
         app:cornerRadius="20dp"
         app:defaultValue="0"
         app:imageEnabled="false"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/ar_camera_range_seekbar"
         app:layout_constraintLeft_toRightOf="@id/ar_camera_page_down_btn"
         app:layout_constraintRight_toLeftOf="@id/ar_camera_page_up_btn"
         app:max="1"
@@ -81,14 +80,70 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="15dp"
-        android:layout_marginBottom="76dp"
         android:contentDescription="@string/page_down"
         android:src="@drawable/minus"
         app:fabCustomSize="32dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/ar_camera_page_seekbar"
         app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/ar_camera_page_seekbar" />
+        app:layout_constraintRight_toLeftOf="@id/ar_camera_page_seekbar"
+        app:layout_constraintTop_toTopOf="@id/ar_camera_page_seekbar" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/ar_camera_range_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="ar_camera_range_up_btn,ar_camera_range_seekbar,ar_camera_range_down_btn" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/ar_camera_range_up_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="15dp"
+        android:contentDescription="@string/range_up"
+        android:src="@drawable/plus"
+        app:fabCustomSize="32dp"
+        app:layout_constraintBottom_toBottomOf="@id/ar_camera_range_seekbar"
+        app:layout_constraintLeft_toRightOf="@id/ar_camera_range_seekbar"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/ar_camera_range_seekbar" />
+
+    <com.lookaround.core.android.view.BoxedSeekbar
+        android:id="@+id/ar_camera_range_seekbar"
+        android:layout_width="0dp"
+        android:layout_height="25dp"
+        android:layout_marginBottom="76dp"
+        android:orientation="horizontal"
+        app:backgroundColor="@color/color_background"
+        app:cornerRadius="20dp"
+        app:defaultValue="0"
+        app:imageEnabled="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/ar_camera_range_down_btn"
+        app:layout_constraintRight_toLeftOf="@id/ar_camera_range_up_btn"
+        app:max="1"
+        app:progressColor="@color/design_default_color_on_primary"
+        app:step="1"
+        app:textBottomPadding="20"
+        app:textColor="@color/design_default_color_primary"
+        app:textEnabled="true"
+        app:textSize="16sp"
+        app:touchDisabled="true" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/ar_camera_range_down_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="15dp"
+        android:contentDescription="@string/range_down"
+        android:src="@drawable/minus"
+        app:fabCustomSize="32dp"
+        app:layout_constraintBottom_toBottomOf="@id/ar_camera_range_seekbar"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/ar_camera_range_seekbar"
+        app:layout_constraintTop_toTopOf="@id/ar_camera_range_seekbar" />
 
     <View
         android:id="@+id/blur_background"

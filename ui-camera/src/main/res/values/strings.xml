@@ -5,4 +5,6 @@
     <string name="page_up">Page up</string>
     <string name="page_down">Page down</string>
     <string name="location_required_for_ar">Location must be enabled for AR to work.</string>
+    <string name="range_up">Range up</string>
+    <string name="range_down">Range down</string>
 </resources>
