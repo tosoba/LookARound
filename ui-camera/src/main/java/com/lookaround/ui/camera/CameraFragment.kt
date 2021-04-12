@@ -227,7 +227,7 @@ class CameraFragment :
         maxPage: Int,
         setCurrentPage: Boolean
     ) {
-        arCameraRangeViewsGroup.visibility = View.VISIBLE
+        if (maxPage > 0) arCameraRangeViewsGroup.visibility = View.VISIBLE
         arCameraPageViewsGroup.visibility = if (maxPage > 0) View.VISIBLE else View.GONE
         arCameraPageSeekbar.isEnabled = maxPage > 0
         if (setCurrentPage) arCameraPageSeekbar.value = maxPage
