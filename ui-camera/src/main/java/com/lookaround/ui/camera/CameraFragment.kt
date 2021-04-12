@@ -116,6 +116,7 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.initARViews() {
         initARCameraPageViews()
+        initARCameraRangeViews()
 
         cameraPreview.previewStreamState.observe(this@CameraFragment) {
             lifecycleScope.launch {
@@ -151,31 +152,44 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.initARCameraPageViews() {
-        arCameraPageUpBtn.setOnClickListener {
-            ++arCameraPageSeekbar.value
-            updatePageButtonsEnabled(arCameraPageSeekbar.value)
-        }
-        arCameraPageDownBtn.setOnClickListener {
-            --arCameraPageSeekbar.value
-            updatePageButtonsEnabled(arCameraPageSeekbar.value)
-        }
+        arCameraPageSeekbar.setValueButtonsOnClickListeners(
+            upBtn = arCameraPageUpBtn,
+            downBtn = arCameraPageDownBtn
+        )
         arCameraPageSeekbar.onValueChangeListener =
             object : BoxedSeekbar.OnValueChangeListener {
                 override fun onValueChanged(seekbar: BoxedSeekbar, value: Int) {
-                    updatePageButtonsEnabled(value)
+                    seekbar.updateValueButtonsEnabled(
+                        points = value,
+                        upBtn = arCameraPageUpBtn,
+                        downBtn = arCameraPageDownBtn,
+                    )
                     cameraRenderer.currentPage = value
                 }
             }
     }
 
-    private fun FragmentCameraBinding.updatePageButtonsEnabled(points: Int) {
-        arCameraPageUpBtn.isEnabled = points < arCameraPageSeekbar.max
-        arCameraPageDownBtn.isEnabled = points > arCameraPageSeekbar.min
+    private fun FragmentCameraBinding.initARCameraRangeViews() {
+        arCameraRangeSeekbar.setValueButtonsOnClickListeners(
+            upBtn = arCameraRangeUpBtn,
+            downBtn = arCameraRangeDownBtn
+        )
+        arCameraRangeSeekbar.onValueChangeListener =
+            object : BoxedSeekbar.OnValueChangeListener {
+                override fun onValueChanged(seekbar: BoxedSeekbar, value: Int) {
+                    seekbar.updateValueButtonsEnabled(
+                        points = value,
+                        upBtn = arCameraRangeUpBtn,
+                        downBtn = arCameraRangeDownBtn,
+                    )
+                }
+            }
     }
 
     private fun FragmentCameraBinding.onLoadingStarted() {
         arViewsGroup.visibility = View.GONE
         arCameraPageViewsGroup.visibility = View.GONE
+        arCameraRangeViewsGroup.visibility = View.GONE
         locationDisabledTextView.visibility = View.GONE
         permissionsViewsGroup.visibility = View.GONE
         blurBackground.visibility = View.VISIBLE
@@ -188,6 +202,8 @@ class CameraFragment :
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.GONE
         arViewsGroup.visibility = View.VISIBLE
+        arCameraRangeViewsGroup.visibility = View.VISIBLE
+        if (arCameraPageSeekbar.max > 0) arCameraPageViewsGroup.visibility = View.VISIBLE
     }
 
     private fun FragmentCameraBinding.onARDisabled(
@@ -196,6 +212,7 @@ class CameraFragment :
     ) {
         arViewsGroup.visibility = View.GONE
         arCameraPageViewsGroup.visibility = View.GONE
+        arCameraRangeViewsGroup.visibility = View.GONE
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.VISIBLE
         if (anyPermissionDenied) permissionsViewsGroup.visibility = View.VISIBLE
@@ -209,7 +226,10 @@ class CameraFragment :
         arCameraPageViewsGroup.visibility = if (maxPage == 0) View.GONE else View.VISIBLE
         if (setCurrentPage) arCameraPageSeekbar.value = maxPage
         if (maxPage > 0) arCameraPageSeekbar.max = maxPage
-        binding.updatePageButtonsEnabled(maxPage)
+        binding.arCameraPageSeekbar.updateValueButtonsEnabled(
+            upBtn = arCameraPageUpBtn,
+            downBtn = arCameraPageDownBtn,
+        )
     }
 
     override fun onResume() {
@@ -218,8 +238,11 @@ class CameraFragment :
     }
 
     override fun onPause() {
-        binding.arCameraPageViewsGroup.visibility = View.GONE
-        binding.arViewsGroup.visibility = View.GONE
+        with(binding) {
+            arCameraPageViewsGroup.visibility = View.GONE
+            arCameraRangeViewsGroup.visibility = View.GONE
+            arViewsGroup.visibility = View.GONE
+        }
         orientationManager.stopSensor()
         super.onPause()
     }
@@ -275,6 +298,7 @@ class CameraFragment :
 
     private fun onCameraTouch() {
         if (binding.arCameraPageSeekbar.max > 0) binding.arCameraPageViewsGroup.toggleVisibility()
+        binding.arCameraRangeViewsGroup.toggleVisibility()
     }
 
     companion object {

@@ -90,7 +90,7 @@
         app:layout_constraintTop_toTopOf="@id/ar_camera_page_seekbar" />
 
     <androidx.constraintlayout.widget.Group
-        android:id="@+id/ar_camera_range_group"
+        android:id="@+id/ar_camera_range_views_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
@@ -113,7 +113,7 @@
         android:id="@+id/ar_camera_range_seekbar"
         android:layout_width="0dp"
         android:layout_height="25dp"
-        android:layout_marginBottom="76dp"
+        android:layout_marginBottom="72dp"
         android:orientation="horizontal"
         app:backgroundColor="@color/color_background"
         app:cornerRadius="20dp"
