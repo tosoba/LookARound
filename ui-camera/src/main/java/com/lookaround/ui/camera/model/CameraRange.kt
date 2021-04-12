@@ -1,6 +1,6 @@
 package com.lookaround.ui.camera.model
 
-enum class CameraRenderDistance(val meters: Int, val label: String) {
+enum class CameraRange(val meters: Int, val label: String) {
     _100_M(100, "100 m"),
     _250_M(250, "250 m"),
     _500_M(500, "500 m"),

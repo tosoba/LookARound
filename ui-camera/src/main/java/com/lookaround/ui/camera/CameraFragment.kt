@@ -131,24 +131,23 @@ class CameraFragment :
             .onStart { onCameraMaxPageChanged(cameraRenderer.maxPage, false) }
             .launchIn(lifecycleScope)
 
-        arCameraView.maxDistance = MAX_RENDER_DISTANCE_METERS
+        arCameraView.maxRange = MAX_CAMERA_RANGE_METERS
         arCameraView.onMarkerPressed = ::onMarkerPressed
         arCameraView.onTouch = ::onCameraTouch
         arCameraView.markerRenderer = cameraRenderer
 
-        arRadarView.maxDistance = MAX_RENDER_DISTANCE_METERS
+        arRadarView.maxRange = MAX_CAMERA_RANGE_METERS
         arRadarView.rotableBackground = R.drawable.radar_arrow
         arRadarView.markerRenderer = RadarMarkerRenderer()
 
-        mainViewModel
-            .markerUpdates
-            .onEach { markers ->
-                val cameraARMarkers = markers.map(::SimpleARMarker)
-                cameraRenderer += cameraARMarkers
-                arCameraView.markers = cameraARMarkers
-                arRadarView.markers = markers.map(::SimpleARMarker)
-            }
-            .launchIn(lifecycleScope)
+        mainViewModel.markerUpdates.onEach(::updateMarkers).launchIn(lifecycleScope)
+    }
+
+    private fun updateMarkers(markers: List<Marker>) {
+        val cameraARMarkers = markers.map(::SimpleARMarker)
+        cameraRenderer += cameraARMarkers
+        binding.arCameraView.markers = cameraARMarkers
+        binding.arRadarView.markers = markers.map(::SimpleARMarker)
     }
 
     private fun FragmentCameraBinding.initARCameraPageViews() {
@@ -302,6 +301,6 @@ class CameraFragment :
     }
 
     companion object {
-        private const val MAX_RENDER_DISTANCE_METERS = 10_000.0
+        private const val MAX_CAMERA_RANGE_METERS = 10_000.0
     }
 }

@@ -37,7 +37,7 @@ class ARRadarView : ARView<RadarMarkerRenderer> {
 
     override fun calculateMarkerScreenPosition(marker: ARMarker, location: Location) {
         val markerAngle = getAngleBetween(marker, location) + compassAngle
-        val pixelDistance = marker.distance * center / maxDistance
+        val pixelDistance = marker.distance * center / maxRange
         val markerY = center - pixelDistance * sin(markerAngle)
         val markerX = center + pixelDistance * cos(markerAngle)
         marker.x = markerX.toFloat()
@@ -49,7 +49,7 @@ class ARRadarView : ARView<RadarMarkerRenderer> {
         compassAngle = orientation.y.toDouble()
     }
 
-    override fun shouldDraw(marker: ARMarker): Boolean = marker.distance < maxDistance
+    override fun shouldDraw(marker: ARMarker): Boolean = marker.distance < maxRange
 
     override fun postRender(canvas: Canvas, location: Location) {
         val markerPaint = Paint(Paint.ANTI_ALIAS_FLAG)

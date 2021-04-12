@@ -21,7 +21,7 @@ abstract class ARView<R : MarkerRenderer> : View {
             field = value
             calculateDistancesTo(requireNotNull(value), markers)
         }
-    var maxDistance: Double = DEFAULT_MAX_DISTANCE_METERS
+    var maxRange: Double = DEFAULT_MAX_DISTANCE_METERS
         @MainThread
         set(value) {
             field = value
@@ -73,7 +73,7 @@ abstract class ARView<R : MarkerRenderer> : View {
     }
 
     protected open fun shouldDraw(marker: ARMarker): Boolean =
-        marker.distance < maxDistance && marker.isDrawn
+        marker.distance < maxRange && marker.isDrawn
 
     protected abstract fun preRender(canvas: Canvas, location: Location)
     protected abstract fun calculateMarkerScreenPosition(marker: ARMarker, location: Location)
