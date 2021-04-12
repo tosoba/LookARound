@@ -227,7 +227,9 @@ class CameraFragment :
         maxPage: Int,
         setCurrentPage: Boolean
     ) {
-        arCameraPageViewsGroup.visibility = if (maxPage == 0) View.GONE else View.VISIBLE
+        arCameraRangeViewsGroup.visibility = View.VISIBLE
+        arCameraPageViewsGroup.visibility = if (maxPage > 0) View.VISIBLE else View.GONE
+        arCameraPageSeekbar.isEnabled = maxPage > 0
         if (setCurrentPage) arCameraPageSeekbar.value = maxPage
         if (maxPage > 0) arCameraPageSeekbar.max = maxPage
         arCameraPageSeekbar.updateValueButtonsEnabled(
@@ -301,7 +303,9 @@ class CameraFragment :
     }
 
     private fun onCameraTouch() {
-        if (binding.arCameraPageSeekbar.max > 0) binding.arCameraPageViewsGroup.toggleVisibility()
-        binding.arCameraRangeViewsGroup.toggleVisibility()
+        val visibility = binding.arCameraRangeViewsGroup.toggleVisibility()
+        if (binding.arCameraPageSeekbar.isEnabled) {
+            binding.arCameraPageViewsGroup.visibility = visibility
+        }
     }
 }

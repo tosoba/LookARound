@@ -14,8 +14,9 @@ fun ShimmerFrameLayout.stopAndHide() {
     visibility = View.GONE
 }
 
-fun View.toggleVisibility() {
+fun View.toggleVisibility(): Int {
     visibility = if (visibility == View.GONE) View.VISIBLE else View.GONE
+    return visibility
 }
 
 fun BoxedSeekbar.updateValueButtonsEnabled(points: Int = value, upBtn: View, downBtn: View) {
