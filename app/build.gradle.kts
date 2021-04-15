@@ -76,6 +76,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
     implementation("com.google.android.material:material:1.3.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
+    implementation("com.eightbitlab:blurview:1.6.6")
 
     implementation("androidx.compose.runtime:runtime:1.0.0-beta01")
     implementation("androidx.compose.compiler:compiler:1.0.0-beta01")

@@ -2,6 +2,7 @@ package com.lookaround
 
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -16,6 +17,8 @@ import com.lookaround.ui.main.model.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.locationUpdateFailureUpdates
 import com.lookaround.ui.place.types.PlaceTypesView
 import dagger.hilt.android.AndroidEntryPoint
+import eightbitlab.com.blurview.RenderScriptBlur
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.filterIsInstance
@@ -23,7 +26,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -50,6 +52,14 @@ class MainActivity : AppCompatActivity(), ARStateListener {
             .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutLocation>()
             .onEach { Timber.tag("PLACES").e("Failed to load places without location.") }
             .launchIn(lifecycleScope)
+
+        binding
+            .blurView
+            .setupWith(window.decorView.findViewById<View>(android.R.id.content) as ViewGroup)
+            .setBlurAlgorithm(RenderScriptBlur(this))
+            .setBlurRadius(20f)
+            .setBlurAutoUpdate(true)
+            .setHasFixedTransformationMatrix(false)
     }
 
     private fun ActivityMainBinding.initPlaceTypes() {
@@ -59,7 +69,7 @@ class MainActivity : AppCompatActivity(), ARStateListener {
             }
         }
 
-        with(BottomSheetBehavior.from(placeTypesView)) {
+        with(BottomSheetBehavior.from(blurView)) {
             addBottomSheetCallback(
                 object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) =
