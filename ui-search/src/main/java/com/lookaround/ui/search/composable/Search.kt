@@ -10,8 +10,8 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.isFocused
-import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.*
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,6 +24,8 @@ import dev.chrisbanes.accompanist.insets.statusBarsPadding
 
 @Composable
 fun Search(modifier: Modifier = Modifier, state: SearchState = rememberSearchState()) {
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
     LookARoundSurface(modifier = modifier.wrapContentHeight()) {
         Column {
             Spacer(modifier = Modifier.statusBarsPadding())
@@ -32,8 +34,9 @@ fun Search(modifier: Modifier = Modifier, state: SearchState = rememberSearchSta
                 onQueryChange = { state.query = it },
                 searchFocused = state.focused,
                 onSearchFocusChange = { state.focused = it },
-                onBackArrowClicked = { state.focused = false },
-                onClearQueryClicked = { state.query = TextFieldValue("") }
+                onBackArrowClicked = { focusManager.clearFocus() },
+                onClearQueryClicked = { state.query = TextFieldValue("") },
+                focusRequester = focusRequester,
             )
             LookARoundDivider()
             LaunchedEffect(state.query.text) {
@@ -64,8 +67,10 @@ private fun SearchBar(
     onSearchFocusChange: (Boolean) -> Unit,
     onBackArrowClicked: () -> Unit,
     onClearQueryClicked: () -> Unit,
-    modifier: Modifier = Modifier
+    focusRequester: FocusRequester,
+    modifier: Modifier = Modifier,
 ) {
+
     LookARoundSurface(
         color = LookARoundTheme.colors.uiFloated,
         contentColor = LookARoundTheme.colors.textSecondary,
@@ -92,7 +97,9 @@ private fun SearchBar(
                     value = query,
                     onValueChange = onQueryChange,
                     modifier =
-                        Modifier.weight(1f).onFocusChanged { onSearchFocusChange(it.isFocused) }
+                        Modifier.weight(1f).focusRequester(focusRequester).onFocusChanged {
+                            onSearchFocusChange(it.isFocused)
+                        }
                 )
                 when {
                     query.text.isNotEmpty() ->
@@ -137,7 +144,8 @@ private fun SearchBarPreview() {
                 searchFocused = false,
                 onSearchFocusChange = {},
                 onBackArrowClicked = {},
-                onClearQueryClicked = {}
+                onClearQueryClicked = {},
+                focusRequester = FocusRequester(),
             )
         }
     }
@@ -154,7 +162,8 @@ private fun SearchBarDarkPreview() {
                 searchFocused = false,
                 onSearchFocusChange = {},
                 onBackArrowClicked = {},
-                onClearQueryClicked = {}
+                onClearQueryClicked = {},
+                focusRequester = FocusRequester(),
             )
         }
     }
