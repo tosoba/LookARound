@@ -207,7 +207,7 @@ class CameraFragment :
         blurBackground.visibility = View.GONE
         arViewsGroup.visibility = View.VISIBLE
         arCameraRangeViewsGroup.visibility = View.VISIBLE
-        if (arCameraPageSeekbar.max > 0) arCameraPageViewsGroup.visibility = View.VISIBLE
+        if (arCameraPageSeekbar.isEnabled) arCameraPageViewsGroup.visibility = View.VISIBLE
     }
 
     private fun FragmentCameraBinding.onARDisabled(

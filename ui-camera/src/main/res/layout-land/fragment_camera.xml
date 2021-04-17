@@ -126,6 +126,7 @@
         app:backgroundColor="@color/color_background"
         app:cornerRadius="20dp"
         app:defaultValue="0"
+        app:enabled="false"
         app:imageEnabled="false"
         app:layout_constraintBottom_toTopOf="@+id/ar_camera_page_down_btn"
         app:layout_constraintLeft_toRightOf="@id/ar_camera_range_seekbar"
