@@ -33,35 +33,33 @@ import kotlin.math.max
 
 @Composable
 fun PlaceTypesView(onPlaceTypeClicked: (IPlaceType) -> Unit) {
-    LookARoundTheme {
-        PlaceTypes(
-            listOf(
-                PlaceTypeGroup(
-                    name = "General",
-                    placeTypes =
-                        listOf(
-                            PlaceType(
-                                wrapped = Amenity.PARKING,
-                                imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
-                            ),
-                            PlaceType(
-                                wrapped = Amenity.RESTAURANT,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
-                            ),
-                            PlaceType(
-                                wrapped = Amenity.FUEL,
-                                imageUrl = "https://source.unsplash.com/_jk8KIyN_uA"
-                            ),
-                            PlaceType(
-                                wrapped = Amenity.BANK,
-                                imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
-                            )
+    PlaceTypes(
+        listOf(
+            PlaceTypeGroup(
+                name = "General",
+                placeTypes =
+                    listOf(
+                        PlaceType(
+                            wrapped = Amenity.PARKING,
+                            imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
+                        ),
+                        PlaceType(
+                            wrapped = Amenity.RESTAURANT,
+                            imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                        ),
+                        PlaceType(
+                            wrapped = Amenity.FUEL,
+                            imageUrl = "https://source.unsplash.com/_jk8KIyN_uA"
+                        ),
+                        PlaceType(
+                            wrapped = Amenity.BANK,
+                            imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
                         )
-                ),
+                    )
             ),
-            onPlaceTypeClicked
-        )
-    }
+        ),
+        onPlaceTypeClicked
+    )
 }
 
 @Composable

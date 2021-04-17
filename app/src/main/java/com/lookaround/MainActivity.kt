@@ -72,8 +72,10 @@ class MainActivity : AppCompatActivity(), ARStateListener {
 
     private fun ActivityMainBinding.initPlaceTypes() {
         placeTypesView.setContent {
-            PlaceTypesView { placeType ->
-                lifecycleScope.launch { viewModel.intent(MainIntent.LoadPlaces(placeType)) }
+            LookARoundTheme {
+                PlaceTypesView { placeType ->
+                    lifecycleScope.launch { viewModel.intent(MainIntent.LoadPlaces(placeType)) }
+                }
             }
         }
 
