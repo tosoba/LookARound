@@ -11,12 +11,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.lookaround.core.android.view.composable.LookARoundDivider
 import com.lookaround.core.android.view.composable.LookARoundSurface
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.search.R
@@ -26,7 +26,7 @@ import dev.chrisbanes.accompanist.insets.statusBarsPadding
 fun Search(modifier: Modifier = Modifier, state: SearchState = rememberSearchState()) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
-    LookARoundSurface(modifier = modifier.wrapContentHeight()) {
+    LookARoundSurface(color = Color.Transparent, modifier = modifier.wrapContentHeight()) {
         Column {
             Spacer(modifier = Modifier.statusBarsPadding())
             SearchBar(
@@ -38,7 +38,6 @@ fun Search(modifier: Modifier = Modifier, state: SearchState = rememberSearchSta
                 onClearQueryClicked = { state.query = TextFieldValue("") },
                 focusRequester = focusRequester,
             )
-            LookARoundDivider()
             LaunchedEffect(state.query.text) {
                 if (state.query.text.isBlank()) return@LaunchedEffect
                 // TODO: trigger search in VM
@@ -70,7 +69,6 @@ private fun SearchBar(
     focusRequester: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
-
     LookARoundSurface(
         color = LookARoundTheme.colors.uiFloated,
         contentColor = LookARoundTheme.colors.textSecondary,
