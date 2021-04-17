@@ -44,7 +44,7 @@ import dev.chrisbanes.accompanist.insets.statusBarsPadding
 
 @Composable
 fun Search(modifier: Modifier = Modifier, state: SearchState = rememberSearchState()) {
-    LookARoundSurface(modifier = modifier.fillMaxSize()) {
+    LookARoundSurface(modifier = modifier.wrapContentHeight()) {
         Column {
             Spacer(modifier = Modifier.statusBarsPadding())
             SearchBar(

@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":ui-main"))
     implementation(project(":ui-map"))
     implementation(project(":ui-place-types"))
+    implementation(project(":ui-search"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
@@ -77,6 +78,8 @@ dependencies {
     implementation("com.google.android.material:material:1.3.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
     implementation("com.eightbitlab:blurview:1.6.6")
+    implementation("dev.chrisbanes.accompanist:accompanist-insets:0.6.0")
+    implementation("dev.chrisbanes.accompanist:accompanist-coil:0.6.0")
 
     implementation("androidx.compose.runtime:runtime:1.0.0-beta01")
     implementation("androidx.compose.compiler:compiler:1.0.0-beta01")

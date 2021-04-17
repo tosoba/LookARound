@@ -9,6 +9,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ar.listener.ARStateListener
 import com.lookaround.core.android.ext.assistedViewModel
+import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainIntent
@@ -16,7 +17,9 @@ import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.locationUpdateFailureUpdates
 import com.lookaround.ui.place.types.PlaceTypesView
+import com.lookaround.ui.search.composable.Search
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 import eightbitlab.com.blurview.RenderScriptBlur
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -40,6 +43,7 @@ class MainActivity : AppCompatActivity(), ARStateListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        binding.initSearch()
         binding.initPlaceTypes()
 
         viewModel
@@ -60,6 +64,10 @@ class MainActivity : AppCompatActivity(), ARStateListener {
             .setBlurRadius(20f)
             .setBlurAutoUpdate(true)
             .setHasFixedTransformationMatrix(false)
+    }
+
+    private fun ActivityMainBinding.initSearch() {
+        searchBarView.setContent { ProvideWindowInsets { LookARoundTheme { Search() } } }
     }
 
     private fun ActivityMainBinding.initPlaceTypes() {
