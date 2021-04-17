@@ -21,7 +21,7 @@ import com.lookaround.core.android.view.theme.LookARoundTheme
 import kotlin.math.ln
 
 @Composable
-fun Surface(
+fun LookARoundSurface(
     modifier: Modifier = Modifier,
     shape: Shape = RectangleShape,
     color: Color = LookARoundTheme.colors.uiBackground,

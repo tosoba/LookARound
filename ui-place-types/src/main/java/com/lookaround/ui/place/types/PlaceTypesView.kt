@@ -21,7 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.lookaround.core.android.view.composable.Surface
+import com.lookaround.core.android.view.composable.LookARoundSurface
 import com.lookaround.core.android.view.composable.VerticalGrid
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.Amenity
@@ -79,7 +79,7 @@ private fun PlaceTypeImage(
     modifier: Modifier = Modifier,
     elevation: Dp = 0.dp
 ) {
-    Surface(
+    LookARoundSurface(
         color = Color.LightGray,
         elevation = elevation,
         shape = CircleShape,
