@@ -31,10 +31,10 @@ fun Search(modifier: Modifier = Modifier, state: SearchState = rememberSearchSta
             Spacer(modifier = Modifier.statusBarsPadding())
             SearchBar(
                 query = state.query,
-                onQueryChange = { state.query = it },
+                onQueryChange = state::query::set,
                 searchFocused = state.focused,
-                onSearchFocusChange = { state.focused = it },
-                onBackArrowClicked = { focusManager.clearFocus() },
+                onSearchFocusChange = state::focused::set,
+                onBackArrowClicked = focusManager::clearFocus,
                 onClearQueryClicked = { state.query = TextFieldValue("") },
                 focusRequester = focusRequester,
             )

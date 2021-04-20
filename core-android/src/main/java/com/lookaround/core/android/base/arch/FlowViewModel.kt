@@ -30,7 +30,7 @@ abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : 
     val states: StateFlow<State>
         get() = mutableStates
     var state: State
-        private set(value) = value.let { mutableStates.value = it }
+        private set(value) = value.let(mutableStates::value::set)
         get() = mutableStates.value
 
     init {
@@ -62,7 +62,7 @@ abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : 
                     this
                 }
             }
-            .onEach { state = it }
+            .onEach(::state::set)
             .launchIn(viewModelScope)
 
         processor.sideEffects(
