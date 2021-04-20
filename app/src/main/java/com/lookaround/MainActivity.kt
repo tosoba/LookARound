@@ -2,7 +2,6 @@ package com.lookaround
 
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -20,7 +19,6 @@ import com.lookaround.ui.place.types.PlaceTypesView
 import com.lookaround.ui.search.composable.Search
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
-import eightbitlab.com.blurview.RenderScriptBlur
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -56,14 +54,6 @@ class MainActivity : AppCompatActivity(), ARStateListener {
             .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutLocation>()
             .onEach { Timber.tag("PLACES").e("Failed to load places without location.") }
             .launchIn(lifecycleScope)
-
-        binding
-            .blurView
-            .setupWith(window.decorView.findViewById<View>(android.R.id.content) as ViewGroup)
-            .setBlurAlgorithm(RenderScriptBlur(this))
-            .setBlurRadius(20f)
-            .setBlurAutoUpdate(true)
-            .setHasFixedTransformationMatrix(false)
     }
 
     private fun ActivityMainBinding.initSearch() {
@@ -79,7 +69,7 @@ class MainActivity : AppCompatActivity(), ARStateListener {
             }
         }
 
-        with(BottomSheetBehavior.from(blurView)) {
+        with(BottomSheetBehavior.from(placeTypesView)) {
             addBottomSheetCallback(
                 object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) =

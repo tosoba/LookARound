@@ -17,20 +17,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <eightbitlab.com.blurview.BlurView
-        android:id="@+id/blur_view"
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/place_types_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:behavior_hideable="true"
         app:behavior_peekHeight="60dp"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
-
-        <androidx.compose.ui.platform.ComposeView
-            android:id="@+id/place_types_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </eightbitlab.com.blurview.BlurView>
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/show_place_types_btn"

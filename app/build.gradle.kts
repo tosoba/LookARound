@@ -77,7 +77,6 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
     implementation("com.google.android.material:material:1.3.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
-    implementation("com.eightbitlab:blurview:1.6.6")
     implementation("dev.chrisbanes.accompanist:accompanist-insets:0.6.0")
     implementation("dev.chrisbanes.accompanist:accompanist-coil:0.6.0")
 
