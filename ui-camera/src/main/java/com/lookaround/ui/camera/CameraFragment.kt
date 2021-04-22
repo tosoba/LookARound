@@ -4,10 +4,11 @@ import android.Manifest
 import android.os.Bundle
 import android.view.View
 import androidx.camera.core.*
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.lookaround.core.android.ar.listener.ARStateListener
+import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.marker.SimpleARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
@@ -71,7 +72,7 @@ class CameraFragment :
 
         arDisabledUpdates(mainViewModel, cameraViewModel)
             .onEach { (anyPermissionDenied, locationDisabled) ->
-                (activity as? ARStateListener)?.onARDisabled(anyPermissionDenied, locationDisabled)
+                (activity as? AREventsListener)?.onARDisabled(anyPermissionDenied, locationDisabled)
                 binding.onARDisabled(anyPermissionDenied, locationDisabled)
             }
             .launchIn(lifecycleScope)
@@ -91,7 +92,7 @@ class CameraFragment :
 
         loadingStartedUpdates(mainViewModel, cameraViewModel)
             .onEach {
-                (activity as? ARStateListener)?.onARLoading()
+                (activity as? AREventsListener)?.onARLoading()
                 binding.onLoadingStarted()
             }
             .launchIn(lifecycleScope)
@@ -100,7 +101,7 @@ class CameraFragment :
 
         arEnabledUpdates(mainViewModel, cameraViewModel)
             .onEach {
-                (activity as? ARStateListener)?.onAREnabled()
+                (activity as? AREventsListener)?.onAREnabled()
                 binding.onAREnabled()
             }
             .launchIn(lifecycleScope)
@@ -303,9 +304,15 @@ class CameraFragment :
     }
 
     private fun onCameraTouch() {
-        val visibility = binding.arCameraRangeViewsGroup.toggleVisibility()
-        if (binding.arCameraPageSeekbar.isEnabled) {
-            binding.arCameraPageViewsGroup.visibility = visibility
+        with(binding) {
+            val targetVisibility = arCameraRangeViewsGroup.toggleVisibility()
+            if (arCameraPageSeekbar.isEnabled) arCameraPageViewsGroup.visibility = targetVisibility
+            val radarGuidelineLayoutParams =
+                radarViewTopGuideline.layoutParams as ConstraintLayout.LayoutParams
+            radarGuidelineLayoutParams.guideBegin =
+                if (targetVisibility == View.GONE) 0 else requireContext().dpToPx(56f).toInt()
+            radarViewTopGuideline.layoutParams = radarGuidelineLayoutParams
         }
+        (activity as? AREventsListener)?.onCameraTouch()
     }
 }

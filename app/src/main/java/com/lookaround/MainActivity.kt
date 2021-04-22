@@ -1,13 +1,15 @@
 package com.lookaround
 
+import android.animation.LayoutTransition
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.lookaround.core.android.ar.listener.ARStateListener
+import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ext.assistedViewModel
+import com.lookaround.core.android.ext.toggleVisibility
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.main.MainViewModel
@@ -31,7 +33,7 @@ import timber.log.Timber
 @FlowPreview
 @ExperimentalCoroutinesApi
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(), ARStateListener {
+class MainActivity : AppCompatActivity(), AREventsListener {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
@@ -58,6 +60,8 @@ class MainActivity : AppCompatActivity(), ARStateListener {
 
     private fun ActivityMainBinding.initSearch() {
         searchBarView.setContent { ProvideWindowInsets { LookARoundTheme { Search() } } }
+        searchBarView.layoutTransition =
+            LayoutTransition().apply { setAnimateParentHierarchy(false) }
     }
 
     private fun ActivityMainBinding.initPlaceTypes() {
@@ -96,15 +100,22 @@ class MainActivity : AppCompatActivity(), ARStateListener {
     }
 
     override fun onAREnabled() {
+        binding.searchBarView.visibility = View.VISIBLE
         onBottomSheetStateChanged(BottomSheetBehavior.STATE_COLLAPSED, false)
     }
 
     override fun onARLoading() {
+        binding.searchBarView.visibility = View.GONE
         onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
     }
 
     override fun onARDisabled(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
+        binding.searchBarView.visibility = View.GONE
         onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
+    }
+
+    override fun onCameraTouch() {
+        binding.searchBarView.toggleVisibility()
     }
 
     private fun onBottomSheetStateChanged(

@@ -23,15 +23,22 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/radar_view_top_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="56dp" />
+
     <com.lookaround.core.android.ar.view.ARRadarView
         android:id="@+id/ar_radar_view"
         android:layout_width="96dp"
         android:layout_height="96dp"
-        android:layout_margin="10dp"
+        android:layout_margin="20dp"
         android:background="@drawable/radar_background"
         android:visibility="gone"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@id/radar_view_top_guideline" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/ar_camera_page_views_group"

@@ -2,6 +2,7 @@ package com.lookaround.core.android.ext
 
 import android.content.Context
 import android.os.Build
+import android.util.TypedValue
 import android.view.Surface
 import android.view.WindowManager
 import kotlin.math.ceil
@@ -35,3 +36,6 @@ val Context.actionBarHeight: Float
         actionBarStyledAttributes.recycle()
         return actionBarHeight
     }
+
+fun Context.dpToPx(value: Float): Float =
+    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, resources.displayMetrics)
