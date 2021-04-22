@@ -1,6 +1,5 @@
 package com.lookaround
 
-import android.animation.LayoutTransition
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -9,7 +8,8 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ext.assistedViewModel
-import com.lookaround.core.android.ext.toggleVisibility
+import com.lookaround.core.android.ext.slideDown
+import com.lookaround.core.android.ext.slideUp
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.main.MainViewModel
@@ -60,8 +60,6 @@ class MainActivity : AppCompatActivity(), AREventsListener {
 
     private fun ActivityMainBinding.initSearch() {
         searchBarView.setContent { ProvideWindowInsets { LookARoundTheme { Search() } } }
-        searchBarView.layoutTransition =
-            LayoutTransition().apply { setAnimateParentHierarchy(false) }
     }
 
     private fun ActivityMainBinding.initPlaceTypes() {
@@ -114,8 +112,10 @@ class MainActivity : AppCompatActivity(), AREventsListener {
         onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
     }
 
-    override fun onCameraTouch() {
-        binding.searchBarView.toggleVisibility()
+    override fun onCameraTouch(targetVisibility: Int) {
+        binding.searchBarView.apply {
+            if (targetVisibility == View.GONE) slideUp() else slideDown()
+        }
     }
 
     private fun onBottomSheetStateChanged(

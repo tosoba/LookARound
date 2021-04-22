@@ -312,7 +312,7 @@ class CameraFragment :
             radarGuidelineLayoutParams.guideBegin =
                 if (targetVisibility == View.GONE) 0 else requireContext().dpToPx(56f).toInt()
             radarViewTopGuideline.layoutParams = radarGuidelineLayoutParams
+            (activity as? AREventsListener)?.onCameraTouch(targetVisibility)
         }
-        (activity as? AREventsListener)?.onCameraTouch()
     }
 }

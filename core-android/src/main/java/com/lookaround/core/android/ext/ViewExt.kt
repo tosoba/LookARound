@@ -1,6 +1,8 @@
 package com.lookaround.core.android.ext
 
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.TranslateAnimation
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.lookaround.core.android.view.BoxedSeekbar
 
@@ -27,4 +29,26 @@ fun BoxedSeekbar.updateValueButtonsEnabled(points: Int = value, upBtn: View, dow
 fun BoxedSeekbar.setValueButtonsOnClickListeners(upBtn: View, downBtn: View) {
     upBtn.setOnClickListener { ++value }
     downBtn.setOnClickListener { --value }
+}
+
+fun View.slideUp(duration: Long = 250L, toYDelta: Float = -250f) {
+    val animate = TranslateAnimation(0f, 0f, 0f, toYDelta)
+    animate.duration = duration
+    startAnimation(animate)
+    animate.setAnimationListener(
+        object : Animation.AnimationListener {
+            override fun onAnimationStart(animation: Animation) = Unit
+            override fun onAnimationEnd(animation: Animation) {
+                visibility = View.GONE
+            }
+            override fun onAnimationRepeat(animation: Animation) = Unit
+        }
+    )
+}
+
+fun View.slideDown(duration: Long = 250L, fromYDelta: Float = -250f) {
+    visibility = View.VISIBLE
+    val animate = TranslateAnimation(0f, 0f, fromYDelta, 0f)
+    animate.duration = duration
+    startAnimation(animate)
 }
