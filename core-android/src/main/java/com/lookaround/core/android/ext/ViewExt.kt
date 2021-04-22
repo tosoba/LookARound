@@ -32,23 +32,23 @@ fun BoxedSeekbar.setValueButtonsOnClickListeners(upBtn: View, downBtn: View) {
 }
 
 fun View.slideUp(duration: Long = 250L, toYDelta: Float = -250f) {
-    val animate = TranslateAnimation(0f, 0f, 0f, toYDelta)
-    animate.duration = duration
-    startAnimation(animate)
-    animate.setAnimationListener(
-        object : Animation.AnimationListener {
-            override fun onAnimationStart(animation: Animation) = Unit
-            override fun onAnimationEnd(animation: Animation) {
-                visibility = View.GONE
-            }
-            override fun onAnimationRepeat(animation: Animation) = Unit
+    startAnimation(
+        TranslateAnimation(0f, 0f, 0f, toYDelta).also {
+            it.duration = duration
+            it.setAnimationListener(
+                object : Animation.AnimationListener {
+                    override fun onAnimationStart(animation: Animation) = Unit
+                    override fun onAnimationEnd(animation: Animation) {
+                        visibility = View.GONE
+                    }
+                    override fun onAnimationRepeat(animation: Animation) = Unit
+                }
+            )
         }
     )
 }
 
 fun View.slideDown(duration: Long = 250L, fromYDelta: Float = -250f) {
     visibility = View.VISIBLE
-    val animate = TranslateAnimation(0f, 0f, fromYDelta, 0f)
-    animate.duration = duration
-    startAnimation(animate)
+    startAnimation(TranslateAnimation(0f, 0f, fromYDelta, 0f).also { it.duration = duration })
 }
