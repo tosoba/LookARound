@@ -60,7 +60,7 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintLeft_toLeftOf="@id/ar_camera_range_seekbar"
         app:layout_constraintRight_toRightOf="@id/ar_camera_range_seekbar"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/radar_view_top_guideline"
         app:layout_constraintVertical_chainStyle="spread" />
 
     <com.lookaround.core.android.view.BoxedSeekbar
@@ -95,7 +95,7 @@
         android:contentDescription="@string/range_down"
         android:src="@drawable/minus"
         app:fabCustomSize="32dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/bottom_sheet_collapsed_guideline"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintLeft_toLeftOf="@id/ar_camera_range_seekbar"
         app:layout_constraintRight_toRightOf="@id/ar_camera_range_seekbar"
@@ -121,7 +121,7 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintLeft_toLeftOf="@id/ar_camera_page_seekbar"
         app:layout_constraintRight_toRightOf="@id/ar_camera_page_seekbar"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/radar_view_top_guideline"
         app:layout_constraintVertical_chainStyle="spread" />
 
     <com.lookaround.core.android.view.BoxedSeekbar
@@ -156,11 +156,18 @@
         android:contentDescription="@string/page_down"
         android:src="@drawable/minus"
         app:fabCustomSize="32dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/bottom_sheet_collapsed_guideline"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintLeft_toLeftOf="@id/ar_camera_page_seekbar"
         app:layout_constraintRight_toRightOf="@id/ar_camera_page_seekbar"
         app:layout_constraintTop_toBottomOf="@+id/ar_camera_page_seekbar" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/bottom_sheet_collapsed_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_end="50dp" />
 
     <View
         android:id="@+id/blur_background"
