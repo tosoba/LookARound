@@ -3,6 +3,8 @@ package com.lookaround
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -18,15 +20,14 @@ import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.locationUpdateFailureUpdates
 import com.lookaround.ui.place.types.PlaceTypesView
+import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.Search
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -38,6 +39,9 @@ class MainActivity : AppCompatActivity(), AREventsListener {
 
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
     private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
+
+    private val topFragment: Fragment?
+        get() = supportFragmentManager.findFragmentById(R.id.main_fragment_container)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +63,45 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     }
 
     private fun ActivityMainBinding.initSearch() {
-        searchBarView.setContent { ProvideWindowInsets { LookARoundTheme { Search() } } }
+        searchBarView.setContent {
+            ProvideWindowInsets {
+                LookARoundTheme {
+                    Search(
+                        onSearchFocusChange = { focused ->
+                            if (focused) showSearchFragment() else hideSearchFragment()
+                        }
+                    ) {}
+                }
+            }
+        }
+    }
+
+    private fun showSearchFragment() {
+        if (topFragment is SearchFragment ||
+                !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+        ) {
+            return
+        }
+        supportFragmentManager.beginTransaction().apply {
+            setCustomAnimations(
+                R.anim.slide_in_bottom,
+                R.anim.slide_out_top,
+                R.anim.slide_in_top,
+                R.anim.slide_out_bottom
+            )
+            add(R.id.main_fragment_container, SearchFragment())
+            addToBackStack(null)
+            commit()
+        }
+    }
+
+    private fun hideSearchFragment() {
+        if (topFragment !is SearchFragment ||
+                !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+        ) {
+            return
+        }
+        supportFragmentManager.popBackStack()
     }
 
     private fun ActivityMainBinding.initPlaceTypes() {

@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 
 class SearchFragment : Fragment() {
     override fun onCreateView(
@@ -25,27 +26,31 @@ class SearchFragment : Fragment() {
     ): View =
         ComposeView(requireContext()).apply {
             setContent {
-                LazyColumn {
-                    items(items) { item ->
-                        Text(
-                            text = item,
-                            style = MaterialTheme.typography.h6,
-                            color = LookARoundTheme.colors.textPrimary,
-                            modifier =
-                                Modifier.heightIn(min = 24.dp)
-                                    .padding(horizontal = 12.dp, vertical = 4.dp)
-                                    .wrapContentHeight()
-                        )
+                ProvideWindowInsets {
+                    LookARoundTheme {
+                        LazyColumn {
+                            items(items) { item ->
+                                Text(
+                                    text = item,
+                                    style = MaterialTheme.typography.h6,
+                                    color = LookARoundTheme.colors.textPrimary,
+                                    modifier =
+                                        Modifier.heightIn(min = 24.dp)
+                                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                                            .wrapContentHeight()
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
 
     companion object {
-        private val items =
+        private val items: List<String> =
             generateSequence { "RESULT" }
                 .take(15)
                 .mapIndexed { index, result -> "$result$index" }
-                .toMutableList()
+                .toList()
     }
 }

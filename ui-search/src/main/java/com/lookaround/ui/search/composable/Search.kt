@@ -17,13 +17,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.lookaround.core.android.view.composable.BackButtonAction
 import com.lookaround.core.android.view.composable.LookARoundSurface
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.search.R
 import dev.chrisbanes.accompanist.insets.statusBarsPadding
 
 @Composable
-fun Search(modifier: Modifier = Modifier, state: SearchState = rememberSearchState()) {
+fun Search(
+    modifier: Modifier = Modifier,
+    state: SearchState = rememberSearchState(),
+    onSearchFocusChange: (Boolean) -> Unit = {},
+    onQueryChange: (TextFieldValue) -> Unit = {}
+) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     LookARoundSurface(color = Color.Transparent, modifier = modifier.wrapContentHeight()) {
@@ -31,18 +37,21 @@ fun Search(modifier: Modifier = Modifier, state: SearchState = rememberSearchSta
             Spacer(modifier = Modifier.statusBarsPadding())
             SearchBar(
                 query = state.query,
-                onQueryChange = state::query::set,
+                onQueryChange = { query ->
+                    state.query = query
+                    onQueryChange(query)
+                },
                 searchFocused = state.focused,
-                onSearchFocusChange = state::focused::set,
+                onSearchFocusChange = { focused ->
+                    state.focused = focused
+                    onSearchFocusChange(focused)
+                },
                 onBackArrowClicked = focusManager::clearFocus,
                 onClearQueryClicked = { state.query = TextFieldValue("") },
                 focusRequester = focusRequester,
             )
-            LaunchedEffect(state.query.text) {
-                if (state.query.text.isBlank()) return@LaunchedEffect
-                // TODO: trigger search in VM
-            }
         }
+        BackButtonAction(focusManager::clearFocus)
     }
 }
 
