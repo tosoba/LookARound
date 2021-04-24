@@ -28,7 +28,7 @@ fun Search(
     modifier: Modifier = Modifier,
     state: SearchState = rememberSearchState(),
     onSearchFocusChange: (Boolean) -> Unit = {},
-    onQueryChange: (TextFieldValue) -> Unit = {}
+    onTextValueChange: (TextFieldValue) -> Unit = {}
 ) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -36,10 +36,10 @@ fun Search(
         Column {
             Spacer(modifier = Modifier.statusBarsPadding())
             SearchBar(
-                query = state.query,
-                onQueryChange = { query ->
-                    state.query = query
-                    onQueryChange(query)
+                textValue = state.textValue,
+                onTextValueChange = { query ->
+                    state.textValue = query
+                    onTextValueChange(query)
                 },
                 searchFocused = state.focused,
                 onSearchFocusChange = { focused ->
@@ -47,30 +47,30 @@ fun Search(
                     onSearchFocusChange(focused)
                 },
                 onBackArrowClicked = focusManager::clearFocus,
-                onClearQueryClicked = { state.query = TextFieldValue("") },
+                onClearQueryClicked = { state.textValue = TextFieldValue("") },
                 focusRequester = focusRequester,
             )
         }
+        if (state.focused) LaunchedEffect(Unit) { focusRequester.requestFocus() }
         BackButtonAction(focusManager::clearFocus)
     }
 }
 
 @Composable
-private fun rememberSearchState(
-    query: TextFieldValue = TextFieldValue(""),
-    focused: Boolean = false,
-): SearchState = remember { SearchState(query = query, focused = focused) }
+fun rememberSearchState(query: String = "", focused: Boolean = false): SearchState = remember {
+    SearchState(textValue = TextFieldValue(query), focused = focused)
+}
 
 @Stable
-class SearchState(query: TextFieldValue, focused: Boolean) {
-    var query by mutableStateOf(query)
+class SearchState(textValue: TextFieldValue, focused: Boolean) {
+    var textValue by mutableStateOf(textValue)
     var focused by mutableStateOf(focused)
 }
 
 @Composable
 private fun SearchBar(
-    query: TextFieldValue,
-    onQueryChange: (TextFieldValue) -> Unit,
+    textValue: TextFieldValue,
+    onTextValueChange: (TextFieldValue) -> Unit,
     searchFocused: Boolean,
     onSearchFocusChange: (Boolean) -> Unit,
     onBackArrowClicked: () -> Unit,
@@ -86,7 +86,7 @@ private fun SearchBar(
             modifier.fillMaxWidth().height(56.dp).padding(horizontal = 24.dp, vertical = 8.dp)
     ) {
         Box(Modifier.fillMaxSize()) {
-            if (query.text.isEmpty()) SearchHint()
+            if (textValue.text.isEmpty()) SearchHint()
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxSize().wrapContentHeight()
@@ -101,15 +101,15 @@ private fun SearchBar(
                     }
                 }
                 BasicTextField(
-                    value = query,
-                    onValueChange = onQueryChange,
+                    value = textValue,
+                    onValueChange = onTextValueChange,
                     modifier =
                         Modifier.weight(1f).focusRequester(focusRequester).onFocusChanged {
                             onSearchFocusChange(it.isFocused)
                         }
                 )
                 when {
-                    query.text.isNotEmpty() ->
+                    textValue.text.isNotEmpty() ->
                         IconButton(onClick = onClearQueryClicked) {
                             Icon(
                                 imageVector = Icons.Outlined.Clear,
@@ -146,8 +146,8 @@ private fun SearchBarPreview() {
     LookARoundTheme {
         LookARoundSurface {
             SearchBar(
-                query = TextFieldValue(""),
-                onQueryChange = {},
+                textValue = TextFieldValue(""),
+                onTextValueChange = {},
                 searchFocused = false,
                 onSearchFocusChange = {},
                 onBackArrowClicked = {},
@@ -164,8 +164,8 @@ private fun SearchBarDarkPreview() {
     LookARoundTheme(darkTheme = true) {
         LookARoundSurface {
             SearchBar(
-                query = TextFieldValue(""),
-                onQueryChange = {},
+                textValue = TextFieldValue(""),
+                onTextValueChange = {},
                 searchFocused = false,
                 onSearchFocusChange = {},
                 onBackArrowClicked = {},

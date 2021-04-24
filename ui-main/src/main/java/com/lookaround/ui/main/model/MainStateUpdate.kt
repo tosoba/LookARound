@@ -56,6 +56,16 @@ sealed class MainStateUpdate : StateUpdate<MainState> {
         override fun invoke(state: MainState): MainState = state.copy(bottomSheetState = sheetState)
     }
 
+    data class SearchQueryChanged(val query: String) : MainStateUpdate() {
+        override fun invoke(state: MainState): MainState =
+            if (state.searchQuery == query) state else state.copy(searchQuery = query)
+    }
+
+    data class SearchFocusChanged(val focused: Boolean) : MainStateUpdate() {
+        override fun invoke(state: MainState): MainState =
+            if (state.searchFocused == focused) state else state.copy(searchFocused = focused)
+    }
+
     protected fun MainState.copyWithLocationException(throwable: Throwable): MainState =
         copy(locationState = locationState.copyWithError(throwable))
 }

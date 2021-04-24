@@ -13,11 +13,11 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.main.model.MainStateUpdate
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class MainFlowProcessor
@@ -45,6 +45,12 @@ constructor(
                 MainStateUpdate.LocationPermissionDenied
             },
             bottomSheetStateUpdates(intents, currentState),
+            intents.filterIsInstance<MainIntent.SearchQueryChanged>().map { (query) ->
+                MainStateUpdate.SearchQueryChanged(query)
+            },
+            intents.filterIsInstance<MainIntent.SearchFocusChanged>().map { (focused) ->
+                MainStateUpdate.SearchFocusChanged(focused)
+            }
         )
 
     override fun stateWillUpdate(

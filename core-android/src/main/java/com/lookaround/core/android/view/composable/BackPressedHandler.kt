@@ -29,6 +29,6 @@ private fun BackButtonHandler(enabled: Boolean = true, onBackPressed: () -> Unit
     }
     DisposableEffect(dispatcher) {
         dispatcher.addCallback(backCallback)
-        onDispose { backCallback.remove() }
+        onDispose(backCallback::remove)
     }
 }

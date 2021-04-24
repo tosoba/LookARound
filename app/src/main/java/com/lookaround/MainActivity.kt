@@ -4,24 +4,22 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ext.assistedViewModel
+import com.lookaround.core.android.ext.isResumed
 import com.lookaround.core.android.ext.slideDown
 import com.lookaround.core.android.ext.slideUp
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.ui.main.model.MainIntent
-import com.lookaround.ui.main.model.MainSignal
-import com.lookaround.ui.main.model.bottomSheetStateUpdates
-import com.lookaround.ui.main.model.locationUpdateFailureUpdates
+import com.lookaround.ui.main.model.*
 import com.lookaround.ui.place.types.PlaceTypesView
 import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.Search
+import com.lookaround.ui.search.composable.rememberSearchState
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 import javax.inject.Inject
@@ -56,33 +54,41 @@ class MainActivity : AppCompatActivity(), AREventsListener {
             .launchIn(lifecycleScope)
 
         viewModel
-            .signals
-            .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutLocation>()
+            .unableToLoadPlacesWithoutLocationSignals
             .onEach { Timber.tag("PLACES").e("Failed to load places without location.") }
             .launchIn(lifecycleScope)
     }
 
     private fun ActivityMainBinding.initSearch() {
+        viewModel
+            .searchFocusUpdates
+            .onEach { focused -> if (focused) showSearchFragment() else hideSearchFragment() }
+            .launchIn(lifecycleScope)
+
         searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
+                    val (_, _, _, searchQuery, searchFocused) = viewModel.state
                     Search(
+                        state = rememberSearchState(searchQuery, searchFocused),
                         onSearchFocusChange = { focused ->
-                            if (focused) showSearchFragment() else hideSearchFragment()
+                            lifecycleScope.launchWhenResumed {
+                                viewModel.intent(MainIntent.SearchFocusChanged(focused))
+                            }
                         }
-                    ) {}
+                    ) { textValue ->
+                        lifecycleScope.launchWhenResumed {
+                            viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
+                        }
+                    }
                 }
             }
         }
     }
 
     private fun showSearchFragment() {
-        if (topFragment is SearchFragment ||
-                !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
-        ) {
-            return
-        }
-        supportFragmentManager.beginTransaction().apply {
+        if (topFragment is SearchFragment || !lifecycle.isResumed) return
+        with(supportFragmentManager.beginTransaction()) {
             setCustomAnimations(
                 R.anim.slide_in_bottom,
                 R.anim.slide_out_top,
@@ -96,11 +102,7 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     }
 
     private fun hideSearchFragment() {
-        if (topFragment !is SearchFragment ||
-                !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
-        ) {
-            return
-        }
+        if (topFragment !is SearchFragment || !lifecycle.isResumed) return
         supportFragmentManager.popBackStack()
     }
 

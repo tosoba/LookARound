@@ -6,10 +6,10 @@ import com.lookaround.core.android.model.BottomSheetState
 import com.lookaround.core.android.model.Failed
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.ui.main.MainViewModel
+import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
-import java.util.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -34,3 +34,14 @@ val MainViewModel.locationUpdateFailureUpdates: Flow<Unit>
 @ExperimentalCoroutinesApi
 val MainViewModel.bottomSheetStateUpdates: Flow<BottomSheetState>
     get() = states.map { it.bottomSheetState }
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+val MainViewModel.searchFocusUpdates: Flow<Boolean>
+    get() = states.map { it.searchFocused }.debounce(500L).distinctUntilChanged()
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+val MainViewModel.unableToLoadPlacesWithoutLocationSignals:
+    Flow<MainSignal.UnableToLoadPlacesWithoutLocation>
+    get() = signals.filterIsInstance()
