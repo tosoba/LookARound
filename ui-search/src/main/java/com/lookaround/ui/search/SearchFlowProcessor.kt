@@ -1,6 +1,7 @@
 package com.lookaround.ui.search
 
 import com.lookaround.core.android.base.arch.FlowProcessor
+import com.lookaround.core.android.ext.roundToDecimalPlaces
 import com.lookaround.core.usecase.SearchPoints
 import com.lookaround.ui.search.model.SearchIntent
 import com.lookaround.ui.search.model.SearchSignal
@@ -42,8 +43,16 @@ constructor(
                                 points =
                                     searchPoints(
                                         query = query,
-                                        priorityLat = priorityLocation?.latitude,
-                                        priorityLon = priorityLocation?.longitude
+                                        priorityLat =
+                                            priorityLocation
+                                                ?.latitude
+                                                ?.roundToDecimalPlaces(3)
+                                                ?.toDouble(),
+                                        priorityLon =
+                                            priorityLocation
+                                                ?.longitude
+                                                ?.roundToDecimalPlaces(3)
+                                                ?.toDouble()
                                     ),
                                 withLocationPriority = priorityLocation != null
                             )
