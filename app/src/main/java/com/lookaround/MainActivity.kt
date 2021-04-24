@@ -18,8 +18,8 @@ import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.*
 import com.lookaround.ui.place.types.PlaceTypesView
 import com.lookaround.ui.search.SearchFragment
-import com.lookaround.ui.search.composable.Search
-import com.lookaround.ui.search.composable.rememberSearchState
+import com.lookaround.ui.search.composable.SearchBar
+import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 import javax.inject.Inject
@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
     private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
 
-    private val topFragment: Fragment?
+    private val currentTopFragment: Fragment?
         get() = supportFragmentManager.findFragmentById(R.id.main_fragment_container)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,12 +65,20 @@ class MainActivity : AppCompatActivity(), AREventsListener {
             .onEach { focused -> if (focused) showSearchFragment() else hideSearchFragment() }
             .launchIn(lifecycleScope)
 
+        viewModel
+            .searchQueryUpdates
+            .onEach {
+                val topFragment = currentTopFragment
+                if (topFragment is SearchFragment) topFragment.queryChanged(it)
+            }
+            .launchIn(lifecycleScope)
+
         searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
                     val (_, _, _, searchQuery, searchFocused) = viewModel.state
-                    Search(
-                        state = rememberSearchState(searchQuery, searchFocused),
+                    SearchBar(
+                        state = rememberSearchBarState(searchQuery, searchFocused),
                         onSearchFocusChange = { focused ->
                             lifecycleScope.launchWhenResumed {
                                 viewModel.intent(MainIntent.SearchFocusChanged(focused))
@@ -87,7 +95,7 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     }
 
     private fun showSearchFragment() {
-        if (topFragment is SearchFragment || !lifecycle.isResumed) return
+        if (currentTopFragment is SearchFragment || !lifecycle.isResumed) return
         with(supportFragmentManager.beginTransaction()) {
             setCustomAnimations(
                 R.anim.slide_in_bottom,
@@ -102,7 +110,7 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     }
 
     private fun hideSearchFragment() {
-        if (topFragment !is SearchFragment || !lifecycle.isResumed) return
+        if (currentTopFragment !is SearchFragment || !lifecycle.isResumed) return
         supportFragmentManager.popBackStack()
     }
 

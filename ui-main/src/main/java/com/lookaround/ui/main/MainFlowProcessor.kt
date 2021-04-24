@@ -27,7 +27,6 @@ constructor(
     private val isLocationAvailable: IsLocationAvailable,
     private val locationDataFlow: LocationDataFlow
 ) : FlowProcessor<MainIntent, MainStateUpdate, MainState, MainSignal> {
-
     override fun updates(
         coroutineScope: CoroutineScope,
         intents: Flow<MainIntent>,

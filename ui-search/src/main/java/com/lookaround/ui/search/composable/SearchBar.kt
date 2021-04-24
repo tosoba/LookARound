@@ -24,9 +24,9 @@ import com.lookaround.ui.search.R
 import dev.chrisbanes.accompanist.insets.statusBarsPadding
 
 @Composable
-fun Search(
+fun SearchBar(
     modifier: Modifier = Modifier,
-    state: SearchState = rememberSearchState(),
+    state: SearchBarState = rememberSearchBarState(),
     onSearchFocusChange: (Boolean) -> Unit = {},
     onTextValueChange: (TextFieldValue) -> Unit = {}
 ) {
@@ -57,12 +57,15 @@ fun Search(
 }
 
 @Composable
-fun rememberSearchState(query: String = "", focused: Boolean = false): SearchState = remember {
-    SearchState(textValue = TextFieldValue(query), focused = focused)
+fun rememberSearchBarState(
+    query: String = "",
+    focused: Boolean = false,
+): SearchBarState = remember {
+    SearchBarState(textValue = TextFieldValue(query), focused = focused)
 }
 
 @Stable
-class SearchState(textValue: TextFieldValue, focused: Boolean) {
+class SearchBarState(textValue: TextFieldValue, focused: Boolean) {
     var textValue by mutableStateOf(textValue)
     var focused by mutableStateOf(focused)
 }

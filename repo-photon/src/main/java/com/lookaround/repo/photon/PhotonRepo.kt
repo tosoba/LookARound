@@ -6,11 +6,18 @@ import com.lookaround.core.model.PointDTO
 import com.lookaround.core.repo.IPlacesAutocompleteRepo
 import javax.inject.Inject
 
-class PhotonRepo @Inject constructor(private val photonEndpoints: PhotonEndpoints) :
-    IPlacesAutocompleteRepo {
-    override suspend fun searchPoints(query: String): List<PointDTO> =
+class PhotonRepo
+@Inject
+constructor(
+    private val photonEndpoints: PhotonEndpoints,
+) : IPlacesAutocompleteRepo {
+    override suspend fun searchPoints(
+        query: String,
+        priorityLat: Double?,
+        priorityLon: Double?
+    ): List<PointDTO> =
         photonEndpoints
-            .search(query)
+            .search(query, priorityLat = priorityLat, priorityLon = priorityLon)
             .features()
             ?.filter {
                 val properties = it.properties()

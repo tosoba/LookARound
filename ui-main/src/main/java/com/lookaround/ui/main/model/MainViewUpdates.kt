@@ -42,6 +42,11 @@ val MainViewModel.searchFocusUpdates: Flow<Boolean>
 
 @FlowPreview
 @ExperimentalCoroutinesApi
+val MainViewModel.searchQueryUpdates: Flow<String>
+    get() = states.map { it.searchQuery }.debounce(500L).map { it.trim() }.distinctUntilChanged()
+
+@FlowPreview
+@ExperimentalCoroutinesApi
 val MainViewModel.unableToLoadPlacesWithoutLocationSignals:
     Flow<MainSignal.UnableToLoadPlacesWithoutLocation>
     get() = signals.filterIsInstance()

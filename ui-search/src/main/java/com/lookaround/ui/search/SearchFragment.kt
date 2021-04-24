@@ -4,21 +4,39 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.lookaround.core.android.ext.assistedViewModel
+import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.ui.search.composable.SearchResults
+import com.lookaround.ui.search.exception.BlankQueryException
+import com.lookaround.ui.search.exception.PlacesLoadingException
+import com.lookaround.ui.search.exception.QueryTooShortExcecption
+import com.lookaround.ui.search.model.SearchIntent
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.WithFragmentBindings
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
+import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
+@FlowPreview
+@ExperimentalCoroutinesApi
+@AndroidEntryPoint
+@WithFragmentBindings
 class SearchFragment : Fragment() {
+    @Inject internal lateinit var viewModelFactory: SearchViewModel.Factory
+    private val viewModel: SearchViewModel by assistedViewModel { viewModelFactory.create(it) }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -28,29 +46,38 @@ class SearchFragment : Fragment() {
             setContent {
                 ProvideWindowInsets {
                     LookARoundTheme {
-                        LazyColumn {
-                            items(items) { item ->
-                                Text(
-                                    text = item,
-                                    style = MaterialTheme.typography.h6,
-                                    color = LookARoundTheme.colors.textPrimary,
-                                    modifier =
-                                        Modifier.heightIn(min = 24.dp)
-                                            .padding(horizontal = 12.dp, vertical = 4.dp)
-                                            .wrapContentHeight()
-                                )
+                        val points =
+                            viewModel
+                                .states
+                                .map { it.points }
+                                .distinctUntilChanged()
+                                .collectAsState(Empty)
+                                .value
+                        when (points) {
+                            is Failed -> {
+                                when (points.error) {
+                                    is BlankQueryException ->
+                                        Text("Search query cannot be places blank.")
+                                    is QueryTooShortExcecption -> Text("Search query is too short.")
+                                    is PlacesLoadingException ->
+                                        // TODO: retry button?
+                                        Text("Places loading error occurred.")
+                                }
                             }
+                            is LoadingInProgress -> CircularProgressIndicator()
+                            is Ready -> {
+                                val items = points.value.items
+                                if (items.isEmpty()) Text("No places found.")
+                                else SearchResults(items)
+                            }
+                            is Empty -> Text("Search for places nearby.")
                         }
                     }
                 }
             }
         }
 
-    companion object {
-        private val items: List<String> =
-            generateSequence { "RESULT" }
-                .take(15)
-                .mapIndexed { index, result -> "$result$index" }
-                .toList()
+    fun queryChanged(query: String) {
+        lifecycleScope.launch { viewModel.intent(SearchIntent.QueryChanged(query)) }
     }
 }
