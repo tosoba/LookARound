@@ -1,12 +1,14 @@
-package com.lookaround.ui.camera.model
+package com.lookaround.ui.camera
 
+import android.location.Location
 import androidx.camera.view.PreviewView
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.model.*
-import com.lookaround.ui.camera.CameraViewModel
+import com.lookaround.ui.camera.model.CameraPreviewState
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainState
+import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -71,3 +73,13 @@ internal val MainViewModel.markerUpdates: Flow<List<Marker>>
             .distinctUntilChanged()
             .filterIsInstance<WithValue<ParcelableList<Marker>>>()
             .map { it.value.items }
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+internal val MainViewModel.locationReadyUpdates: Flow<Location>
+    get() =
+        states
+            .map { it.locationState }
+            .filterIsInstance<WithValue<Location>>()
+            .map { it.value }
+            .distinctUntilChangedBy { Objects.hash(it.latitude, it.longitude) }

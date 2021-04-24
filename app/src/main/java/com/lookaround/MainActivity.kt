@@ -14,7 +14,7 @@ import com.lookaround.core.android.ext.slideDown
 import com.lookaround.core.android.ext.slideUp
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
-import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.*
 import com.lookaround.ui.place.types.PlaceTypesView
 import com.lookaround.ui.search.SearchFragment
@@ -63,14 +63,6 @@ class MainActivity : AppCompatActivity(), AREventsListener {
         viewModel
             .searchFocusUpdates
             .onEach { focused -> if (focused) showSearchFragment() else hideSearchFragment() }
-            .launchIn(lifecycleScope)
-
-        viewModel
-            .searchQueryUpdates
-            .onEach {
-                val topFragment = currentTopFragment
-                if (topFragment is SearchFragment) topFragment.queryChanged(it)
-            }
             .launchIn(lifecycleScope)
 
         searchBarView.setContent {
