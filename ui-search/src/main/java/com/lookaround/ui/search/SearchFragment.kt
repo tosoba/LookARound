@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
@@ -47,7 +49,16 @@ class SearchFragment : Fragment() {
         mainViewModel
             .searchQueryUpdates
             .run { if (savedInstanceState != null) drop(1) else this }
-            .onEach { query -> searchViewModel.intent(SearchIntent.QueryChanged(query)) }
+            .onEach { query ->
+                val (_, locationState) = mainViewModel.state
+                searchViewModel.intent(
+                    SearchIntent.SearchPlaces(
+                        query = query,
+                        priorityLocation =
+                            if (locationState is WithValue) locationState.value else null
+                    )
+                )
+            }
             .launchIn(lifecycleScope)
     }
 
@@ -60,32 +71,44 @@ class SearchFragment : Fragment() {
             setContent {
                 ProvideWindowInsets {
                     LookARoundTheme {
-                        val points =
-                            searchViewModel
-                                .states
-                                .map { it.points }
-                                .distinctUntilChanged()
-                                .collectAsState(Empty)
-                                .value
+                        val (points, lastPerformedWithLocationPriority) =
+                            searchViewModel.states.collectAsState().value
                         when (points) {
                             is Empty -> Text("Search for places nearby.")
                             is LoadingInProgress -> CircularProgressIndicator()
-                            is Ready -> {
-                                val items = points.value.items
-                                if (items.isEmpty()) Text("No places found.")
-                                else SearchResults(items)
-                            }
-                            is Failed -> {
-                                when (points.error) {
-                                    is QueryTooShortExcecption -> Text("Search query is too short.")
-                                    is PlacesLoadingException ->
-                                        // TODO: retry button?
-                                        Text("Places loading error occurred.")
-                                }
-                            }
+                            is Ready -> PointsReady(points, lastPerformedWithLocationPriority)
+                            is Failed -> PointsFailed(points)
                         }
                     }
                 }
             }
         }
+
+    @Composable
+    private fun PointsReady(
+        points: Ready<ParcelableList<Point>>,
+        lastPerformedWithLocationPriority: Boolean
+    ) {
+        val items = points.value.items
+        when {
+            items.isEmpty() -> Text("No places found.")
+            lastPerformedWithLocationPriority ->
+                Column {
+                    Text("WARNING - Search performed with no location priority.")
+                    // TODO: retry button when location retrieved?
+                    SearchResults(items)
+                }
+            else -> SearchResults(items)
+        }
+    }
+
+    @Composable
+    private fun PointsFailed(points: Failed) {
+        when (points.error) {
+            is QueryTooShortExcecption -> Text("Search query is too short.")
+            is PlacesLoadingException ->
+                // TODO: retry button?
+                Text("Places loading error occurred.")
+        }
+    }
 }

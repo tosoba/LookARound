@@ -17,12 +17,16 @@ sealed class SearchStateUpdate : StateUpdate<SearchState> {
             state.copyWithPointsException(PlacesLoadingException(throwable))
     }
 
-    data class PlacesLoaded(val points: List<PointDTO>) : SearchStateUpdate() {
+    data class PlacesLoaded(
+        val points: List<PointDTO>,
+        val withLocationPriority: Boolean,
+    ) : SearchStateUpdate() {
         override fun invoke(state: SearchState): SearchState =
             state.copy(
                 points =
                     if (state.points is WithValue) Ready(state.points.value + points.map(::Point))
-                    else Ready(ParcelableList(points.map(::Point)))
+                    else Ready(ParcelableList(points.map(::Point))),
+                lastPerformedWithLocationPriority = withLocationPriority
             )
     }
 

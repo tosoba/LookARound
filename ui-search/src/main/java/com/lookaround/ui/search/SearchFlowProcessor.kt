@@ -27,7 +27,8 @@ constructor(
         intent: suspend (SearchIntent) -> Unit,
         signal: suspend (SearchSignal) -> Unit
     ): Flow<SearchStateUpdate> =
-        intents.filterIsInstance<SearchIntent.QueryChanged>().transformLatest { (query) ->
+        intents.filterIsInstance<SearchIntent.SearchPlaces>().transformLatest {
+            (query, priorityLocation) ->
             when {
                 query.isBlank() -> emit(SearchStateUpdate.BlankQueryUpdate)
                 query.count(Char::isLetterOrDigit) <= 3 -> {
@@ -36,8 +37,17 @@ constructor(
                 else -> {
                     emit(SearchStateUpdate.LoadingPlaces)
                     try {
-                        // TODO: priority location?
-                        emit(SearchStateUpdate.PlacesLoaded(searchPoints(query)))
+                        emit(
+                            SearchStateUpdate.PlacesLoaded(
+                                points =
+                                    searchPoints(
+                                        query = query,
+                                        priorityLat = priorityLocation?.latitude,
+                                        priorityLon = priorityLocation?.longitude
+                                    ),
+                                withLocationPriority = priorityLocation != null
+                            )
+                        )
                     } catch (throwable: Throwable) {
                         emit(SearchStateUpdate.PlacesLoadingError(throwable))
                     }

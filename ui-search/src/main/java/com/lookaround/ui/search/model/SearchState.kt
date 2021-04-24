@@ -7,4 +7,8 @@ import com.lookaround.core.android.model.ParcelableList
 import com.lookaround.core.android.model.Point
 import kotlinx.parcelize.Parcelize
 
-@Parcelize data class SearchState(val points: Loadable<ParcelableList<Point>> = Empty) : Parcelable
+@Parcelize
+data class SearchState(
+    val points: Loadable<ParcelableList<Point>> = Empty,
+    val lastPerformedWithLocationPriority: Boolean = false
+) : Parcelable
