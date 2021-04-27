@@ -1,6 +1,7 @@
 package com.lookaround.ui.map
 
 import android.os.Parcelable
+import com.lookaround.core.android.map.MapScene
 import kotlinx.parcelize.Parcelize
 
 @Parcelize

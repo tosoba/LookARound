@@ -1,6 +1,7 @@
 package com.lookaround.ui.map
 
 import com.lookaround.core.android.base.arch.StateUpdate
+import com.lookaround.core.android.map.MapScene
 
 sealed class MapStateUpdate : StateUpdate<MapState> {
     data class LoadingScene(val scene: MapScene) : MapStateUpdate() {
