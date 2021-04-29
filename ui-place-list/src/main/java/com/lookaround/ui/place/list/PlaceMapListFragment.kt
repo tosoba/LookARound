@@ -17,9 +17,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
 
 @FlowPreview
@@ -71,28 +68,50 @@ class PlaceMapListFragment :
 
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
         val markers = mainViewModel.state.markers as WithValue
-        markers
-            .value
-            .items
-            .asFlow()
-            .onEach { marker ->
-                val location = marker.location
-                val bitmap =
-                    mapController.await().run {
-                        updateCameraPosition(
-                            CameraUpdateFactory.newCameraPosition(
-                                CameraPosition().apply {
-                                    latitude = location.latitude
-                                    longitude = location.longitude
-                                }
-                            )
+        markers.value[0].apply {
+            lifecycleScope.launch {
+                mapController.await().run {
+                    updateCameraPosition(
+                        CameraUpdateFactory.newCameraPosition(
+                            CameraPosition().apply {
+                                latitude = location.latitude
+                                longitude = location.longitude
+                            }
                         )
-                        captureFrame()
-                    }
-                Timber.tag("BIT").e(bitmap.byteCount.toString())
-                binding.captureImageView.setImageBitmap(bitmap)
+                    )
+                    captureFrame(
+                        { bitmap ->
+                            Timber.tag("BITM").e(bitmap.byteCount.toString())
+                            binding.captureImageView.setImageBitmap(bitmap)
+                        },
+                        true
+                    )
+                }
             }
-            .launchIn(lifecycleScope)
+        }
+        //        markers
+        //            .value
+        //            .items
+        //            .asFlow()
+        //            .take(1)
+        //            .onEach { marker ->
+        //                val location = marker.location
+        //                val bitmap =
+        //                    mapController.await().run {
+        //                        updateCameraPosition(
+        //                            CameraUpdateFactory.newCameraPosition(
+        //                                CameraPosition().apply {
+        //                                    latitude = location.latitude
+        //                                    longitude = location.longitude
+        //                                }
+        //                            )
+        //                        )
+        //                        captureFrame()
+        //                    }
+        //                Timber.tag("BIT").e(bitmap.byteCount.toString())
+        //                binding.captureImageView.setImageBitmap(bitmap)
+        //            }
+        //            .launchIn(lifecycleScope)
     }
 
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {

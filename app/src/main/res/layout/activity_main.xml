@@ -8,7 +8,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/main_fragment_container"
-        android:name="com.lookaround.ui.camera.CameraFragment"
+        android:name="com.lookaround.ui.place.list.PlaceMapListFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

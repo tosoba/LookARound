@@ -104,7 +104,8 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.0")
 
-    implementation("com.mapzen.tangram:tangram:0.13.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation(files("../libs/tangram-release.aar"))
 
     implementation("androidx.lifecycle:lifecycle-runtime:2.3.0")
     implementation("androidx.lifecycle:lifecycle-common-java8:2.3.0")

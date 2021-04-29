@@ -76,7 +76,7 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.3.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
 
-    implementation("com.mapzen.tangram:tangram:0.13.0")
+    implementation(files("../libs/tangram-release.aar"))
 
     implementation("com.google.dagger:hilt-android:2.31.2-alpha")
     kapt("com.google.dagger:hilt-android-compiler:2.31.2-alpha")

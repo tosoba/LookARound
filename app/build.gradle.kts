@@ -101,7 +101,7 @@ dependencies {
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
 
-    implementation("com.mapzen.tangram:tangram:0.13.0")
+    implementation(files("../libs/tangram-release.aar"))
 
     implementation("ru.beryukhov:flowreactivenetwork:1.0.2")
 
