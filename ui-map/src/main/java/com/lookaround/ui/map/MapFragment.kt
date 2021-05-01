@@ -6,7 +6,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.*
-import com.lookaround.core.android.map.MapScene
+import com.lookaround.core.android.map.scene.model.MapScene
+import com.lookaround.core.android.map.scene.model.MapSceneIntent
+import com.lookaround.core.android.map.scene.model.MapSceneSignal
+import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.*
@@ -27,8 +30,8 @@ import timber.log.Timber
 class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadListener {
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
 
-    @Inject internal lateinit var viewModelFactory: MapViewModel.Factory
-    private val viewModel: MapViewModel by assistedViewModel { viewModelFactory.create(it) }
+    @Inject internal lateinit var viewModelFactory: MapSceneViewModel.Factory
+    private val viewModel: MapSceneViewModel by assistedViewModel { viewModelFactory.create(it) }
 
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     private val mapController: Deferred<MapController> by lifecycleScope.lazyAsync {
@@ -45,7 +48,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
 
         viewModel
             .signals
-            .filterIsInstance<MapSignal.RetryLoadScene>()
+            .filterIsInstance<MapSceneSignal.RetryLoadScene>()
             .onEach { mapController.await().loadScene(it.scene) }
             .launchIn(lifecycleScope)
     }
@@ -76,7 +79,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
 
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
         if (sceneError == null) {
-            lifecycleScope.launch { viewModel.intent(MapIntent.SceneLoaded) }
+            lifecycleScope.launch { viewModel.intent(MapSceneIntent.SceneLoaded) }
 
             binding.shimmerLayout.stopAndHide()
             binding.blurBackground.visibility = View.GONE
@@ -85,18 +88,18 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         }
     }
 
-    private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
-        lifecycleScope.launch(Dispatchers.Main.immediate) { this@launch.await().block() }
-    }
-
     private suspend fun MapController.loadScene(scene: MapScene) {
         binding.blurBackground.visibility = View.VISIBLE
         binding.shimmerLayout.showAndStart()
 
-        viewModel.intent(MapIntent.LoadingScene(scene))
+        viewModel.intent(MapSceneIntent.LoadingScene(scene))
         loadSceneFile(
             scene.url,
             listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
         )
+    }
+
+    private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
+        lifecycleScope.launch(Dispatchers.Main.immediate) { this@launch.await().block() }
     }
 }

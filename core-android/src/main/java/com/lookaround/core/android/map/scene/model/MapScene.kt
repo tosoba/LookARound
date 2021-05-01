@@ -1,4 +1,4 @@
-package com.lookaround.core.android.map
+package com.lookaround.core.android.map.scene.model
 
 enum class MapScene(val url: String) {
     BUBBLE_WRAP("https://www.nextzen.org/carto/bubble-wrap-style/9/bubble-wrap-style.zip"),
