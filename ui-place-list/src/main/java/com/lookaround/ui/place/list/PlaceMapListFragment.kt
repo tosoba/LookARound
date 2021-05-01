@@ -8,17 +8,16 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.MapScene
 import com.lookaround.core.android.model.WithValue
+import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.place.list.databinding.FragmentPlaceMapListBinding
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
-import com.mapzen.tangram.viewholder.GLSurfaceViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import timber.log.Timber
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -33,22 +32,17 @@ class PlaceMapListFragment : Fragment(R.layout.fragment_place_map_list), MapChan
     }
 
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
-    private lateinit var mapController: MapController
+    private val mapController: Deferred<MapController> by lifecycleScope.lazyAsync {
+        binding.map.init(mapTilesHttpHandler)
+    }
 
     private var processingPlaces: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.map.getMapAsync(
-            { mc ->
-                mc?.let {
-                    mapController = it
-                    mapController.setMapChangeListener(this@PlaceMapListFragment)
-                    mapController.loadScene(MapScene.BUBBLE_WRAP)
-                }
-            },
-            GLSurfaceViewHolderFactory(),
-            mapTilesHttpHandler
-        )
+        mapController.launch {
+            setMapChangeListener(this@PlaceMapListFragment)
+            loadScene(MapScene.BUBBLE_WRAP)
+        }
     }
 
     override fun onDestroyView() {
@@ -90,25 +84,30 @@ class PlaceMapListFragment : Fragment(R.layout.fragment_place_map_list), MapChan
 
     private fun processPlaces() {
         val markers = mainViewModel.state.markers as WithValue
-        lifecycleScope.launch {
-            markers.value.items.asFlow().collect { marker ->
+        markers
+            .value
+            .items
+            .asFlow()
+            .onEach { marker ->
                 val location = marker.location
-                mapController.updateCameraPosition(
-                    CameraUpdateFactory.newCameraPosition(
-                        CameraPosition().apply {
-                            latitude = location.latitude
-                            longitude = location.longitude
-                        }
-                    )
-                )
-                val bitmap = mapController.captureFrame(false)
-                Timber.tag("BIT").e(bitmap.byteCount.toString())
+                val bitmap =
+                    mapController.await().run {
+                        updateCameraPosition(
+                            CameraUpdateFactory.newCameraPosition(
+                                CameraPosition().apply {
+                                    latitude = location.latitude
+                                    longitude = location.longitude
+                                }
+                            )
+                        )
+                        captureFrame(false)
+                    }
                 binding.captureImageView.setImageBitmap(bitmap)
             }
-        }
+            .launchIn(lifecycleScope)
     }
 
-    override fun onRegionWillChange(p0: Boolean) = Unit
+    override fun onRegionWillChange(animated: Boolean) = Unit
     override fun onRegionIsChanging() = Unit
-    override fun onRegionDidChange(p0: Boolean) = Unit
+    override fun onRegionDidChange(animated: Boolean) = Unit
 }
