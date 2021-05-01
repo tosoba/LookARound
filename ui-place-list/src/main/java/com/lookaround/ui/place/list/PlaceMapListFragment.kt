@@ -109,16 +109,13 @@ class PlaceMapListFragment :
                 val bitmap =
                     mapController.await().run {
                         updateCameraPosition(
-                            CameraUpdateFactory.newCameraPosition(
-                                CameraPosition().apply {
-                                    latitude = location.latitude
-                                    longitude = location.longitude
-                                }
+                            CameraUpdateFactory.newLngLatZoom(
+                                LngLat(location.longitude, location.latitude),
+                                15f
                             )
                         )
                         captureFrame(false)
                     }
-                binding.captureImageView.setImageBitmap(bitmap)
             }
             .launchIn(lifecycleScope)
     }
