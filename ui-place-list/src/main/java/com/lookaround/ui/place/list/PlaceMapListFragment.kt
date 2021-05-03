@@ -1,5 +1,7 @@
 package com.lookaround.ui.place.list
 
+import android.graphics.Bitmap
+import android.location.Location
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
@@ -24,6 +26,7 @@ import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
+import uk.co.senab.bitmapcache.CacheableBitmapDrawable
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -47,8 +50,7 @@ class PlaceMapListFragment :
     }
 
     @Inject internal lateinit var mapCaptureCache: MapCaptureCache
-    private val bindPlaceMapViewHolderEventsChannel =
-        BroadcastChannel<MapCaptureRequest>(Channel.BUFFERED)
+    private val mapCaptureRequestChannel = BroadcastChannel<MapCaptureRequest>(Channel.BUFFERED)
     private var processingPlaces: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -60,7 +62,7 @@ class PlaceMapListFragment :
     }
 
     override fun onDestroyView() {
-        bindPlaceMapViewHolderEventsChannel.close()
+        mapCaptureRequestChannel.close()
         binding.map.onDestroy()
         super.onDestroyView()
     }
@@ -99,38 +101,48 @@ class PlaceMapListFragment :
     }
 
     private fun processPlaces() {
-        bindPlaceMapViewHolderEventsChannel
+        mapCaptureRequestChannel
             .asFlow()
-            .onEach { (location, bitmapCallback, cacheableBitmapDrawableCallback) ->
-                if (mapCaptureCache.isEnabled) {
-                    val cached = withContext(Dispatchers.IO) { mapCaptureCache[location] }
-                    if (cached != null) {
-                        cacheableBitmapDrawableCallback(cached)
-                        return@onEach
-                    }
-                }
-                val bitmap =
-                    mapController.await().run {
-                        updateCameraPosition(
-                            CameraUpdateFactory.newLngLatZoom(
-                                LngLat(location.longitude, location.latitude),
-                                15f
-                            )
-                        )
-                        delay(250L)
-                        captureFrame(false)
-                    }
-                bitmapCallback(bitmap)
-                if (mapCaptureCache.isEnabled) {
-                    withContext(Dispatchers.IO) { mapCaptureCache[location] = bitmap }
-                }
-            }
+            .onEach(::processMapCaptureRequest)
             .launchIn(lifecycleScope)
         initPlaceMapList()
     }
 
+    private suspend fun processMapCaptureRequest(request: MapCaptureRequest) {
+        val (location, bitmapCallback, cacheableBitmapDrawableCallback) = request
+        val cached = getCachedBitmap(location)
+        if (cached != null) {
+            cacheableBitmapDrawableCallback(cached)
+            return
+        }
+        val bitmap = captureBitmap(location)
+        bitmapCallback(bitmap)
+        cacheBitmap(location, bitmap)
+    }
+
+    private suspend fun getCachedBitmap(location: Location): CacheableBitmapDrawable? =
+        if (mapCaptureCache.isEnabled) withContext(Dispatchers.IO) { mapCaptureCache[location] }
+        else null
+
+    private suspend fun cacheBitmap(location: Location, bitmap: Bitmap) {
+        if (!mapCaptureCache.isEnabled) return
+        withContext(Dispatchers.IO) { mapCaptureCache[location] = bitmap }
+    }
+
+    private suspend fun captureBitmap(location: Location): Bitmap =
+        mapController.await().run {
+            updateCameraPosition(
+                CameraUpdateFactory.newLngLatZoom(
+                    LngLat(location.longitude, location.latitude),
+                    15f
+                )
+            )
+            delay(250L)
+            captureFrame(false)
+        }
+
     private fun initPlaceMapList() {
-        val placeMapListAdapter = PlaceMapListAdapter(bindPlaceMapViewHolderEventsChannel)
+        val placeMapListAdapter = PlaceMapListAdapter(mapCaptureRequestChannel)
         binding.placeMapRecyclerView.adapter = placeMapListAdapter
         mainViewModel.markerUpdates.onEach(placeMapListAdapter::update).launchIn(lifecycleScope)
     }

@@ -1,7 +1,5 @@
 package com.lookaround.ui.place.list
 
-import android.graphics.Bitmap
-import android.location.Location
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,10 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.lookaround.core.android.model.Marker
 import java.lang.ref.WeakReference
 import kotlinx.coroutines.channels.SendChannel
-import uk.co.senab.bitmapcache.CacheableBitmapDrawable
 
 internal class PlaceMapListAdapter(
-    private val bindViewHolderEventsChannel: SendChannel<MapCaptureRequest>
+    private val mapCaptureRequestChannel: SendChannel<MapCaptureRequest>
 ) : RecyclerView.Adapter<PlaceMapListViewHolder>() {
     private val asyncListDiffer = AsyncListDiffer(this, PlaceMapListDiffUtilItemCallback)
 
@@ -25,7 +22,7 @@ internal class PlaceMapListAdapter(
         )
 
     override fun onBindViewHolder(holder: PlaceMapListViewHolder, position: Int) {
-        bindViewHolderEventsChannel.offer(
+        mapCaptureRequestChannel.offer(
             MapCaptureRequest(
                 location = asyncListDiffer.currentList[position].location,
                 holder = WeakReference(holder)
@@ -38,23 +35,6 @@ internal class PlaceMapListAdapter(
     fun update(newList: List<Marker>) {
         asyncListDiffer.submitList(newList)
     }
-}
-
-internal data class MapCaptureRequest(
-    val location: Location,
-    val bitmapCallback: (Bitmap) -> Unit,
-    val cacheableBitmapDrawableCallback: (CacheableBitmapDrawable) -> Unit
-) {
-    constructor(
-        location: Location,
-        holder: WeakReference<PlaceMapListViewHolder>
-    ) : this(
-        location,
-        bitmapCallback = { bitmap -> holder.get()?.placeMapImageView?.setImageBitmap(bitmap) },
-        cacheableBitmapDrawableCallback = { drawable ->
-            holder.get()?.placeMapImageView?.setImageDrawable(drawable)
-        }
-    )
 }
 
 internal class PlaceMapListViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
