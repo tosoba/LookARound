@@ -110,6 +110,7 @@ class PlaceMapListFragment :
                                 15f
                             )
                         )
+                        delay(250L)
                         captureFrame(false)
                     }
                 callback(bitmap)
