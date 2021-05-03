@@ -76,6 +76,8 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.3.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
 
+    implementation("com.jakewharton:disklrucache:2.0.2")
+    implementation(files("../libs/bitmap-lru-cache.jar"))
     implementation("com.mapzen.tangram:tangram:0.13.0")
 
     implementation("com.google.dagger:hilt-android:2.31.2-alpha")

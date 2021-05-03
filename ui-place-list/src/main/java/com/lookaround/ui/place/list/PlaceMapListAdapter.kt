@@ -12,9 +12,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.lookaround.core.android.model.Marker
 import java.lang.ref.WeakReference
 import kotlinx.coroutines.channels.SendChannel
+import uk.co.senab.bitmapcache.CacheableBitmapDrawable
 
 internal class PlaceMapListAdapter(
-    private val bindViewHolderEventsChannel: SendChannel<Pair<Location, (Bitmap) -> Unit>>
+    private val bindViewHolderEventsChannel: SendChannel<MapCaptureRequest>
 ) : RecyclerView.Adapter<PlaceMapListViewHolder>() {
     private val asyncListDiffer = AsyncListDiffer(this, PlaceMapListDiffUtilItemCallback)
 
@@ -24,14 +25,11 @@ internal class PlaceMapListAdapter(
         )
 
     override fun onBindViewHolder(holder: PlaceMapListViewHolder, position: Int) {
-        val view = WeakReference(holder.view)
         bindViewHolderEventsChannel.offer(
-            asyncListDiffer.currentList[position].location to
-                { bitmap ->
-                    view.get()
-                        ?.findViewById<ImageView>(R.id.place_map_image_view)
-                        ?.setImageBitmap(bitmap)
-                }
+            MapCaptureRequest(
+                location = asyncListDiffer.currentList[position].location,
+                holder = WeakReference(holder)
+            )
         )
     }
 
@@ -42,7 +40,27 @@ internal class PlaceMapListAdapter(
     }
 }
 
-internal class PlaceMapListViewHolder(val view: View) : RecyclerView.ViewHolder(view)
+internal data class MapCaptureRequest(
+    val location: Location,
+    val bitmapCallback: (Bitmap) -> Unit,
+    val cacheableBitmapDrawableCallback: (CacheableBitmapDrawable) -> Unit
+) {
+    constructor(
+        location: Location,
+        holder: WeakReference<PlaceMapListViewHolder>
+    ) : this(
+        location,
+        bitmapCallback = { bitmap -> holder.get()?.placeMapImageView?.setImageBitmap(bitmap) },
+        cacheableBitmapDrawableCallback = { drawable ->
+            holder.get()?.placeMapImageView?.setImageDrawable(drawable)
+        }
+    )
+}
+
+internal class PlaceMapListViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
+    val placeMapImageView: ImageView
+        get() = view.findViewById(R.id.place_map_image_view)
+}
 
 private object PlaceMapListDiffUtilItemCallback : DiffUtil.ItemCallback<Marker>() {
     override fun areItemsTheSame(oldItem: Marker, newItem: Marker): Boolean =

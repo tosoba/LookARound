@@ -5,6 +5,7 @@ import android.os.Build
 import android.util.TypedValue
 import android.view.Surface
 import android.view.WindowManager
+import java.io.File
 import kotlin.math.ceil
 
 val Context.phoneRotation: Int
@@ -39,3 +40,15 @@ val Context.actionBarHeight: Float
 
 fun Context.dpToPx(value: Float): Float =
     TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, resources.displayMetrics)
+
+fun Context.getOrCreateCacheFile(name: String): File? {
+    val cacheDir = externalCacheDir
+    val tileCacheDir: File?
+    if (cacheDir != null) {
+        tileCacheDir = File(cacheDir, name)
+        if (!tileCacheDir.exists()) tileCacheDir.mkdir()
+    } else {
+        tileCacheDir = null
+    }
+    return tileCacheDir
+}

@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object CoreAndroidNetworkModule {
+object NetworkModule {
     @Provides @Singleton fun reactiveNetwork(): ReactiveNetwork = ReactiveNetwork()
 
     @Provides

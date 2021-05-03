@@ -1,13 +1,14 @@
 package com.lookaround.core.android.map
 
 import android.content.Context
+import com.lookaround.core.android.ext.getOrCreateCacheFile
 import dagger.hilt.android.qualifiers.ApplicationContext
-import okhttp3.Cache
-import okhttp3.CacheControl
-import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import okhttp3.Cache
+import okhttp3.CacheControl
+import timber.log.Timber
 
 @Singleton
 class MapTilesCacheConfig @Inject constructor(@ApplicationContext context: Context) {
@@ -17,19 +18,15 @@ class MapTilesCacheConfig @Inject constructor(@ApplicationContext context: Conte
             .maxStale(TILE_CACHE_MAX_STALE_DAYS, TimeUnit.DAYS)
             .build()
 
-    val cache: Cache?
-
-    init {
-        val cacheDir = context.externalCacheDir
-        val tileCacheDir: File?
-        if (cacheDir != null) {
-            tileCacheDir = File(cacheDir, TILE_CACHE_DIR)
-            if (!tileCacheDir.exists()) tileCacheDir.mkdir()
-        } else {
-            tileCacheDir = null
+    val cache: Cache? =
+        context.getOrCreateCacheFile(TILE_CACHE_DIR)?.let { cacheDir ->
+            if (cacheDir.exists()) {
+                Cache(cacheDir, TILE_CACHE_SIZE_B)
+            } else {
+                Timber.tag("CACHE").d("Tile cache dir does not exist - not using cache.")
+                null
+            }
         }
-        cache = if (tileCacheDir?.exists() == true) Cache(tileCacheDir, TILE_CACHE_SIZE_B) else null
-    }
 
     companion object {
         const val USER_AGENT_HEADER = "LookARound"

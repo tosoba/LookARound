@@ -1,13 +1,12 @@
 package com.lookaround.ui.place.list
 
-import android.graphics.Bitmap
-import android.location.Location
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.*
+import com.lookaround.core.android.map.MapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
@@ -47,8 +46,9 @@ class PlaceMapListFragment :
         binding.map.init(mapTilesHttpHandler)
     }
 
+    @Inject internal lateinit var mapCaptureCache: MapCaptureCache
     private val bindPlaceMapViewHolderEventsChannel =
-        BroadcastChannel<Pair<Location, (Bitmap) -> Unit>>(Channel.BUFFERED)
+        BroadcastChannel<MapCaptureRequest>(Channel.BUFFERED)
     private var processingPlaces: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -101,7 +101,14 @@ class PlaceMapListFragment :
     private fun processPlaces() {
         bindPlaceMapViewHolderEventsChannel
             .asFlow()
-            .onEach { (location, callback) ->
+            .onEach { (location, bitmapCallback, cacheableBitmapDrawableCallback) ->
+                if (mapCaptureCache.isEnabled) {
+                    val cached = withContext(Dispatchers.IO) { mapCaptureCache[location] }
+                    if (cached != null) {
+                        cacheableBitmapDrawableCallback(cached)
+                        return@onEach
+                    }
+                }
                 val bitmap =
                     mapController.await().run {
                         updateCameraPosition(
@@ -113,7 +120,10 @@ class PlaceMapListFragment :
                         delay(250L)
                         captureFrame(false)
                     }
-                callback(bitmap)
+                bitmapCallback(bitmap)
+                if (mapCaptureCache.isEnabled) {
+                    withContext(Dispatchers.IO) { mapCaptureCache[location] = bitmap }
+                }
             }
             .launchIn(lifecycleScope)
         initPlaceMapList()

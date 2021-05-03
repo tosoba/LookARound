@@ -16,7 +16,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 @ExperimentalCoroutinesApi
 @Module(includes = [OverpassModule::class, NominatimModule::class, PhotonModule::class])
 @InstallIn(SingletonComponent::class)
-abstract class CoreAndroidRepoModule {
+abstract class RepoModule {
     @Binds abstract fun appRepo(repo: AppRepo): IAppRepo
     @Binds abstract fun placesAutoCompleteRepo(repo: PhotonRepo): IPlacesAutocompleteRepo
 }

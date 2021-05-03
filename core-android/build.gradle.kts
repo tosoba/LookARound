@@ -104,6 +104,8 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.0")
 
+    implementation("com.jakewharton:disklrucache:2.0.2")
+    implementation(files("../libs/bitmap-lru-cache.jar"))
     implementation("com.mapzen.tangram:tangram:0.13.0")
 
     implementation("androidx.lifecycle:lifecycle-runtime:2.3.0")
