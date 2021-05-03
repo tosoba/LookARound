@@ -3,4 +3,6 @@
     android:id="@+id/place_map_image_view"
     android:layout_width="150dp"
     android:layout_height="150dp"
-    android:layout_gravity="center" />
+    android:layout_gravity="center"
+    android:padding="15dp"
+    android:scaleType="fitXY" />

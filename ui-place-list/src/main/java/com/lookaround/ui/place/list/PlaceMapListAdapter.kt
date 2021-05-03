@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.lookaround.core.android.model.Marker
+import java.lang.ref.WeakReference
 import kotlinx.coroutines.channels.SendChannel
 
 internal class PlaceMapListAdapter(
@@ -23,13 +24,13 @@ internal class PlaceMapListAdapter(
         )
 
     override fun onBindViewHolder(holder: PlaceMapListViewHolder, position: Int) {
+        val view = WeakReference(holder.view)
         bindViewHolderEventsChannel.offer(
             asyncListDiffer.currentList[position].location to
                 { bitmap ->
-                    holder
-                        .view
-                        .findViewById<ImageView>(R.id.place_map_image_view)
-                        .setImageBitmap(bitmap)
+                    view.get()
+                        ?.findViewById<ImageView>(R.id.place_map_image_view)
+                        ?.setImageBitmap(bitmap)
                 }
         )
     }

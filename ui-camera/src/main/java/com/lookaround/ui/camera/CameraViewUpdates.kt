@@ -66,16 +66,6 @@ internal fun arDisabledUpdates(
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal val MainViewModel.markerUpdates: Flow<List<Marker>>
-    get() =
-        states
-            .map(MainState::markers::get)
-            .distinctUntilChanged()
-            .filterIsInstance<WithValue<ParcelableList<Marker>>>()
-            .map { it.value.items }
-
-@FlowPreview
-@ExperimentalCoroutinesApi
 internal val MainViewModel.locationReadyUpdates: Flow<Location>
     get() =
         states

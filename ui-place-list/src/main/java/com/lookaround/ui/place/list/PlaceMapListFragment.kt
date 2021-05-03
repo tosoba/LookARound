@@ -1,5 +1,7 @@
 package com.lookaround.ui.place.list
 
+import android.graphics.Bitmap
+import android.location.Location
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
@@ -9,9 +11,9 @@ import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
-import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.markerUpdates
 import com.lookaround.ui.place.list.databinding.FragmentPlaceMapListBinding
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
@@ -19,6 +21,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
@@ -43,16 +47,20 @@ class PlaceMapListFragment :
         binding.map.init(mapTilesHttpHandler)
     }
 
+    private val bindPlaceMapViewHolderEventsChannel =
+        BroadcastChannel<Pair<Location, (Bitmap) -> Unit>>(Channel.BUFFERED)
     private var processingPlaces: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mapController.launch {
+            setSceneLoadListener(this@PlaceMapListFragment)
             setMapChangeListener(this@PlaceMapListFragment)
             loadScene(MapScene.BUBBLE_WRAP)
         }
     }
 
     override fun onDestroyView() {
+        bindPlaceMapViewHolderEventsChannel.close()
         binding.map.onDestroy()
         super.onDestroyView()
     }
@@ -70,14 +78,6 @@ class PlaceMapListFragment :
     override fun onLowMemory() {
         super.onLowMemory()
         binding.map.onLowMemory()
-    }
-
-    private suspend fun MapController.loadScene(scene: MapScene) {
-        viewModel.intent(MapSceneIntent.LoadingScene(scene))
-        loadSceneFile(
-            scene.url,
-            listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
-        )
     }
 
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
@@ -99,13 +99,9 @@ class PlaceMapListFragment :
     }
 
     private fun processPlaces() {
-        val markers = mainViewModel.state.markers as WithValue
-        markers
-            .value
-            .items
+        bindPlaceMapViewHolderEventsChannel
             .asFlow()
-            .onEach { marker ->
-                val location = marker.location
+            .onEach { (location, callback) ->
                 val bitmap =
                     mapController.await().run {
                         updateCameraPosition(
@@ -116,15 +112,31 @@ class PlaceMapListFragment :
                         )
                         captureFrame(false)
                     }
+                callback(bitmap)
             }
             .launchIn(lifecycleScope)
+        initPlaceMapList()
+    }
+
+    private fun initPlaceMapList() {
+        val placeMapListAdapter = PlaceMapListAdapter(bindPlaceMapViewHolderEventsChannel)
+        binding.placeMapRecyclerView.adapter = placeMapListAdapter
+        mainViewModel.markerUpdates.onEach(placeMapListAdapter::update).launchIn(lifecycleScope)
+    }
+
+    private suspend fun MapController.loadScene(scene: MapScene) {
+        viewModel.intent(MapSceneIntent.LoadingScene(scene))
+        loadSceneFile(
+            scene.url,
+            listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
+        )
+    }
+
+    private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
+        lifecycleScope.launch(Dispatchers.Main.immediate) { this@launch.await().block() }
     }
 
     override fun onRegionWillChange(animated: Boolean) = Unit
     override fun onRegionIsChanging() = Unit
     override fun onRegionDidChange(animated: Boolean) = Unit
-
-    private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
-        lifecycleScope.launch(Dispatchers.Main.immediate) { this@launch.await().block() }
-    }
 }

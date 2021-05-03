@@ -21,6 +21,7 @@ import com.lookaround.core.android.view.BoxedSeekbar
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import com.lookaround.ui.camera.model.*
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.markerUpdates
 import com.lookaround.ui.main.model.MainIntent
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings

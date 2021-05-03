@@ -1,9 +1,9 @@
 package com.lookaround.ui.main
 
 import com.lookaround.core.android.exception.LocationUpdateFailureException
-import com.lookaround.core.android.model.BottomSheetState
-import com.lookaround.core.android.model.Failed
+import com.lookaround.core.android.model.*
 import com.lookaround.ui.main.model.MainSignal
+import com.lookaround.ui.main.model.MainState
 import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -33,3 +33,13 @@ val MainViewModel.searchFocusUpdates: Flow<Boolean>
 val MainViewModel.unableToLoadPlacesWithoutLocationSignals:
     Flow<MainSignal.UnableToLoadPlacesWithoutLocation>
     get() = signals.filterIsInstance()
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+val MainViewModel.markerUpdates: Flow<List<Marker>>
+    get() =
+        states
+            .map(MainState::markers::get)
+            .distinctUntilChanged()
+            .filterIsInstance<WithValue<ParcelableList<Marker>>>()
+            .map { it.value.items }
