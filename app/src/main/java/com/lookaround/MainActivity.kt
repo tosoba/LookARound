@@ -143,16 +143,19 @@ class MainActivity : AppCompatActivity(), AREventsListener {
 
     override fun onAREnabled() {
         binding.searchBarView.visibility = View.VISIBLE
+        binding.bottomNavigationView.visibility = View.VISIBLE
         onBottomSheetStateChanged(BottomSheetBehavior.STATE_COLLAPSED, false)
     }
 
     override fun onARLoading() {
         binding.searchBarView.visibility = View.GONE
+        binding.bottomNavigationView.visibility = View.GONE
         onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
     }
 
     override fun onARDisabled(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
         binding.searchBarView.visibility = View.GONE
+        binding.bottomNavigationView.visibility = View.GONE
         onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
     }
 
