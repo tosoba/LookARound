@@ -31,7 +31,7 @@ fun BoxedSeekbar.setValueButtonsOnClickListeners(upBtn: View, downBtn: View) {
     downBtn.setOnClickListener { --value }
 }
 
-fun View.slideUp(duration: Long = 250L, toYDelta: Float = -250f) {
+fun View.slideToY(toYDelta: Float, duration: Long = 250L) {
     startAnimation(
         TranslateAnimation(0f, 0f, 0f, toYDelta).also {
             it.duration = duration
@@ -48,7 +48,7 @@ fun View.slideUp(duration: Long = 250L, toYDelta: Float = -250f) {
     )
 }
 
-fun View.slideDown(duration: Long = 250L, fromYDelta: Float = -250f) {
+fun View.slideFromY(fromYDelta: Float, duration: Long = 250L) {
     visibility = View.VISIBLE
     startAnimation(TranslateAnimation(0f, 0f, fromYDelta, 0f).also { it.duration = duration })
 }

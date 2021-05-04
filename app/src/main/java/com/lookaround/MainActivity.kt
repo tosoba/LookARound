@@ -10,8 +10,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.ext.isResumed
-import com.lookaround.core.android.ext.slideDown
-import com.lookaround.core.android.ext.slideUp
+import com.lookaround.core.android.ext.slideFromY
+import com.lookaround.core.android.ext.slideToY
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.main.*
@@ -161,7 +161,8 @@ class MainActivity : AppCompatActivity(), AREventsListener {
 
     override fun onCameraTouch(targetVisibility: Int) {
         binding.searchBarView.apply {
-            if (targetVisibility == View.GONE) slideUp() else slideDown()
+            val delta = -250f
+            if (targetVisibility == View.GONE) slideToY(delta) else slideFromY(delta)
         }
     }
 
