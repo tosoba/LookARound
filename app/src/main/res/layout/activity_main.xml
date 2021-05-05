@@ -49,10 +49,8 @@
         android:id="@+id/bottom_navigation_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
         android:background="@color/colorPrimary"
         android:visibility="gone"
-        app:labelVisibilityMode="unlabeled"
         app:menu="@menu/main_bottom_nav_menu" />
 
 </LinearLayout>
