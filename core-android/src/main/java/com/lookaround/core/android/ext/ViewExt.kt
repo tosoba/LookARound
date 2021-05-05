@@ -31,10 +31,20 @@ fun BoxedSeekbar.setValueButtonsOnClickListeners(upBtn: View, downBtn: View) {
     downBtn.setOnClickListener { --value }
 }
 
-fun View.slideToY(toYDelta: Float, duration: Long = 250L) {
+fun View.slideChangeVisibility(
+    targetVisibility: Int,
+    fromXDelta: Float = 0f,
+    toXDelta: Float = 0f,
+    fromYDelta: Float = 0f,
+    toYDelta: Float = 0f,
+    duration: Long = 250L
+) {
+    if (visibility == targetVisibility) return
+    if (targetVisibility == View.VISIBLE) visibility = View.VISIBLE
     startAnimation(
-        TranslateAnimation(0f, 0f, 0f, toYDelta).also {
+        TranslateAnimation(fromXDelta, toXDelta, fromYDelta, toYDelta).also {
             it.duration = duration
+            if (targetVisibility == View.VISIBLE) return@also
             it.setAnimationListener(
                 object : Animation.AnimationListener {
                     override fun onAnimationStart(animation: Animation) = Unit
@@ -46,9 +56,4 @@ fun View.slideToY(toYDelta: Float, duration: Long = 250L) {
             )
         }
     )
-}
-
-fun View.slideFromY(fromYDelta: Float, duration: Long = 250L) {
-    visibility = View.VISIBLE
-    startAnimation(TranslateAnimation(0f, 0f, fromYDelta, 0f).also { it.duration = duration })
 }
