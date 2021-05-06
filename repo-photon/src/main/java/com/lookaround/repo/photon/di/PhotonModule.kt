@@ -6,10 +6,10 @@ import com.lookaround.core.di.annotation.TestHttpClient
 import com.lookaround.repo.photon.PhotonEndpoints
 import dagger.Module
 import dagger.Provides
+import javax.inject.Singleton
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Singleton
 
 @Module
 object PhotonModule {
@@ -26,7 +26,7 @@ object PhotonModule {
     fun photonEndpoints(
         @PhotonGsonConverterFactory converterFactory: GsonConverterFactory,
         @TestHttpClient httpClient: OkHttpClient
-    ) =
+    ): PhotonEndpoints =
         Retrofit.Builder()
             .baseUrl(PhotonEndpoints.BASE_URL)
             .addConverterFactory(converterFactory)

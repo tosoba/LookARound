@@ -4,14 +4,16 @@ import android.location.Location
 import androidx.camera.view.PreviewView
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
-import com.lookaround.core.android.model.*
+import com.lookaround.core.android.model.Failed
+import com.lookaround.core.android.model.LoadingInProgress
+import com.lookaround.core.android.model.Ready
+import com.lookaround.core.android.model.WithValue
 import com.lookaround.ui.camera.model.CameraPreviewState
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.ui.main.model.MainState
-import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
+import java.util.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi
