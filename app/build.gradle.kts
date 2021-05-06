@@ -9,15 +9,14 @@ plugins {
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdk = 30
     buildToolsVersion = "30.0.3"
 
     defaultConfig {
         applicationId = "com.lookaround"
-        minSdkVersion(21)
-        targetSdkVersion(30)
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = 21
+        targetSdk = 30
+        version = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -25,11 +24,9 @@ android {
     buildTypes {
         named("release") {
             isMinifyEnabled = false
-            setProguardFiles(
-                listOf(
-                    getDefaultProguardFile("proguard-android-optimize.txt"),
-                    "proguard-rules.pro"
-                )
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "$project.rootDir/tools/proguard-rules.pro"
             )
         }
     }
@@ -38,7 +35,7 @@ android {
 
     buildFeatures { compose = true }
 
-    composeOptions { kotlinCompilerExtensionVersion = "1.0.0-beta01" }
+    composeOptions { kotlinCompilerExtensionVersion = "1.0.0-beta05" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -81,14 +78,14 @@ dependencies {
     implementation("dev.chrisbanes.accompanist:accompanist-insets:0.6.0")
     implementation("dev.chrisbanes.accompanist:accompanist-coil:0.6.0")
 
-    implementation("androidx.compose.runtime:runtime:1.0.0-beta01")
-    implementation("androidx.compose.compiler:compiler:1.0.0-beta01")
-    implementation("androidx.compose.ui:ui:1.0.0-beta01")
-    implementation("androidx.compose.ui:ui-tooling:1.0.0-beta01")
-    implementation("androidx.compose.foundation:foundation:1.0.0-beta01")
-    implementation("androidx.compose.material:material:1.0.0-beta01")
-    implementation("androidx.compose.material:material-icons-core:1.0.0-beta01")
-    implementation("androidx.compose.material:material-icons-extended:1.0.0-beta01")
+    implementation("androidx.compose.runtime:runtime:1.0.0-beta05")
+    implementation("androidx.compose.compiler:compiler:1.0.0-beta05")
+    implementation("androidx.compose.ui:ui:1.0.0-beta05")
+    implementation("androidx.compose.ui:ui-tooling:1.0.0-beta05")
+    implementation("androidx.compose.foundation:foundation:1.0.0-beta05")
+    implementation("androidx.compose.material:material:1.0.0-beta05")
+    implementation("androidx.compose.material:material-icons-core:1.0.0-beta05")
+    implementation("androidx.compose.material:material-icons-extended:1.0.0-beta05")
 
     implementation("androidx.core:core-ktx:1.3.2")
     implementation("androidx.fragment:fragment-ktx:1.3.1")

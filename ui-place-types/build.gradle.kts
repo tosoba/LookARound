@@ -9,13 +9,12 @@ plugins {
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdk = 30
 
     defaultConfig {
-        minSdkVersion(21)
-        targetSdkVersion(30)
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = 21
+        targetSdk = 30
+        version = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -24,18 +23,16 @@ android {
     buildTypes {
         named("release") {
             isMinifyEnabled = false
-            setProguardFiles(
-                listOf(
-                    getDefaultProguardFile("proguard-android-optimize.txt"),
-                    "proguard-rules.pro"
-                )
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "$project.rootDir/tools/proguard-rules.pro"
             )
         }
     }
 
     buildFeatures { compose = true }
 
-    composeOptions { kotlinCompilerExtensionVersion = "1.0.0-beta01" }
+    composeOptions { kotlinCompilerExtensionVersion = "1.0.0-beta05" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -70,14 +67,14 @@ dependencies {
     kapt("androidx.hilt:hilt-compiler:1.0.0-alpha03")
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
 
-    implementation("androidx.compose.runtime:runtime:1.0.0-beta01")
-    implementation("androidx.compose.compiler:compiler:1.0.0-beta01")
-    implementation("androidx.compose.ui:ui:1.0.0-beta01")
-    implementation("androidx.compose.ui:ui-tooling:1.0.0-beta01")
-    implementation("androidx.compose.foundation:foundation:1.0.0-beta01")
-    implementation("androidx.compose.material:material:1.0.0-beta01")
-    implementation("androidx.compose.material:material-icons-core:1.0.0-beta01")
-    implementation("androidx.compose.material:material-icons-extended:1.0.0-beta01")
+    implementation("androidx.compose.runtime:runtime:1.0.0-beta05")
+    implementation("androidx.compose.compiler:compiler:1.0.0-beta05")
+    implementation("androidx.compose.ui:ui:1.0.0-beta05")
+    implementation("androidx.compose.ui:ui-tooling:1.0.0-beta05")
+    implementation("androidx.compose.foundation:foundation:1.0.0-beta05")
+    implementation("androidx.compose.material:material:1.0.0-beta05")
+    implementation("androidx.compose.material:material-icons-core:1.0.0-beta05")
+    implementation("androidx.compose.material:material-icons-extended:1.0.0-beta05")
 
     testImplementation("junit:junit:4.13.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")
