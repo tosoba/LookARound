@@ -45,16 +45,16 @@ dependencies {
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("androidx.core:core-ktx:1.3.2")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
 
     implementation("com.google.android.material:material:1.3.0")
 
-    implementation("com.google.dagger:hilt-android:2.31.2-alpha")
-    kapt("com.google.dagger:hilt-android-compiler:2.31.2-alpha")
-    kapt("androidx.hilt:hilt-compiler:1.0.0-alpha03")
+    implementation("com.google.dagger:hilt-android:2.35")
+    kapt("com.google.dagger:hilt-android-compiler:2.35")
+    kapt("androidx.hilt:hilt-compiler:1.0.0")
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
 
-    testImplementation("junit:junit:4.13.1")
+    testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.3.0")
 }

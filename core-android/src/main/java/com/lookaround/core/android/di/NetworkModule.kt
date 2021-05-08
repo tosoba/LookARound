@@ -1,19 +1,20 @@
 package com.lookaround.core.android.di
 
 import com.lookaround.core.android.map.MapTilesCacheConfig
+import com.lookaround.core.di.CoreNetworkModule
 import com.mapzen.tangram.networking.DefaultHttpHandler
 import com.mapzen.tangram.networking.HttpHandler
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import ru.beryukhov.reactivenetwork.ReactiveNetwork
-import javax.inject.Singleton
 
-@Module
+@Module(includes = [CoreNetworkModule::class])
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
     @Provides @Singleton fun reactiveNetwork(): ReactiveNetwork = ReactiveNetwork()

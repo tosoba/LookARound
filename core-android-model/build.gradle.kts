@@ -41,6 +41,6 @@ android {
 dependencies {
     implementation(project(":core"))
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
     implementation("androidx.core:core-ktx:1.3.2")
 }

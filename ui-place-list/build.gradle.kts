@@ -40,7 +40,7 @@ android {
 
     buildFeatures { compose = true }
 
-    composeOptions { kotlinCompilerExtensionVersion = "1.0.0-beta05" }
+    composeOptions { kotlinCompilerExtensionVersion = "1.0.0-beta03" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -62,7 +62,7 @@ dependencies {
     implementation(project(":ui-main"))
 
     implementation(kotlin("stdlib", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
-    implementation("androidx.appcompat:appcompat:1.3.0-beta01")
+    implementation("androidx.appcompat:appcompat:1.3.0-rc01")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
     implementation("com.google.android.material:material:1.3.0")
     implementation("dev.chrisbanes.accompanist:accompanist-insets:0.6.0")
@@ -70,30 +70,30 @@ dependencies {
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
 
     implementation("androidx.core:core-ktx:1.3.2")
-    implementation("androidx.fragment:fragment-ktx:1.3.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
+    implementation("androidx.fragment:fragment-ktx:1.3.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
 
     implementation("com.jakewharton:disklrucache:2.0.2")
     implementation(files("../libs/bitmap-lru-cache.jar"))
     implementation("com.mapzen.tangram:tangram:0.13.0")
 
-    implementation("com.google.dagger:hilt-android:2.31.2-alpha")
-    kapt("com.google.dagger:hilt-android-compiler:2.31.2-alpha")
-    kapt("androidx.hilt:hilt-compiler:1.0.0-alpha03")
+    implementation("com.google.dagger:hilt-android:2.35")
+    kapt("com.google.dagger:hilt-android-compiler:2.35")
+    kapt("androidx.hilt:hilt-compiler:1.0.0")
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
 
-    implementation("androidx.compose.runtime:runtime:1.0.0-beta05")
-    implementation("androidx.compose.compiler:compiler:1.0.0-beta05")
-    implementation("androidx.compose.ui:ui:1.0.0-beta05")
-    implementation("androidx.compose.ui:ui-tooling:1.0.0-beta05")
-    implementation("androidx.compose.foundation:foundation:1.0.0-beta05")
-    implementation("androidx.compose.material:material:1.0.0-beta05")
-    implementation("androidx.compose.material:material-icons-core:1.0.0-beta05")
-    implementation("androidx.compose.material:material-icons-extended:1.0.0-beta05")
+    implementation("androidx.compose.runtime:runtime:1.0.0-beta03")
+    implementation("androidx.compose.compiler:compiler:1.0.0-beta03")
+    implementation("androidx.compose.ui:ui:1.0.0-beta03")
+    implementation("androidx.compose.ui:ui-tooling:1.0.0-beta03")
+    implementation("androidx.compose.foundation:foundation:1.0.0-beta03")
+    implementation("androidx.compose.material:material:1.0.0-beta03")
+    implementation("androidx.compose.material:material-icons-core:1.0.0-beta03")
+    implementation("androidx.compose.material:material-icons-extended:1.0.0-beta03")
 
     implementation("com.jakewharton.timber:timber:4.7.1")
 
-    testImplementation("junit:junit:4.13.1")
+    testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.3.0")
 }
