@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ext.assistedViewModel
@@ -14,7 +15,7 @@ import com.lookaround.core.android.ext.slideChangeVisibility
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.main.*
-import com.lookaround.ui.main.model.*
+import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.place.types.PlaceTypesView
 import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.SearchBar
@@ -24,7 +25,8 @@ import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -37,6 +39,22 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
     private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
 
+    private val bottomSheetBehavior by lazy(LazyThreadSafetyMode.NONE) {
+        BottomSheetBehavior.from(binding.placeTypesView)
+    }
+
+    private val onBottomNavItemSelectedListener by lazy(LazyThreadSafetyMode.NONE) {
+        BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_place_types -> {
+                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                }
+                R.id.action_place_list -> {}
+            }
+            true
+        }
+    }
+
     private val currentTopFragment: Fragment?
         get() = supportFragmentManager.findFragmentById(R.id.main_fragment_container)
 
@@ -46,6 +64,9 @@ class MainActivity : AppCompatActivity(), AREventsListener {
 
         binding.initSearch()
         binding.initPlaceTypes()
+        binding.bottomNavigationView.setOnNavigationItemSelectedListener(
+            onBottomNavItemSelectedListener
+        )
 
         viewModel
             .locationUpdateFailureUpdates
@@ -114,7 +135,7 @@ class MainActivity : AppCompatActivity(), AREventsListener {
             }
         }
 
-        with(BottomSheetBehavior.from(placeTypesView)) {
+        with(bottomSheetBehavior) {
             addBottomSheetCallback(
                 object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) =
@@ -126,19 +147,8 @@ class MainActivity : AppCompatActivity(), AREventsListener {
 
             viewModel
                 .bottomSheetStateUpdates
-                .onEach { (sheetState, changedByUser) ->
-                    state = sheetState
-                    if (sheetState == BottomSheetBehavior.STATE_EXPANDED) {
-                        changeSearchbarVisibility(View.VISIBLE)
-                    }
-                    if (!changedByUser) return@onEach
-                    showPlaceTypesBtn.apply {
-                        if (sheetState == BottomSheetBehavior.STATE_HIDDEN) show() else hide()
-                    }
-                }
+                .onEach { (sheetState, _) -> state = sheetState }
                 .launchIn(lifecycleScope)
-
-            showPlaceTypesBtn.setOnClickListener { state = BottomSheetBehavior.STATE_HALF_EXPANDED }
         }
     }
 
