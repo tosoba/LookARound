@@ -8,6 +8,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.marker.SimpleARMarker
@@ -21,6 +22,7 @@ import com.lookaround.core.android.view.BoxedSeekbar
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import com.lookaround.ui.camera.model.*
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.markerUpdates
 import com.lookaround.ui.main.model.MainIntent
 import dagger.hilt.android.AndroidEntryPoint
@@ -119,6 +121,22 @@ class CameraFragment :
         initARCameraPageViews()
         initARCameraRangeViews()
 
+        mainViewModel
+            .bottomSheetStateUpdates
+            .onEach { (state, _) ->
+                when (state) {
+                    BottomSheetBehavior.STATE_COLLAPSED, BottomSheetBehavior.STATE_HIDDEN -> {
+                        changeRadarViewTopGuideline(View.VISIBLE)
+                        showARViews()
+                    }
+                    BottomSheetBehavior.STATE_EXPANDED -> {
+                        changeRadarViewTopGuideline(View.GONE)
+                        hideARViews()
+                    }
+                }
+            }
+            .launchIn(lifecycleScope)
+
         cameraPreview.previewStreamState.observe(this@CameraFragment) {
             lifecycleScope.launch {
                 cameraViewModel.intent(CameraIntent.CameraStreamStateChanged(it))
@@ -192,9 +210,7 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.onLoadingStarted() {
-        arViewsGroup.visibility = View.GONE
-        arCameraPageViewsGroup.visibility = View.GONE
-        arCameraRangeViewsGroup.visibility = View.GONE
+        hideARViews()
         locationDisabledTextView.visibility = View.GONE
         permissionsViewsGroup.visibility = View.GONE
         blurBackground.visibility = View.VISIBLE
@@ -206,18 +222,14 @@ class CameraFragment :
         permissionsViewsGroup.visibility = View.GONE
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.GONE
-        arViewsGroup.visibility = View.VISIBLE
-        arCameraRangeViewsGroup.visibility = View.VISIBLE
-        if (arCameraPageSeekbar.isEnabled) arCameraPageViewsGroup.visibility = View.VISIBLE
+        showARViews()
     }
 
     private fun FragmentCameraBinding.onARDisabled(
         anyPermissionDenied: Boolean,
         locationDisabled: Boolean
     ) {
-        arViewsGroup.visibility = View.GONE
-        arCameraPageViewsGroup.visibility = View.GONE
-        arCameraRangeViewsGroup.visibility = View.GONE
+        hideARViews()
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.VISIBLE
         if (anyPermissionDenied) permissionsViewsGroup.visibility = View.VISIBLE
@@ -245,11 +257,7 @@ class CameraFragment :
     }
 
     override fun onPause() {
-        with(binding) {
-            arCameraPageViewsGroup.visibility = View.GONE
-            arCameraRangeViewsGroup.visibility = View.GONE
-            arViewsGroup.visibility = View.GONE
-        }
+        binding.hideARViews()
         orientationManager.stopSensor()
         super.onPause()
     }
@@ -307,12 +315,28 @@ class CameraFragment :
         with(binding) {
             val targetVisibility = arCameraRangeViewsGroup.toggleVisibility()
             if (arCameraPageSeekbar.isEnabled) arCameraPageViewsGroup.visibility = targetVisibility
-            val radarGuidelineLayoutParams =
-                radarViewTopGuideline.layoutParams as ConstraintLayout.LayoutParams
-            radarGuidelineLayoutParams.guideBegin =
-                if (targetVisibility == View.GONE) 0 else requireContext().dpToPx(56f).toInt()
-            radarViewTopGuideline.layoutParams = radarGuidelineLayoutParams
+            changeRadarViewTopGuideline(targetVisibility)
             (activity as? AREventsListener)?.onCameraTouch(targetVisibility)
         }
+    }
+
+    private fun FragmentCameraBinding.changeRadarViewTopGuideline(targetVisibility: Int) {
+        val radarGuidelineLayoutParams =
+            radarViewTopGuideline.layoutParams as ConstraintLayout.LayoutParams
+        radarGuidelineLayoutParams.guideBegin =
+            if (targetVisibility == View.GONE) 0 else requireContext().dpToPx(56f).toInt()
+        radarViewTopGuideline.layoutParams = radarGuidelineLayoutParams
+    }
+
+    private fun FragmentCameraBinding.showARViews() {
+        arViewsGroup.visibility = View.VISIBLE
+        arCameraRangeViewsGroup.visibility = View.VISIBLE
+        if (arCameraPageSeekbar.isEnabled) arCameraPageViewsGroup.visibility = View.VISIBLE
+    }
+
+    private fun FragmentCameraBinding.hideARViews() {
+        arViewsGroup.visibility = View.GONE
+        arCameraPageViewsGroup.visibility = View.GONE
+        arCameraRangeViewsGroup.visibility = View.GONE
     }
 }

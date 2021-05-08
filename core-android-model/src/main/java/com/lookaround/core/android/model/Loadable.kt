@@ -11,6 +11,8 @@ sealed class Loadable<out T : Parcelable> : Parcelable {
         get() = Empty
 
     open fun copyWithError(error: Throwable?): Loadable<T> = FailedFirst(error)
+
+    inline fun <reified E> isFailedWith(): Boolean = (this as? Failed)?.error is E
 }
 
 sealed class WithValue<out T : Parcelable> : Loadable<T>() {
@@ -26,9 +28,9 @@ interface LoadingInProgress
 @Parcelize object LoadingFirst : WithoutValue(), LoadingInProgress
 
 @Parcelize
-data class LoadingNext<out T : Parcelable>(override val value: T) :
-    WithValue<T>(), LoadingInProgress {
-
+data class LoadingNext<out T : Parcelable>(
+    override val value: T,
+) : WithValue<T>(), LoadingInProgress {
     override val copyWithLoadingInProgress: Loadable<T>
         get() = this
 
@@ -54,9 +56,10 @@ interface Failed {
 }
 
 @Parcelize
-data class FailedNext<out T : Parcelable>(override val value: T, override val error: Throwable?) :
-    WithValue<T>(), Failed {
-
+data class FailedNext<out T : Parcelable>(
+    override val value: T,
+    override val error: Throwable?,
+) : WithValue<T>(), Failed {
     override val copyWithClearedError: Ready<T>
         get() = Ready(value)
 

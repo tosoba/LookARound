@@ -128,10 +128,12 @@ class MainActivity : AppCompatActivity(), AREventsListener {
                 .bottomSheetStateUpdates
                 .onEach { (sheetState, changedByUser) ->
                     state = sheetState
-                    if (changedByUser) {
-                        showPlaceTypesBtn.apply {
-                            if (sheetState == BottomSheetBehavior.STATE_HIDDEN) show() else hide()
-                        }
+                    if (sheetState == BottomSheetBehavior.STATE_EXPANDED) {
+                        changeSearchbarVisibility(View.VISIBLE)
+                    }
+                    if (!changedByUser) return@onEach
+                    showPlaceTypesBtn.apply {
+                        if (sheetState == BottomSheetBehavior.STATE_HIDDEN) show() else hide()
                     }
                 }
                 .launchIn(lifecycleScope)
@@ -159,6 +161,10 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     }
 
     override fun onCameraTouch(targetVisibility: Int) {
+        changeSearchbarVisibility(targetVisibility)
+    }
+
+    private fun changeSearchbarVisibility(targetVisibility: Int) {
         binding.searchBarView.apply {
             val delta = -250f
             if (targetVisibility == View.GONE) {

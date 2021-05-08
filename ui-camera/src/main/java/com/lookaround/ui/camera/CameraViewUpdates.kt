@@ -4,16 +4,15 @@ import android.location.Location
 import androidx.camera.view.PreviewView
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
-import com.lookaround.core.android.model.Failed
 import com.lookaround.core.android.model.LoadingInProgress
 import com.lookaround.core.android.model.Ready
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.ui.camera.model.CameraPreviewState
 import com.lookaround.ui.main.MainViewModel
+import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
-import java.util.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -24,12 +23,18 @@ internal fun arEnabledUpdates(
     mainViewModel
         .states
         .combine(cameraViewModel.states) { mainState, cameraState ->
-            (mainState.locationState is Ready) to
-                (cameraState.previewState is CameraPreviewState.Active &&
-                    cameraState.previewState.streamState == PreviewView.StreamState.STREAMING)
+            (mainState.locationState is Ready) to cameraState.previewState.isLive
         }
         .distinctUntilChanged()
         .filter { (locationReady, cameraStreaming) -> locationReady && cameraStreaming }
+
+private val CameraPreviewState.isLoading: Boolean
+    get() =
+        this is CameraPreviewState.Initial ||
+            (this is CameraPreviewState.Active && streamState == PreviewView.StreamState.IDLE)
+
+private val CameraPreviewState.isLive: Boolean
+    get() = this is CameraPreviewState.Active && streamState == PreviewView.StreamState.STREAMING
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -40,10 +45,7 @@ internal fun loadingStartedUpdates(
     mainViewModel
         .states
         .combine(cameraViewModel.states) { mainState, cameraState ->
-            (mainState.locationState is LoadingInProgress) to
-                (cameraState.previewState is CameraPreviewState.Initial ||
-                    (cameraState.previewState is CameraPreviewState.Active &&
-                        cameraState.previewState.streamState == PreviewView.StreamState.IDLE))
+            (mainState.locationState is LoadingInProgress) to cameraState.previewState.isLoading
         }
         .distinctUntilChanged()
         .filter { (loadingLocation, loadingCamera) -> loadingLocation || loadingCamera }
@@ -57,9 +59,11 @@ internal fun arDisabledUpdates(
     mainViewModel
         .states
         .combine(cameraViewModel.states) { mainState, cameraState ->
-            ((mainState.locationState as? Failed)?.error is LocationPermissionDeniedException ||
-                (cameraState.previewState is CameraPreviewState.PermissionDenied)) to
-                ((mainState.locationState as? Failed)?.error is LocationDisabledException)
+            Pair(
+                mainState.locationState.isFailedWith<LocationPermissionDeniedException>() ||
+                    cameraState.previewState is CameraPreviewState.PermissionDenied,
+                mainState.locationState.isFailedWith<LocationDisabledException>()
+            )
         }
         .distinctUntilChanged()
         .filter { (anyPermissionDenied, locationDisabled) ->
