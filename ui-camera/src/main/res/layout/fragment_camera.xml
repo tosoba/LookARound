@@ -47,14 +47,13 @@
         android:visibility="gone"
         app:constraint_referenced_ids="ar_camera_page_up_btn,ar_camera_page_seekbar,ar_camera_page_down_btn" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <ImageButton
         android:id="@+id/ar_camera_page_up_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginHorizontal="15dp"
         android:contentDescription="@string/page_up"
         android:src="@drawable/plus"
-        app:fabCustomSize="32dp"
         app:layout_constraintBottom_toBottomOf="@id/ar_camera_page_seekbar"
         app:layout_constraintLeft_toRightOf="@id/ar_camera_page_seekbar"
         app:layout_constraintRight_toRightOf="parent"
@@ -83,14 +82,13 @@
         app:textSize="16sp"
         app:touchDisabled="true" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <ImageButton
         android:id="@+id/ar_camera_page_down_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginHorizontal="15dp"
         android:contentDescription="@string/page_down"
         android:src="@drawable/minus"
-        app:fabCustomSize="32dp"
         app:layout_constraintBottom_toBottomOf="@id/ar_camera_page_seekbar"
         app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -104,14 +102,13 @@
         android:visibility="gone"
         app:constraint_referenced_ids="ar_camera_range_up_btn,ar_camera_range_seekbar,ar_camera_range_down_btn" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <ImageButton
         android:id="@+id/ar_camera_range_up_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginHorizontal="15dp"
         android:contentDescription="@string/range_up"
         android:src="@drawable/plus"
-        app:fabCustomSize="32dp"
         app:layout_constraintBottom_toBottomOf="@id/ar_camera_range_seekbar"
         app:layout_constraintLeft_toRightOf="@id/ar_camera_range_seekbar"
         app:layout_constraintRight_toRightOf="parent"
@@ -140,14 +137,13 @@
         app:textSize="16sp"
         app:touchDisabled="true" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <ImageButton
         android:id="@+id/ar_camera_range_down_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginHorizontal="15dp"
         android:contentDescription="@string/range_down"
         android:src="@drawable/minus"
-        app:fabCustomSize="32dp"
         app:layout_constraintBottom_toBottomOf="@id/ar_camera_range_seekbar"
         app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintLeft_toLeftOf="parent"
