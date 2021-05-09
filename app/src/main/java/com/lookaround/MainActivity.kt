@@ -5,6 +5,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -16,7 +17,8 @@ import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
-import com.lookaround.ui.place.types.PlaceTypesView
+import com.lookaround.ui.place.list.PlaceListFragment
+import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.SearchBar
 import com.lookaround.ui.search.composable.rememberSearchBarState
@@ -40,17 +42,30 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
 
     private val bottomSheetBehavior by lazy(LazyThreadSafetyMode.NONE) {
-        BottomSheetBehavior.from(binding.placeTypesView)
+        BottomSheetBehavior.from(binding.bottomSheetFragmentViewpager)
+    }
+
+    private val bottomSheetViewPagerAdapter: FragmentStateAdapter by lazy(
+        LazyThreadSafetyMode.NONE
+    ) {
+        object : FragmentStateAdapter(this) {
+            override fun getItemCount(): Int = 2
+            override fun createFragment(position: Int): Fragment =
+                when (position) {
+                    0 -> PlaceTypesFragment()
+                    1 -> PlaceListFragment()
+                    else -> throw IllegalArgumentException()
+                }
+        }
     }
 
     private val onBottomNavItemSelectedListener by lazy(LazyThreadSafetyMode.NONE) {
         BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.action_place_types -> {
-                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-                }
-                R.id.action_place_list -> {}
+                R.id.action_place_types -> binding.bottomSheetFragmentViewpager.currentItem = 0
+                R.id.action_place_list -> binding.bottomSheetFragmentViewpager.currentItem = 1
             }
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
             true
         }
     }
@@ -63,7 +78,9 @@ class MainActivity : AppCompatActivity(), AREventsListener {
         setContentView(R.layout.activity_main)
 
         binding.initSearch()
-        binding.initPlaceTypes()
+        initBottomSheet()
+        binding.bottomSheetFragmentViewpager.isUserInputEnabled = false
+        binding.bottomSheetFragmentViewpager.adapter = bottomSheetViewPagerAdapter
         binding.bottomNavigationView.setOnNavigationItemSelectedListener(
             onBottomNavItemSelectedListener
         )
@@ -126,15 +143,7 @@ class MainActivity : AppCompatActivity(), AREventsListener {
         supportFragmentManager.popBackStack()
     }
 
-    private fun ActivityMainBinding.initPlaceTypes() {
-        placeTypesView.setContent {
-            LookARoundTheme {
-                PlaceTypesView { placeType ->
-                    lifecycleScope.launch { viewModel.intent(MainIntent.LoadPlaces(placeType)) }
-                }
-            }
-        }
-
+    private fun initBottomSheet() {
         with(bottomSheetBehavior) {
             addBottomSheetCallback(
                 object : BottomSheetBehavior.BottomSheetCallback() {
