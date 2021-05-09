@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     private val bottomSheetBehavior by lazy(LazyThreadSafetyMode.NONE) {
         BottomSheetBehavior.from(binding.bottomSheetFragmentContainer)
     }
+    private var lastLiveBottomSheetState: Int? = null
 
     private val onBottomNavItemSelectedListener by lazy(LazyThreadSafetyMode.NONE) {
         BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
@@ -64,6 +65,9 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        lastLiveBottomSheetState =
+            savedInstanceState?.getInt(SavedStateKeys.BOTTOM_SHEET_STATE.name)
 
         binding.initSearch()
         initBottomSheet()
@@ -106,6 +110,13 @@ class MainActivity : AppCompatActivity(), AREventsListener {
                     }
                 }
             }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        lastLiveBottomSheetState?.let {
+            outState.putInt(SavedStateKeys.BOTTOM_SHEET_STATE.name, it)
         }
     }
 
@@ -164,7 +175,10 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     override fun onAREnabled() {
         binding.searchBarView.visibility = View.VISIBLE
         binding.bottomNavigationView.visibility = View.VISIBLE
-        onBottomSheetStateChanged(BottomSheetBehavior.STATE_COLLAPSED, false)
+        onBottomSheetStateChanged(
+            lastLiveBottomSheetState ?: BottomSheetBehavior.STATE_COLLAPSED,
+            false
+        )
     }
 
     override fun onARLoading() {
@@ -176,6 +190,7 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     override fun onARDisabled(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
+        lastLiveBottomSheetState = viewModel.state.bottomSheetState.state
         onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
     }
 
@@ -198,8 +213,13 @@ class MainActivity : AppCompatActivity(), AREventsListener {
         @BottomSheetBehavior.State newState: Int,
         changedByUser: Boolean
     ) {
+        if (changedByUser) lastLiveBottomSheetState = newState
         lifecycleScope.launch {
             viewModel.intent(MainIntent.BottomSheetStateChanged(newState, changedByUser))
         }
+    }
+
+    private enum class SavedStateKeys {
+        BOTTOM_SHEET_STATE
     }
 }
