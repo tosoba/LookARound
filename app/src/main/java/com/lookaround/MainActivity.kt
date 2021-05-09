@@ -5,7 +5,6 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -42,28 +41,14 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
 
     private val bottomSheetBehavior by lazy(LazyThreadSafetyMode.NONE) {
-        BottomSheetBehavior.from(binding.bottomSheetFragmentViewpager)
-    }
-
-    private val bottomSheetViewPagerAdapter: FragmentStateAdapter by lazy(
-        LazyThreadSafetyMode.NONE
-    ) {
-        object : FragmentStateAdapter(this) {
-            override fun getItemCount(): Int = 2
-            override fun createFragment(position: Int): Fragment =
-                when (position) {
-                    0 -> PlaceTypesFragment()
-                    1 -> PlaceListFragment()
-                    else -> throw IllegalArgumentException()
-                }
-        }
+        BottomSheetBehavior.from(binding.bottomSheetFragmentContainer)
     }
 
     private val onBottomNavItemSelectedListener by lazy(LazyThreadSafetyMode.NONE) {
         BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.action_place_types -> binding.bottomSheetFragmentViewpager.currentItem = 0
-                R.id.action_place_list -> binding.bottomSheetFragmentViewpager.currentItem = 1
+                R.id.action_place_types -> replaceBottomSheetWith<PlaceTypesFragment>()
+                R.id.action_place_list -> replaceBottomSheetWith<PlaceListFragment>()
             }
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
             true
@@ -73,14 +58,15 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     private val currentTopFragment: Fragment?
         get() = supportFragmentManager.findFragmentById(R.id.main_fragment_container)
 
+    private val currentBottomSheetFragment: Fragment?
+        get() = supportFragmentManager.findFragmentById(R.id.bottom_sheet_fragment_container)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         binding.initSearch()
         initBottomSheet()
-        binding.bottomSheetFragmentViewpager.isUserInputEnabled = false
-        binding.bottomSheetFragmentViewpager.adapter = bottomSheetViewPagerAdapter
         binding.bottomNavigationView.setOnNavigationItemSelectedListener(
             onBottomNavItemSelectedListener
         )
@@ -158,6 +144,20 @@ class MainActivity : AppCompatActivity(), AREventsListener {
                 .bottomSheetStateUpdates
                 .onEach { (sheetState, _) -> state = sheetState }
                 .launchIn(lifecycleScope)
+        }
+    }
+
+    private inline fun <reified F : Fragment> replaceBottomSheetWith() {
+        if (currentBottomSheetFragment is F) return
+        with(supportFragmentManager.beginTransaction()) {
+            setCustomAnimations(
+                android.R.anim.fade_in,
+                android.R.anim.fade_out,
+                android.R.anim.fade_in,
+                android.R.anim.fade_out
+            )
+            replace(R.id.bottom_sheet_fragment_container, F::class.java.newInstance())
+            commit()
         }
     }
 
