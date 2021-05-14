@@ -38,6 +38,17 @@ val Context.actionBarHeight: Float
         return actionBarHeight
     }
 
+val Context.bottomNavigationViewHeight: Int
+    get() {
+        val resourceId: Int = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        return if (resourceId > 0) {
+            resources.getDimensionPixelSize(resourceId)
+        } else {
+            val heightDp = 56
+            ceil(heightDp * resources.displayMetrics.density).toInt()
+        }
+    }
+
 fun Context.dpToPx(value: Float): Float =
     TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, resources.displayMetrics)
 

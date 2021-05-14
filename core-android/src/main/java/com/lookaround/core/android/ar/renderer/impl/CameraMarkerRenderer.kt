@@ -16,6 +16,7 @@ import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.ext.actionBarHeight
+import com.lookaround.core.android.ext.bottomNavigationViewHeight
 import com.lookaround.core.android.ext.statusBarHeight
 import java.util.*
 import kotlinx.coroutines.flow.Flow
@@ -39,9 +40,12 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             } else {
                 NUMBER_OF_ROWS_LANDSCAPE
             }
-        markerHeight =
-            (displayMetrics.heightPixels - statusBarHeight - actionBarHeight) / numberOfRows -
-                MARKER_VERTICAL_SPACING
+        val cameraViewHeight =
+            displayMetrics.heightPixels -
+                statusBarHeight -
+                actionBarHeight -
+                context.bottomNavigationViewHeight
+        markerHeight = cameraViewHeight / numberOfRows - MARKER_VERTICAL_SPACING
 
         val markerWidthDivisor =
             if (orientation == Configuration.ORIENTATION_PORTRAIT) {
