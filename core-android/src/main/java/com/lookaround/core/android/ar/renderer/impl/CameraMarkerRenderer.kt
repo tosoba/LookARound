@@ -31,7 +31,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     init {
         val displayMetrics = context.resources.displayMetrics
-        screenHeight = displayMetrics.heightPixels.toFloat()
+        val bottomNavigationViewHeight = context.bottomNavigationViewHeight
+        screenHeight = displayMetrics.heightPixels.toFloat() - bottomNavigationViewHeight
         val orientation = context.resources.configuration.orientation
 
         val numberOfRows =
@@ -44,7 +45,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             displayMetrics.heightPixels -
                 statusBarHeight -
                 actionBarHeight -
-                context.bottomNavigationViewHeight
+                bottomNavigationViewHeight
         markerHeight = cameraViewHeight / numberOfRows - MARKER_VERTICAL_SPACING
 
         val markerWidthDivisor =
