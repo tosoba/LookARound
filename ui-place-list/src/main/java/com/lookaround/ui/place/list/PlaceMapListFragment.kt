@@ -12,6 +12,7 @@ import com.lookaround.core.android.map.MapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
+import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.markerUpdates
@@ -59,6 +60,12 @@ class PlaceMapListFragment :
             setMapChangeListener(this@PlaceMapListFragment)
             loadScene(MapScene.BUBBLE_WRAP)
         }
+
+        viewModel
+            .signals
+            .filterIsInstance<MapSceneSignal.RetryLoadScene>()
+            .onEach { mapController.await().loadScene(it.scene) }
+            .launchIn(lifecycleScope)
     }
 
     override fun onDestroyView() {
