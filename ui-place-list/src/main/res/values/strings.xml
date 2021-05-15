@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="place_map_list_item">place map list item</string>
+    <string name="place_map_list_item_marker">place map list item marker</string>
+</resources>

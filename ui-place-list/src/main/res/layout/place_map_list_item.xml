@@ -1,19 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="150dp"
     android:layout_height="150dp"
-    android:padding="15dp">
+    android:elevation="5dp"
+    android:padding="15dp"
+    app:cardElevation="4dp"
+    app:cardCornerRadius="3dp"
+    app:cardUseCompatPadding="true">
 
     <ImageView
         android:id="@+id/place_map_image_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:contentDescription="@string/place_map_list_item"
         android:scaleType="fitXY" />
 
     <ImageView
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_gravity="center"
+        android:contentDescription="@string/place_map_list_item_marker"
         android:scaleType="fitXY"
         android:src="@drawable/ic_marker_24" />
-</FrameLayout>
+
+</androidx.cardview.widget.CardView>

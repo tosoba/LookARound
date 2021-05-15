@@ -137,7 +137,7 @@ class PlaceMapListFragment :
                     15f
                 )
             )
-            delay(250L)
+            delay(500L)
             captureFrame(false)
         }
 

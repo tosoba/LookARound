@@ -17,6 +17,7 @@ import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.place.list.PlaceListFragment
+import com.lookaround.ui.place.list.PlaceMapListFragment
 import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.SearchBar
@@ -50,6 +51,7 @@ class MainActivity : AppCompatActivity(), AREventsListener {
             when (menuItem.itemId) {
                 R.id.action_place_types -> replaceBottomSheetWith<PlaceTypesFragment>()
                 R.id.action_place_list -> replaceBottomSheetWith<PlaceListFragment>()
+                R.id.action_place_map_list -> replaceBottomSheetWith<PlaceMapListFragment>()
             }
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
             true
