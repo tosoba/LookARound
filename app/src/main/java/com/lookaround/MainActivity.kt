@@ -16,9 +16,6 @@ import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
-import com.lookaround.ui.place.list.PlaceListFragment
-import com.lookaround.ui.place.list.PlaceMapListFragment
-import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.SearchBar
 import com.lookaround.ui.search.composable.rememberSearchBarState
@@ -46,13 +43,28 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     }
     private var lastLiveBottomSheetState: Int? = null
 
+    private var selectedBottomNavigationViewItemId: Int = bottomSheetFragmentIds.first()
     private val onBottomNavItemSelectedListener by lazy(LazyThreadSafetyMode.NONE) {
-        BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.action_place_types -> replaceBottomSheetWith<PlaceTypesFragment>()
-                R.id.action_place_list -> replaceBottomSheetWith<PlaceListFragment>()
-                R.id.action_place_map_list -> replaceBottomSheetWith<PlaceMapListFragment>()
+        fun changeBottomSheetFragmentsVisibility(visibleFragmentId: Int) {
+            bottomSheetFragmentIds.forEach { id ->
+                findViewById<View>(id).visibility =
+                    if (id == visibleFragmentId) View.VISIBLE else View.GONE
             }
+        }
+
+        fun bottomSheetVisibleFragmentId(navigationItemId: Int): Int =
+            when (navigationItemId) {
+                R.id.action_place_types -> R.id.place_types_fragment_view
+                R.id.action_place_list -> R.id.place_list_fragment_view
+                R.id.action_place_map_list -> R.id.place_map_list_fragment_view
+                else -> throw IllegalArgumentException()
+            }
+
+        BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
+            selectedBottomNavigationViewItemId = menuItem.itemId
+            changeBottomSheetFragmentsVisibility(
+                visibleFragmentId = bottomSheetVisibleFragmentId(menuItem.itemId)
+            )
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
             true
         }
@@ -61,21 +73,13 @@ class MainActivity : AppCompatActivity(), AREventsListener {
     private val currentTopFragment: Fragment?
         get() = supportFragmentManager.findFragmentById(R.id.main_fragment_container)
 
-    private val currentBottomSheetFragment: Fragment?
-        get() = supportFragmentManager.findFragmentById(R.id.bottom_sheet_fragment_container)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        lastLiveBottomSheetState =
-            savedInstanceState?.getInt(SavedStateKeys.BOTTOM_SHEET_STATE.name)
-
         binding.initSearch()
-        initBottomSheet()
-        binding.bottomNavigationView.setOnNavigationItemSelectedListener(
-            onBottomNavItemSelectedListener
-        )
+        initBottomSheet(savedInstanceState)
+        binding.initBottomNavigationView(savedInstanceState)
 
         viewModel
             .locationUpdateFailureUpdates
@@ -86,6 +90,43 @@ class MainActivity : AppCompatActivity(), AREventsListener {
             .unableToLoadPlacesWithoutLocationSignals
             .onEach { Timber.tag("PLACES").e("Failed to load places without location.") }
             .launchIn(lifecycleScope)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        lastLiveBottomSheetState?.let {
+            outState.putInt(SavedStateKeys.BOTTOM_SHEET_STATE.name, it)
+        }
+        outState.putInt(
+            SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name,
+            selectedBottomNavigationViewItemId
+        )
+    }
+
+    override fun onAREnabled() {
+        binding.searchBarView.visibility = View.VISIBLE
+        binding.bottomNavigationView.visibility = View.VISIBLE
+        onBottomSheetStateChanged(
+            lastLiveBottomSheetState ?: BottomSheetBehavior.STATE_COLLAPSED,
+            false
+        )
+    }
+
+    override fun onARLoading() {
+        binding.searchBarView.visibility = View.GONE
+        binding.bottomNavigationView.visibility = View.GONE
+        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
+    }
+
+    override fun onARDisabled(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
+        binding.searchBarView.visibility = View.GONE
+        binding.bottomNavigationView.visibility = View.GONE
+        lastLiveBottomSheetState = viewModel.state.bottomSheetState.state
+        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
+    }
+
+    override fun onCameraTouch(targetVisibility: Int) {
+        changeSearchbarVisibility(targetVisibility)
     }
 
     private fun ActivityMainBinding.initSearch() {
@@ -115,11 +156,32 @@ class MainActivity : AppCompatActivity(), AREventsListener {
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        lastLiveBottomSheetState?.let {
-            outState.putInt(SavedStateKeys.BOTTOM_SHEET_STATE.name, it)
+    private fun initBottomSheet(savedInstanceState: Bundle?) {
+        lastLiveBottomSheetState =
+            savedInstanceState?.getInt(SavedStateKeys.BOTTOM_SHEET_STATE.name)
+        with(bottomSheetBehavior) {
+            addBottomSheetCallback(
+                object : BottomSheetBehavior.BottomSheetCallback() {
+                    override fun onStateChanged(bottomSheet: View, newState: Int) =
+                        onBottomSheetStateChanged(newState, true)
+
+                    override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
+                }
+            )
+
+            viewModel
+                .bottomSheetStateUpdates
+                .onEach { (sheetState, _) -> state = sheetState }
+                .launchIn(lifecycleScope)
         }
+    }
+
+    private fun ActivityMainBinding.initBottomNavigationView(savedInstanceState: Bundle?) {
+        bottomNavigationView.setOnNavigationItemSelectedListener(onBottomNavItemSelectedListener)
+        savedInstanceState
+            ?.getInt(SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name)
+            ?.let(::selectedBottomNavigationViewItemId::set)
+        bottomNavigationView.selectedItemId = selectedBottomNavigationViewItemId
     }
 
     private fun showSearchFragment() {
@@ -142,62 +204,14 @@ class MainActivity : AppCompatActivity(), AREventsListener {
         supportFragmentManager.popBackStack()
     }
 
-    private fun initBottomSheet() {
-        with(bottomSheetBehavior) {
-            addBottomSheetCallback(
-                object : BottomSheetBehavior.BottomSheetCallback() {
-                    override fun onStateChanged(bottomSheet: View, newState: Int) =
-                        onBottomSheetStateChanged(newState, true)
-
-                    override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
-                }
-            )
-
-            viewModel
-                .bottomSheetStateUpdates
-                .onEach { (sheetState, _) -> state = sheetState }
-                .launchIn(lifecycleScope)
+    private fun onBottomSheetStateChanged(
+        @BottomSheetBehavior.State newState: Int,
+        changedByUser: Boolean
+    ) {
+        if (changedByUser) lastLiveBottomSheetState = newState
+        lifecycleScope.launch {
+            viewModel.intent(MainIntent.BottomSheetStateChanged(newState, changedByUser))
         }
-    }
-
-    private inline fun <reified F : Fragment> replaceBottomSheetWith() {
-        if (currentBottomSheetFragment is F) return
-        with(supportFragmentManager.beginTransaction()) {
-            setCustomAnimations(
-                android.R.anim.fade_in,
-                android.R.anim.fade_out,
-                android.R.anim.fade_in,
-                android.R.anim.fade_out
-            )
-            replace(R.id.bottom_sheet_fragment_container, F::class.java.newInstance())
-            commit()
-        }
-    }
-
-    override fun onAREnabled() {
-        binding.searchBarView.visibility = View.VISIBLE
-        binding.bottomNavigationView.visibility = View.VISIBLE
-        onBottomSheetStateChanged(
-            lastLiveBottomSheetState ?: BottomSheetBehavior.STATE_COLLAPSED,
-            false
-        )
-    }
-
-    override fun onARLoading() {
-        binding.searchBarView.visibility = View.GONE
-        binding.bottomNavigationView.visibility = View.GONE
-        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
-    }
-
-    override fun onARDisabled(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
-        binding.searchBarView.visibility = View.GONE
-        binding.bottomNavigationView.visibility = View.GONE
-        lastLiveBottomSheetState = viewModel.state.bottomSheetState.state
-        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
-    }
-
-    override fun onCameraTouch(targetVisibility: Int) {
-        changeSearchbarVisibility(targetVisibility)
     }
 
     private fun changeSearchbarVisibility(targetVisibility: Int) {
@@ -211,17 +225,17 @@ class MainActivity : AppCompatActivity(), AREventsListener {
         }
     }
 
-    private fun onBottomSheetStateChanged(
-        @BottomSheetBehavior.State newState: Int,
-        changedByUser: Boolean
-    ) {
-        if (changedByUser) lastLiveBottomSheetState = newState
-        lifecycleScope.launch {
-            viewModel.intent(MainIntent.BottomSheetStateChanged(newState, changedByUser))
-        }
+    private enum class SavedStateKeys {
+        BOTTOM_SHEET_STATE,
+        BOTTOM_NAV_SELECTED_ITEM_ID
     }
 
-    private enum class SavedStateKeys {
-        BOTTOM_SHEET_STATE
+    companion object {
+        private val bottomSheetFragmentIds: Array<Int> =
+            arrayOf(
+                R.id.place_types_fragment_view,
+                R.id.place_list_fragment_view,
+                R.id.place_map_list_fragment_view
+            )
     }
 }

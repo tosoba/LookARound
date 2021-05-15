@@ -7,10 +7,10 @@
     <item
         android:id="@+id/action_place_list"
         android:icon="@drawable/ic_baseline_view_list_24"
-        android:title="@string/place_list" />
+        android:title="@string/places" />
 
     <item
         android:id="@+id/action_place_map_list"
         android:icon="@drawable/ic_baseline_view_list_24"
-        android:title="@string/place_list" />
+        android:title="@string/place_maps" />
 </menu>
