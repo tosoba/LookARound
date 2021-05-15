@@ -5,7 +5,6 @@ import android.graphics.PointF
 import android.os.Bundle
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
-import com.mapzen.tangram.viewholder.GLSurfaceViewHolderFactory
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -15,7 +14,7 @@ object GetMapException : Throwable()
 
 suspend fun MapView.init(
     httpHandler: HttpHandler? = null,
-    glViewHolderFactory: GLViewHolderFactory = GLSurfaceViewHolderFactory()
+    glViewHolderFactory: GLViewHolderFactory
 ): MapController = suspendCoroutine { continuation ->
     getMapAsync(
         { mapController ->

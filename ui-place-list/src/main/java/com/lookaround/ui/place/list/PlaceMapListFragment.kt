@@ -19,6 +19,7 @@ import com.lookaround.ui.main.markerUpdates
 import com.lookaround.ui.place.list.databinding.FragmentPlaceMapListBinding
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
+import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
@@ -46,8 +47,9 @@ class PlaceMapListFragment :
     private val viewModel: MapSceneViewModel by assistedViewModel { viewModelFactory.create(it) }
 
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
+    @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by lifecycleScope.lazyAsync {
-        binding.map.init(mapTilesHttpHandler)
+        binding.map.init(mapTilesHttpHandler, glViewHolderFactory)
     }
 
     @Inject internal lateinit var mapCaptureCache: MapCaptureCache

@@ -6,14 +6,15 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.*
+import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
-import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
+import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
@@ -34,8 +35,9 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     private val viewModel: MapSceneViewModel by assistedViewModel { viewModelFactory.create(it) }
 
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
+    @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by lifecycleScope.lazyAsync {
-        binding.map.init(mapTilesHttpHandler)
+        binding.map.init(mapTilesHttpHandler, glViewHolderFactory)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
