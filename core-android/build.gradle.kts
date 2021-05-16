@@ -103,7 +103,8 @@ dependencies {
 
     implementation("com.jakewharton:disklrucache:2.0.2")
     implementation(files("../libs/bitmap-lru-cache.jar"))
-    implementation("com.mapzen.tangram:tangram:0.13.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    implementation(files("../libs/tangram-release.aar"))
 
     implementation("androidx.lifecycle:lifecycle-runtime:2.3.1")
     implementation("androidx.lifecycle:lifecycle-common-java8:2.3.1")

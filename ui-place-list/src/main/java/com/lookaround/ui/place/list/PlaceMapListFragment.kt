@@ -146,8 +146,7 @@ class PlaceMapListFragment :
                     15f
                 )
             )
-            delay(500L)
-            captureFrame(false)
+            captureFrame(true)
         }
 
     private fun initPlaceMapList() {

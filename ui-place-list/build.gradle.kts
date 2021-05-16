@@ -75,7 +75,7 @@ dependencies {
 
     implementation("com.jakewharton:disklrucache:2.0.2")
     implementation(files("../libs/bitmap-lru-cache.jar"))
-    implementation("com.mapzen.tangram:tangram:0.13.0")
+    implementation(files("../libs/tangram-release.aar"))
 
     implementation("com.google.dagger:hilt-android:2.35")
     kapt("com.google.dagger:hilt-android-compiler:2.35")
