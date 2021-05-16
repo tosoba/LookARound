@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.lookaround.core.android.view.composable.BottomSheetHeaderText
 import com.lookaround.core.android.view.composable.LookARoundSurface
 import com.lookaround.core.android.view.composable.VerticalGrid
 import com.lookaround.core.android.view.theme.LookARoundTheme
@@ -100,15 +101,7 @@ private fun PlaceTypeGroup(
     onClick: (IPlaceType) -> Unit = {}
 ) {
     Column(modifier) {
-        Text(
-            text = group.name,
-            style = MaterialTheme.typography.h6,
-            color = LookARoundTheme.colors.textPrimary,
-            modifier =
-                Modifier.heightIn(min = 56.dp)
-                    .padding(horizontal = 24.dp, vertical = 4.dp)
-                    .wrapContentHeight()
-        )
+        BottomSheetHeaderText(group.name)
         VerticalGrid(Modifier.padding(horizontal = 16.dp)) {
             val gradient =
                 when (index % 2) {

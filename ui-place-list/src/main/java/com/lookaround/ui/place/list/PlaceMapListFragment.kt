@@ -13,6 +13,8 @@ import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
+import com.lookaround.core.android.view.composable.BottomSheetHeaderText
+import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.markerUpdates
@@ -57,6 +59,10 @@ class PlaceMapListFragment :
     private var processingPlaces: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.placeMapListHeaderView.setContent {
+            LookARoundTheme { BottomSheetHeaderText("Place maps") }
+        }
+
         mapController.launch {
             setSceneLoadListener(this@PlaceMapListFragment)
             setMapChangeListener(this@PlaceMapListFragment)
