@@ -1,0 +1,19 @@
+package com.lookaround.repo.overpass
+
+import androidx.room.Database
+import androidx.room.TypeConverters
+import com.lookaround.repo.overpass.converter.OverpassConverters
+import com.lookaround.repo.overpass.dao.SearchAroundDao
+import com.lookaround.repo.overpass.entity.NodeEntity
+import com.lookaround.repo.overpass.entity.SearchAroundEntity
+import com.lookaround.repo.overpass.entity.SearchAroundResultEntity
+
+@Database(
+    version = 1,
+    exportSchema = false,
+    entities = [NodeEntity::class, SearchAroundEntity::class, SearchAroundResultEntity::class]
+)
+@TypeConverters(OverpassConverters::class)
+abstract class OverpassDatabase {
+    abstract fun searchAroundDao(): SearchAroundDao
+}

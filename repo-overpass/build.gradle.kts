@@ -55,6 +55,11 @@ dependencies {
 
     implementation("nice.fontaine:overpass-wrapper:0.0.1")
 
+    implementation("com.dropbox.mobile.store:store4:4.0.1")
+    implementation("com.google.code.gson:gson:2.8.6")
+    kapt("androidx.room:room-compiler:2.3.0")
+    implementation("androidx.room:room-ktx:2.3.0")
+
     implementation("org.mapstruct:mapstruct:1.4.1.Final")
     kapt("org.mapstruct:mapstruct-processor:1.4.1.Final")
 
