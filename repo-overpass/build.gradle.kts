@@ -1,22 +1,48 @@
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-val compileKotlin: KotlinCompile by tasks
-
-compileKotlin.kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
 
 plugins {
-    id("java-library")
-    id("kotlin")
-    id("kotlin-kapt")
+    id("com.android.library")
+    kotlin("android")
+    id("kotlin-parcelize")
+    kotlin("kapt")
     id("net.ltgt.apt") version "0.15"
 }
 
 apply(plugin = "net.ltgt.apt-idea")
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+android {
+    compileSdk = 30
+    buildToolsVersion = "30.0.3"
+
+    defaultConfig {
+        minSdk = 21
+        targetSdk = 30
+        version = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        named("release") {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "$project.rootDir/tools/proguard-rules.pro"
+            )
+        }
+    }
+
+    packagingOptions { resources { excludes += "META-INF/DEPENDENCIES" } }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+        useIR = true
+    }
 }
 
 kapt { correctErrorTypes = true }
