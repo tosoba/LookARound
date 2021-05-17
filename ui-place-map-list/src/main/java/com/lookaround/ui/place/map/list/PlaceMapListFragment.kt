@@ -1,4 +1,4 @@
-package com.lookaround.ui.place.list
+package com.lookaround.ui.place.map.list
 
 import android.graphics.Bitmap
 import android.location.Location
@@ -18,7 +18,7 @@ import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.markerUpdates
-import com.lookaround.ui.place.list.databinding.FragmentPlaceMapListBinding
+import com.lookaround.ui.place.map.list.databinding.FragmentPlaceMapListBinding
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory

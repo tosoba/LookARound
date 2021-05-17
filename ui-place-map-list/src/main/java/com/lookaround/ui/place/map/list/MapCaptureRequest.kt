@@ -1,4 +1,4 @@
-package com.lookaround.ui.place.list
+package com.lookaround.ui.place.map.list
 
 import android.graphics.Bitmap
 import android.location.Location

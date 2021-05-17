@@ -50,7 +50,7 @@
 
             <androidx.fragment.app.FragmentContainerView
                 android:id="@+id/place_map_list_fragment_view"
-                android:name="com.lookaround.ui.place.list.PlaceMapListFragment"
+                android:name="com.lookaround.ui.place.map.list.PlaceMapListFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:visibility="gone" />
