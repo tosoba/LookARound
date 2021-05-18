@@ -1,4 +1,4 @@
-package com.lookaround.repo.overpass.model
+package com.lookaround.repo.overpass.entity
 
 import androidx.room.ColumnInfo
 import nice.fontaine.overpass.models.query.settings.Filter

@@ -1,7 +1,10 @@
 package com.lookaround.repo.overpass.di
 
+import android.content.Context
+import com.lookaround.core.android.ext.buildRoom
 import com.lookaround.core.di.annotation.TestHttpClient
 import com.lookaround.core.repo.IPlacesRepo
+import com.lookaround.repo.overpass.OverpassDatabase
 import com.lookaround.repo.overpass.OverpassEndpoints
 import com.lookaround.repo.overpass.OverpassRepo
 import com.lookaround.repo.overpass.di.annotation.OverpassMoshiConverterFactory
@@ -11,6 +14,9 @@ import com.squareup.moshi.Moshi
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import java.util.*
 import javax.inject.Singleton
 import nice.fontaine.overpass.models.response.adapters.ElementAdapter
@@ -21,6 +27,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 @Module
+@InstallIn(SingletonComponent::class)
 abstract class OverpassModule {
     @Binds abstract fun nodeMapper(nodeMapper: NodeMapperImpl): NodeMapper
 
@@ -28,6 +35,11 @@ abstract class OverpassModule {
 
     companion object {
         @Provides @Singleton fun nodeMapperImpl(): NodeMapperImpl = NodeMapperImpl()
+
+        @Provides
+        @Singleton
+        fun overpassDatabase(@ApplicationContext context: Context): OverpassDatabase =
+            context.buildRoom()
 
         @Provides
         @Singleton

@@ -9,7 +9,7 @@ import com.lookaround.repo.overpass.entity.SearchAroundEntity
 import com.lookaround.repo.overpass.ext.nodes
 import com.lookaround.repo.overpass.mapper.NodeEntityMapper
 import com.lookaround.repo.overpass.mapper.NodeMapper
-import com.lookaround.repo.overpass.model.SearchAroundInput
+import com.lookaround.repo.overpass.entity.SearchAroundInput
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.map

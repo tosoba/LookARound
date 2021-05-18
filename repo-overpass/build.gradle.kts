@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
 plugins {
     id("com.android.library")
+    id("dagger.hilt.android.plugin")
     kotlin("android")
     id("kotlin-parcelize")
     kotlin("kapt")
@@ -47,6 +48,7 @@ kapt { correctErrorTypes = true }
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":core-android"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
@@ -60,6 +62,11 @@ dependencies {
 
     implementation("org.mapstruct:mapstruct:1.4.1.Final")
     kapt("org.mapstruct:mapstruct-processor:1.4.1.Final")
+
+    implementation("com.google.dagger:hilt-android:2.35")
+    kapt("com.google.dagger:hilt-android-compiler:2.35")
+    kapt("androidx.hilt:hilt-compiler:1.0.0")
+    implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
 
     implementation("com.google.dagger:dagger:2.35")
     kapt("com.google.dagger:dagger-compiler:2.31.2")

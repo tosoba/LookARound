@@ -4,7 +4,6 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.lookaround.repo.overpass.model.SearchAroundInput
 
 @Entity(
     tableName = "search_around",

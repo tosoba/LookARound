@@ -3,9 +3,9 @@ package com.lookaround.core.di
 import com.lookaround.core.di.annotation.TestHttpClient
 import dagger.Module
 import dagger.Provides
+import javax.inject.Singleton
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import javax.inject.Singleton
 
 @Module
 object CoreNetworkModule {

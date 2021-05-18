@@ -5,6 +5,8 @@ import android.os.Build
 import android.util.TypedValue
 import android.view.Surface
 import android.view.WindowManager
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import java.io.File
 import kotlin.math.ceil
 
@@ -62,4 +64,19 @@ fun Context.getOrCreateCacheFile(name: String): File? {
         tileCacheDir = null
     }
     return tileCacheDir
+}
+
+inline fun <reified T : RoomDatabase> Context.buildRoom(
+    inMemory: Boolean = false,
+    name: String = T::class.java.simpleName,
+    noinline configure: (RoomDatabase.Builder<T>.() -> RoomDatabase.Builder<T>)? = null
+): T {
+    val builder =
+        if (inMemory) {
+            Room.inMemoryDatabaseBuilder(this, T::class.java)
+        } else {
+            Room.databaseBuilder(this, T::class.java, name)
+        }
+    if (configure != null) builder.configure()
+    return builder.build()
 }

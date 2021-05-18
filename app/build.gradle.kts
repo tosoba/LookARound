@@ -111,6 +111,9 @@ dependencies {
 
     implementation("com.jakewharton.timber:timber:4.7.1")
 
+    kapt("androidx.room:room-compiler:2.3.0")
+    implementation("androidx.room:room-ktx:2.3.0")
+
     implementation("com.squareup.moshi:moshi:1.9.2")
     implementation("com.squareup.moshi:moshi-adapters:1.9.2")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")

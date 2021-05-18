@@ -8,5 +8,5 @@ import javax.inject.Singleton
 @Singleton
 @Component(modules = [OverpassModule::class, CoreNetworkModule::class])
 interface OverpassComponent {
-    fun overpassService(): OverpassRepo
+    fun overpassRepo(): OverpassRepo
 }

@@ -73,7 +73,6 @@ kapt { correctErrorTypes = true }
 dependencies {
     implementation(project(":core"))
     implementation(project(":repo-nominatim"))
-    implementation(project(":repo-overpass"))
     implementation(project(":repo-photon"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
@@ -112,6 +111,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.1")
 
     implementation("ru.beryukhov:flowreactivenetwork:1.0.2")
+
+    kapt("androidx.room:room-compiler:2.3.0")
+    implementation("androidx.room:room-ktx:2.3.0")
 
     implementation("com.google.dagger:hilt-android:2.35")
     kapt("com.google.dagger:hilt-android-compiler:2.35")
