@@ -72,8 +72,6 @@ kapt { correctErrorTypes = true }
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":repo-nominatim"))
-    implementation(project(":repo-photon"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("androidx.compose.runtime:runtime:1.0.0-beta03")
@@ -102,8 +100,10 @@ dependencies {
 
     implementation("com.jakewharton:disklrucache:2.0.2")
     implementation(files("../libs/bitmap-lru-cache.jar"))
-    implementation("com.squareup.okhttp3:okhttp:4.9.1")
     implementation(files("../libs/tangram-release.aar"))
+
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
 
     implementation("androidx.lifecycle:lifecycle-runtime:2.3.1")
     implementation("androidx.lifecycle:lifecycle-common-java8:2.3.1")

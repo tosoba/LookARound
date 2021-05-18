@@ -2,7 +2,6 @@ package com.lookaround.repo.overpass.di
 
 import android.content.Context
 import com.lookaround.core.android.ext.buildRoom
-import com.lookaround.core.di.annotation.TestHttpClient
 import com.lookaround.core.repo.IPlacesRepo
 import com.lookaround.repo.overpass.OverpassDatabase
 import com.lookaround.repo.overpass.OverpassEndpoints
@@ -57,7 +56,7 @@ abstract class OverpassModule {
         @Singleton
         fun overpassEndpoints(
             @OverpassMoshiConverterFactory converterFactory: MoshiConverterFactory,
-            @TestHttpClient httpClient: OkHttpClient,
+            httpClient: OkHttpClient,
         ): OverpassEndpoints =
             Retrofit.Builder()
                 .baseUrl(OverpassEndpoints.BASE_URL)

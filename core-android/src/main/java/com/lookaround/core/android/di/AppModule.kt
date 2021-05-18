@@ -2,20 +2,22 @@ package com.lookaround.core.android.di
 
 import com.lookaround.core.android.repo.AppRepo
 import com.lookaround.core.repo.IAppRepo
-import com.lookaround.core.repo.IPlacesAutocompleteRepo
-import com.lookaround.repo.nominatim.di.NominatimModule
-import com.lookaround.repo.photon.PhotonRepo
-import com.lookaround.repo.photon.di.PhotonModule
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import ru.beryukhov.reactivenetwork.ReactiveNetwork
 
 @ExperimentalCoroutinesApi
-@Module(includes = [NominatimModule::class, PhotonModule::class])
+@Module
 @InstallIn(SingletonComponent::class)
-abstract class RepoModule {
+abstract class AppModule {
     @Binds abstract fun appRepo(repo: AppRepo): IAppRepo
-    @Binds abstract fun placesAutoCompleteRepo(repo: PhotonRepo): IPlacesAutocompleteRepo
+
+    companion object {
+        @Provides @Singleton fun reactiveNetwork(): ReactiveNetwork = ReactiveNetwork()
+    }
 }

@@ -21,6 +21,8 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
     implementation("com.squareup.retrofit2:retrofit:2.7.1")
 
+    implementation("com.google.dagger:hilt-core:2.35.1")
+
     implementation("com.google.dagger:dagger:2.35")
     kapt("com.google.dagger:dagger-compiler:2.31.2")
 }

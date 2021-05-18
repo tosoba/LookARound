@@ -1,34 +1,64 @@
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-val compileKotlin: KotlinCompile by tasks
-
-compileKotlin.kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
 
 plugins {
-    id("java-library")
-    id("kotlin")
-    id("kotlin-kapt")
-    id("net.ltgt.apt") version "0.15"
+    id("com.android.library")
+    id("dagger.hilt.android.plugin")
+    kotlin("android")
+    id("kotlin-parcelize")
+    kotlin("kapt")
+    id("net.ltgt.apt-idea") version "0.21"
 }
 
-apply(plugin = "net.ltgt.apt-idea")
+android {
+    compileSdk = 30
+    buildToolsVersion = "30.0.3"
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    defaultConfig {
+        minSdk = 21
+        targetSdk = 30
+        version = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        named("release") {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "$project.rootDir/tools/proguard-rules.pro"
+            )
+        }
+    }
+
+    packagingOptions { resources { excludes += "META-INF/DEPENDENCIES" } }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+        useIR = true
+    }
 }
 
 kapt { correctErrorTypes = true }
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":core-android"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
 
     implementation("org.mapstruct:mapstruct:1.4.1.Final")
     kapt("org.mapstruct:mapstruct-processor:1.4.1.Final")
+
+    implementation("com.google.dagger:hilt-android:2.35")
+    kapt("com.google.dagger:hilt-android-compiler:2.35")
+    kapt("androidx.hilt:hilt-compiler:1.0.0")
 
     implementation("com.google.dagger:dagger:2.35")
     kapt("com.google.dagger:dagger-compiler:2.31.2")
