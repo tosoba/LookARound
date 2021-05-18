@@ -32,6 +32,6 @@ import androidx.room.Index
         ]
 )
 data class SearchAroundResultEntity(
-    @ColumnInfo(name = "search_around_id") val searchAroundId: Long,
-    @ColumnInfo(name = "node_id") val nodeId: Long
+    @ColumnInfo(name = "search_around_id", index = true) val searchAroundId: Long,
+    @ColumnInfo(name = "node_id", index = true) val nodeId: Long
 )

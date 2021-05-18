@@ -5,10 +5,8 @@ plugins {
     kotlin("android")
     id("kotlin-parcelize")
     kotlin("kapt")
-    id("net.ltgt.apt") version "0.15"
+    id("net.ltgt.apt-idea") version "0.21"
 }
-
-apply(plugin = "net.ltgt.apt-idea")
 
 android {
     compileSdk = 30

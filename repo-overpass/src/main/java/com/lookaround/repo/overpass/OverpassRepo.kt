@@ -5,10 +5,12 @@ import com.lookaround.core.model.NodeDTO
 import com.lookaround.core.repo.IPlacesRepo
 import com.lookaround.repo.overpass.mapper.NodeMapper
 import javax.inject.Inject
+import javax.inject.Singleton
 import nice.fontaine.overpass.models.query.statements.NodeQuery
 import nice.fontaine.overpass.models.response.OverpassResponse
 import nice.fontaine.overpass.models.response.geometries.Node
 
+@Singleton
 class OverpassRepo
 @Inject
 constructor(

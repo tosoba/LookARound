@@ -25,7 +25,7 @@ interface SearchAroundDao {
         WHERE sa.lat = :lat AND sa.lng = :lng AND sa.radius_in_meters = :radiusInMeters 
         AND sa.`key` = :key AND sa.value = :value AND sa.filter = :filter"""
     )
-    suspend fun selectNodes(
+    fun selectNodes(
         lat: Double,
         lng: Double,
         radiusInMeters: Float,

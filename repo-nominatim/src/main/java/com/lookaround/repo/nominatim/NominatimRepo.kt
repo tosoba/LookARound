@@ -5,7 +5,9 @@ import com.lookaround.core.repo.IGeocodingRepo
 import com.lookaround.repo.nominatim.mapper.AddressMapper
 import fr.dudie.nominatim.client.JsonNominatimClient
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class NominatimRepo
 @Inject
 constructor(

@@ -5,7 +5,9 @@ import com.google.gson.JsonPrimitive
 import com.lookaround.core.model.PointDTO
 import com.lookaround.core.repo.IPlacesAutocompleteRepo
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class PhotonRepo
 @Inject
 constructor(
