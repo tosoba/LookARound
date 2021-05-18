@@ -1,29 +1,36 @@
 package com.lookaround.repo.overpass
 
+import com.dropbox.android.external.store4.Store
+import com.dropbox.android.external.store4.get
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.core.model.NodeDTO
 import com.lookaround.core.repo.IPlacesRepo
-import com.lookaround.repo.overpass.mapper.NodeMapper
+import com.lookaround.repo.overpass.entity.SearchAroundInput
 import javax.inject.Inject
 import javax.inject.Singleton
-import nice.fontaine.overpass.models.query.statements.NodeQuery
-import nice.fontaine.overpass.models.response.OverpassResponse
-import nice.fontaine.overpass.models.response.geometries.Node
+import nice.fontaine.overpass.models.query.settings.Filter
 
 @Singleton
 class OverpassRepo
 @Inject
 constructor(
-    private val endpoints: OverpassEndpoints,
-    private val nodeMapper: NodeMapper,
+    private val store: Store<SearchAroundInput, List<NodeDTO>>,
 ) : IPlacesRepo {
     override suspend fun attractionsAround(
         lat: Double,
         lng: Double,
         radiusInMeters: Float
     ): List<NodeDTO> =
-        nodesAround(lat, lng, radiusInMeters) { equal("tourism", "attraction") }
-            .map(nodeMapper::toDTO)
+        store.get(
+            SearchAroundInput(
+                lat = lat,
+                lng = lng,
+                radiusInMeters = radiusInMeters,
+                key = "tourism",
+                value = "attraction",
+                filter = Filter.EQUAL
+            )
+        )
 
     override suspend fun placesOfTypeAround(
         placeType: IPlaceType,
@@ -31,33 +38,31 @@ constructor(
         lng: Double,
         radiusInMeters: Float
     ): List<NodeDTO> =
-        nodesAround(lat, lng, radiusInMeters) { equal(placeType.typeKey, placeType.typeValue) }
-            .map(nodeMapper::toDTO)
+        store.get(
+            SearchAroundInput(
+                lat = lat,
+                lng = lng,
+                radiusInMeters = radiusInMeters,
+                key = placeType.typeKey,
+                value = placeType.typeValue,
+                filter = Filter.EQUAL
+            )
+        )
 
     override suspend fun imagesAround(
         lat: Double,
         lng: Double,
         radiusInMeters: Float
     ): List<String> =
-        nodesAround(lat, lng, radiusInMeters) { ilike("image", "http") }.mapNotNull {
-            it.tags?.get("image")
-        }
-
-    private suspend fun nodesAround(
-        lat: Double,
-        lng: Double,
-        radiusInMeters: Float,
-        compose: NodeQuery.Builder.() -> NodeQuery.Builder
-    ): List<Node> =
-        endpoints.interpreter(NodeQuery.Builder().compose().aroundQuery(lat, lng, radiusInMeters))
-            .nodes
-
-    private fun NodeQuery.Builder.aroundQuery(
-        lat: Double,
-        lng: Double,
-        radiusInMeters: Float
-    ): String = around(lat, lng, radiusInMeters).build().toQuery()
-
-    private val OverpassResponse.nodes: List<Node>
-        get() = elements.toList().filterIsInstance<Node>().filter { it.tags?.get("name") != null }
+        store.get(
+                SearchAroundInput(
+                    lat = lat,
+                    lng = lng,
+                    radiusInMeters = radiusInMeters,
+                    key = "image",
+                    value = "http",
+                    filter = Filter.ILIKE
+                ) { filterNot { it.tags?.get("image") == null } }
+            )
+            .mapNotNull { it.tags["image"] }
 }

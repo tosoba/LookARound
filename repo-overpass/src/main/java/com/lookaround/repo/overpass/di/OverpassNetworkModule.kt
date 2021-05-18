@@ -1,12 +1,9 @@
 package com.lookaround.repo.overpass.di
 
-import android.content.Context
-import com.lookaround.core.android.ext.buildRoom
-import com.lookaround.core.repo.IPlacesRepo
-import com.lookaround.repo.overpass.OverpassDatabase
 import com.lookaround.repo.overpass.OverpassEndpoints
-import com.lookaround.repo.overpass.OverpassRepo
 import com.lookaround.repo.overpass.di.annotation.OverpassMoshiConverterFactory
+import com.lookaround.repo.overpass.mapper.NodeEntityMapper
+import com.lookaround.repo.overpass.mapper.NodeEntityMapperImpl
 import com.lookaround.repo.overpass.mapper.NodeMapper
 import com.lookaround.repo.overpass.mapper.NodeMapperImpl
 import com.squareup.moshi.Moshi
@@ -14,7 +11,6 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import java.util.*
 import javax.inject.Singleton
@@ -27,18 +23,17 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class OverpassModule {
-    @Binds abstract fun nodeMapper(nodeMapper: NodeMapperImpl): NodeMapper
+abstract class OverpassNetworkModule {
+    @Binds abstract fun nodeMapper(mapper: NodeMapperImpl): NodeMapper
 
-    @Binds abstract fun overpassRepo(overpassRepo: OverpassRepo): IPlacesRepo
+    @Binds abstract fun nodeEntityMapper(mapper: NodeEntityMapperImpl): NodeEntityMapper
 
     companion object {
         @Provides @Singleton fun nodeMapperImpl(): NodeMapperImpl = NodeMapperImpl()
 
         @Provides
         @Singleton
-        fun overpassDatabase(@ApplicationContext context: Context): OverpassDatabase =
-            context.buildRoom()
+        fun nodeEntityMapperImpl(): NodeEntityMapperImpl = NodeEntityMapperImpl()
 
         @Provides
         @Singleton
