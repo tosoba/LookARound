@@ -1,9 +1,10 @@
 package com.lookaround.repo.photon
 
-import com.github.filosganga.geogson.model.Point
-import com.google.gson.JsonPrimitive
+import com.dropbox.android.external.store4.Store
+import com.dropbox.android.external.store4.get
 import com.lookaround.core.model.PointDTO
 import com.lookaround.core.repo.IPlacesAutocompleteRepo
+import com.lookaround.repo.photon.entity.AutocompleteSearchInput
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -11,29 +12,18 @@ import javax.inject.Singleton
 class PhotonRepo
 @Inject
 constructor(
-    private val photonEndpoints: PhotonEndpoints,
+    private val store: Store<AutocompleteSearchInput, List<PointDTO>>,
 ) : IPlacesAutocompleteRepo {
     override suspend fun searchPoints(
         query: String,
         priorityLat: Double?,
         priorityLon: Double?
     ): List<PointDTO> =
-        photonEndpoints
-            .search(query, priorityLat = priorityLat, priorityLon = priorityLon)
-            .features()
-            ?.filter {
-                val properties = it.properties()
-                if (properties?.containsKey("name") != true) return@filter false
-                val name = properties.getValue("name")
-                name is JsonPrimitive && name.isString && it.geometry() is Point
-            }
-            ?.map {
-                val point = it.geometry() as Point
-                PointDTO(
-                    name = it.properties().getValue("name").asJsonPrimitive.asString,
-                    lat = point.lat(),
-                    lng = point.lon()
-                )
-            }
-            ?: emptyList()
+        store.get(
+            AutocompleteSearchInput(
+                query = query,
+                priorityLat = priorityLat,
+                priorityLon = priorityLon
+            )
+        )
 }
