@@ -14,7 +14,6 @@ import com.lookaround.repo.overpass.mapper.NodeMapper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.map
-import nice.fontaine.overpass.models.query.settings.Filter
 import nice.fontaine.overpass.models.response.geometries.Node
 
 @ExperimentalCoroutinesApi
@@ -27,33 +26,19 @@ internal object OverpassSearchAroundStore {
         nodeEntityMapper: NodeEntityMapper
     ): Store<SearchAroundInput, List<NodeDTO>> =
         StoreBuilder.from<SearchAroundInput, List<Node>, List<NodeDTO>>(
-                Fetcher.of {
-                    (
-                        lat: Double,
-                        lng: Double,
-                        radiusInMeters: Float,
-                        key: String,
-                        value: String,
-                        filter: Filter,
-                        transformer: (List<Node>.() -> List<Node>)?) ->
-                    val nodes =
-                        endpoints.nodesAround(
-                            lat = lat,
-                            lng = lng,
-                            radiusInMeters = radiusInMeters
-                        ) { tag(key, value, filter) }
-                    transformer?.invoke(nodes) ?: nodes
-                },
+                fetcher =
+                    Fetcher.of { (lat, lng, radiusInMeters, key, value, filter, transformer) ->
+                        val nodes =
+                            endpoints.nodesAround(
+                                lat = lat,
+                                lng = lng,
+                                radiusInMeters = radiusInMeters
+                            ) { tag(key, value, filter) }
+                        transformer?.invoke(nodes) ?: nodes
+                    },
                 sourceOfTruth =
                     SourceOfTruth.of(
-                        reader = {
-                            (
-                                lat: Double,
-                                lng: Double,
-                                radiusInMeters: Float,
-                                key: String,
-                                value: String,
-                                filter: Filter) ->
+                        reader = { (lat, lng, radiusInMeters, key, value, filter) ->
                             dao.selectNodes(
                                     lat = lat,
                                     lng = lng,
@@ -73,14 +58,7 @@ internal object OverpassSearchAroundStore {
                                 nodes = nodes.map(nodeMapper::toEntity)
                             )
                         },
-                        delete = {
-                            (
-                                lat: Double,
-                                lng: Double,
-                                radiusInMeters: Float,
-                                key: String,
-                                value: String,
-                                filter: Filter) ->
+                        delete = { (lat, lng, radiusInMeters, key, value, filter) ->
                             dao.delete(
                                 lat = lat,
                                 lng = lng,
