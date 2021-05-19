@@ -62,7 +62,10 @@ internal object OverpassSearchAroundStore {
                                     value = value,
                                     filter = filter
                                 )
-                                .map { it.map(nodeEntityMapper::toDTO) }
+                                .map {
+                                    it.map(nodeEntityMapper::toDTO)
+                                        .takeIf(Collection<*>::isNotEmpty)
+                                }
                         },
                         writer = { input, nodes ->
                             dao.insert(
