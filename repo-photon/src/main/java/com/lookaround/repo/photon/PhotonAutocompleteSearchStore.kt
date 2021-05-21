@@ -31,6 +31,7 @@ object PhotonAutocompleteSearchStore {
                             .search(query, priorityLat = priorityLat, priorityLon = priorityLon)
                             .features()
                             ?.namedPointsOnly
+                            ?.distinct()
                             ?: emptyList()
                     },
                 sourceOfTruth =
