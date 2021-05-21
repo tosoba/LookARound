@@ -60,8 +60,8 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.35")
     kapt("androidx.hilt:hilt-compiler:1.0.0")
 
-    implementation("com.google.dagger:dagger:2.35")
-    kapt("com.google.dagger:dagger-compiler:2.31.2")
+    testImplementation("com.google.dagger:dagger:2.35")
+    kaptTest("com.google.dagger:dagger-compiler:2.31.2")
 
     implementation("com.dropbox.mobile.store:store4:4.0.1")
     implementation("androidx.room:room-runtime:2.3.0")
