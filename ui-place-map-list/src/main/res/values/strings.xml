@@ -2,4 +2,5 @@
 <resources>
     <string name="place_map_list_item">place map list item</string>
     <string name="place_map_list_item_marker">place map list item marker</string>
+    <string name="place_map_list_item_transition">place_map_list_item_transition</string>
 </resources>

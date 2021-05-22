@@ -12,10 +12,13 @@ import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.ext.isResumed
 import com.lookaround.core.android.ext.slideChangeVisibility
+import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
+import com.lookaround.ui.map.MapFragment
+import com.lookaround.ui.place.map.list.PlaceMapItemActionController
 import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.SearchBar
 import com.lookaround.ui.search.composable.rememberSearchBarState
@@ -32,7 +35,7 @@ import timber.log.Timber
 @FlowPreview
 @ExperimentalCoroutinesApi
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(), AREventsListener {
+class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionController {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
@@ -127,6 +130,21 @@ class MainActivity : AppCompatActivity(), AREventsListener {
 
     override fun onCameraTouch(targetVisibility: Int) {
         changeSearchbarVisibility(targetVisibility)
+    }
+
+    override fun onPlaceMapItemClick(marker: Marker, view: View) {
+        if (!lifecycle.isResumed) return
+        when (val topFragment = currentTopFragment) {
+            is MapFragment -> topFragment.updateMarker(marker)
+            else -> {
+                with(supportFragmentManager.beginTransaction()) {
+                    addSharedElement(view, getString(R.string.place_map_list_item_transition))
+                    add(R.id.main_fragment_container, MapFragment())
+                    addToBackStack(null)
+                    commit()
+                }
+            }
+        }
     }
 
     private fun ActivityMainBinding.initSearch() {

@@ -1,6 +1,7 @@
 package com.lookaround.ui.map
 
 import android.os.Bundle
+import android.transition.TransitionInflater
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -10,9 +11,12 @@ import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
+import com.lookaround.core.android.model.Marker
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
-import com.mapzen.tangram.*
+import com.mapzen.tangram.MapController
+import com.mapzen.tangram.SceneError
+import com.mapzen.tangram.SceneUpdate
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,6 +42,12 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by lifecycleScope.lazyAsync {
         binding.map.init(mapTilesHttpHandler, glViewHolderFactory)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedElementEnterTransition =
+            TransitionInflater.from(context).inflateTransition(android.R.transition.move)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -90,6 +100,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         }
     }
 
+    fun updateMarker(marker: Marker) {}
+
     private suspend fun MapController.loadScene(scene: MapScene) {
         binding.blurBackground.visibility = View.VISIBLE
         binding.shimmerLayout.showAndStart()
@@ -104,4 +116,6 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
         lifecycleScope.launch(Dispatchers.Main.immediate) { this@launch.await().block() }
     }
+
+    companion object {}
 }

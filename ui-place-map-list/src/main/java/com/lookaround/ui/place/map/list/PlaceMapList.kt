@@ -12,14 +12,24 @@ import java.lang.ref.WeakReference
 import kotlinx.coroutines.channels.SendChannel
 
 internal class PlaceMapListAdapter(
-    private val mapCaptureRequestChannel: SendChannel<MapCaptureRequest>
+    private val mapCaptureRequestChannel: SendChannel<MapCaptureRequest>,
+    private val onMarkerClick: (Marker, View) -> Unit
 ) : RecyclerView.Adapter<PlaceMapListViewHolder>() {
     private val asyncListDiffer = AsyncListDiffer(this, PlaceMapListDiffUtilItemCallback)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaceMapListViewHolder =
         PlaceMapListViewHolder(
-            LayoutInflater.from(parent.context).inflate(R.layout.place_map_list_item, parent, false)
-        )
+                LayoutInflater.from(parent.context)
+                    .inflate(R.layout.place_map_list_item, parent, false)
+            )
+            .apply {
+                view.setOnClickListener {
+                    val position = adapterPosition
+                    if (position == RecyclerView.NO_POSITION) return@setOnClickListener
+                    val marker = asyncListDiffer.currentList[position]
+                    onMarkerClick(marker, it)
+                }
+            }
 
     override fun onBindViewHolder(holder: PlaceMapListViewHolder, position: Int) {
         mapCaptureRequestChannel.offer(
@@ -37,7 +47,7 @@ internal class PlaceMapListAdapter(
     }
 }
 
-internal class PlaceMapListViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
+internal class PlaceMapListViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
     val placeMapImageView: ImageView
         get() = view.findViewById(R.id.place_map_image_view)
 }
