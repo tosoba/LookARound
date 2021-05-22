@@ -70,8 +70,7 @@ fun MapController.saveCameraPosition(outState: Bundle) {
     }
 }
 
-fun MapController.restoreCameraPosition(savedInstanceState: Bundle?) {
-    if (savedInstanceState == null) return
+fun MapController.restoreCameraPosition(savedInstanceState: Bundle) {
     updateCameraPosition(
         CameraUpdateFactory.newCameraPosition(
             CameraPosition().apply {
@@ -82,5 +81,18 @@ fun MapController.restoreCameraPosition(savedInstanceState: Bundle?) {
                 zoom = savedInstanceState.getFloat(PREF_ZOOM)
             }
         )
+    )
+}
+
+fun MapController.moveCameraPositionTo(lat: Double, lng: Double, zoom: Float, durationMs: Int = 0) {
+    updateCameraPosition(
+        CameraUpdateFactory.newCameraPosition(
+            CameraPosition().also {
+                it.latitude = lat
+                it.longitude = lng
+                it.zoom = zoom
+            }
+        ),
+        durationMs
     )
 }

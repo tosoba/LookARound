@@ -16,6 +16,7 @@ import com.lookaround.core.android.ext.slideChangeVisibility
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
+import com.lookaround.ui.camera.CameraFragment
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.map.MapFragment
@@ -140,7 +141,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             else -> {
                 with(supportFragmentManager.beginTransaction()) {
                     setSlideInFromBottom()
-                    add(R.id.main_fragment_container, MapFragment())
+                    add(R.id.main_fragment_container, MapFragment.new(marker))
                     addToBackStack(null)
                     commit()
                 }
@@ -170,6 +171,11 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                                 viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
                             }
                         },
+                        onBackPressed = {
+                            if (currentTopFragment !is CameraFragment) {
+                                supportFragmentManager.popBackStack()
+                            }
+                        }
                     )
                 }
             }

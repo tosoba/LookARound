@@ -3,11 +3,11 @@ package com.lookaround.core.android.model
 import android.location.Location
 import android.os.Parcelable
 import com.lookaround.core.model.NodeDTO
-import kotlinx.parcelize.Parcelize
 import java.util.*
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
-class Marker(
+data class Marker(
     val name: String,
     val location: Location,
     val tags: Map<String, String> = emptyMap(),

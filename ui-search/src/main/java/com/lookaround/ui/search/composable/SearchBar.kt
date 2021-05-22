@@ -34,7 +34,8 @@ fun SearchBar(
     modifier: Modifier = Modifier,
     state: SearchBarState = rememberSearchBarState(),
     onSearchFocusChange: (Boolean) -> Unit = {},
-    onTextValueChange: (TextFieldValue) -> Unit = {}
+    onTextValueChange: (TextFieldValue) -> Unit = {},
+    onBackPressed: () -> Unit = {}
 ) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -58,7 +59,13 @@ fun SearchBar(
             )
         }
         if (state.focused) LaunchedEffect(Unit) { focusRequester.requestFocus() }
-        BackButtonAction { if (state.focused) focusManager.clearFocus() }
+        BackButtonAction {
+            if (state.focused) {
+                focusManager.clearFocus()
+            } else {
+                onBackPressed()
+            }
+        }
     }
 }
 

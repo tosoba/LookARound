@@ -1,7 +1,9 @@
 package com.lookaround.ui.map
 
+import android.location.Location
 import android.os.Bundle
 import android.view.View
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -13,6 +15,7 @@ import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.map.databinding.FragmentMapBinding
+import com.mapzen.tangram.LngLat
 import com.mapzen.tangram.MapController
 import com.mapzen.tangram.SceneError
 import com.mapzen.tangram.SceneUpdate
@@ -43,11 +46,24 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         binding.map.init(mapTilesHttpHandler, glViewHolderFactory)
     }
 
+    private val markerArgument: Marker? by nullableArgument(Arguments.MARKER.name)
+    private var currentMarker: Marker? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        currentMarker =
+            savedInstanceState?.getParcelable(SavedStateKeys.CURRENT_MARKER.name) ?: markerArgument
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mapController.launch {
             setSceneLoadListener(this@MapFragment)
             loadScene(MapScene.BUBBLE_WRAP)
-            restoreCameraPosition(savedInstanceState)
+            savedInstanceState?.let(::restoreCameraPosition)
+                ?: currentMarker?.let { (_, location) ->
+                    moveCameraPositionTo(location.latitude, location.longitude, 15f)
+                }
+            currentMarker?.location?.let { addMarker(it) }
             zoomOnDoubleTap()
         }
 
@@ -79,6 +95,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        currentMarker?.let { outState.putParcelable(SavedStateKeys.CURRENT_MARKER.name, it) }
         mapController.launch { saveCameraPosition(outState) }
     }
 
@@ -93,7 +110,15 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         }
     }
 
-    fun updateMarker(marker: Marker) {}
+    fun updateMarker(marker: Marker) {
+        currentMarker = marker
+        mapController.launch {
+            val (_, location) = marker
+            removeAllMarkers()
+            moveCameraPositionTo(location.latitude, location.longitude, 15f, 250)
+            addMarker(location)
+        }
+    }
 
     private suspend fun MapController.loadScene(scene: MapScene) {
         binding.blurBackground.visibility = View.VISIBLE
@@ -106,9 +131,30 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         )
     }
 
+    private fun MapController.addMarker(location: Location) {
+        addMarker().apply {
+            setPoint(LngLat(location.longitude, location.latitude))
+            isVisible = true
+            setStylingFromString(
+                "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue}"
+            )
+        }
+    }
+
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
         lifecycleScope.launch(Dispatchers.Main.immediate) { this@launch.await().block() }
     }
 
-    companion object {}
+    companion object {
+        enum class SavedStateKeys {
+            CURRENT_MARKER
+        }
+
+        enum class Arguments {
+            MARKER
+        }
+
+        fun new(marker: Marker): MapFragment =
+            MapFragment().apply { arguments = bundleOf(Arguments.MARKER.name to marker) }
+    }
 }
