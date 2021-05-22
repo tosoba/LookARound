@@ -157,10 +157,10 @@ class PlaceMapListFragment :
 
     private fun initPlaceMapList() {
         val placeMapListAdapter =
-            PlaceMapListAdapter(mapCaptureRequestChannel) { marker, view ->
+            PlaceMapListAdapter(mapCaptureRequestChannel) { marker ->
                 val controller =
                     activity as? PlaceMapItemActionController ?: return@PlaceMapListAdapter
-                controller.onPlaceMapItemClick(marker, view)
+                controller.onPlaceMapItemClick(marker)
             }
         binding.placeMapRecyclerView.adapter = placeMapListAdapter
         mainViewModel.markerUpdates.onEach(placeMapListAdapter::update).launchIn(lifecycleScope)

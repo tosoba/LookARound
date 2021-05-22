@@ -4,5 +4,5 @@ import android.view.View
 import com.lookaround.core.android.model.Marker
 
 interface PlaceMapItemActionController {
-    fun onPlaceMapItemClick(marker: Marker, view: View)
+    fun onPlaceMapItemClick(marker: Marker)
 }

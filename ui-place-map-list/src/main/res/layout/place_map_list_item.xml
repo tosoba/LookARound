@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:elevation="5dp"
     android:padding="10dp"
-    android:transitionName="@string/place_map_list_item_transition"
     app:cardCornerRadius="25dp"
     app:cardElevation="5dp"
     app:cardUseCompatPadding="true">

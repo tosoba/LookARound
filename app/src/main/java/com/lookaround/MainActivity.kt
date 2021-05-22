@@ -11,6 +11,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.ext.isResumed
+import com.lookaround.core.android.ext.setSlideInFromBottom
 import com.lookaround.core.android.ext.slideChangeVisibility
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.theme.LookARoundTheme
@@ -132,13 +133,13 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         changeSearchbarVisibility(targetVisibility)
     }
 
-    override fun onPlaceMapItemClick(marker: Marker, view: View) {
+    override fun onPlaceMapItemClick(marker: Marker) {
         if (!lifecycle.isResumed) return
         when (val topFragment = currentTopFragment) {
             is MapFragment -> topFragment.updateMarker(marker)
             else -> {
                 with(supportFragmentManager.beginTransaction()) {
-                    addSharedElement(view, getString(R.string.place_map_list_item_transition))
+                    setSlideInFromBottom()
                     add(R.id.main_fragment_container, MapFragment())
                     addToBackStack(null)
                     commit()
@@ -163,12 +164,13 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                             lifecycleScope.launchWhenResumed {
                                 viewModel.intent(MainIntent.SearchFocusChanged(focused))
                             }
-                        }
-                    ) { textValue ->
-                        lifecycleScope.launchWhenResumed {
-                            viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
-                        }
-                    }
+                        },
+                        onTextValueChange = { textValue ->
+                            lifecycleScope.launchWhenResumed {
+                                viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
+                            }
+                        },
+                    )
                 }
             }
         }
@@ -205,12 +207,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     private fun showSearchFragment() {
         if (currentTopFragment is SearchFragment || !lifecycle.isResumed) return
         with(supportFragmentManager.beginTransaction()) {
-            setCustomAnimations(
-                R.anim.slide_in_bottom,
-                R.anim.slide_out_top,
-                R.anim.slide_in_top,
-                R.anim.slide_out_bottom
-            )
+            setSlideInFromBottom()
             add(R.id.main_fragment_container, SearchFragment())
             addToBackStack(null)
             commit()

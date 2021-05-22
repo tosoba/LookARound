@@ -13,7 +13,7 @@ import kotlinx.coroutines.channels.SendChannel
 
 internal class PlaceMapListAdapter(
     private val mapCaptureRequestChannel: SendChannel<MapCaptureRequest>,
-    private val onMarkerClick: (Marker, View) -> Unit
+    private val onMarkerClick: (Marker) -> Unit
 ) : RecyclerView.Adapter<PlaceMapListViewHolder>() {
     private val asyncListDiffer = AsyncListDiffer(this, PlaceMapListDiffUtilItemCallback)
 
@@ -27,7 +27,7 @@ internal class PlaceMapListAdapter(
                     val position = adapterPosition
                     if (position == RecyclerView.NO_POSITION) return@setOnClickListener
                     val marker = asyncListDiffer.currentList[position]
-                    onMarkerClick(marker, it)
+                    onMarkerClick(marker)
                 }
             }
 

@@ -1,7 +1,6 @@
 package com.lookaround.ui.map
 
 import android.os.Bundle
-import android.transition.TransitionInflater
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -42,12 +41,6 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by lifecycleScope.lazyAsync {
         binding.map.init(mapTilesHttpHandler, glViewHolderFactory)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        sharedElementEnterTransition =
-            TransitionInflater.from(context).inflateTransition(android.R.transition.move)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
