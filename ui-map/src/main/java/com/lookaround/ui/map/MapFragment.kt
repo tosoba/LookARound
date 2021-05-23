@@ -59,10 +59,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         mapController.launch {
             setSceneLoadListener(this@MapFragment)
             loadScene(MapScene.BUBBLE_WRAP)
-            savedInstanceState?.let(::restoreCameraPosition)
-                ?: currentMarker?.let { (_, location) ->
-                    moveCameraPositionTo(location.latitude, location.longitude, 15f)
-                }
+            initCameraPosition(savedInstanceState)
             currentMarker?.location?.let { addMarker(it) }
             zoomOnDoubleTap()
         }
@@ -117,6 +114,16 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
             removeAllMarkers()
             moveCameraPositionTo(location.latitude, location.longitude, 15f, 250)
             addMarker(location)
+        }
+    }
+
+    private fun MapController.initCameraPosition(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null) {
+            restoreCameraPosition(savedInstanceState)
+        } else {
+            currentMarker?.let { (_, location) ->
+                moveCameraPositionTo(location.latitude, location.longitude, 15f)
+            }
         }
     }
 
