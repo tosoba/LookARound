@@ -29,6 +29,7 @@ import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -152,7 +153,8 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     private fun ActivityMainBinding.initSearch() {
         viewModel
             .searchFocusUpdates
-            .onEach { focused -> if (focused) showSearchFragment() else hideSearchFragment() }
+            .filter { it }
+            .onEach { showSearchFragment() }
             .launchIn(lifecycleScope)
 
         searchBarView.setContent {
@@ -218,11 +220,6 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             addToBackStack(null)
             commit()
         }
-    }
-
-    private fun hideSearchFragment() {
-        if (currentTopFragment !is SearchFragment || !lifecycle.isResumed) return
-        supportFragmentManager.popBackStack()
     }
 
     private fun onBottomSheetStateChanged(
