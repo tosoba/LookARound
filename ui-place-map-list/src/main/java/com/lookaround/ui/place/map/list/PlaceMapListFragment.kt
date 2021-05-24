@@ -17,6 +17,7 @@ import com.lookaround.core.android.view.composable.BottomSheetHeaderText
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.markerUpdates
 import com.lookaround.ui.place.map.list.databinding.FragmentPlaceMapListBinding
 import com.mapzen.tangram.*
@@ -55,7 +56,8 @@ class PlaceMapListFragment :
     }
 
     @Inject internal lateinit var mapCaptureCache: MapCaptureCache
-    private val mapCaptureRequestChannel = BroadcastChannel<MapCaptureRequest>(Channel.BUFFERED)
+    private val mapCaptureRequestChannel =
+        BroadcastChannel<PlaceMapCaptureRequest>(Channel.BUFFERED)
     private var processingPlaces: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -123,7 +125,7 @@ class PlaceMapListFragment :
         initPlaceMapList()
     }
 
-    private suspend fun processMapCaptureRequest(request: MapCaptureRequest) {
+    private suspend fun processMapCaptureRequest(request: PlaceMapCaptureRequest) {
         val (location, bitmapCallback, cacheableBitmapDrawableCallback) = request
         val cached = getCachedBitmap(location)
         if (cached != null) {
@@ -157,10 +159,10 @@ class PlaceMapListFragment :
 
     private fun initPlaceMapList() {
         val placeMapListAdapter =
-            PlaceMapListAdapter(mapCaptureRequestChannel) { marker ->
+            PlaceMapListAdapter(mapCaptureRequestChannel, mainViewModel.locationReadyUpdates) {
                 val controller =
                     activity as? PlaceMapItemActionController ?: return@PlaceMapListAdapter
-                controller.onPlaceMapItemClick(marker)
+                controller.onPlaceMapItemClick(marker = it)
             }
         binding.placeMapRecyclerView.adapter = placeMapListAdapter
         mainViewModel.markerUpdates.onEach(placeMapListAdapter::update).launchIn(lifecycleScope)

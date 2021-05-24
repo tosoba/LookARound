@@ -1,9 +1,11 @@
 package com.lookaround.ui.main
 
+import android.location.Location
 import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.model.*
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
+import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -42,3 +44,13 @@ val MainViewModel.markerUpdates: Flow<List<Marker>>
             .distinctUntilChanged()
             .filterIsInstance<WithValue<ParcelableList<Marker>>>()
             .map { it.value.items }
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+val MainViewModel.locationReadyUpdates: Flow<Location>
+    get() =
+        states
+            .map { it.locationState }
+            .filterIsInstance<WithValue<Location>>()
+            .map { it.value }
+            .distinctUntilChangedBy { Objects.hash(it.latitude, it.longitude) }
