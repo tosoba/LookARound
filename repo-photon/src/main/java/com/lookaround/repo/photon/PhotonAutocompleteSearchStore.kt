@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.map
 
 @ExperimentalCoroutinesApi
 @FlowPreview
-object PhotonAutocompleteSearchStore {
+internal object PhotonAutocompleteSearchStore {
     fun build(
         dao: AutocompleteSearchDao,
         endpoints: PhotonEndpoints,
@@ -28,10 +28,16 @@ object PhotonAutocompleteSearchStore {
                 fetcher =
                     Fetcher.of { (query, priorityLat, priorityLon) ->
                         endpoints
-                            .search(query, priorityLat = priorityLat, priorityLon = priorityLon)
+                            .search(
+                                query = query,
+                                priorityLat = priorityLat,
+                                priorityLon = priorityLon,
+                                limit = 500
+                            )
                             .features()
                             ?.namedPointsOnly
-                            ?.distinct()
+                            ?.distinctBy { it.properties().getValue("name").asString }
+                            ?.take(50)
                             ?: emptyList()
                     },
                 sourceOfTruth =
