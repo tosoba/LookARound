@@ -11,6 +11,7 @@ import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainIntent
+import com.lookaround.ui.place.types.composable.PlaceTypesView
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview

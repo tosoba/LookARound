@@ -14,8 +14,8 @@ import com.lookaround.core.android.model.Point
 import com.lookaround.core.android.view.theme.LookARoundTheme
 
 @Composable
-internal fun SearchResults(points: List<Point>) {
-    LazyColumn {
+internal fun SearchResults(points: List<Point>, modifier: Modifier = Modifier) {
+    LazyColumn(modifier) {
         items(points) { item ->
             // TODO: distance away from current location?
             Text(

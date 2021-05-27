@@ -1,4 +1,4 @@
-package com.lookaround.ui.place.types
+package com.lookaround.ui.place.types.composable
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
