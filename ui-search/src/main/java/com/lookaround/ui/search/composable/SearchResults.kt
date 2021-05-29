@@ -21,17 +21,26 @@ import kotlinx.coroutines.flow.Flow
 @Composable
 internal fun SearchResults(
     points: List<Point>,
+    lastPerformedWithLocationPriority: Boolean,
     locationFlow: Flow<Location>,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item { Spacer(modifier = Modifier.height(60.dp)) }
+        if (!lastPerformedWithLocationPriority) {
+            item {
+                SearchResultCard {
+                    Text(
+                        "WARNING - Search performed with no location priority.",
+                        style = MaterialTheme.typography.subtitle2,
+                        color = LookARoundTheme.colors.error,
+                        modifier = Modifier.padding(5.dp)
+                    )
+                }
+            }
+        }
         items(points) { point ->
-            Card(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(12.dp),
-                backgroundColor = Color.White,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            SearchResultCard {
                 Column(modifier = Modifier.padding(5.dp)) {
                     Text(
                         text = point.name,
@@ -52,4 +61,15 @@ internal fun SearchResults(
             }
         }
     }
+}
+
+@Composable
+private fun SearchResultCard(content: @Composable () -> Unit) {
+    Card(
+        elevation = 4.dp,
+        shape = RoundedCornerShape(12.dp),
+        backgroundColor = Color.White,
+        modifier = Modifier.fillMaxWidth(),
+        content = content
+    )
 }

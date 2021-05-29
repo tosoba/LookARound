@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.CircularProgressIndicator
@@ -80,14 +79,18 @@ class SearchFragment : Fragment() {
                     LookARoundTheme {
                         val (points, lastPerformedWithLocationPriority) =
                             searchViewModel.states.collectAsState().value
-                        val modifier = Modifier.padding(top = 66.dp).padding(horizontal = 10.dp)
+                        val modifier = Modifier.padding(top = 60.dp).padding(horizontal = 10.dp)
                         when (points) {
                             is Empty -> Text("Search for places nearby.", modifier)
                             is LoadingInProgress -> {
                                 CircularProgressIndicator(modifier.wrapContentSize())
                             }
                             is Ready -> {
-                                PointsReady(points, lastPerformedWithLocationPriority, modifier)
+                                PointsReady(
+                                    points,
+                                    lastPerformedWithLocationPriority,
+                                    modifier = Modifier.padding(horizontal = 10.dp)
+                                )
                             }
                             is Failed -> PointsFailed(points, modifier)
                         }
@@ -103,15 +106,15 @@ class SearchFragment : Fragment() {
         modifier: Modifier = Modifier,
     ) {
         val items = points.value.items
-        when {
-            items.isEmpty() -> Text("No places found.", modifier)
-            !lastPerformedWithLocationPriority ->
-                Column(modifier) {
-                    Text("WARNING - Search performed with no location priority.")
-                    // TODO: retry button when location retrieved?
-                    SearchResults(items, mainViewModel.locationReadyUpdates)
-                }
-            else -> SearchResults(items, mainViewModel.locationReadyUpdates, modifier)
+        if (items.isEmpty()) {
+            Text("No places found.", modifier)
+        } else {
+            SearchResults(
+                items,
+                lastPerformedWithLocationPriority,
+                mainViewModel.locationReadyUpdates,
+                modifier
+            )
         }
     }
 
