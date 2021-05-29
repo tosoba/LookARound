@@ -79,25 +79,16 @@ class SearchFragment : Fragment() {
                     LookARoundTheme {
                         val (points, lastPerformedWithLocationPriority) =
                             searchViewModel.states.collectAsState().value
-                        val paddingHorizontalModifier = Modifier.padding(horizontal = 10.dp)
-                        val paddingTopModifier = Modifier.padding(top = 66.dp)
+                        val modifier = Modifier.padding(top = 66.dp).padding(horizontal = 10.dp)
                         when (points) {
-                            is Empty -> {
-                                Text(
-                                    "Search for places nearby.",
-                                    paddingTopModifier.then(paddingHorizontalModifier)
-                                )
-                            }
+                            is Empty -> Text("Search for places nearby.", modifier)
                             is LoadingInProgress -> {
-                                CircularProgressIndicator(paddingTopModifier.wrapContentSize())
+                                CircularProgressIndicator(modifier.wrapContentSize())
                             }
                             is Ready -> {
-                                PointsReady(
-                                    points,
-                                    lastPerformedWithLocationPriority,
-                                )
+                                PointsReady(points, lastPerformedWithLocationPriority, modifier)
                             }
-                            is Failed -> PointsFailed(points)
+                            is Failed -> PointsFailed(points, modifier)
                         }
                     }
                 }
@@ -108,29 +99,23 @@ class SearchFragment : Fragment() {
     private fun PointsReady(
         points: Ready<ParcelableList<Point>>,
         lastPerformedWithLocationPriority: Boolean,
+        modifier: Modifier = Modifier,
     ) {
         val items = points.value.items
-        val paddingHorizontalModifier = Modifier.padding(horizontal = 10.dp)
-        val paddingTopModifier = Modifier.padding(top = 66.dp)
         when {
-            items.isEmpty() ->
-                Text("No places found.", paddingTopModifier.then(paddingHorizontalModifier))
+            items.isEmpty() -> Text("No places found.", modifier)
             !lastPerformedWithLocationPriority ->
-                Column(paddingTopModifier) {
-                    Text(
-                        "WARNING - Search performed with no location priority.",
-                        paddingHorizontalModifier
-                    )
+                Column(modifier) {
+                    Text("WARNING - Search performed with no location priority.")
                     // TODO: retry button when location retrieved?
                     SearchResults(items)
                 }
-            else -> SearchResults(items, paddingTopModifier)
+            else -> SearchResults(items, modifier)
         }
     }
 
     @Composable
-    private fun PointsFailed(points: Failed) {
-        val modifier = Modifier.padding(top = 66.dp).then(Modifier.padding(horizontal = 10.dp))
+    private fun PointsFailed(points: Failed, modifier: Modifier = Modifier) {
         when (points.error) {
             is QueryTooShortExcecption -> Text("Search query is too short.", modifier)
             is PlacesLoadingException -> {
