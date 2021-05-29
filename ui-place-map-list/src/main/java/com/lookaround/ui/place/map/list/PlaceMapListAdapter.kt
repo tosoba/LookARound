@@ -9,10 +9,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.lookaround.core.android.ext.formattedDistanceTo
 import com.lookaround.core.android.model.Marker
 import java.lang.ref.WeakReference
 import kotlin.coroutines.CoroutineContext
-import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -47,12 +47,7 @@ internal class PlaceMapListAdapter(
 
         holder.nameTextView.text = marker.name
         locationFlow
-            .onEach {
-                val distanceMeters = marker.location.distanceTo(it).roundToInt()
-                holder.distanceTextView.text =
-                    if (distanceMeters >= 1_000) "${distanceMeters / 1_000} km away"
-                    else "$distanceMeters m away"
-            }
+            .onEach { holder.distanceTextView.text = marker.location.formattedDistanceTo(it) }
             .launchIn(holder)
 
         captureRequestChannel.offer(

@@ -21,6 +21,7 @@ import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.search.composable.SearchResults
 import com.lookaround.ui.search.exception.PlacesLoadingException
 import com.lookaround.ui.search.exception.QueryTooShortExcecption
@@ -108,9 +109,9 @@ class SearchFragment : Fragment() {
                 Column(modifier) {
                     Text("WARNING - Search performed with no location priority.")
                     // TODO: retry button when location retrieved?
-                    SearchResults(items)
+                    SearchResults(items, mainViewModel.locationReadyUpdates)
                 }
-            else -> SearchResults(items, modifier)
+            else -> SearchResults(items, mainViewModel.locationReadyUpdates, modifier)
         }
     }
 
