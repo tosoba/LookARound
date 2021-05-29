@@ -29,19 +29,17 @@ internal fun SearchResults(
 ) {
     val configuration = LocalConfiguration.current
     LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item { Spacer(modifier = Modifier.height(60.dp)) }
+        item { SearchResultsTopSpacer() }
+
         if (!lastPerformedWithLocationPriority) {
             item {
-                SearchResultCard {
-                    Text(
-                        "WARNING - Search performed with no location priority.",
-                        style = MaterialTheme.typography.subtitle2,
-                        color = LookARoundTheme.colors.error,
-                        modifier = Modifier.padding(5.dp)
-                    )
-                }
+                SearchResultInfoCard(
+                    "WARNING - Search performed with no location priority.",
+                    color = LookARoundTheme.colors.error
+                )
             }
         }
+
         if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             items(points.chunked(2)) { chunk ->
                 Row(
@@ -56,6 +54,23 @@ internal fun SearchResults(
         } else {
             items(points) { point -> SearchResult(point, locationFlow, Modifier.fillMaxWidth()) }
         }
+    }
+}
+
+@Composable
+internal fun SearchResultsTopSpacer() {
+    Spacer(modifier = Modifier.height(60.dp))
+}
+
+@Composable
+internal fun SearchResultInfoCard(text: String, color: Color) {
+    SearchResultCard {
+        Text(
+            text,
+            style = MaterialTheme.typography.subtitle2,
+            color = color,
+            modifier = Modifier.padding(10.dp).fillMaxWidth()
+        )
     }
 }
 

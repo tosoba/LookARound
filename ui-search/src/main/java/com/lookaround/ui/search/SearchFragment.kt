@@ -4,10 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -21,7 +21,9 @@ import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
+import com.lookaround.ui.search.composable.SearchResultInfoCard
 import com.lookaround.ui.search.composable.SearchResults
+import com.lookaround.ui.search.composable.SearchResultsTopSpacer
 import com.lookaround.ui.search.exception.PlacesLoadingException
 import com.lookaround.ui.search.exception.QueryTooShortExcecption
 import com.lookaround.ui.search.model.SearchIntent
@@ -79,11 +81,18 @@ class SearchFragment : Fragment() {
                     LookARoundTheme {
                         val (points, lastPerformedWithLocationPriority) =
                             searchViewModel.states.collectAsState().value
-                        val modifier = Modifier.padding(top = 60.dp).padding(horizontal = 10.dp)
                         when (points) {
-                            is Empty -> Text("Search for places nearby.", modifier)
+                            is Empty -> {
+                                Column(modifier = Modifier.padding(horizontal = 10.dp)) {
+                                    SearchResultsTopSpacer()
+                                    SearchResultInfoCard(
+                                        "Search for places nearby.",
+                                        color = LookARoundTheme.colors.textPrimary,
+                                    )
+                                }
+                            }
                             is LoadingInProgress -> {
-                                CircularProgressIndicator(modifier.wrapContentSize())
+                                CircularProgressIndicator(modifier = Modifier.wrapContentSize())
                             }
                             is Ready -> {
                                 PointsReady(
@@ -92,7 +101,12 @@ class SearchFragment : Fragment() {
                                     modifier = Modifier.padding(horizontal = 10.dp)
                                 )
                             }
-                            is Failed -> PointsFailed(points, modifier)
+                            is Failed -> {
+                                PointsFailed(
+                                    points,
+                                    modifier = Modifier.padding(horizontal = 10.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -107,7 +121,10 @@ class SearchFragment : Fragment() {
     ) {
         val items = points.value.items
         if (items.isEmpty()) {
-            Text("No places found.", modifier)
+            Column(modifier) {
+                SearchResultsTopSpacer()
+                SearchResultInfoCard("No places found.", color = LookARoundTheme.colors.error)
+            }
         } else {
             SearchResults(
                 items,
@@ -121,10 +138,24 @@ class SearchFragment : Fragment() {
     @Composable
     private fun PointsFailed(points: Failed, modifier: Modifier = Modifier) {
         when (points.error) {
-            is QueryTooShortExcecption -> Text("Search query is too short.", modifier)
+            is QueryTooShortExcecption -> {
+                Column(modifier) {
+                    SearchResultsTopSpacer()
+                    SearchResultInfoCard(
+                        "Search query is too short.",
+                        color = LookARoundTheme.colors.error
+                    )
+                }
+            }
             is PlacesLoadingException -> {
+                SearchResultsTopSpacer()
                 // TODO: retry button?
-                Text("Places loading error occurred.", modifier)
+                Column(modifier) {
+                    SearchResultInfoCard(
+                        "Places loading error occurred.",
+                        color = LookARoundTheme.colors.error
+                    )
+                }
             }
         }
     }
