@@ -17,6 +17,7 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.ext.actionBarHeight
 import com.lookaround.core.android.ext.bottomNavigationViewHeight
+import com.lookaround.core.android.ext.dpToPx
 import com.lookaround.core.android.ext.statusBarHeight
 import java.util.*
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +29,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private val statusBarHeight: Float = context.statusBarHeight.toFloat()
     private val actionBarHeight: Float = context.actionBarHeight
     private val screenHeight: Float
+    private val markerCornerRadius: Float
 
     init {
         val displayMetrics = context.resources.displayMetrics
@@ -55,6 +57,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 MARKER_WIDTH_DIVISOR_LANDSCAPE
             }
         markerWidth = (displayMetrics.widthPixels / markerWidthDivisor).toFloat()
+        markerCornerRadius = context.dpToPx(12f)
     }
 
     private val maxPageStateFlow: MutableStateFlow<MaxPageChanged> =
@@ -130,7 +133,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             marker.y,
             textPaint
         )
-        canvas.drawRoundRect(rect, 10f, 10f, backgroundPaint)
+        canvas.drawRoundRect(rect, markerCornerRadius, markerCornerRadius, backgroundPaint)
     }
 
     override fun postDrawAll() {
