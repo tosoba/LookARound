@@ -86,7 +86,7 @@ class SearchFragment : Fragment() {
                                 Column(modifier = Modifier.padding(horizontal = 10.dp)) {
                                     SearchResultsTopSpacer()
                                     SearchResultInfoCard(
-                                        "Search for places nearby.",
+                                        requireContext().getString(R.string.search_places_nearby),
                                         color = LookARoundTheme.colors.textPrimary,
                                     )
                                 }
@@ -123,7 +123,10 @@ class SearchFragment : Fragment() {
         if (items.isEmpty()) {
             Column(modifier) {
                 SearchResultsTopSpacer()
-                SearchResultInfoCard("No places found.", color = LookARoundTheme.colors.error)
+                SearchResultInfoCard(
+                    requireContext().getString(R.string.no_places_found),
+                    color = LookARoundTheme.colors.error
+                )
             }
         } else {
             SearchResults(
@@ -142,17 +145,17 @@ class SearchFragment : Fragment() {
                 Column(modifier) {
                     SearchResultsTopSpacer()
                     SearchResultInfoCard(
-                        "Search query is too short.",
+                        requireContext().getString(R.string.search_query_too_short),
                         color = LookARoundTheme.colors.error
                     )
                 }
             }
             is PlacesLoadingException -> {
-                SearchResultsTopSpacer()
-                // TODO: retry button?
                 Column(modifier) {
+                    SearchResultsTopSpacer()
+                    // TODO: retry button?
                     SearchResultInfoCard(
-                        "Places loading error occurred.",
+                        requireContext().getString(R.string.places_loading_error_occurred),
                         color = LookARoundTheme.colors.error
                     )
                 }

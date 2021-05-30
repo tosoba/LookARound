@@ -14,10 +14,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.ext.formattedDistanceTo
 import com.lookaround.core.android.model.Point
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.ui.search.R
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -34,7 +36,7 @@ internal fun SearchResults(
         if (!lastPerformedWithLocationPriority) {
             item {
                 SearchResultInfoCard(
-                    "WARNING - Search performed with no location priority.",
+                    stringResource(R.string.search_no_location_priority_warning),
                     color = LookARoundTheme.colors.error
                 )
             }
