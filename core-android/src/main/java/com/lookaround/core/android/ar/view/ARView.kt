@@ -46,9 +46,9 @@ abstract class ARView<R : MarkerRenderer> : View {
         @MainThread set
 
     protected val markerWidth: Float
-        get() = markerRenderer?.markerWidth ?: MarkerRenderer.DEFAULT_MARKER_DIMENSION
+        get() = markerRenderer?.markerWidthPx ?: MarkerRenderer.DEFAULT_MARKER_DIMENSION_PX
     protected val markerHeight: Float
-        get() = markerRenderer?.markerHeight ?: MarkerRenderer.DEFAULT_MARKER_DIMENSION
+        get() = markerRenderer?.markerHeightPx ?: MarkerRenderer.DEFAULT_MARKER_DIMENSION_PX
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)

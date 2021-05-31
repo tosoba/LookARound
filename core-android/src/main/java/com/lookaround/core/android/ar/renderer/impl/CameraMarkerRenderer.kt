@@ -15,26 +15,28 @@ import androidx.core.os.bundleOf
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
-import com.lookaround.core.android.ext.actionBarHeight
-import com.lookaround.core.android.ext.bottomNavigationViewHeight
-import com.lookaround.core.android.ext.dpToPx
-import com.lookaround.core.android.ext.statusBarHeight
+import com.lookaround.core.android.ext.*
 import java.util.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class CameraMarkerRenderer(context: Context) : MarkerRenderer {
-    override val markerHeight: Float
-    override val markerWidth: Float
-    private val statusBarHeight: Float = context.statusBarHeight.toFloat()
-    private val actionBarHeight: Float = context.actionBarHeight
-    private val screenHeight: Float
-    private val markerCornerRadius: Float
+    override val markerHeightPx: Float
+    override val markerWidthPx: Float
+
+    private val statusBarHeightPx: Float = context.statusBarHeight.toFloat()
+    private val actionBarHeightPx: Float = context.actionBarHeight
+    private val cameraViewHeightPx: Float
+
+    private val markerCornerRadiusPx: Float = context.dpToPx(12f)
+    private val markerPaddingPx: Float = context.dpToPx(MARKER_PADDING_PX)
+    private val markerTitleTextSizePx: Float = context.spToPx(MARKER_TITLE_TEXT_SIZE_SP)
 
     init {
         val displayMetrics = context.resources.displayMetrics
         val bottomNavigationViewHeight = context.bottomNavigationViewHeight
-        screenHeight = displayMetrics.heightPixels.toFloat() - bottomNavigationViewHeight
+        cameraViewHeightPx = displayMetrics.heightPixels.toFloat() - bottomNavigationViewHeight
+
         val orientation = context.resources.configuration.orientation
 
         val numberOfRows =
@@ -45,10 +47,10 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             }
         val cameraViewHeight =
             displayMetrics.heightPixels -
-                statusBarHeight -
-                actionBarHeight -
+                statusBarHeightPx -
+                actionBarHeightPx -
                 bottomNavigationViewHeight
-        markerHeight = cameraViewHeight / numberOfRows - MARKER_VERTICAL_SPACING
+        markerHeightPx = cameraViewHeight / numberOfRows - MARKER_VERTICAL_SPACING_PX
 
         val markerWidthDivisor =
             if (orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -56,8 +58,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             } else {
                 MARKER_WIDTH_DIVISOR_LANDSCAPE
             }
-        markerWidth = (displayMetrics.widthPixels / markerWidthDivisor).toFloat()
-        markerCornerRadius = context.dpToPx(12f)
+        markerWidthPx = (displayMetrics.widthPixels / markerWidthDivisor).toFloat()
     }
 
     private val maxPageStateFlow: MutableStateFlow<MaxPageChanged> =
@@ -93,12 +94,12 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         }
     }
 
-    private val textPaint: TextPaint by lazy(LazyThreadSafetyMode.NONE) {
+    private val titleTextPaint: TextPaint by lazy(LazyThreadSafetyMode.NONE) {
         TextPaint().apply {
             color = Color.BLACK
             style = Paint.Style.FILL
             isAntiAlias = true
-            textSize = 40f
+            textSize = markerTitleTextSizePx
             textAlign = Paint.Align.LEFT
             isLinearText = true
         }
@@ -112,28 +113,27 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
         val rect =
             RectF(
-                marker.x - markerWidth / 2,
-                marker.y - markerHeight / 2,
-                marker.x + markerWidth / 2,
-                marker.y + markerHeight / 2
+                marker.x - markerWidthPx / 2,
+                marker.y - markerHeightPx / 2,
+                marker.x + markerWidthPx / 2,
+                marker.y + markerHeightPx / 2
             )
-        val width = (rect.width() - 10).toInt() // 10 to keep some space on the right for the "..."
-        val text =
+        val title =
             TextUtils.ellipsize(
                 marker.wrapped.name,
-                textPaint,
-                width.toFloat(),
+                titleTextPaint,
+                rect.width() - MARKER_PADDING_PX * 2 - ELLIPSIS_WIDTH_PX,
                 TextUtils.TruncateAt.END
             )
         canvas.drawText(
-            text,
+            title,
             0,
-            text.length,
-            marker.x - markerWidth / 2 + TEXT_OFFSET,
-            marker.y,
-            textPaint
+            title.length,
+            marker.x - markerWidthPx / 2 + markerPaddingPx,
+            marker.y - markerHeightPx / 2 + markerPaddingPx + markerTitleTextSizePx,
+            titleTextPaint
         )
-        canvas.drawRoundRect(rect, markerCornerRadius, markerCornerRadius, backgroundPaint)
+        canvas.drawRoundRect(rect, markerCornerRadiusPx, markerCornerRadiusPx, backgroundPaint)
     }
 
     override fun postDrawAll() {
@@ -160,15 +160,18 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         val bearingThis = marker.povLocationBearing ?: throw IllegalStateException()
         val takenPositions =
             markerBearingsMap
-                .subMap(bearingThis - TAKEN_BEARING_LIMIT, bearingThis + TAKEN_BEARING_LIMIT)
+                .subMap(
+                    bearingThis - TAKEN_BEARING_LIMIT_DEGREES,
+                    bearingThis + TAKEN_BEARING_LIMIT_DEGREES
+                )
                 .map { (_, marker) -> marker.pagedPosition }
                 .filterNotNull()
                 .toSet()
-        val baseY = statusBarHeight + actionBarHeight
+        val baseY = statusBarHeightPx + actionBarHeightPx
         val position = PagedPosition(baseY, 0)
         while (takenPositions.contains(position)) {
-            position.y += markerHeight + MARKER_VERTICAL_SPACING
-            if (position.y >= screenHeight) {
+            position.y += markerHeightPx + MARKER_VERTICAL_SPACING_PX
+            if (position.y >= cameraViewHeightPx) {
                 position.y = baseY
                 ++position.page
             }
@@ -253,12 +256,14 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     companion object {
-        private const val TEXT_OFFSET = 20f
-        private const val TAKEN_BEARING_LIMIT = 45.0f
-        private const val MARKER_VERTICAL_SPACING = 50.0f
+        private const val TAKEN_BEARING_LIMIT_DEGREES = 45.0f
+        private const val MARKER_VERTICAL_SPACING_PX = 50.0f
         private const val NUMBER_OF_ROWS_PORTRAIT = 4
         private const val NUMBER_OF_ROWS_LANDSCAPE = 2
         private const val MARKER_WIDTH_DIVISOR_PORTRAIT = 2
         private const val MARKER_WIDTH_DIVISOR_LANDSCAPE = 4
+        private const val MARKER_PADDING_PX = 10f
+        private const val ELLIPSIS_WIDTH_PX = 10f
+        private const val MARKER_TITLE_TEXT_SIZE_SP = 20f
     }
 }

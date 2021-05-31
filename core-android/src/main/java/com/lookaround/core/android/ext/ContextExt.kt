@@ -54,6 +54,9 @@ val Context.bottomNavigationViewHeight: Int
 fun Context.dpToPx(value: Float): Float =
     TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, resources.displayMetrics)
 
+fun Context.spToPx(value: Float): Float =
+    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)
+
 fun Context.getOrCreateCacheFile(name: String): File? {
     val cacheDir = externalCacheDir
     val tileCacheDir: File?

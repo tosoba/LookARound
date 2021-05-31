@@ -6,10 +6,10 @@ import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 
 interface MarkerRenderer {
-    val markerWidth: Float
-        get() = DEFAULT_MARKER_DIMENSION
-    val markerHeight: Float
-        get() = DEFAULT_MARKER_DIMENSION
+    val markerWidthPx: Float
+        get() = DEFAULT_MARKER_DIMENSION_PX
+    val markerHeightPx: Float
+        get() = DEFAULT_MARKER_DIMENSION_PX
 
     fun draw(marker: ARMarker, canvas: Canvas, orientation: Orientation)
     fun postDrawAll() = Unit
@@ -18,6 +18,6 @@ interface MarkerRenderer {
     fun onRestoreInstanceState(bundle: Bundle?) = Unit
 
     companion object {
-        const val DEFAULT_MARKER_DIMENSION = 50f
+        const val DEFAULT_MARKER_DIMENSION_PX = 50f
     }
 }
