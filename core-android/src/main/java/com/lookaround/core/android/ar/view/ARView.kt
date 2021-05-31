@@ -86,9 +86,7 @@ abstract class ARView<R : MarkerRenderer> : View {
         )
 
     private fun calculateDistancesTo(location: Location, markers: List<ARMarker>) {
-        markers.forEach { marker ->
-            marker.distance = marker.wrapped.location.distanceTo(location).toDouble()
-        }
+        markers.forEach { marker -> marker.distance = marker.wrapped.location.distanceTo(location) }
     }
 
     override fun onSaveInstanceState(): Parcelable? =

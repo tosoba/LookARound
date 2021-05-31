@@ -7,7 +7,7 @@ import java.util.*
 class SimpleARMarker(override val wrapped: Marker) : ARMarker {
     override var x = 0f
     override var y = 0f
-    override var distance = 0.0
+    override var distance = 0f
     override var isSelected = false
     override var isDrawn = true
     override var renderer: MarkerRenderer? = null

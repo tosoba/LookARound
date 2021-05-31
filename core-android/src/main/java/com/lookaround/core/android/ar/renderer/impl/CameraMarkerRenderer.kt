@@ -32,6 +32,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private val markerCornerRadiusPx: Float = context.dpToPx(12f)
     private val markerPaddingPx: Float = context.dpToPx(MARKER_PADDING_PX)
     private val markerTitleTextSizePx: Float = context.spToPx(MARKER_TITLE_TEXT_SIZE_SP)
+    private val markerDistanceTextSizePx: Float = context.spToPx(MARKER_DISTANCE_TEXT_SIZE_SP)
 
     init {
         val displayMetrics = context.resources.displayMetrics
@@ -91,7 +92,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private val backgroundPaint: Paint by lazy(LazyThreadSafetyMode.NONE) {
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.FILL_AND_STROKE
-            color = Color.parseColor("#70ffffff")
+            color = Color.parseColor("#d9ffffff")
         }
     }
 
@@ -101,6 +102,17 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             style = Paint.Style.FILL
             isAntiAlias = true
             textSize = markerTitleTextSizePx
+            textAlign = Paint.Align.LEFT
+            isLinearText = true
+        }
+    }
+
+    private val distanceTextPaint: TextPaint by lazy(LazyThreadSafetyMode.NONE) {
+        TextPaint().apply {
+            color = Color.BLACK
+            style = Paint.Style.FILL
+            isAntiAlias = true
+            textSize = markerDistanceTextSizePx
             textAlign = Paint.Align.LEFT
             isLinearText = true
         }
@@ -119,15 +131,14 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 marker.x + markerWidthPx / 2,
                 marker.y + markerHeightPx / 2
             )
-
-        drawTitleText(canvas, marker, rect)
-
         canvas.drawRoundRect(rect, markerCornerRadiusPx, markerCornerRadiusPx, backgroundPaint)
+        canvas.drawTitleText(marker, rect)
+        canvas.drawDistanceText(marker, rect)
     }
 
-    private fun drawTitleText(canvas: Canvas, marker: ARMarker, rect: RectF) {
+    private fun Canvas.drawTitleText(marker: ARMarker, rect: RectF) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            canvas.drawMultilineText(
+            drawMultilineText(
                 text = marker.wrapped.name,
                 textPaint = titleTextPaint,
                 width = (rect.width() - MARKER_PADDING_PX * 2 - ELLIPSIS_WIDTH_PX).toInt(),
@@ -144,7 +155,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                     rect.width() - MARKER_PADDING_PX * 2 - ELLIPSIS_WIDTH_PX,
                     TextUtils.TruncateAt.END
                 )
-            canvas.drawText(
+            drawText(
                 title,
                 0,
                 title.length,
@@ -153,6 +164,24 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 titleTextPaint
             )
         }
+    }
+
+    private fun Canvas.drawDistanceText(marker: ARMarker, rect: RectF) {
+        val distance =
+            TextUtils.ellipsize(
+                marker.distance.formattedDistance,
+                distanceTextPaint,
+                rect.width() - MARKER_PADDING_PX * 2 - ELLIPSIS_WIDTH_PX,
+                TextUtils.TruncateAt.END
+            )
+        drawText(
+            distance,
+            0,
+            distance.length,
+            marker.x - markerWidthPx / 2 + markerPaddingPx,
+            marker.y + markerHeightPx / 2 - markerPaddingPx,
+            distanceTextPaint
+        )
     }
 
     override fun postDrawAll() {
@@ -284,5 +313,6 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         private const val MARKER_PADDING_PX = 10f
         private const val ELLIPSIS_WIDTH_PX = 10f
         private const val MARKER_TITLE_TEXT_SIZE_SP = 20f
+        private const val MARKER_DISTANCE_TEXT_SIZE_SP = 16f
     }
 }

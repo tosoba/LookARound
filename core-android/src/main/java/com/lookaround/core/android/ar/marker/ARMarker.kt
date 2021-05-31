@@ -5,7 +5,7 @@ import com.lookaround.core.android.model.Marker
 
 interface ARMarker {
     val wrapped: Marker
-    var distance: Double
+    var distance: Float
     var renderer: MarkerRenderer?
     var x: Float
     var y: Float
