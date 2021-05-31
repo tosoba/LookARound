@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.location.Location
+import android.os.Build
 import android.os.Bundle
 import android.text.TextPaint
 import android.text.TextUtils
@@ -118,22 +119,40 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 marker.x + markerWidthPx / 2,
                 marker.y + markerHeightPx / 2
             )
-        val title =
-            TextUtils.ellipsize(
-                marker.wrapped.name,
-                titleTextPaint,
-                rect.width() - MARKER_PADDING_PX * 2 - ELLIPSIS_WIDTH_PX,
-                TextUtils.TruncateAt.END
-            )
-        canvas.drawText(
-            title,
-            0,
-            title.length,
-            marker.x - markerWidthPx / 2 + markerPaddingPx,
-            marker.y - markerHeightPx / 2 + markerPaddingPx + markerTitleTextSizePx,
-            titleTextPaint
-        )
+
+        drawTitleText(canvas, marker, rect)
+
         canvas.drawRoundRect(rect, markerCornerRadiusPx, markerCornerRadiusPx, backgroundPaint)
+    }
+
+    private fun drawTitleText(canvas: Canvas, marker: ARMarker, rect: RectF) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            canvas.drawMultilineText(
+                text = marker.wrapped.name,
+                textPaint = titleTextPaint,
+                width = (rect.width() - MARKER_PADDING_PX * 2 - ELLIPSIS_WIDTH_PX).toInt(),
+                x = marker.x - markerWidthPx / 2 + markerPaddingPx,
+                y = marker.y - markerHeightPx / 2 + markerPaddingPx,
+                ellipsize = TextUtils.TruncateAt.END,
+                maxLines = 2,
+            )
+        } else {
+            val title =
+                TextUtils.ellipsize(
+                    marker.wrapped.name,
+                    titleTextPaint,
+                    rect.width() - MARKER_PADDING_PX * 2 - ELLIPSIS_WIDTH_PX,
+                    TextUtils.TruncateAt.END
+                )
+            canvas.drawText(
+                title,
+                0,
+                title.length,
+                marker.x - markerWidthPx / 2 + markerPaddingPx,
+                marker.y - markerHeightPx / 2 + markerPaddingPx + markerTitleTextSizePx,
+                titleTextPaint
+            )
+        }
     }
 
     override fun postDrawAll() {
