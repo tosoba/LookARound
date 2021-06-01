@@ -18,12 +18,12 @@ import androidx.lifecycle.lifecycleScope
 import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.model.*
+import com.lookaround.core.android.view.composable.PlaceInfoItem
+import com.lookaround.core.android.view.composable.ListTopSpacer
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
-import com.lookaround.ui.search.composable.SearchResultInfoCard
 import com.lookaround.ui.search.composable.SearchResults
-import com.lookaround.ui.search.composable.SearchResultsTopSpacer
 import com.lookaround.ui.search.exception.PlacesLoadingException
 import com.lookaround.ui.search.exception.QueryTooShortExcecption
 import com.lookaround.ui.search.model.SearchIntent
@@ -84,8 +84,8 @@ class SearchFragment : Fragment() {
                         when (points) {
                             is Empty -> {
                                 Column(modifier = Modifier.padding(horizontal = 10.dp)) {
-                                    SearchResultsTopSpacer()
-                                    SearchResultInfoCard(
+                                    ListTopSpacer()
+                                    PlaceInfoItem(
                                         requireContext().getString(R.string.search_places_nearby),
                                         color = LookARoundTheme.colors.textPrimary,
                                     )
@@ -122,8 +122,8 @@ class SearchFragment : Fragment() {
         val items = points.value.items
         if (items.isEmpty()) {
             Column(modifier) {
-                SearchResultsTopSpacer()
-                SearchResultInfoCard(
+                ListTopSpacer()
+                PlaceInfoItem(
                     requireContext().getString(R.string.no_places_found),
                     color = LookARoundTheme.colors.error
                 )
@@ -143,8 +143,8 @@ class SearchFragment : Fragment() {
         when (points.error) {
             is QueryTooShortExcecption -> {
                 Column(modifier) {
-                    SearchResultsTopSpacer()
-                    SearchResultInfoCard(
+                    ListTopSpacer()
+                    PlaceInfoItem(
                         requireContext().getString(R.string.search_query_too_short),
                         color = LookARoundTheme.colors.error
                     )
@@ -152,9 +152,9 @@ class SearchFragment : Fragment() {
             }
             is PlacesLoadingException -> {
                 Column(modifier) {
-                    SearchResultsTopSpacer()
+                    ListTopSpacer()
                     // TODO: retry button?
-                    SearchResultInfoCard(
+                    PlaceInfoItem(
                         requireContext().getString(R.string.places_loading_error_occurred),
                         color = LookARoundTheme.colors.error
                     )

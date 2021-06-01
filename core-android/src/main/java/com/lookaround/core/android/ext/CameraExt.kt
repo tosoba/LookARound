@@ -6,10 +6,10 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import timber.log.Timber
 
 fun PreviewView.init(
     lifecycleOwner: LifecycleOwner,
@@ -25,7 +25,7 @@ fun PreviewView.init(
                             .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                             .build()
 
-                    val metrics = DisplayMetrics().also { display.getRealMetrics(it) }
+                    val metrics = DisplayMetrics().also(display::getRealMetrics)
                     val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
                     val rotation = display.rotation
 
