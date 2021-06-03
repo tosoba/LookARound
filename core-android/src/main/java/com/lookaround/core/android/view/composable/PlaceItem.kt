@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.ext.formattedDistanceTo
 import com.lookaround.core.android.model.Point
@@ -18,7 +20,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun PlaceItem(point: Point, locationFlow: Flow<Location>, modifier: Modifier = Modifier) {
-    PlaceItemCard(modifier = modifier) {
+    LookARoundCard(modifier = modifier) {
         Column(modifier = Modifier.padding(5.dp)) {
             Text(
                 text = point.name,
@@ -41,7 +43,7 @@ fun PlaceItem(point: Point, locationFlow: Flow<Location>, modifier: Modifier = M
 
 @Composable
 fun PlaceInfoItem(text: String, color: Color) {
-    PlaceItemCard {
+    LookARoundCard {
         Text(
             text,
             style = MaterialTheme.typography.subtitle2,
@@ -52,10 +54,15 @@ fun PlaceInfoItem(text: String, color: Color) {
 }
 
 @Composable
-private fun PlaceItemCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun LookARoundCard(
+    modifier: Modifier = Modifier,
+    elevation: Dp = 4.dp,
+    shape: Shape = RoundedCornerShape(12.dp),
+    content: @Composable () -> Unit
+) {
     Card(
-        elevation = 4.dp,
-        shape = RoundedCornerShape(12.dp),
+        elevation = elevation,
+        shape = shape,
         backgroundColor = Color.White,
         modifier = modifier,
         content = content
