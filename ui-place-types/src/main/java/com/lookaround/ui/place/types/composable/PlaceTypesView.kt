@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.view.composable.BottomSheetHeaderText
 import com.lookaround.core.android.view.composable.LookARoundSurface
+import com.lookaround.core.android.view.composable.PlaceInfoItem
 import com.lookaround.core.android.view.composable.VerticalGrid
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.Amenity
@@ -65,10 +66,13 @@ fun PlaceTypesView(onPlaceTypeClicked: (IPlaceType) -> Unit) {
 
 @Composable
 private fun PlaceTypes(groups: List<PlaceTypeGroup>, onClick: (IPlaceType) -> Unit = {}) {
-    LazyColumn {
-        itemsIndexed(groups) { index, group -> PlaceTypeGroup(group, index, onClick = onClick) }
+    Column {
+        BottomSheetHeaderText("Categories")
+        LazyColumn {
+            itemsIndexed(groups) { index, group -> PlaceTypeGroup(group, index, onClick = onClick) }
+        }
+        Spacer(Modifier.height(8.dp))
     }
-    Spacer(Modifier.height(8.dp))
 }
 
 @Composable
@@ -101,7 +105,7 @@ private fun PlaceTypeGroup(
     onClick: (IPlaceType) -> Unit = {}
 ) {
     Column(modifier) {
-        BottomSheetHeaderText(group.name)
+        PlaceInfoItem(group.name, Color.Black)
         VerticalGrid(Modifier.padding(horizontal = 16.dp)) {
             val gradient =
                 when (index % 2) {
