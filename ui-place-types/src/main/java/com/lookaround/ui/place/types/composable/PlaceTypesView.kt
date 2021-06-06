@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.view.composable.BottomSheetHeaderText
+import com.lookaround.core.android.view.composable.LookARoundCard
 import com.lookaround.core.android.view.composable.LookARoundSurface
-import com.lookaround.core.android.view.composable.PlaceInfoItem
 import com.lookaround.core.android.view.composable.VerticalGrid
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.Amenity
@@ -105,7 +105,7 @@ private fun PlaceTypeGroup(
     onClick: (IPlaceType) -> Unit = {}
 ) {
     Column(modifier) {
-        PlaceInfoItem(group.name, Color.Black)
+        PlaceTypeGroupHeader(group)
         VerticalGrid(Modifier.padding(horizontal = 16.dp)) {
             val gradient =
                 when (index % 2) {
@@ -122,6 +122,20 @@ private fun PlaceTypeGroup(
             }
         }
         Spacer(Modifier.height(4.dp))
+    }
+}
+
+@Composable
+private fun PlaceTypeGroupHeader(group: PlaceTypeGroup) {
+    LookARoundCard(
+        modifier = Modifier.padding(horizontal = 24.dp, vertical = 5.dp).wrapContentWidth()
+    ) {
+        Text(
+            group.name,
+            style = MaterialTheme.typography.subtitle2,
+            color = Color.Blue,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp).wrapContentWidth()
+        )
     }
 }
 

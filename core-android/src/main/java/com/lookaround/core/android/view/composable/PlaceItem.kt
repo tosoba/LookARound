@@ -42,8 +42,8 @@ fun PlaceItem(point: Point, locationFlow: Flow<Location>, modifier: Modifier = M
 }
 
 @Composable
-fun PlaceInfoItem(text: String, color: Color) {
-    LookARoundCard {
+fun PlaceInfoItem(text: String, color: Color, modifier: Modifier = Modifier) {
+    LookARoundCard(modifier) {
         Text(
             text,
             style = MaterialTheme.typography.subtitle2,
