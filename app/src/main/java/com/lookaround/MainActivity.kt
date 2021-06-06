@@ -83,9 +83,9 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        binding.initSearch()
+        initSearch()
         initBottomSheet(savedInstanceState)
-        binding.initBottomNavigationView(savedInstanceState)
+        initBottomNavigationView(savedInstanceState)
 
         viewModel
             .locationUpdateFailureUpdates
@@ -150,14 +150,14 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         }
     }
 
-    private fun ActivityMainBinding.initSearch() {
+    private fun initSearch() {
         viewModel
             .searchFocusUpdates
             .filter { it }
             .onEach { showSearchFragment() }
             .launchIn(lifecycleScope)
 
-        searchBarView.setContent {
+        binding.searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
                     val (_, _, _, searchQuery, searchFocused) = viewModel.state
@@ -204,12 +204,20 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         }
     }
 
-    private fun ActivityMainBinding.initBottomNavigationView(savedInstanceState: Bundle?) {
-        bottomNavigationView.setOnNavigationItemSelectedListener(onBottomNavItemSelectedListener)
-        savedInstanceState
-            ?.getInt(SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name)
-            ?.let(::selectedBottomNavigationViewItemId::set)
-        bottomNavigationView.selectedItemId = selectedBottomNavigationViewItemId
+    private fun initBottomNavigationView(savedInstanceState: Bundle?) {
+        with(binding.bottomNavigationView) {
+            setOnNavigationItemSelectedListener(onBottomNavItemSelectedListener)
+
+            savedInstanceState
+                ?.getInt(SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name)
+                ?.let(::selectedBottomNavigationViewItemId::set)
+            selectedItemId = selectedBottomNavigationViewItemId
+
+            viewModel
+                .placesBottomNavItemVisibilityUpdates
+                .onEach { isVisible -> menu.findItem(R.id.action_place_list).isVisible = isVisible }
+                .launchIn(lifecycleScope)
+        }
     }
 
     private fun showSearchFragment() {

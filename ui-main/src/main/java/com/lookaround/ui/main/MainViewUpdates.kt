@@ -47,6 +47,11 @@ val MainViewModel.markerUpdates: Flow<List<Marker>>
 
 @FlowPreview
 @ExperimentalCoroutinesApi
+val MainViewModel.placesBottomNavItemVisibilityUpdates: Flow<Boolean>
+    get() = states.map { it.markers is WithValue }.distinctUntilChanged()
+
+@FlowPreview
+@ExperimentalCoroutinesApi
 val MainViewModel.locationReadyUpdates: Flow<Location>
     get() =
         states
