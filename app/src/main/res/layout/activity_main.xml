@@ -27,7 +27,6 @@
 
         <FrameLayout
             android:id="@+id/bottom_sheet_fragment_container"
-            android:name="com.lookaround.ui.place.types.PlaceTypesFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:behavior_hideable="true"

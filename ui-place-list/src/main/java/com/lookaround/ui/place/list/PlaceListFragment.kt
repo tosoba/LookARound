@@ -4,8 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.model.WithValue
@@ -24,6 +28,7 @@ class PlaceListFragment : Fragment() {
         mainViewModelFactory.create(it)
     }
 
+    @ExperimentalFoundationApi
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -36,7 +41,8 @@ class PlaceListFragment : Fragment() {
                     if (markers is WithValue) {
                         PlacesList(
                             markers.value.items,
-                            locationFlow = mainViewModel.locationReadyUpdates
+                            locationFlow = mainViewModel.locationReadyUpdates,
+                            modifier = Modifier.padding(horizontal = 10.dp)
                         )
                     }
                 }
