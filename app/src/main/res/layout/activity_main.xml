@@ -25,36 +25,13 @@
             android:layout_height="wrap_content"
             android:visibility="gone" />
 
-        <FrameLayout
-            android:id="@+id/bottom_sheet_fragment_container"
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/bottom_sheet_view_pager"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:behavior_hideable="true"
             app:behavior_peekHeight="55dp"
-            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
-
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/place_types_fragment_view"
-                android:name="com.lookaround.ui.place.types.PlaceTypesFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="visible" />
-
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/place_list_fragment_view"
-                android:name="com.lookaround.ui.place.list.PlaceListFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
-
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/place_map_list_fragment_view"
-                android:name="com.lookaround.ui.place.map.list.PlaceMapListFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
-
-        </FrameLayout>
+            app:layout_behavior="biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

@@ -44,10 +44,12 @@ dependencies {
     implementation(project(":core-android-model"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
+
     implementation("androidx.core:core-ktx:1.3.2")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
 
     implementation("com.google.android.material:material:1.3.0")
+    implementation("biz.laenger.android:vpbs:0.0.6")
 
     implementation("com.google.dagger:hilt-android:2.35")
     kapt("com.google.dagger:hilt-android-compiler:2.35")

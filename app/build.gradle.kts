@@ -78,6 +78,7 @@ dependencies {
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
     implementation("dev.chrisbanes.accompanist:accompanist-insets:0.6.0")
     implementation("dev.chrisbanes.accompanist:accompanist-coil:0.6.0")
+    implementation("biz.laenger.android:vpbs:0.0.6")
 
     implementation("androidx.compose.runtime:runtime:1.0.0-beta03")
     implementation("androidx.compose.compiler:compiler:1.0.0-beta03")

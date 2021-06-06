@@ -4,7 +4,10 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.lifecycleScope
+import biz.laenger.android.vpbs.BottomSheetUtils
+import biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -20,7 +23,10 @@ import com.lookaround.ui.camera.CameraFragment
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.map.MapFragment
+import com.lookaround.ui.place.list.PlaceListFragment
 import com.lookaround.ui.place.map.list.PlaceMapItemActionController
+import com.lookaround.ui.place.map.list.PlaceMapListFragment
+import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.SearchBar
 import com.lookaround.ui.search.composable.rememberSearchBarState
@@ -45,33 +51,22 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
 
     private val bottomSheetBehavior by lazy(LazyThreadSafetyMode.NONE) {
-        BottomSheetBehavior.from(binding.bottomSheetFragmentContainer)
+        ViewPagerBottomSheetBehavior.from(binding.bottomSheetViewPager)
     }
     private var lastLiveBottomSheetState: Int? = null
 
-    private var selectedBottomNavigationViewItemId: Int = bottomSheetFragmentIds.first()
+    private var selectedBottomNavigationViewItemId: Int = R.id.action_place_types
     private val onBottomNavItemSelectedListener by lazy(LazyThreadSafetyMode.NONE) {
-        fun changeBottomSheetFragmentsVisibility(visibleFragmentId: Int) {
-            bottomSheetFragmentIds.forEach { id ->
-                findViewById<View>(id).visibility =
-                    if (id == visibleFragmentId) View.VISIBLE else View.GONE
-            }
-        }
-
-        fun bottomSheetVisibleFragmentId(navigationItemId: Int): Int =
-            when (navigationItemId) {
-                R.id.action_place_types -> R.id.place_types_fragment_view
-                R.id.action_place_list -> R.id.place_list_fragment_view
-                R.id.action_place_map_list -> R.id.place_map_list_fragment_view
-                else -> throw IllegalArgumentException()
-            }
-
         BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
             selectedBottomNavigationViewItemId = menuItem.itemId
-            changeBottomSheetFragmentsVisibility(
-                visibleFragmentId = bottomSheetVisibleFragmentId(menuItem.itemId)
-            )
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+            binding.bottomSheetViewPager.currentItem =
+                when (menuItem.itemId) {
+                    R.id.action_place_types -> 0
+                    R.id.action_place_list -> 1
+                    R.id.action_place_map_list -> 2
+                    else -> throw IllegalArgumentException()
+                }
+            bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_EXPANDED
             true
         }
     }
@@ -187,9 +182,26 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     private fun initBottomSheet(savedInstanceState: Bundle?) {
         lastLiveBottomSheetState =
             savedInstanceState?.getInt(SavedStateKeys.BOTTOM_SHEET_STATE.name)
+
+        val fragments = arrayOf(PlaceTypesFragment(), PlaceListFragment(), PlaceMapListFragment())
+        val sectionsPagerAdapter =
+            object :
+                FragmentPagerAdapter(
+                    supportFragmentManager,
+                    BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
+                ) {
+                override fun getCount(): Int = fragments.size
+                override fun getItem(position: Int): Fragment = fragments[position]
+            }
+        with(binding.bottomSheetViewPager) {
+            offscreenPageLimit = 2
+            adapter = sectionsPagerAdapter
+            BottomSheetUtils.setupViewPager(this)
+        }
+
         with(bottomSheetBehavior) {
-            addBottomSheetCallback(
-                object : BottomSheetBehavior.BottomSheetCallback() {
+            setBottomSheetCallback(
+                object : ViewPagerBottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) =
                         onBottomSheetStateChanged(newState, true)
 
@@ -254,14 +266,5 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     private enum class SavedStateKeys {
         BOTTOM_SHEET_STATE,
         BOTTOM_NAV_SELECTED_ITEM_ID
-    }
-
-    companion object {
-        private val bottomSheetFragmentIds: Array<Int> =
-            arrayOf(
-                R.id.place_types_fragment_view,
-                R.id.place_list_fragment_view,
-                R.id.place_map_list_fragment_view
-            )
     }
 }
