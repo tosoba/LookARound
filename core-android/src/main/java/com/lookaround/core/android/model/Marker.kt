@@ -8,11 +8,11 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Marker(
-    val name: String,
-    val location: Location,
+    override val name: String,
+    override val location: Location,
     val tags: Map<String, String> = emptyMap(),
     val id: UUID = UUID.randomUUID()
-) : Parcelable {
+) : INamedLocation, Parcelable {
     constructor(
         node: NodeDTO
     ) : this(node.name, LocationFactory.create(node.lat, node.lon), node.tags)

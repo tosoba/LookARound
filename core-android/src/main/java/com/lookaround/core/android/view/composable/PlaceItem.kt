@@ -14,12 +14,13 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.ext.formattedDistanceTo
+import com.lookaround.core.android.model.INamedLocation
 import com.lookaround.core.android.model.Point
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import kotlinx.coroutines.flow.Flow
 
 @Composable
-fun PlaceItem(point: Point, locationFlow: Flow<Location>, modifier: Modifier = Modifier) {
+fun PlaceItem(point: INamedLocation, locationFlow: Flow<Location>, modifier: Modifier = Modifier) {
     LookARoundCard(modifier = modifier) {
         Column(modifier = Modifier.padding(5.dp)) {
             Text(

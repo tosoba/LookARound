@@ -1,51 +1,42 @@
 package com.lookaround.ui.place.list
 
+import android.content.res.Configuration
+import android.location.Location
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Text
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.composable.BottomSheetHeaderText
-import com.lookaround.core.android.view.composable.LookARoundSurface
+import com.lookaround.core.android.view.composable.PlaceItem
+import kotlinx.coroutines.flow.Flow
 
 @Composable
-fun PlacesList(markers: List<Marker>, modifier: Modifier = Modifier) {
+fun PlacesList(markers: List<Marker>, locationFlow: Flow<Location>, modifier: Modifier = Modifier) {
     Column(modifier) {
         BottomSheetHeaderText("Places")
-        LazyColumn(contentPadding = PaddingValues(16.dp)) {
-            val itemCount = if (markers.size % 2 == 0) markers.size / 2 else markers.size / 2 + 1
-            items(itemCount) { PlacesListItemsRow(rowIndex = it, markers = markers) }
-        }
-    }
-}
-
-@Composable
-private fun PlacesListItemsRow(rowIndex: Int, markers: List<Marker>) {
-    Column {
-        Row {
-            PlacesListItem(marker = markers[rowIndex * 2], modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.width(16.dp))
-            if (markers.size >= rowIndex * 2 + 2) {
-                PlacesListItem(marker = markers[rowIndex * 2 + 1], modifier = Modifier.weight(1f))
+        val configuration = LocalConfiguration.current
+        LazyColumn(
+            modifier = Modifier.padding(horizontal = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                items(markers.chunked(2)) { chunk ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.wrapContentHeight()
+                    ) {
+                        chunk.forEach { point ->
+                            PlaceItem(point, locationFlow, Modifier.weight(1f))
+                        }
+                    }
+                }
             } else {
-                Spacer(modifier = Modifier.weight(1f))
+                items(markers) { point -> PlaceItem(point, locationFlow, Modifier.fillMaxWidth()) }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
     }
-}
-
-@Composable
-private fun PlacesListItem(marker: Marker, modifier: Modifier = Modifier, elevation: Dp = 0.dp) {
-    LookARoundSurface(
-        color = Color.LightGray,
-        elevation = elevation,
-        shape = CircleShape,
-        modifier = modifier
-    ) { Text(text = marker.name, modifier = Modifier.fillMaxSize()) }
 }
