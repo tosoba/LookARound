@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:visibility="gone" />
 
-        <androidx.viewpager.widget.ViewPager
+        <com.lookaround.core.android.view.WrapContentViewPager
             android:id="@+id/bottom_sheet_view_pager"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

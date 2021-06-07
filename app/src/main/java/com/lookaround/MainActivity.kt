@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.lifecycleScope
+import androidx.viewpager.widget.ViewPager
 import biz.laenger.android.vpbs.BottomSheetUtils
 import biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -32,6 +33,7 @@ import com.lookaround.ui.search.composable.SearchBar
 import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.filter
@@ -39,7 +41,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -55,6 +56,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     }
     private var lastLiveBottomSheetState: Int? = null
 
+    private var latestARState: ARState? = null
     private var selectedBottomNavigationViewItemId: Int = R.id.action_place_types
     private val onBottomNavItemSelectedListener by lazy(LazyThreadSafetyMode.NONE) {
         BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
@@ -66,7 +68,9 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                     R.id.action_place_map_list -> 2
                     else -> throw IllegalArgumentException()
                 }
-            bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_EXPANDED
+            if (latestARState == ARState.ENABLED) {
+                bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_EXPANDED
+            }
             true
         }
     }
@@ -105,6 +109,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     }
 
     override fun onAREnabled() {
+        latestARState = ARState.ENABLED
         binding.searchBarView.visibility = View.VISIBLE
         binding.bottomNavigationView.visibility = View.VISIBLE
         onBottomSheetStateChanged(
@@ -114,12 +119,14 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     }
 
     override fun onARLoading() {
+        latestARState = ARState.LOADING
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
         onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
     }
 
     override fun onARDisabled(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
+        latestARState = ARState.DISABLED
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
         lastLiveBottomSheetState = viewModel.state.bottomSheetState.state
@@ -183,20 +190,42 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         lastLiveBottomSheetState =
             savedInstanceState?.getInt(SavedStateKeys.BOTTOM_SHEET_STATE.name)
 
-        val fragments = arrayOf(PlaceTypesFragment(), PlaceListFragment(), PlaceMapListFragment())
-        val sectionsPagerAdapter =
-            object :
-                FragmentPagerAdapter(
-                    supportFragmentManager,
-                    BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-                ) {
-                override fun getCount(): Int = fragments.size
-                override fun getItem(position: Int): Fragment = fragments[position]
-            }
         with(binding.bottomSheetViewPager) {
-            offscreenPageLimit = 2
-            adapter = sectionsPagerAdapter
+            val fragments =
+                arrayOf(PlaceTypesFragment(), PlaceListFragment(), PlaceMapListFragment())
+            offscreenPageLimit = fragments.size - 1
+            adapter =
+                object :
+                    FragmentPagerAdapter(
+                        supportFragmentManager,
+                        BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
+                    ) {
+                    override fun getCount(): Int = fragments.size
+                    override fun getItem(position: Int): Fragment = fragments[position]
+                }
             BottomSheetUtils.setupViewPager(this)
+            addOnPageChangeListener(
+                object : ViewPager.OnPageChangeListener {
+                    override fun onPageScrolled(
+                        position: Int,
+                        positionOffset: Float,
+                        positionOffsetPixels: Int
+                    ) = Unit
+
+                    override fun onPageSelected(position: Int) {
+                        binding.bottomNavigationView.selectedItemId =
+                            when (position) {
+                                0 -> R.id.action_place_types
+                                1 -> R.id.action_place_list
+                                2 -> R.id.action_place_map_list
+                                else -> throw IllegalArgumentException()
+                            }
+                        requestLayout()
+                    }
+
+                    override fun onPageScrollStateChanged(state: Int) = Unit
+                }
+            )
         }
 
         with(bottomSheetBehavior) {
@@ -266,5 +295,11 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     private enum class SavedStateKeys {
         BOTTOM_SHEET_STATE,
         BOTTOM_NAV_SELECTED_ITEM_ID
+    }
+
+    private enum class ARState {
+        LOADING,
+        ENABLED,
+        DISABLED
     }
 }
