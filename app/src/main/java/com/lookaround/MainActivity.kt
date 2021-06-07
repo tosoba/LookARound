@@ -32,7 +32,6 @@ import com.lookaround.ui.search.composable.SearchBar
 import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.filter
@@ -40,6 +39,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -218,12 +218,12 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
     private fun initBottomNavigationView(savedInstanceState: Bundle?) {
         with(binding.bottomNavigationView) {
-            setOnNavigationItemSelectedListener(onBottomNavItemSelectedListener)
-
             savedInstanceState
                 ?.getInt(SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name)
                 ?.let(::selectedBottomNavigationViewItemId::set)
             selectedItemId = selectedBottomNavigationViewItemId
+
+            setOnNavigationItemSelectedListener(onBottomNavItemSelectedListener)
 
             viewModel
                 .placesBottomNavItemVisibilityUpdates
