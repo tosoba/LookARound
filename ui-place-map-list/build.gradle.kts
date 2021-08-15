@@ -59,6 +59,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
     implementation(project(":core-android-model"))
+    implementation(project(":tangram"))
     implementation(project(":ui-main"))
 
     implementation(kotlin("stdlib", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
@@ -75,7 +76,6 @@ dependencies {
 
     implementation("com.jakewharton:disklrucache:2.0.2")
     implementation(files("../libs/bitmap-lru-cache.jar"))
-    implementation(files("../libs/tangram-release.aar"))
 
     implementation("com.google.dagger:hilt-android:2.35")
     kapt("com.google.dagger:hilt-android-compiler:2.35")

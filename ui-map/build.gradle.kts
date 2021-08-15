@@ -55,6 +55,7 @@ kapt { correctErrorTypes = true }
 dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
+    implementation(project(":tangram"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
@@ -69,8 +70,6 @@ dependencies {
     implementation("com.google.android.material:material:1.3.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
-
-    implementation(files("../libs/tangram-release.aar"))
 
     implementation("com.google.dagger:hilt-android:2.35")
     kapt("com.google.dagger:hilt-android-compiler:2.35")

@@ -59,6 +59,7 @@ dependencies {
     implementation(project(":repo-nominatim"))
     implementation(project(":repo-overpass"))
     implementation(project(":repo-photon"))
+    implementation(project(":tangram"))
     implementation(project(":ui-camera"))
     implementation(project(":ui-main"))
     implementation(project(":ui-map"))
@@ -99,8 +100,6 @@ dependencies {
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
-
-    implementation(files("../libs/tangram-release.aar"))
 
     implementation("ru.beryukhov:flowreactivenetwork:1.0.2")
 
