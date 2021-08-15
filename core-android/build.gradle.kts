@@ -38,6 +38,13 @@ android {
                 System.getenv("LOG_STATE_UPDATES_FLOW")
             }
         )
+
+        externalNativeBuild {
+            cmake {
+                cppFlags("-std=c++17")
+                arguments("-DCMAKE_VERBOSE_MAKEFILE=ON")
+            }
+        }
     }
 
     buildTypes {
@@ -47,6 +54,17 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "$project.rootDir/tools/proguard-rules.pro"
             )
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            // AGP doesn't allow us to use project.buildDir (or subdirs) for CMake's generated
+            // build files (ninja build files, CMakeCache.txt, etc.). Use a staging directory that
+            // lives alongside the project's buildDir.
+            buildStagingDirectory = File("${project.buildDir}/../nativeBuildStaging")
+            path = File("${project.buildDir}/../src/main/cpp/CMakeLists.txt")
+            version = "3.10.2"
         }
     }
 
@@ -87,6 +105,7 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.3.2")
     implementation("androidx.fragment:fragment-ktx:1.3.3")
+    implementation("androidx.concurrent:concurrent-futures:1.1.0")
 
     implementation("androidx.navigation:navigation-fragment-ktx:2.3.5")
     implementation("androidx.navigation:navigation-ui-ktx:2.3.5")
