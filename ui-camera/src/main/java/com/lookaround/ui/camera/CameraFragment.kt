@@ -1,7 +1,12 @@
 package com.lookaround.ui.camera
 
 import android.Manifest
+import android.content.Context
+import android.hardware.display.DisplayManager
+import android.hardware.display.DisplayManager.DisplayListener
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import androidx.camera.core.*
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -16,6 +21,9 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.orientation.OrientationManager
 import com.lookaround.core.android.ar.renderer.impl.CameraMarkerRenderer
 import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
+import com.lookaround.core.android.camera.OpenGLRenderer
+import com.lookaround.core.android.camera.SurfaceViewRenderSurface
+import com.lookaround.core.android.camera.Surfaces
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.BoxedSeekbar
@@ -70,6 +78,29 @@ class CameraFragment :
         }
     }
 
+    private val openGLRenderer: OpenGLRenderer by lazy(LazyThreadSafetyMode.NONE) {
+        OpenGLRenderer()
+    }
+
+    private val preview: View by lazy(LazyThreadSafetyMode.NONE) {
+        SurfaceViewRenderSurface.inflateWith(binding.cameraPreview, openGLRenderer)
+    }
+
+    private val displayListener: DisplayListener by lazy(LazyThreadSafetyMode.NONE) {
+        object : DisplayListener {
+            override fun onDisplayAdded(displayId: Int) = Unit
+            override fun onDisplayRemoved(displayId: Int) = Unit
+            override fun onDisplayChanged(displayId: Int) {
+                val viewFinderDisplay = preview.display
+                if (viewFinderDisplay?.displayId == displayId) {
+                    openGLRenderer.invalidateSurface(
+                        Surfaces.toSurfaceRotationDegrees(viewFinderDisplay.rotation)
+                    )
+                }
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
 
@@ -91,6 +122,10 @@ class CameraFragment :
         Manifest.permission.ACCESS_FINE_LOCATION
     )
     internal fun initAR() {
+        val displayManager =
+            requireContext().getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        displayManager.registerDisplayListener(displayListener, Handler(Looper.getMainLooper()))
+
         lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionGranted) }
 
         loadingStartedUpdates(mainViewModel, cameraViewModel)

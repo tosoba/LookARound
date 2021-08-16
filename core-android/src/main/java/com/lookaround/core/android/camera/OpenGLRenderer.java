@@ -1,19 +1,3 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.lookaround.core.android.camera;
 
 import android.graphics.SurfaceTexture;
@@ -38,8 +22,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-final class OpenGLRenderer {
-
+public final class OpenGLRenderer {
     static {
         System.loadLibrary("opengl_renderer_jni");
     }
@@ -82,7 +65,7 @@ final class OpenGLRenderer {
     }
 
     @MainThread
-    void attachInputPreview(@NonNull Preview preview) {
+    public void attachInputPreview(@NonNull Preview preview) {
         preview.setSurfaceProvider(
                 mExecutor,
                 surfaceRequest -> {
@@ -114,7 +97,7 @@ final class OpenGLRenderer {
                 });
     }
 
-    void attachOutputSurface(
+    public void attachOutputSurface(
             @NonNull Surface surface, @NonNull Size surfaceSize, int surfaceRotationDegrees) {
         try {
             mExecutor.execute(
@@ -151,7 +134,7 @@ final class OpenGLRenderer {
      * @param executor Executor used to call the listener.
      * @param listener Listener which receives updates in the form of a timestamp (in nanoseconds).
      */
-    void setFrameUpdateListener(@NonNull Executor executor, @NonNull Consumer<Long> listener) {
+    public void setFrameUpdateListener(@NonNull Executor executor, @NonNull Consumer<Long> listener) {
         try {
             mExecutor.execute(() -> {
                 mFrameUpdateListener = new Pair<>(executor, listener);
@@ -161,7 +144,7 @@ final class OpenGLRenderer {
         }
     }
 
-    void invalidateSurface(int surfaceRotationDegrees) {
+    public void invalidateSurface(int surfaceRotationDegrees) {
         try {
             mExecutor.execute(
                     () -> {
@@ -183,7 +166,7 @@ final class OpenGLRenderer {
      * It should be safe to release resources associated with the output surface once this future
      * has completed.
      */
-    ListenableFuture<Void> detachOutputSurface() {
+    public ListenableFuture<Void> detachOutputSurface() {
         return CallbackToFutureAdapter.getFuture(completer -> {
             try {
                 mExecutor.execute(
@@ -202,7 +185,7 @@ final class OpenGLRenderer {
         });
     }
 
-    void shutdown() {
+    public void shutdown() {
         try {
             mExecutor.execute(
                     () -> {
