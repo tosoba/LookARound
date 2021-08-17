@@ -1,6 +1,7 @@
 package com.lookaround.core.android.ext
 
 import android.util.DisplayMetrics
+import android.view.View
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -79,3 +80,22 @@ private fun aspectRatio(width: Int, height: Int): Int {
 
 private const val RATIO_4_3_VALUE = 4.0 / 3.0
 private const val RATIO_16_9_VALUE = 16.0 / 9.0
+
+val PreviewView.cameraView: View?
+    get() {
+        val implementationField =
+            this::class.java.declaredFields.find { it.name == "mImplementation" } ?: return null
+        implementationField.isAccessible = true
+        val implementation = implementationField.get(this)
+        val viewFieldName =
+            when (implementation.javaClass.simpleName) {
+                "SurfaceViewImplementation" -> "mSurfaceView"
+                "TextureViewImplementation" -> "mTextureView"
+                else -> return null
+            }
+        val cameraViewField =
+            implementation::class.java.declaredFields.find { it.name == viewFieldName }
+                ?: return null
+        cameraViewField.isAccessible = true
+        return cameraViewField.get(implementation) as? View
+    }

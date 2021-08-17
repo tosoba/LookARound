@@ -2,9 +2,15 @@ package com.lookaround.core.android.camera;
 
 import android.graphics.SurfaceTexture;
 import android.opengl.Matrix;
+import android.os.Build;
 import android.os.Process;
+import android.util.Log;
 import android.util.Size;
+import android.view.Display;
 import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.TextureView;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -12,17 +18,21 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.camera.core.Preview;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
 import androidx.core.util.Pair;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class OpenGLRenderer {
+    private static final String TAG = "OpenGLRenderer";
+
     static {
         System.loadLibrary("opengl_renderer_jni");
     }
@@ -50,6 +60,96 @@ public final class OpenGLRenderer {
     private int mNumOutstandingSurfaces = 0;
 
     private Pair<Executor, Consumer<Long>> mFrameUpdateListener;
+
+    public void use(SurfaceView surfaceView, boolean nonBlocking) {
+        if (nonBlocking && Build.MODEL.contains("Cuttlefish")) {
+            Log.w(TAG, "Running SurfaceView in non-blocking mode on a device with known buggy EGL "
+                    + "implementation: Cuttlefish");
+        }
+        surfaceView.getHolder().addCallback(new SurfaceHolder.Callback2() {
+            @Override
+            public void surfaceRedrawNeeded(SurfaceHolder holder) {
+                Display surfaceViewDisplay = surfaceView.getDisplay();
+                if (surfaceViewDisplay != null) {
+                    invalidateSurface(
+                            Surfaces.toSurfaceRotationDegrees(surfaceViewDisplay.getRotation()));
+                }
+            }
+
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                attachOutputSurface(holder.getSurface(), new Size(width, height),
+                        Surfaces.toSurfaceRotationDegrees(surfaceView.getDisplay().getRotation()));
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+                // SurfaceView's documentation states that the Surface should only be touched
+                // between surfaceCreated() and surfaceDestroyed(). However, many EGL
+                // implementations will allow it to be touched but may return errors during
+                // drawing operations. Other implementations may crash when those drawing
+                // operations are called. In normal operation, we block the main thread until
+                // the surface has been detached from the renderer. This is safe, but can cause
+                // jank and/or ANRs. In non-blocking mode, we signal to the renderer to detach
+                // but do not wait for a signal that the surface has been detached. This will
+                // work on some devices with more robust EGL implementations. For devices with
+                // crashing EGL implementations TextureView is an alternative which provides
+                // stable non-blocking behavior between the main thread and render thread.
+                ListenableFuture<Void> detachFuture = detachOutputSurface();
+                if (!nonBlocking) {
+                    try {
+                        detachFuture.get();
+                    } catch (ExecutionException e) {
+                        Log.e(TAG, "An error occurred while waiting for surface to detach from "
+                                + "the renderer", e.getCause());
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "Interrupted while waiting for surface to detach from the "
+                                + "renderer.");
+                        Thread.currentThread().interrupt(); // Restore the interrupted status
+                    }
+                }
+            }
+        });
+    }
+
+    public void use(TextureView textureView) {
+        textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+            private Surface mSurface;
+
+            @Override
+            public void onSurfaceTextureAvailable(SurfaceTexture st, int width, int height) {
+                mSurface = new Surface(st);
+                attachOutputSurface(mSurface, new Size(width, height),
+                        Surfaces.toSurfaceRotationDegrees(textureView.getDisplay().getRotation()));
+            }
+
+            @Override
+            public void onSurfaceTextureSizeChanged(SurfaceTexture st, int width, int height) {
+                attachOutputSurface(mSurface, new Size(width, height),
+                        Surfaces.toSurfaceRotationDegrees(textureView.getDisplay().getRotation()));
+            }
+
+            @Override
+            public boolean onSurfaceTextureDestroyed(SurfaceTexture st) {
+                Surface surface = mSurface;
+                mSurface = null;
+                detachOutputSurface().addListener(() -> {
+                    surface.release();
+                    st.release();
+                }, ContextCompat.getMainExecutor(textureView.getContext()));
+                return false;
+            }
+
+            @Override
+            public void onSurfaceTextureUpdated(SurfaceTexture st) {
+            }
+        });
+    }
 
     @MainThread
     public void setBlurEnabled(boolean enabled) {

@@ -7,6 +7,8 @@ import android.hardware.display.DisplayManager.DisplayListener
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.SurfaceView
+import android.view.TextureView
 import android.view.View
 import androidx.camera.core.*
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -22,8 +24,6 @@ import com.lookaround.core.android.ar.orientation.OrientationManager
 import com.lookaround.core.android.ar.renderer.impl.CameraMarkerRenderer
 import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
 import com.lookaround.core.android.camera.OpenGLRenderer
-import com.lookaround.core.android.camera.SurfaceViewRenderSurface
-import com.lookaround.core.android.camera.Surfaces
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.BoxedSeekbar
@@ -57,14 +57,12 @@ class CameraFragment :
     Fragment(R.layout.fragment_camera), OrientationManager.OnOrientationChangedListener {
     private val binding: FragmentCameraBinding by viewBinding(FragmentCameraBinding::bind)
 
-    @Inject
-    internal lateinit var cameraViewModelFactory: CameraViewModel.Factory
+    @Inject internal lateinit var cameraViewModelFactory: CameraViewModel.Factory
     private val cameraViewModel: CameraViewModel by assistedViewModel {
         cameraViewModelFactory.create(it)
     }
 
-    @Inject
-    internal lateinit var mainViewModelFactory: MainViewModel.Factory
+    @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
     private val mainViewModel: MainViewModel by assistedActivityViewModel {
         mainViewModelFactory.create(it)
     }
@@ -82,25 +80,6 @@ class CameraFragment :
 
     private val openGLRenderer: OpenGLRenderer by lazy(LazyThreadSafetyMode.NONE) {
         OpenGLRenderer()
-    }
-
-//    private val preview: View by lazy(LazyThreadSafetyMode.NONE) {
-//        SurfaceViewRenderSurface.inflateWith(binding.cameraPreview, openGLRenderer)
-//    }
-
-    private val displayListener: DisplayListener by lazy(LazyThreadSafetyMode.NONE) {
-        object : DisplayListener {
-            override fun onDisplayAdded(displayId: Int) = Unit
-            override fun onDisplayRemoved(displayId: Int) = Unit
-            override fun onDisplayChanged(displayId: Int) {
-//                val viewFinderDisplay = preview.display
-//                if (viewFinderDisplay?.displayId == displayId) {
-//                    openGLRenderer.invalidateSurface(
-//                        Surfaces.toSurfaceRotationDegrees(viewFinderDisplay.rotation)
-//                    )
-//                }
-            }
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -124,10 +103,6 @@ class CameraFragment :
         Manifest.permission.ACCESS_FINE_LOCATION
     )
     internal fun initAR() {
-        val displayManager =
-            requireContext().getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-        displayManager.registerDisplayListener(displayListener, Handler(Looper.getMainLooper()))
-
         lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionGranted) }
 
         loadingStartedUpdates(mainViewModel, cameraViewModel)
@@ -181,9 +156,17 @@ class CameraFragment :
             }
         }
         cameraPreview.init(this@CameraFragment)
-        cameraViewModel.cameraLiveUpdates.onEach {
-            //TODO: use reflection to extract implementation field from binding.cameraPreview -> connect it to openGLRenderer
-        }.launchIn(lifecycleScope)
+        cameraViewModel
+            .cameraLiveUpdates
+            .onEach {
+                //TODO: use methods will likely not work (due to setting surfaceProvider + wrong call order) -> use shouldUseTextureView to decide what mode to use + figure out IDLE/STREAMING callback for both implementations
+                when (val cameraView = binding.cameraPreview.cameraView) {
+                    is SurfaceView -> openGLRenderer.use(cameraView, false)
+                    is TextureView -> openGLRenderer.use(cameraView)
+                    else -> return@onEach
+                }
+            }
+            .launchIn(lifecycleScope)
 
         cameraRenderer
             .maxPageFlow
