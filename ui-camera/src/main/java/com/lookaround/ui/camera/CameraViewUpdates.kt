@@ -6,13 +6,11 @@ import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.model.LoadingInProgress
 import com.lookaround.core.android.model.Ready
 import com.lookaround.ui.camera.model.CameraPreviewState
+import com.lookaround.ui.camera.model.CameraState
 import com.lookaround.ui.main.MainViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -31,7 +29,7 @@ internal fun arEnabledUpdates(
 private val CameraPreviewState.isLoading: Boolean
     get() =
         this is CameraPreviewState.Initial ||
-            (this is CameraPreviewState.Active && streamState == PreviewView.StreamState.IDLE)
+                (this is CameraPreviewState.Active && streamState == PreviewView.StreamState.IDLE)
 
 private val CameraPreviewState.isLive: Boolean
     get() = this is CameraPreviewState.Active && streamState == PreviewView.StreamState.STREAMING
@@ -61,7 +59,7 @@ internal fun arDisabledUpdates(
         .combine(cameraViewModel.states) { mainState, cameraState ->
             Pair(
                 mainState.locationState.isFailedWith<LocationPermissionDeniedException>() ||
-                    cameraState.previewState is CameraPreviewState.PermissionDenied,
+                        cameraState.previewState is CameraPreviewState.PermissionDenied,
                 mainState.locationState.isFailedWith<LocationDisabledException>()
             )
         }
@@ -69,3 +67,13 @@ internal fun arDisabledUpdates(
         .filter { (anyPermissionDenied, locationDisabled) ->
             anyPermissionDenied || locationDisabled
         }
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+internal val CameraViewModel.cameraLiveUpdates: Flow<Unit>
+    get() =
+        states
+            .map(CameraState::previewState::get)
+            .distinctUntilChanged()
+            .filter(CameraPreviewState::isLive::get)
+            .map {}

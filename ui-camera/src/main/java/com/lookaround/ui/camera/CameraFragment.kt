@@ -57,12 +57,14 @@ class CameraFragment :
     Fragment(R.layout.fragment_camera), OrientationManager.OnOrientationChangedListener {
     private val binding: FragmentCameraBinding by viewBinding(FragmentCameraBinding::bind)
 
-    @Inject internal lateinit var cameraViewModelFactory: CameraViewModel.Factory
+    @Inject
+    internal lateinit var cameraViewModelFactory: CameraViewModel.Factory
     private val cameraViewModel: CameraViewModel by assistedViewModel {
         cameraViewModelFactory.create(it)
     }
 
-    @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
+    @Inject
+    internal lateinit var mainViewModelFactory: MainViewModel.Factory
     private val mainViewModel: MainViewModel by assistedActivityViewModel {
         mainViewModelFactory.create(it)
     }
@@ -82,21 +84,21 @@ class CameraFragment :
         OpenGLRenderer()
     }
 
-    private val preview: View by lazy(LazyThreadSafetyMode.NONE) {
-        SurfaceViewRenderSurface.inflateWith(binding.cameraPreview, openGLRenderer)
-    }
+//    private val preview: View by lazy(LazyThreadSafetyMode.NONE) {
+//        SurfaceViewRenderSurface.inflateWith(binding.cameraPreview, openGLRenderer)
+//    }
 
     private val displayListener: DisplayListener by lazy(LazyThreadSafetyMode.NONE) {
         object : DisplayListener {
             override fun onDisplayAdded(displayId: Int) = Unit
             override fun onDisplayRemoved(displayId: Int) = Unit
             override fun onDisplayChanged(displayId: Int) {
-                val viewFinderDisplay = preview.display
-                if (viewFinderDisplay?.displayId == displayId) {
-                    openGLRenderer.invalidateSurface(
-                        Surfaces.toSurfaceRotationDegrees(viewFinderDisplay.rotation)
-                    )
-                }
+//                val viewFinderDisplay = preview.display
+//                if (viewFinderDisplay?.displayId == displayId) {
+//                    openGLRenderer.invalidateSurface(
+//                        Surfaces.toSurfaceRotationDegrees(viewFinderDisplay.rotation)
+//                    )
+//                }
             }
         }
     }
@@ -179,6 +181,9 @@ class CameraFragment :
             }
         }
         cameraPreview.init(this@CameraFragment)
+        cameraViewModel.cameraLiveUpdates.onEach {
+            //TODO: use reflection to extract implementation field from binding.cameraPreview -> connect it to openGLRenderer
+        }.launchIn(lifecycleScope)
 
         cameraRenderer
             .maxPageFlow

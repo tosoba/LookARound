@@ -5,11 +5,11 @@
     android:layout_height="match_parent"
     android:animateLayoutChanges="true">
 
-    <ViewStub
+    <androidx.camera.view.PreviewView
         android:id="@+id/camera_preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:inflatedId="@id/viewFinder" />
+        app:scaleType="fillCenter" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/ar_views_group"
