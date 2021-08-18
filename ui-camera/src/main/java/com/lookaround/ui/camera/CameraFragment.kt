@@ -1,17 +1,14 @@
 package com.lookaround.ui.camera
 
 import android.Manifest
-import android.content.Context
-import android.hardware.display.DisplayManager
-import android.hardware.display.DisplayManager.DisplayListener
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.view.SurfaceView
-import android.view.TextureView
+import android.util.DisplayMetrics
 import android.view.View
 import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -82,6 +79,10 @@ class CameraFragment :
         OpenGLRenderer()
     }
 
+    //    private val preview: View by lazy(LazyThreadSafetyMode.NONE) {
+    //        SurfaceViewRenderSurface.inflateWith(binding.cameraPreview, openGLRenderer)
+    //    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
 
@@ -150,23 +151,34 @@ class CameraFragment :
             }
             .launchIn(lifecycleScope)
 
-        cameraPreview.previewStreamState.observe(this@CameraFragment) {
-            lifecycleScope.launch {
-                cameraViewModel.intent(CameraIntent.CameraStreamStateChanged(it))
-            }
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+        cameraProviderFuture.addListener(
+            {
+                val metrics = DisplayMetrics().also(binding.cameraLayout.display::getRealMetrics)
+                val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
+                val rotation = binding.cameraLayout.display.rotation
+                val preview =
+                    Preview.Builder()
+                        .setTargetAspectRatio(screenAspectRatio)
+                        .setTargetRotation(rotation)
+                        .build()
+                openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
+                cameraProviderFuture
+                    .get()
+                    .bindToLifecycle(
+                        this@CameraFragment,
+                        CameraSelector.DEFAULT_BACK_CAMERA,
+                        preview
+                    )
+            },
+            ContextCompat.getMainExecutor(requireContext())
+        )
+
+        lifecycleScope.launch {
+            cameraViewModel.intent(
+                CameraIntent.CameraStreamStateChanged(PreviewView.StreamState.STREAMING)
+            )
         }
-        cameraPreview.init(this@CameraFragment)
-        cameraViewModel
-            .cameraLiveUpdates
-            .onEach {
-                //TODO: use methods will likely not work (due to setting surfaceProvider + wrong call order) -> use shouldUseTextureView to decide what mode to use + figure out IDLE/STREAMING callback for both implementations
-                when (val cameraView = binding.cameraPreview.cameraView) {
-                    is SurfaceView -> openGLRenderer.use(cameraView, false)
-                    is TextureView -> openGLRenderer.use(cameraView)
-                    else -> return@onEach
-                }
-            }
-            .launchIn(lifecycleScope)
 
         cameraRenderer
             .maxPageFlow
