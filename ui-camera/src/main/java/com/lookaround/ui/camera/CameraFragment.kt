@@ -2,13 +2,10 @@ package com.lookaround.ui.camera
 
 import android.Manifest
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.view.View
 import androidx.camera.core.*
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -79,10 +76,6 @@ class CameraFragment :
         OpenGLRenderer()
     }
 
-    //    private val preview: View by lazy(LazyThreadSafetyMode.NONE) {
-    //        SurfaceViewRenderSurface.inflateWith(binding.cameraPreview, openGLRenderer)
-    //    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
 
@@ -101,8 +94,7 @@ class CameraFragment :
     @NeedsPermission(
         Manifest.permission.CAMERA,
         Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    )
+        Manifest.permission.ACCESS_FINE_LOCATION)
     internal fun initAR() {
         lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionGranted) }
 
@@ -151,33 +143,15 @@ class CameraFragment :
             }
             .launchIn(lifecycleScope)
 
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
-        cameraProviderFuture.addListener(
-            {
-                val metrics = DisplayMetrics().also(binding.cameraLayout.display::getRealMetrics)
-                val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
-                val rotation = binding.cameraLayout.display.rotation
-                val preview =
-                    Preview.Builder()
-                        .setTargetAspectRatio(screenAspectRatio)
-                        .setTargetRotation(rotation)
-                        .build()
-                openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
-                cameraProviderFuture
-                    .get()
-                    .bindToLifecycle(
-                        this@CameraFragment,
-                        CameraSelector.DEFAULT_BACK_CAMERA,
-                        preview
-                    )
-            },
-            ContextCompat.getMainExecutor(requireContext())
-        )
+        requireContext()
+            .initCamera(
+                lifecycleOwner = this@CameraFragment,
+                openGLRenderer = openGLRenderer,
+                cameraPreviewStub = binding.cameraPreview)
 
         lifecycleScope.launch {
             cameraViewModel.intent(
-                CameraIntent.CameraStreamStateChanged(PreviewView.StreamState.STREAMING)
-            )
+                CameraIntent.CameraStreamStateChanged(PreviewView.StreamState.STREAMING))
         }
 
         cameraRenderer
@@ -205,9 +179,7 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.initARCameraPageViews() {
         arCameraPageSeekbar.setValueButtonsOnClickListeners(
-            upBtn = arCameraPageUpBtn,
-            downBtn = arCameraPageDownBtn
-        )
+            upBtn = arCameraPageUpBtn, downBtn = arCameraPageDownBtn)
         arCameraPageSeekbar.onValueChangeListener =
             object : BoxedSeekbar.OnValueChangeListener {
                 override fun onValueChanged(seekbar: BoxedSeekbar, value: Int) {
@@ -223,9 +195,7 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.initARCameraRangeViews() {
         arCameraRangeSeekbar.setValueButtonsOnClickListeners(
-            upBtn = arCameraRangeUpBtn,
-            downBtn = arCameraRangeDownBtn
-        )
+            upBtn = arCameraRangeUpBtn, downBtn = arCameraRangeDownBtn)
         arCameraRangeSeekbar.onValueChangeListener =
             object : BoxedSeekbar.OnValueChangeListener {
                 override fun onValueChanged(seekbar: BoxedSeekbar, value: Int) {
@@ -320,9 +290,7 @@ class CameraFragment :
 
     @Suppress("unused")
     @OnPermissionDenied(
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    )
+        Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
     internal fun onLocationPermissionDenied() {
         lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionDenied) }
     }
