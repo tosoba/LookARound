@@ -24,15 +24,22 @@ import android.view.TextureView;
 import android.view.ViewStub;
 
 import androidx.annotation.NonNull;
+import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.core.content.ContextCompat;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.lookaround.core.android.R;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Utilities for instantiating a {@link TextureView} and attaching to an {@link OpenGLRenderer}.
  */
-public final class TextureViewRenderSurface {
+public final class TextureViewRenderSurface implements IRenderSurface {
     private static final String TAG = "TextureViewRndrSrfc";
+
+    private final AtomicReference<CallbackToFutureAdapter.Completer<Void>> mNextFrameCompleter =
+            new AtomicReference<>();
 
     /**
      * Inflates a {@link TextureView} into the provided {@link ViewStub} and attaches it to the
@@ -43,8 +50,8 @@ public final class TextureViewRenderSurface {
      * @return The inflated TextureView.
      */
     @NonNull
-    public static TextureView inflateWith(@NonNull ViewStub viewStub,
-                                          @NonNull OpenGLRenderer renderer) {
+    public TextureView inflateWith(@NonNull ViewStub viewStub,
+                                   @NonNull OpenGLRenderer renderer) {
         Log.d(TAG, "Inflating TextureView into view stub.");
         viewStub.setLayoutResource(R.layout.texture_view_render_surface);
         TextureView textureView = (TextureView) viewStub.inflate();
@@ -77,12 +84,29 @@ public final class TextureViewRenderSurface {
 
             @Override
             public void onSurfaceTextureUpdated(SurfaceTexture st) {
+                CallbackToFutureAdapter.Completer<Void> completer =
+                        mNextFrameCompleter.getAndSet(null);
+
+                if (completer != null) {
+                    completer.set(null);
+                }
             }
         });
 
         return textureView;
     }
 
-    private TextureViewRenderSurface() {
+    public TextureViewRenderSurface() {
+    }
+
+    @NonNull
+    @Override
+    public ListenableFuture<Void> waitForNextFrame() {
+        return CallbackToFutureAdapter.getFuture(
+                completer -> {
+                    mNextFrameCompleter.set(completer);
+                    return "textureViewImpl_waitForNextFrame";
+                }
+        );
     }
 }

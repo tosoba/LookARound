@@ -16,6 +16,7 @@
 
 package com.lookaround.core.android.camera;
 
+import android.annotation.SuppressLint;
 import android.os.Build;
 import android.util.Log;
 import android.util.Size;
@@ -26,6 +27,7 @@ import android.view.SurfaceView;
 import android.view.ViewStub;
 
 import androidx.annotation.NonNull;
+import androidx.camera.core.impl.utils.futures.Futures;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.lookaround.core.android.R;
@@ -35,7 +37,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * Utilities for instantiating a {@link SurfaceView} and attaching to an {@link OpenGLRenderer}.
  */
-public final class SurfaceViewRenderSurface {
+public final class SurfaceViewRenderSurface implements IRenderSurface {
     private static final String TAG = "SurfaceViewRndrSrfc";
 
     /**
@@ -53,8 +55,7 @@ public final class SurfaceViewRenderSurface {
      * @return The inflated SurfaceView.
      */
     @NonNull
-    public static SurfaceView inflateNonBlockingWith(@NonNull ViewStub viewStub,
-                                                     @NonNull OpenGLRenderer renderer) {
+    public SurfaceView inflateNonBlockingWith(@NonNull ViewStub viewStub, @NonNull OpenGLRenderer renderer) {
         return inflateWith(viewStub, renderer, /*nonBlocking=*/true);
     }
 
@@ -67,14 +68,12 @@ public final class SurfaceViewRenderSurface {
      * @return The inflated SurfaceView.
      */
     @NonNull
-    public static SurfaceView inflateWith(@NonNull ViewStub viewStub,
-                                          @NonNull OpenGLRenderer renderer) {
+    public SurfaceView inflateWith(@NonNull ViewStub viewStub, @NonNull OpenGLRenderer renderer) {
         return inflateWith(viewStub, renderer, /*nonBlocking=*/false);
     }
 
     @NonNull
-    private static SurfaceView inflateWith(@NonNull ViewStub viewStub,
-                                           @NonNull OpenGLRenderer renderer, boolean nonBlocking) {
+    private SurfaceView inflateWith(@NonNull ViewStub viewStub, @NonNull OpenGLRenderer renderer, boolean nonBlocking) {
         Log.d(TAG, "Inflating SurfaceView into view stub (non-blocking = " + nonBlocking + ").");
         if (nonBlocking) {
             warnOnKnownBuggyNonBlockingDevice();
@@ -147,6 +146,13 @@ public final class SurfaceViewRenderSurface {
         }
     }
 
-    private SurfaceViewRenderSurface() {
+    public SurfaceViewRenderSurface() {
+    }
+
+    @SuppressLint("RestrictedApi")
+    @NonNull
+    @Override
+    public ListenableFuture<Void> waitForNextFrame() {
+        return Futures.immediateFuture(null);
     }
 }

@@ -4,7 +4,6 @@ import android.Manifest
 import android.os.Bundle
 import android.view.View
 import androidx.camera.core.*
-import androidx.camera.view.PreviewView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -94,7 +93,8 @@ class CameraFragment :
     @NeedsPermission(
         Manifest.permission.CAMERA,
         Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION)
+        Manifest.permission.ACCESS_FINE_LOCATION
+    )
     internal fun initAR() {
         lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionGranted) }
 
@@ -147,11 +147,13 @@ class CameraFragment :
             .initCamera(
                 lifecycleOwner = this@CameraFragment,
                 openGLRenderer = openGLRenderer,
-                cameraPreviewStub = binding.cameraPreview)
+                cameraPreviewStub = binding.cameraPreview
+            )
 
-        lifecycleScope.launch {
-            cameraViewModel.intent(
-                CameraIntent.CameraStreamStateChanged(PreviewView.StreamState.STREAMING))
+        openGLRenderer.previewStreamStateLiveData.observe(this@CameraFragment) {
+            lifecycleScope.launch {
+                cameraViewModel.intent(CameraIntent.CameraStreamStateChanged(it))
+            }
         }
 
         cameraRenderer
@@ -179,7 +181,9 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.initARCameraPageViews() {
         arCameraPageSeekbar.setValueButtonsOnClickListeners(
-            upBtn = arCameraPageUpBtn, downBtn = arCameraPageDownBtn)
+            upBtn = arCameraPageUpBtn,
+            downBtn = arCameraPageDownBtn
+        )
         arCameraPageSeekbar.onValueChangeListener =
             object : BoxedSeekbar.OnValueChangeListener {
                 override fun onValueChanged(seekbar: BoxedSeekbar, value: Int) {
@@ -195,7 +199,9 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.initARCameraRangeViews() {
         arCameraRangeSeekbar.setValueButtonsOnClickListeners(
-            upBtn = arCameraRangeUpBtn, downBtn = arCameraRangeDownBtn)
+            upBtn = arCameraRangeUpBtn,
+            downBtn = arCameraRangeDownBtn
+        )
         arCameraRangeSeekbar.onValueChangeListener =
             object : BoxedSeekbar.OnValueChangeListener {
                 override fun onValueChanged(seekbar: BoxedSeekbar, value: Int) {
@@ -290,7 +296,9 @@ class CameraFragment :
 
     @Suppress("unused")
     @OnPermissionDenied(
-        Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    )
     internal fun onLocationPermissionDenied() {
         lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionDenied) }
     }

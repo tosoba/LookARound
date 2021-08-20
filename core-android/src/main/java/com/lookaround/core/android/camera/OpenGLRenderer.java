@@ -16,11 +16,16 @@ import androidx.annotation.WorkerThread;
 import androidx.camera.core.CameraInfo;
 import androidx.camera.core.Preview;
 import androidx.camera.core.SurfaceRequest;
+import androidx.camera.core.impl.CameraInternal;
+import androidx.camera.view.PreviewView;
 import androidx.camera.view.internal.compat.quirk.DeviceQuirks;
 import androidx.camera.view.internal.compat.quirk.SurfaceViewStretchedQuirk;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
 import androidx.core.util.Pair;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -28,6 +33,7 @@ import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class OpenGLRenderer {
     static {
@@ -57,6 +63,18 @@ public final class OpenGLRenderer {
     private int mNumOutstandingSurfaces = 0;
 
     private Pair<Executor, Consumer<Long>> mFrameUpdateListener;
+
+    private final AtomicReference<PreviewStreamStateObserver> mActiveStreamStateObserver =
+            new AtomicReference<>();
+
+    @NonNull
+    private final MutableLiveData<PreviewView.StreamState> previewStreamStateLiveData =
+            new MutableLiveData<>(PreviewView.StreamState.IDLE);
+
+    @NonNull
+    public LiveData<PreviewView.StreamState> getPreviewStreamStateLiveData() {
+        return previewStreamStateLiveData;
+    }
 
     @MainThread
     public void setBlurEnabled(boolean enabled) {
@@ -96,16 +114,29 @@ public final class OpenGLRenderer {
                         return;
                     }
 
+                    CameraInternal camera = surfaceRequest.getCamera();
                     boolean useTextureView = shouldUseTextureView(surfaceRequest);
+                    final IRenderSurface renderSurface;
+                    if (useTextureView) {
+                        renderSurface = new TextureViewRenderSurface();
+                    } else {
+                        renderSurface = new SurfaceViewRenderSurface();
+                    }
+
                     viewFinderStub.post(() -> {
                         if (useTextureView) {
-                            TextureViewRenderSurface.inflateWith(viewFinderStub, this);
+                            ((TextureViewRenderSurface) renderSurface).inflateWith(viewFinderStub, this);
                         } else {
-                            SurfaceViewRenderSurface.inflateWith(viewFinderStub, this);
+                            ((SurfaceViewRenderSurface) renderSurface).inflateWith(viewFinderStub, this);
                         }
                     });
 
-                    //TODO: PreviewStreamStateObserver - CameraInternal camera = surfaceRequest.getCamera();
+                    PreviewStreamStateObserver streamStateObserver =
+                            new PreviewStreamStateObserver(camera.getCameraInfoInternal(),
+                                    previewStreamStateLiveData, renderSurface);
+                    camera.getCameraState().addObserver(
+                            ContextCompat.getMainExecutor(viewFinderStub.getContext()), streamStateObserver);
+                    mActiveStreamStateObserver.set(streamStateObserver);
 
                     if (mNativeContext == 0) {
                         mNativeContext = initContext();
@@ -126,6 +157,12 @@ public final class OpenGLRenderer {
                                 }
                                 mNumOutstandingSurfaces--;
                                 doShutdownIfNeeded();
+
+                                if (mActiveStreamStateObserver.compareAndSet(streamStateObserver, null)) {
+                                    streamStateObserver.updatePreviewStreamState(PreviewView.StreamState.IDLE);
+                                }
+                                streamStateObserver.clear();
+                                camera.getCameraState().removeObserver(streamStateObserver);
                             });
                 });
     }

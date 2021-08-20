@@ -18,7 +18,6 @@ import androidx.camera.core.impl.utils.futures.FutureCallback;
 import androidx.camera.core.impl.utils.futures.FutureChain;
 import androidx.camera.core.impl.utils.futures.Futures;
 import androidx.camera.view.PreviewView;
-import androidx.camera.view.PreviewViewImplementation;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.lifecycle.MutableLiveData;
 
@@ -27,20 +26,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * An observer to the camera state which when camera is opening/opened, it will start checking if
- * preview is STREAMING and update the LiveData accordingly, when camera is closing/closed, it
- * will reset to IDLE state.
- *
- * <p>To check if preview is STREAMING, it first checks if camera session capture result is
- * received by {@link CameraInfoInternal#addSessionCaptureCallback}. And then it checks if the
- * frame update is received by {@link PreviewViewImplementation#waitForNextFrame()}. If both
- * happens, the state becomes {@link androidx.camera.view.PreviewView.StreamState#STREAMING}.
- *
- * <p>To activate the observer,  it should be registered to the CameraState obtained by
- * {@link CameraInternal#getCameraState()} and the observer should be registered to run on main
- * thread.
- */
 public final class PreviewStreamStateObserver implements Observable.Observer<CameraInternal.State> {
 
     private static final String TAG = "StreamStateObserver";
@@ -49,17 +34,17 @@ public final class PreviewStreamStateObserver implements Observable.Observer<Cam
     private final MutableLiveData<PreviewView.StreamState> mPreviewStreamStateLiveData;
     @GuardedBy("this")
     private PreviewView.StreamState mPreviewStreamState;
-    private final PreviewViewImplementation mPreviewViewImplementation;
+    private final IRenderSurface iRenderSurface;
     @SuppressWarnings("WeakerAccess") /* synthetic accessor */
             ListenableFuture<Void> mFlowFuture;
     private boolean mHasStartedPreviewStreamFlow = false;
 
     public PreviewStreamStateObserver(CameraInfoInternal cameraInfoInternal,
-                               MutableLiveData<PreviewView.StreamState> previewStreamLiveData,
-                               PreviewViewImplementation implementation) {
+                                      MutableLiveData<PreviewView.StreamState> previewStreamLiveData,
+                                      IRenderSurface implementation) {
         mCameraInfoInternal = cameraInfoInternal;
         mPreviewStreamStateLiveData = previewStreamLiveData;
-        mPreviewViewImplementation = implementation;
+        iRenderSurface = implementation;
 
         synchronized (this) {
             mPreviewStreamState = previewStreamLiveData.getValue();
@@ -114,7 +99,7 @@ public final class PreviewStreamStateObserver implements Observable.Observer<Cam
         List<CameraCaptureCallback> callbacksToClear = new ArrayList<>();
         mFlowFuture =
                 FutureChain.from(waitForCaptureResult(cameraInfo, callbacksToClear))
-                        .transformAsync(v -> mPreviewViewImplementation.waitForNextFrame(),
+                        .transformAsync(v -> iRenderSurface.waitForNextFrame(),
                                 CameraXExecutors.directExecutor())
                         .transform(v -> {
                             updatePreviewStreamState(PreviewView.StreamState.STREAMING);
