@@ -6,6 +6,7 @@ import android.view.View
 import androidx.camera.core.*
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -150,11 +151,12 @@ class CameraFragment :
                 cameraPreviewStub = binding.cameraPreview
             )
 
-        openGLRenderer.previewStreamStateLiveData.observe(this@CameraFragment) {
-            lifecycleScope.launch {
-                cameraViewModel.intent(CameraIntent.CameraStreamStateChanged(it))
-            }
-        }
+        openGLRenderer
+            .previewStreamStateLiveData
+            .asFlow()
+            .distinctUntilChanged()
+            .onEach { cameraViewModel.intent(CameraIntent.CameraStreamStateChanged(it)) }
+            .launchIn(lifecycleScope)
 
         cameraRenderer
             .maxPageFlow
