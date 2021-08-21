@@ -1,10 +1,16 @@
 package com.lookaround.core.android.camera;
 
+import android.view.View;
+import android.view.ViewStub;
+
 import androidx.annotation.NonNull;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
-public interface IRenderSurface {
+interface IRenderSurface {
     @NonNull
     ListenableFuture<Void> waitForNextFrame();
+
+    @NonNull
+    View inflateWith(ViewStub viewStub, OpenGLRenderer renderer);
 }

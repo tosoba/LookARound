@@ -9,30 +9,30 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 
 final class SingleThreadHandlerExecutor implements Executor {
-    private final String mThreadName;
-    private final HandlerThread mHandlerThread;
-    private final Handler mHandler;
+    private final String threadName;
+    private final HandlerThread handlerThread;
+    private final Handler handler;
 
     public SingleThreadHandlerExecutor(@NonNull String threadName, int priority) {
-        this.mThreadName = threadName;
-        mHandlerThread = new HandlerThread(threadName, priority);
-        mHandlerThread.start();
-        mHandler = new Handler(mHandlerThread.getLooper());
+        this.threadName = threadName;
+        handlerThread = new HandlerThread(threadName, priority);
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
     }
 
     @NonNull
     public Handler getHandler() {
-        return mHandler;
+        return handler;
     }
 
     @Override
     public void execute(@NonNull Runnable command) {
-        if (!mHandler.post(command)) {
-            throw new RejectedExecutionException(mThreadName + " is shutting down.");
+        if (!handler.post(command)) {
+            throw new RejectedExecutionException(threadName + " is shutting down.");
         }
     }
 
     public boolean shutdown() {
-        return mHandlerThread.quitSafely();
+        return handlerThread.quitSafely();
     }
 }

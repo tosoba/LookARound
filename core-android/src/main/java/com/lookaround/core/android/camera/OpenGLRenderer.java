@@ -35,36 +35,38 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import timber.log.Timber;
+
 public final class OpenGLRenderer {
     static {
         System.loadLibrary("opengl_renderer_jni");
     }
 
     private static final AtomicInteger RENDERER_COUNT = new AtomicInteger(0);
-    private final SingleThreadHandlerExecutor mExecutor =
+    private final SingleThreadHandlerExecutor executor =
             new SingleThreadHandlerExecutor(
                     String.format(Locale.US, "GLRenderer-%03d", RENDERER_COUNT.incrementAndGet()),
                     Process.THREAD_PRIORITY_DEFAULT); // Use UI thread priority (DEFAULT)
 
-    private Size mPreviewResolution;
-    private SurfaceTexture mPreviewTexture;
-    private final float[] mPreviewTransform = new float[16];
-    private float mNaturalPreviewWidth = 0;
-    private float mNaturalPreviewHeight = 0;
+    private Size previewResolution;
+    private SurfaceTexture previewTexture;
+    private final float[] previewTransform = new float[16];
+    private float naturalPreviewWidth = 0;
+    private float naturalPreviewHeight = 0;
 
-    private Size mSurfaceSize = null;
-    private int mSurfaceRotationDegrees = 0;
-    private final float[] mSurfaceTransform = new float[16];
+    private Size surfaceSize = null;
+    private int surfaceRotationDegrees = 0;
+    private final float[] surfaceTransform = new float[16];
 
-    private final float[] mTempVec = new float[8];
-    private long mNativeContext = 0;
+    private final float[] tempVec = new float[8];
+    private long nativeContext = 0;
 
-    private boolean mIsShutdown = false;
-    private int mNumOutstandingSurfaces = 0;
+    private boolean isShutdown = false;
+    private int numOutstandingSurfaces = 0;
 
-    private Pair<Executor, Consumer<Long>> mFrameUpdateListener;
+    private Pair<Executor, Consumer<Long>> frameUpdateListener;
 
-    private final AtomicReference<PreviewStreamStateObserver> mActiveStreamStateObserver =
+    private final AtomicReference<PreviewStreamStateObserver> activeStreamStateObserver =
             new AtomicReference<>();
 
     @NonNull
@@ -79,13 +81,13 @@ public final class OpenGLRenderer {
     @MainThread
     public void setBlurEnabled(boolean enabled) {
         try {
-            mExecutor.execute(
+            executor.execute(
                     () -> {
-                        if (mIsShutdown || mNativeContext == 0) return;
-                        setBlurEnabled(mNativeContext, enabled);
+                        if (isShutdown || nativeContext == 0) return;
+                        setBlurEnabled(nativeContext, enabled);
                     });
         } catch (RejectedExecutionException e) {
-            // Renderer already shutting down. Ignore.
+            Timber.tag("OGL").i("Renderer already shutting down. Ignore.");
         }
     }
 
@@ -107,58 +109,49 @@ public final class OpenGLRenderer {
     @MainThread
     public void attachInputPreview(@NonNull Preview preview, @NonNull ViewStub viewFinderStub) {
         preview.setSurfaceProvider(
-                mExecutor,
+                executor,
                 surfaceRequest -> {
-                    if (mIsShutdown) {
+                    if (isShutdown) {
                         surfaceRequest.willNotProvideSurface();
                         return;
                     }
 
                     CameraInternal camera = surfaceRequest.getCamera();
                     boolean useTextureView = shouldUseTextureView(surfaceRequest);
-                    final IRenderSurface renderSurface;
-                    if (useTextureView) {
-                        renderSurface = new TextureViewRenderSurface();
-                    } else {
-                        renderSurface = new SurfaceViewRenderSurface();
-                    }
+                    final IRenderSurface renderSurface = useTextureView
+                            ? new TextureViewRenderSurface()
+                            : new SurfaceViewRenderSurface();
 
-                    viewFinderStub.post(() -> {
-                        if (useTextureView) {
-                            ((TextureViewRenderSurface) renderSurface).inflateWith(viewFinderStub, this);
-                        } else {
-                            ((SurfaceViewRenderSurface) renderSurface).inflateWith(viewFinderStub, this);
-                        }
-                    });
+                    viewFinderStub.post(() -> renderSurface.inflateWith(viewFinderStub, this));
 
                     PreviewStreamStateObserver streamStateObserver =
                             new PreviewStreamStateObserver(camera.getCameraInfoInternal(),
                                     previewStreamStateLiveData, renderSurface);
                     camera.getCameraState().addObserver(
                             ContextCompat.getMainExecutor(viewFinderStub.getContext()), streamStateObserver);
-                    mActiveStreamStateObserver.set(streamStateObserver);
+                    activeStreamStateObserver.set(streamStateObserver);
 
-                    if (mNativeContext == 0) {
-                        mNativeContext = initContext();
+                    if (nativeContext == 0) {
+                        nativeContext = initContext();
                     }
 
                     SurfaceTexture surfaceTexture = resetPreviewTexture(
                             surfaceRequest.getResolution());
                     Surface inputSurface = new Surface(surfaceTexture);
-                    mNumOutstandingSurfaces++;
+                    numOutstandingSurfaces++;
                     surfaceRequest.provideSurface(
                             inputSurface,
-                            mExecutor,
+                            executor,
                             result -> {
                                 inputSurface.release();
                                 surfaceTexture.release();
-                                if (surfaceTexture == mPreviewTexture) {
-                                    mPreviewTexture = null;
+                                if (surfaceTexture == previewTexture) {
+                                    previewTexture = null;
                                 }
-                                mNumOutstandingSurfaces--;
+                                numOutstandingSurfaces--;
                                 doShutdownIfNeeded();
 
-                                if (mActiveStreamStateObserver.compareAndSet(streamStateObserver, null)) {
+                                if (activeStreamStateObserver.compareAndSet(streamStateObserver, null)) {
                                     streamStateObserver.updatePreviewStreamState(PreviewView.StreamState.IDLE);
                                 }
                                 streamStateObserver.clear();
@@ -170,28 +163,28 @@ public final class OpenGLRenderer {
     public void attachOutputSurface(
             @NonNull Surface surface, @NonNull Size surfaceSize, int surfaceRotationDegrees) {
         try {
-            mExecutor.execute(
+            executor.execute(
                     () -> {
-                        if (mIsShutdown) {
+                        if (isShutdown) {
                             return;
                         }
 
-                        if (mNativeContext == 0) {
-                            mNativeContext = initContext();
+                        if (nativeContext == 0) {
+                            nativeContext = initContext();
                         }
 
-                        setBlurEnabled(mNativeContext, true);
+                        setBlurEnabled(nativeContext, true);
 
-                        if (setWindowSurface(mNativeContext, surface)) {
-                            this.mSurfaceRotationDegrees = surfaceRotationDegrees;
-                            this.mSurfaceSize = surfaceSize;
+                        if (setWindowSurface(nativeContext, surface)) {
+                            this.surfaceRotationDegrees = surfaceRotationDegrees;
+                            this.surfaceSize = surfaceSize;
                         } else {
-                            this.mSurfaceSize = null;
+                            this.surfaceSize = null;
                         }
 
                     });
         } catch (RejectedExecutionException e) {
-            // Renderer is shutting down. Ignore.
+            Timber.tag("OGL").i("Renderer already shutting down. Ignore.");
         }
     }
 
@@ -206,25 +199,23 @@ public final class OpenGLRenderer {
      */
     public void setFrameUpdateListener(@NonNull Executor executor, @NonNull Consumer<Long> listener) {
         try {
-            mExecutor.execute(() -> {
-                mFrameUpdateListener = new Pair<>(executor, listener);
-            });
+            this.executor.execute(() -> frameUpdateListener = new Pair<>(executor, listener));
         } catch (RejectedExecutionException e) {
-            // Renderer is shutting down. Ignore.
+            Timber.tag("OGL").i("Renderer already shutting down. Ignore.");
         }
     }
 
     public void invalidateSurface(int surfaceRotationDegrees) {
         try {
-            mExecutor.execute(
+            executor.execute(
                     () -> {
-                        this.mSurfaceRotationDegrees = surfaceRotationDegrees;
-                        if (mPreviewTexture != null && mNativeContext != 0) {
+                        this.surfaceRotationDegrees = surfaceRotationDegrees;
+                        if (previewTexture != null && nativeContext != 0) {
                             renderLatest();
                         }
                     });
         } catch (RejectedExecutionException e) {
-            // Renderer is shutting down. Ignore.
+            Timber.tag("OGL").i("Renderer already shutting down. Ignore.");
         }
     }
 
@@ -239,11 +230,11 @@ public final class OpenGLRenderer {
     public ListenableFuture<Void> detachOutputSurface() {
         return CallbackToFutureAdapter.getFuture(completer -> {
             try {
-                mExecutor.execute(
+                executor.execute(
                         () -> {
-                            if (mNativeContext != 0) {
-                                setWindowSurface(mNativeContext, null);
-                                mSurfaceSize = null;
+                            if (nativeContext != 0) {
+                                setWindowSurface(nativeContext, null);
+                                surfaceSize = null;
                             }
                             completer.set(null);
                         });
@@ -257,70 +248,68 @@ public final class OpenGLRenderer {
 
     public void shutdown() {
         try {
-            mExecutor.execute(
+            executor.execute(
                     () -> {
-                        mIsShutdown = true;
-                        if (mNativeContext != 0) {
-                            closeContext(mNativeContext);
-                            mNativeContext = 0;
+                        isShutdown = true;
+                        if (nativeContext != 0) {
+                            closeContext(nativeContext);
+                            nativeContext = 0;
                         }
                         doShutdownIfNeeded();
                     });
         } catch (RejectedExecutionException e) {
-            // Renderer already shutting down. Ignore.
+            Timber.tag("OGL").i("Renderer already shutting down. Ignore.");
         }
     }
 
     @WorkerThread
     private void doShutdownIfNeeded() {
-        if (mIsShutdown && mNumOutstandingSurfaces == 0) {
-            mFrameUpdateListener = null;
-            mExecutor.shutdown();
+        if (isShutdown && numOutstandingSurfaces == 0) {
+            frameUpdateListener = null;
+            executor.shutdown();
         }
     }
 
     @WorkerThread
     @NonNull
     private SurfaceTexture resetPreviewTexture(@NonNull Size size) {
-        if (mPreviewTexture != null) {
-            mPreviewTexture.detachFromGLContext();
+        if (previewTexture != null) {
+            previewTexture.detachFromGLContext();
         }
 
-        mPreviewTexture = new SurfaceTexture(getTexName(mNativeContext));
-        mPreviewTexture.setDefaultBufferSize(size.getWidth(), size.getHeight());
-        mPreviewTexture.setOnFrameAvailableListener(
+        previewTexture = new SurfaceTexture(getTexName(nativeContext));
+        previewTexture.setDefaultBufferSize(size.getWidth(), size.getHeight());
+        previewTexture.setOnFrameAvailableListener(
                 surfaceTexture -> {
-                    if (surfaceTexture == mPreviewTexture && mNativeContext != 0) {
+                    if (surfaceTexture == previewTexture && nativeContext != 0) {
                         surfaceTexture.updateTexImage();
                         renderLatest();
                     }
                 },
-                mExecutor.getHandler());
-        mPreviewResolution = size;
-        return mPreviewTexture;
+                executor.getHandler());
+        previewResolution = size;
+        return previewTexture;
     }
 
     @WorkerThread
     private void renderLatest() {
         // Get the timestamp so we can pass it along to the output surface (not strictly necessary)
-        long timestampNs = mPreviewTexture.getTimestamp();
+        long timestampNs = previewTexture.getTimestamp();
 
         // Get texture transform from surface texture (transform to natural orientation).
         // This will be used to transform texture coordinates in the fragment shader.
-        mPreviewTexture.getTransformMatrix(mPreviewTransform);
-        if (mSurfaceSize != null) {
+        previewTexture.getTransformMatrix(previewTransform);
+        if (surfaceSize != null) {
             calculateSurfaceTransform();
-            boolean success = renderTexture(mNativeContext, timestampNs, mSurfaceTransform,
-                    mPreviewTransform);
-            if (success && mFrameUpdateListener != null) {
-                Executor executor = mFrameUpdateListener.first;
-                Consumer<Long> listener = mFrameUpdateListener.second;
+            boolean success = renderTexture(nativeContext, timestampNs, surfaceTransform,
+                    previewTransform);
+            if (success && frameUpdateListener != null) {
+                Executor executor = frameUpdateListener.first;
+                Consumer<Long> listener = frameUpdateListener.second;
                 try {
-                    executor.execute(() -> {
-                        listener.accept(timestampNs);
-                    });
+                    executor.execute(() -> listener.accept(timestampNs));
                 } catch (RejectedExecutionException e) {
-                    // Unable to send frame update. Ignore.
+                    Timber.tag("OGL").i("Unable to send frame update. Ignore.");
                 }
             }
         }
@@ -427,46 +416,46 @@ public final class OpenGLRenderer {
         // Initialize the components we care about for the output vector. This will be
         // accumulated from
         // Voh and Vow.
-        mNaturalPreviewWidth = 0;
-        mNaturalPreviewHeight = 0;
+        naturalPreviewWidth = 0;
+        naturalPreviewHeight = 0;
 
         // Calculate Voh. We use our allocated temporary vector to avoid excessive allocations since
         // this is done per-frame.
-        float[] vih = mTempVec;
+        float[] vih = tempVec;
         vih[0] = 0;
-        vih[1] = mPreviewResolution.getHeight();
+        vih[1] = previewResolution.getHeight();
         vih[2] = 0;
         vih[3] = 0;
 
         // Apply the transform. Second half of the array is the result vector Voh.
         Matrix.multiplyMV(
-                /*resultVec=*/ mTempVec, /*resultVecOffset=*/ 4,
-                /*lhsMat=*/ mPreviewTransform, /*lhsMatOffset=*/ 0,
+                /*resultVec=*/ tempVec, /*resultVecOffset=*/ 4,
+                /*lhsMat=*/ previewTransform, /*lhsMatOffset=*/ 0,
                 /*rhsVec=*/ vih, /*rhsVecOffset=*/ 0);
 
         // Accumulate output from Voh.
-        mNaturalPreviewWidth += Math.abs(mTempVec[4]);
-        mNaturalPreviewHeight += Math.abs(mTempVec[5]);
+        naturalPreviewWidth += Math.abs(tempVec[4]);
+        naturalPreviewHeight += Math.abs(tempVec[5]);
 
         // Calculate Vow.
-        float[] voh = mTempVec;
-        voh[0] = mPreviewResolution.getWidth();
+        float[] voh = tempVec;
+        voh[0] = previewResolution.getWidth();
         voh[1] = 0;
         voh[2] = 0;
         voh[3] = 0;
 
         // Apply the transform. Second half of the array is the result vector Vow.
         Matrix.multiplyMV(
-                /*resultVec=*/ mTempVec,
+                /*resultVec=*/ tempVec,
                 /*resultVecOffset=*/ 4,
-                /*lhsMat=*/ mPreviewTransform,
+                /*lhsMat=*/ previewTransform,
                 /*lhsMatOffset=*/ 0,
                 /*rhsVec=*/ voh,
                 /*rhsVecOffset=*/ 0);
 
         // Accumulate output from Vow. This now represents the fully transformed coordinates.
-        mNaturalPreviewWidth += Math.abs(mTempVec[4]);
-        mNaturalPreviewHeight += Math.abs(mTempVec[5]);
+        naturalPreviewWidth += Math.abs(tempVec[4]);
+        naturalPreviewHeight += Math.abs(tempVec[5]);
     }
 
     /**
@@ -494,40 +483,40 @@ public final class OpenGLRenderer {
         calculateInputDimensions();
 
         // Transform surface width and height to natural orientation
-        Matrix.setRotateM(mSurfaceTransform, 0, -mSurfaceRotationDegrees, 0, 0, 1.0f);
+        Matrix.setRotateM(surfaceTransform, 0, -surfaceRotationDegrees, 0, 0, 1.0f);
 
         // Since rotation is a linear transform, we don't need to worry about the affine component
-        mTempVec[0] = mSurfaceSize.getWidth();
-        mTempVec[1] = mSurfaceSize.getHeight();
+        tempVec[0] = surfaceSize.getWidth();
+        tempVec[1] = surfaceSize.getHeight();
 
         // Apply the transform to surface dimensions
-        Matrix.multiplyMV(mTempVec, 4, mSurfaceTransform, 0, mTempVec, 0);
+        Matrix.multiplyMV(tempVec, 4, surfaceTransform, 0, tempVec, 0);
 
-        float naturalSurfaceWidth = Math.abs(mTempVec[4]);
-        float naturalSurfaceHeight = Math.abs(mTempVec[5]);
+        float naturalSurfaceWidth = Math.abs(tempVec[4]);
+        float naturalSurfaceHeight = Math.abs(tempVec[5]);
 
         // Now that both preview and surface are in the same coordinate system, calculate the ratio
         // of width/height between preview/surface to determine which dimension to scale
-        float heightRatio = mNaturalPreviewHeight / naturalSurfaceHeight;
-        float widthRatio = mNaturalPreviewWidth / naturalSurfaceWidth;
+        float heightRatio = naturalPreviewHeight / naturalSurfaceHeight;
+        float widthRatio = naturalPreviewWidth / naturalSurfaceWidth;
 
         // Now that we have calculated scale, we must apply rotation and scale in the correct order
         // such that it will apply to the vertex shader's vertices consistently.
-        Matrix.setIdentityM(mSurfaceTransform, 0);
+        Matrix.setIdentityM(surfaceTransform, 0);
 
         // Apply the scale depending on whether the width or the height needs to be scaled to match
         // a "center crop" scale type. Because vertex coordinates are already normalized, we must
         // remove
         // the implicit scaling (through division) before scaling by the opposite dimension.
-        if (mNaturalPreviewWidth * naturalSurfaceHeight
-                > mNaturalPreviewHeight * naturalSurfaceWidth) {
-            Matrix.scaleM(mSurfaceTransform, 0, heightRatio / widthRatio, 1.0f, 1.0f);
+        if (naturalPreviewWidth * naturalSurfaceHeight
+                > naturalPreviewHeight * naturalSurfaceWidth) {
+            Matrix.scaleM(surfaceTransform, 0, heightRatio / widthRatio, 1.0f, 1.0f);
         } else {
-            Matrix.scaleM(mSurfaceTransform, 0, 1.0f, widthRatio / heightRatio, 1.0f);
+            Matrix.scaleM(surfaceTransform, 0, 1.0f, widthRatio / heightRatio, 1.0f);
         }
 
         // Finally add in rotation. This will be applied to vertices first.
-        Matrix.rotateM(mSurfaceTransform, 0, -mSurfaceRotationDegrees, 0, 0, 1.0f);
+        Matrix.rotateM(surfaceTransform, 0, -surfaceRotationDegrees, 0, 0, 1.0f);
     }
 
     @WorkerThread

@@ -17,7 +17,6 @@
 package com.lookaround.core.android.camera;
 
 import android.graphics.SurfaceTexture;
-import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
@@ -32,13 +31,15 @@ import com.lookaround.core.android.R;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import timber.log.Timber;
+
 /**
  * Utilities for instantiating a {@link TextureView} and attaching to an {@link OpenGLRenderer}.
  */
-public final class TextureViewRenderSurface implements IRenderSurface {
+final class TextureViewRenderSurface implements IRenderSurface {
     private static final String TAG = "TextureViewRndrSrfc";
 
-    private final AtomicReference<CallbackToFutureAdapter.Completer<Void>> mNextFrameCompleter =
+    private final AtomicReference<CallbackToFutureAdapter.Completer<Void>> nextFrameCompleter =
             new AtomicReference<>();
 
     /**
@@ -49,32 +50,33 @@ public final class TextureViewRenderSurface implements IRenderSurface {
      * @param renderer Renderer which will be used to update the TextureView.
      * @return The inflated TextureView.
      */
+
     @NonNull
-    public TextureView inflateWith(@NonNull ViewStub viewStub,
-                                   @NonNull OpenGLRenderer renderer) {
-        Log.d(TAG, "Inflating TextureView into view stub.");
+    @Override
+    public TextureView inflateWith(@NonNull ViewStub viewStub, @NonNull OpenGLRenderer renderer) {
+        Timber.tag(TAG).d("Inflating TextureView into view stub.");
         viewStub.setLayoutResource(R.layout.texture_view_render_surface);
         TextureView textureView = (TextureView) viewStub.inflate();
         textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
-            private Surface mSurface;
+            private Surface surface;
 
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture st, int width, int height) {
-                mSurface = new Surface(st);
-                renderer.attachOutputSurface(mSurface, new Size(width, height),
+                surface = new Surface(st);
+                renderer.attachOutputSurface(surface, new Size(width, height),
                         Surfaces.toSurfaceRotationDegrees(textureView.getDisplay().getRotation()));
             }
 
             @Override
             public void onSurfaceTextureSizeChanged(SurfaceTexture st, int width, int height) {
-                renderer.attachOutputSurface(mSurface, new Size(width, height),
+                renderer.attachOutputSurface(surface, new Size(width, height),
                         Surfaces.toSurfaceRotationDegrees(textureView.getDisplay().getRotation()));
             }
 
             @Override
             public boolean onSurfaceTextureDestroyed(SurfaceTexture st) {
-                Surface surface = mSurface;
-                mSurface = null;
+                Surface surface = this.surface;
+                this.surface = null;
                 renderer.detachOutputSurface().addListener(() -> {
                     surface.release();
                     st.release();
@@ -85,7 +87,7 @@ public final class TextureViewRenderSurface implements IRenderSurface {
             @Override
             public void onSurfaceTextureUpdated(SurfaceTexture st) {
                 CallbackToFutureAdapter.Completer<Void> completer =
-                        mNextFrameCompleter.getAndSet(null);
+                        nextFrameCompleter.getAndSet(null);
 
                 if (completer != null) {
                     completer.set(null);
@@ -104,7 +106,7 @@ public final class TextureViewRenderSurface implements IRenderSurface {
     public ListenableFuture<Void> waitForNextFrame() {
         return CallbackToFutureAdapter.getFuture(
                 completer -> {
-                    mNextFrameCompleter.set(completer);
+                    nextFrameCompleter.set(completer);
                     return "textureViewImpl_waitForNextFrame";
                 }
         );

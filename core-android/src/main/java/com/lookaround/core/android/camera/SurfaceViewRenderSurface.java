@@ -18,7 +18,6 @@ package com.lookaround.core.android.camera;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
-import android.util.Log;
 import android.util.Size;
 import android.view.Display;
 import android.view.Surface;
@@ -34,10 +33,12 @@ import com.lookaround.core.android.R;
 
 import java.util.concurrent.ExecutionException;
 
+import timber.log.Timber;
+
 /**
  * Utilities for instantiating a {@link SurfaceView} and attaching to an {@link OpenGLRenderer}.
  */
-public final class SurfaceViewRenderSurface implements IRenderSurface {
+final class SurfaceViewRenderSurface implements IRenderSurface {
     private static final String TAG = "SurfaceViewRndrSrfc";
 
     /**
@@ -68,13 +69,14 @@ public final class SurfaceViewRenderSurface implements IRenderSurface {
      * @return The inflated SurfaceView.
      */
     @NonNull
+    @Override
     public SurfaceView inflateWith(@NonNull ViewStub viewStub, @NonNull OpenGLRenderer renderer) {
         return inflateWith(viewStub, renderer, /*nonBlocking=*/false);
     }
 
     @NonNull
     private SurfaceView inflateWith(@NonNull ViewStub viewStub, @NonNull OpenGLRenderer renderer, boolean nonBlocking) {
-        Log.d(TAG, "Inflating SurfaceView into view stub (non-blocking = " + nonBlocking + ").");
+        Timber.d("Inflating SurfaceView into view stub (non-blocking = " + nonBlocking + ").");
         if (nonBlocking) {
             warnOnKnownBuggyNonBlockingDevice();
         }
@@ -120,11 +122,9 @@ public final class SurfaceViewRenderSurface implements IRenderSurface {
                     try {
                         detachFuture.get();
                     } catch (ExecutionException e) {
-                        Log.e(TAG, "An error occurred while waiting for surface to detach from "
-                                + "the renderer", e.getCause());
+                        Timber.e(e.getCause(), "An error occurred while waiting for surface to detach from the renderer");
                     } catch (InterruptedException e) {
-                        Log.e(TAG, "Interrupted while waiting for surface to detach from the "
-                                + "renderer.");
+                        Timber.e("Interrupted while waiting for surface to detach from the renderer.");
                         Thread.currentThread().interrupt(); // Restore the interrupted status
                     }
                 }
@@ -141,8 +141,7 @@ public final class SurfaceViewRenderSurface implements IRenderSurface {
         // Swiftshader is not thread-safe, and sometimes will crash in OpenGL or EGL calls if the
         // consumer has already been detached. See b/74108717 for more info.
         if (Build.MODEL.contains("Cuttlefish")) {
-            Log.w(TAG, "Running SurfaceView in non-blocking mode on a device with known buggy EGL "
-                    + "implementation: Cuttlefish");
+            Timber.tag(TAG).w("Running SurfaceView in non-blocking mode on a device with known buggy EGL implementation: Cuttlefish");
         }
     }
 

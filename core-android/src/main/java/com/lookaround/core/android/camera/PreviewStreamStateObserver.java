@@ -26,28 +26,28 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class PreviewStreamStateObserver implements Observable.Observer<CameraInternal.State> {
-
+final class PreviewStreamStateObserver implements Observable.Observer<CameraInternal.State> {
     private static final String TAG = "StreamStateObserver";
 
-    private final CameraInfoInternal mCameraInfoInternal;
-    private final MutableLiveData<PreviewView.StreamState> mPreviewStreamStateLiveData;
+    private final CameraInfoInternal cameraInfoInternal;
+    private final MutableLiveData<PreviewView.StreamState> previewStreamStateLiveData;
     @GuardedBy("this")
-    private PreviewView.StreamState mPreviewStreamState;
-    private final IRenderSurface iRenderSurface;
+    private PreviewView.StreamState previewStreamState;
+    private final IRenderSurface renderSurface;
     @SuppressWarnings("WeakerAccess") /* synthetic accessor */
-            ListenableFuture<Void> mFlowFuture;
-    private boolean mHasStartedPreviewStreamFlow = false;
+            ListenableFuture<Void> flowFuture;
+    private boolean hasStartedPreviewStreamFlow = false;
 
-    public PreviewStreamStateObserver(CameraInfoInternal cameraInfoInternal,
-                                      MutableLiveData<PreviewView.StreamState> previewStreamLiveData,
-                                      IRenderSurface implementation) {
-        mCameraInfoInternal = cameraInfoInternal;
-        mPreviewStreamStateLiveData = previewStreamLiveData;
-        iRenderSurface = implementation;
+    public PreviewStreamStateObserver(
+            CameraInfoInternal cameraInfoInternal,
+            MutableLiveData<PreviewView.StreamState> previewStreamLiveData,
+            IRenderSurface renderSurface) {
+        this.cameraInfoInternal = cameraInfoInternal;
+        previewStreamStateLiveData = previewStreamLiveData;
+        this.renderSurface = renderSurface;
 
         synchronized (this) {
-            mPreviewStreamState = previewStreamLiveData.getValue();
+            previewStreamState = previewStreamLiveData.getValue();
         }
     }
 
@@ -59,16 +59,16 @@ public final class PreviewStreamStateObserver implements Observable.Observer<Cam
                 || value == CameraInternal.State.RELEASING
                 || value == CameraInternal.State.RELEASED) {
             updatePreviewStreamState(PreviewView.StreamState.IDLE);
-            if (mHasStartedPreviewStreamFlow) {
-                mHasStartedPreviewStreamFlow = false;
+            if (hasStartedPreviewStreamFlow) {
+                hasStartedPreviewStreamFlow = false;
                 cancelFlow();
             }
         } else if (value == CameraInternal.State.OPENING
                 || value == CameraInternal.State.OPEN
                 || value == CameraInternal.State.PENDING_OPEN) {
-            if (!mHasStartedPreviewStreamFlow) {
-                startPreviewStreamStateFlow(mCameraInfoInternal);
-                mHasStartedPreviewStreamFlow = true;
+            if (!hasStartedPreviewStreamFlow) {
+                startPreviewStreamStateFlow(cameraInfoInternal);
+                hasStartedPreviewStreamFlow = true;
             }
         }
     }
@@ -85,9 +85,9 @@ public final class PreviewStreamStateObserver implements Observable.Observer<Cam
     }
 
     private void cancelFlow() {
-        if (mFlowFuture != null) {
-            mFlowFuture.cancel(false);
-            mFlowFuture = null;
+        if (flowFuture != null) {
+            flowFuture.cancel(false);
+            flowFuture = null;
         }
     }
 
@@ -97,24 +97,24 @@ public final class PreviewStreamStateObserver implements Observable.Observer<Cam
         updatePreviewStreamState(PreviewView.StreamState.IDLE);
 
         List<CameraCaptureCallback> callbacksToClear = new ArrayList<>();
-        mFlowFuture =
+        flowFuture =
                 FutureChain.from(waitForCaptureResult(cameraInfo, callbacksToClear))
-                        .transformAsync(v -> iRenderSurface.waitForNextFrame(),
+                        .transformAsync(v -> renderSurface.waitForNextFrame(),
                                 CameraXExecutors.directExecutor())
                         .transform(v -> {
                             updatePreviewStreamState(PreviewView.StreamState.STREAMING);
                             return null;
                         }, CameraXExecutors.directExecutor());
 
-        Futures.addCallback(mFlowFuture, new FutureCallback<Void>() {
+        Futures.addCallback(flowFuture, new FutureCallback<Void>() {
             @Override
             public void onSuccess(@Nullable Void result) {
-                mFlowFuture = null;
+                flowFuture = null;
             }
 
             @Override
             public void onFailure(Throwable t) {
-                mFlowFuture = null;
+                flowFuture = null;
 
                 if (!callbacksToClear.isEmpty()) {
                     for (CameraCaptureCallback callback : callbacksToClear) {
@@ -131,14 +131,12 @@ public final class PreviewStreamStateObserver implements Observable.Observer<Cam
     void updatePreviewStreamState(PreviewView.StreamState streamState) {
         // Prevent from notifying same states.
         synchronized (this) {
-            if (mPreviewStreamState.equals(streamState)) {
-                return;
-            }
-            mPreviewStreamState = streamState;
+            if (previewStreamState.equals(streamState)) return;
+            previewStreamState = streamState;
         }
 
         Logger.d(TAG, "Update Preview stream state to " + streamState);
-        mPreviewStreamStateLiveData.postValue(streamState);
+        previewStreamStateLiveData.postValue(streamState);
     }
 
     /**

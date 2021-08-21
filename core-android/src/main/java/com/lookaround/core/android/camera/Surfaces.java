@@ -11,7 +11,7 @@ import java.lang.annotation.Retention;
 /**
  * Utilities for working with {@link Surface Surfaces}.
  */
-public final class Surfaces {
+final class Surfaces {
 
     public static final int ROTATION_0_DEG = 0;
     public static final int ROTATION_90_DEG = 90;
@@ -20,13 +20,14 @@ public final class Surfaces {
 
     @Retention(SOURCE)
     @IntDef({ROTATION_0_DEG, ROTATION_90_DEG, ROTATION_180_DEG, ROTATION_270_DEG})
-    public @interface RotationDegrees {}
+    public @interface RotationDegrees {
+    }
 
     @Retention(SOURCE)
     @IntDef({Surface.ROTATION_0, Surface.ROTATION_90, Surface.ROTATION_180, Surface.ROTATION_270})
-    public @interface RotationEnum {}
+    public @interface RotationEnum {
+    }
 
-    /** @return One of 0, 90, 180, 270. */
     @RotationDegrees
     public static int toSurfaceRotationDegrees(@RotationEnum int rotationEnum) {
         @RotationDegrees int rotationDegrees;
@@ -50,6 +51,6 @@ public final class Surfaces {
         return rotationDegrees;
     }
 
-    // Should not be instantiated.
-    private Surfaces() {}
+    private Surfaces() {
+    }
 }

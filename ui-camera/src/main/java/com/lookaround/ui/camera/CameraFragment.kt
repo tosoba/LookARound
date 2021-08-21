@@ -276,6 +276,11 @@ class CameraFragment :
         super.onPause()
     }
 
+    override fun onDestroy() {
+        openGLRenderer.shutdown()
+        super.onDestroy()
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
