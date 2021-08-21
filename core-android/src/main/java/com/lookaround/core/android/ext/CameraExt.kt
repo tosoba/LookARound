@@ -14,18 +14,6 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-fun aspectRatio(width: Int, height: Int): Int {
-    val previewRatio = max(width, height).toDouble() / min(width, height)
-    return if (abs(previewRatio - RATIO_4_3_VALUE) <= abs(previewRatio - RATIO_16_9_VALUE)) {
-        AspectRatio.RATIO_4_3
-    } else {
-        AspectRatio.RATIO_16_9
-    }
-}
-
-private const val RATIO_4_3_VALUE = 4.0 / 3.0
-private const val RATIO_16_9_VALUE = 16.0 / 9.0
-
 fun Context.initCamera(
     lifecycleOwner: LifecycleOwner,
     openGLRenderer: OpenGLRenderer,
@@ -45,5 +33,17 @@ fun Context.initCamera(
                 .get()
                 .bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview)
         },
-        ContextCompat.getMainExecutor(this))
+        ContextCompat.getMainExecutor(this)
+    )
 }
+
+private fun aspectRatio(width: Int, height: Int): Int {
+    val previewRatio = max(width, height).toDouble() / min(width, height)
+    return if (abs(previewRatio - RATIO_4_3_VALUE) <= abs(previewRatio - RATIO_16_9_VALUE)) {
+        AspectRatio.RATIO_4_3
+    } else {
+        AspectRatio.RATIO_16_9
+    }
+}
+private const val RATIO_4_3_VALUE = 4.0 / 3.0
+private const val RATIO_16_9_VALUE = 16.0 / 9.0
