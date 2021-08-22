@@ -93,6 +93,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.FILL_AND_STROKE
             color = Color.parseColor("#d9ffffff")
+            alpha = 75
         }
     }
 
