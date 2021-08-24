@@ -1,47 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:weightSum="1"
     tools:context="com.lookaround.MainActivity">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/main_fragment_container"
+        android:name="com.lookaround.ui.camera.CameraFragment"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/main_fragment_container"
-            android:name="com.lookaround.ui.camera.CameraFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <androidx.compose.ui.platform.ComposeView
-            android:id="@+id/search_bar_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone" />
-
-        <com.lookaround.core.android.view.WrapContentViewPager
-            android:id="@+id/bottom_sheet_view_pager"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:behavior_hideable="true"
-            app:behavior_peekHeight="55dp"
-            app:layout_behavior="biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior" />
-
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation_view"
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/search_bar_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
-        android:visibility="gone"
-        app:itemHorizontalTranslationEnabled="false"
-        app:menu="@menu/main_bottom_nav_menu" />
+        android:layout_gravity="top"
+        android:visibility="gone" />
 
-</LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:weightSum="1">
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <com.lookaround.core.android.view.WrapContentViewPager
+                android:id="@+id/bottom_sheet_view_pager"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:behavior_hideable="true"
+                app:behavior_peekHeight="55dp"
+                app:layout_behavior="biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior" />
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_navigation_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@android:color/transparent"
+            android:visibility="gone"
+            app:elevation="0dp"
+            app:itemHorizontalTranslationEnabled="false"
+            app:menu="@menu/main_bottom_nav_menu" />
+
+    </LinearLayout>
+
+</FrameLayout>
