@@ -6,9 +6,9 @@ import com.lookaround.core.model.IPlaceType
 import com.lookaround.core.model.NodeDTO
 import com.lookaround.core.repo.IPlacesRepo
 import com.lookaround.repo.overpass.entity.SearchAroundInput
+import nice.fontaine.overpass.models.query.settings.Filter
 import javax.inject.Inject
 import javax.inject.Singleton
-import nice.fontaine.overpass.models.query.settings.Filter
 
 @Singleton
 class OverpassRepo

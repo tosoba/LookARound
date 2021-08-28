@@ -5,10 +5,10 @@ import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.model.*
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
-import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
+import java.util.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi

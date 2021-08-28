@@ -6,11 +6,11 @@ import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.map.scene.model.MapSceneState
 import com.lookaround.core.android.map.scene.model.MapSceneStateUpdate
 import com.lookaround.core.usecase.IsConnectedFlow
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class MapSceneFlowProcessor
@@ -30,9 +30,12 @@ constructor(
             intents.filterIsInstance<MapSceneIntent.LoadingScene>().transformLatest {
                 emit(MapSceneStateUpdate.LoadingScene(it.scene))
                 delay(SCENE_LOADING_TIME_LIMIT_MS)
-                if (!currentState().sceneLoaded) emit(MapSceneStateUpdate.SceneLoadingTimeoutOccurred)
+                if (!currentState().sceneLoaded)
+                    emit(MapSceneStateUpdate.SceneLoadingTimeoutOccurred)
             },
-            intents.filterIsInstance<MapSceneIntent.SceneLoaded>().map { MapSceneStateUpdate.SceneLoaded },
+            intents.filterIsInstance<MapSceneIntent.SceneLoaded>().map {
+                MapSceneStateUpdate.SceneLoaded
+            },
         )
 
     override fun sideEffects(

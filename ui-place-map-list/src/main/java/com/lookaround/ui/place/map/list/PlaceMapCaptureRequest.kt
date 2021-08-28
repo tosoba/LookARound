@@ -2,8 +2,8 @@ package com.lookaround.ui.place.map.list
 
 import android.graphics.Bitmap
 import android.location.Location
-import java.lang.ref.WeakReference
 import uk.co.senab.bitmapcache.CacheableBitmapDrawable
+import java.lang.ref.WeakReference
 
 internal data class PlaceMapCaptureRequest(
     val location: Location,

@@ -16,9 +16,9 @@ import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -28,7 +28,6 @@ class PlaceListFragment : Fragment() {
         mainViewModelFactory.create(it)
     }
 
-    @ExperimentalFoundationApi
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

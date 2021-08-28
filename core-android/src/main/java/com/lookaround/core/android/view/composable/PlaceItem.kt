@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.ext.formattedDistanceTo
 import com.lookaround.core.android.model.INamedLocation
-import com.lookaround.core.android.model.Point
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import kotlinx.coroutines.flow.Flow
 

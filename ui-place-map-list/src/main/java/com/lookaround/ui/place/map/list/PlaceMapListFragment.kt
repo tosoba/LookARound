@@ -25,13 +25,13 @@ import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import uk.co.senab.bitmapcache.CacheableBitmapDrawable
+import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -51,9 +51,8 @@ class PlaceMapListFragment :
 
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
-    private val mapController: Deferred<MapController> by lifecycleScope.lazyAsync {
-        binding.map.init(mapTilesHttpHandler, glViewHolderFactory)
-    }
+    private val mapController: Deferred<MapController> by
+        lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
 
     @Inject internal lateinit var mapCaptureCache: MapCaptureCache
     private val mapCaptureRequestChannel =

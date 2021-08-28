@@ -3,12 +3,12 @@ package com.lookaround.core.android.map
 import android.content.Context
 import com.lookaround.core.android.ext.getOrCreateCacheFile
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.inject.Singleton
 import okhttp3.Cache
 import okhttp3.CacheControl
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class MapTilesCacheConfig @Inject constructor(@ApplicationContext context: Context) {

@@ -10,9 +10,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import fr.dudie.nominatim.client.JsonNominatimClient
-import javax.inject.Singleton
 import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.impl.client.HttpClients
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)

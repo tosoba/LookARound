@@ -1,7 +1,6 @@
 package com.lookaround
 
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -35,7 +34,6 @@ import com.lookaround.ui.search.composable.SearchBar
 import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.filter
@@ -43,6 +41,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -53,29 +52,31 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
     private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
 
-    private val bottomSheetBehavior by lazy(LazyThreadSafetyMode.NONE) {
-        ViewPagerBottomSheetBehavior.from(binding.bottomSheetViewPager)
-    }
+    private val bottomSheetBehavior by
+        lazy(LazyThreadSafetyMode.NONE) {
+            ViewPagerBottomSheetBehavior.from(binding.bottomSheetViewPager)
+        }
     private var lastLiveBottomSheetState: Int? = null
 
     private var latestARState: ARState? = null
     private var selectedBottomNavigationViewItemId: Int = R.id.action_place_types
-    private val onBottomNavItemSelectedListener by lazy(LazyThreadSafetyMode.NONE) {
-        BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
-            selectedBottomNavigationViewItemId = menuItem.itemId
-            binding.bottomSheetViewPager.currentItem =
-                when (menuItem.itemId) {
-                    R.id.action_place_types -> 0
-                    R.id.action_place_list -> 1
-                    R.id.action_place_map_list -> 2
-                    else -> throw IllegalArgumentException()
+    private val onBottomNavItemSelectedListener by
+        lazy(LazyThreadSafetyMode.NONE) {
+            BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
+                selectedBottomNavigationViewItemId = menuItem.itemId
+                binding.bottomSheetViewPager.currentItem =
+                    when (menuItem.itemId) {
+                        R.id.action_place_types -> 0
+                        R.id.action_place_list -> 1
+                        R.id.action_place_map_list -> 2
+                        else -> throw IllegalArgumentException()
+                    }
+                if (latestARState == ARState.ENABLED) {
+                    bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_EXPANDED
                 }
-            if (latestARState == ARState.ENABLED) {
-                bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_EXPANDED
+                true
             }
-            true
         }
-    }
 
     private val currentTopFragment: Fragment?
         get() = supportFragmentManager.findFragmentById(R.id.main_fragment_container)

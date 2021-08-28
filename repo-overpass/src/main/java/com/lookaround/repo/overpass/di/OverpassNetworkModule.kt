@@ -12,14 +12,14 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import java.util.*
-import javax.inject.Singleton
 import nice.fontaine.overpass.models.response.adapters.ElementAdapter
 import nice.fontaine.overpass.models.response.adapters.Iso8601Adapter
 import nice.fontaine.overpass.models.response.adapters.MemberAdapter
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.*
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)

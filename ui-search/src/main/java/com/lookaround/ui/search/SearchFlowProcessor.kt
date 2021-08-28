@@ -7,12 +7,12 @@ import com.lookaround.ui.search.model.SearchIntent
 import com.lookaround.ui.search.model.SearchSignal
 import com.lookaround.ui.search.model.SearchState
 import com.lookaround.ui.search.model.SearchStateUpdate
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.transformLatest
+import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class SearchFlowProcessor

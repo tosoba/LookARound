@@ -5,11 +5,11 @@ import android.graphics.Bitmap
 import android.location.Location
 import com.lookaround.core.android.ext.getOrCreateCacheFile
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
-import javax.inject.Singleton
 import timber.log.Timber
 import uk.co.senab.bitmapcache.BitmapLruCache
 import uk.co.senab.bitmapcache.CacheableBitmapDrawable
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class MapCaptureCache @Inject constructor(@ApplicationContext context: Context) {

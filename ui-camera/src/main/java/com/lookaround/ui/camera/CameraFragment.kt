@@ -30,8 +30,6 @@ import com.lookaround.ui.main.markerUpdates
 import com.lookaround.ui.main.model.MainIntent
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import java.util.*
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -41,6 +39,8 @@ import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
+import java.util.*
+import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -61,20 +61,19 @@ class CameraFragment :
         mainViewModelFactory.create(it)
     }
 
-    private val cameraRenderer: CameraMarkerRenderer by lazy(LazyThreadSafetyMode.NONE) {
-        CameraMarkerRenderer(requireContext())
-    }
+    private val cameraRenderer: CameraMarkerRenderer by
+        lazy(LazyThreadSafetyMode.NONE) { CameraMarkerRenderer(requireContext()) }
 
-    private val orientationManager: OrientationManager by lazy(LazyThreadSafetyMode.NONE) {
-        OrientationManager(requireContext()).apply {
-            axisMode = OrientationManager.Mode.AR
-            onOrientationChangedListener = this@CameraFragment
+    private val orientationManager: OrientationManager by
+        lazy(LazyThreadSafetyMode.NONE) {
+            OrientationManager(requireContext()).apply {
+                axisMode = OrientationManager.Mode.AR
+                onOrientationChangedListener = this@CameraFragment
+            }
         }
-    }
 
-    private val openGLRenderer: OpenGLRenderer by lazy(LazyThreadSafetyMode.NONE) {
-        OpenGLRenderer()
-    }
+    private val openGLRenderer: OpenGLRenderer by
+        lazy(LazyThreadSafetyMode.NONE) { OpenGLRenderer() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }

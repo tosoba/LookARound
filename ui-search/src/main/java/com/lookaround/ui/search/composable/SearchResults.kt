@@ -14,9 +14,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.model.Point
-import com.lookaround.core.android.view.composable.PlaceItem
-import com.lookaround.core.android.view.composable.PlaceInfoItem
 import com.lookaround.core.android.view.composable.ListTopSpacer
+import com.lookaround.core.android.view.composable.PlaceInfoItem
+import com.lookaround.core.android.view.composable.PlaceItem
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.search.R
 import kotlinx.coroutines.flow.Flow

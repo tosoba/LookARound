@@ -23,12 +23,12 @@ import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
+import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -42,9 +42,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
 
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
-    private val mapController: Deferred<MapController> by lifecycleScope.lazyAsync {
-        binding.map.init(mapTilesHttpHandler, glViewHolderFactory)
-    }
+    private val mapController: Deferred<MapController> by
+        lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
 
     private val markerArgument: Marker? by nullableArgument(Arguments.MARKER.name)
     private var currentMarker: Marker? = null

@@ -11,8 +11,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.lookaround.core.android.ext.formattedDistanceTo
 import com.lookaround.core.android.model.Marker
-import java.lang.ref.WeakReference
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -20,6 +18,8 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import java.lang.ref.WeakReference
+import kotlin.coroutines.CoroutineContext
 
 internal class PlaceMapListAdapter(
     private val captureRequestChannel: SendChannel<PlaceMapCaptureRequest>,

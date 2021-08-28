@@ -114,7 +114,8 @@ class BoxedSeekbar : View {
                     styledAttrs.getInt(R.styleable.BoxedSeekbar_android_orientation, 1)]
             max = styledAttrs.getInteger(R.styleable.BoxedSeekbar_max, max)
             min = styledAttrs.getInteger(R.styleable.BoxedSeekbar_min, min)
-            currentValue = styledAttrs.getInteger(R.styleable.BoxedSeekbar_currentValue, currentValue)
+            currentValue =
+                styledAttrs.getInteger(R.styleable.BoxedSeekbar_currentValue, currentValue)
             step = styledAttrs.getInteger(R.styleable.BoxedSeekbar_step, step)
             defaultValue =
                 styledAttrs.getInteger(R.styleable.BoxedSeekbar_defaultValue, defaultValue)
