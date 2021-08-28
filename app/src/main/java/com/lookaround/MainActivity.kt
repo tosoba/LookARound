@@ -115,6 +115,14 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         )
     }
 
+    override fun onBackPressed() {
+        if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_COLLAPSED
+        } else {
+            super.onBackPressed()
+        }
+    }
+
     override fun onAREnabled() {
         latestARState = ARState.ENABLED
         binding.searchBarView.visibility = View.VISIBLE

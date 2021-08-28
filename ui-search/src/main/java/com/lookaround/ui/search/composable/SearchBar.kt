@@ -1,5 +1,7 @@
 package com.lookaround.ui.search.composable
 
+import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -21,12 +23,12 @@ import androidx.compose.ui.focus.isFocused
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.lookaround.core.android.view.composable.BackButtonAction
 import com.lookaround.core.android.view.composable.LookARoundSurface
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.search.R
@@ -41,6 +43,15 @@ fun SearchBar(
     onBackPressed: () -> Unit = {}
 ) {
     val focusManager = LocalFocusManager.current
+    val onBackPressedDispatcher =
+        (LocalLifecycleOwner.current as ComponentActivity).onBackPressedDispatcher
+    val onBackPressedCallback =
+        object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                onBackPressed()
+                focusManager.clearFocus()
+            }
+        }
     val focusRequester = remember { FocusRequester() }
     LookARoundSurface(color = Color.Transparent, modifier = modifier.wrapContentHeight()) {
         Column {
@@ -55,6 +66,11 @@ fun SearchBar(
                 onSearchFocusChange = { focused ->
                     state.focused = focused
                     onSearchFocusChange(focused)
+                    if (focused) {
+                        onBackPressedDispatcher.addCallback(onBackPressedCallback)
+                    } else {
+                        onBackPressedCallback.remove()
+                    }
                 },
                 onBackArrowClicked = {
                     focusManager.clearFocus()
@@ -68,7 +84,6 @@ fun SearchBar(
             )
         }
         if (state.focused) LaunchedEffect(Unit) { focusRequester.requestFocus() }
-        BackButtonAction(onBackPressed)
     }
 }
 
