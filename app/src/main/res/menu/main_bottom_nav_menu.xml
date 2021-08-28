@@ -1,4 +1,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
     <item
         android:id="@+id/action_place_types"
         android:icon="@drawable/ic_baseline_view_list_24"
@@ -9,8 +10,4 @@
         android:icon="@drawable/ic_baseline_view_list_24"
         android:title="@string/places" />
 
-    <item
-        android:id="@+id/action_place_map_list"
-        android:icon="@drawable/ic_baseline_view_list_24"
-        android:title="@string/place_maps" />
 </menu>

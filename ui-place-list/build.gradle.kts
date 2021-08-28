@@ -59,7 +59,9 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
     implementation(project(":core-android-model"))
+    implementation(project(":tangram"))
     implementation(project(":ui-main"))
+    implementation(project(":ui-place-map-list"))
 
     implementation(kotlin("stdlib", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
     implementation("androidx.appcompat:appcompat:1.3.0-rc01")

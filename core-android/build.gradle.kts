@@ -115,6 +115,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
     implementation("com.google.android.material:material:1.3.0")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
+    implementation("biz.laenger.android:vpbs:0.0.6")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1")
 
