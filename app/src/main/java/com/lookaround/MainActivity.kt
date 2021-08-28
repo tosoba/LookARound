@@ -161,8 +161,8 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
     private fun initSearch() {
         viewModel
-            .searchFocusUpdates
-            .filter { it }
+            .searchInitiatedUpdates
+            .filter { lifecycle.isResumed && currentTopFragment !is SearchFragment }
             .onEach { showSearchFragment() }
             .launchIn(lifecycleScope)
 
@@ -249,13 +249,8 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                 .bottomSheetStateUpdates
                 .onEach { (sheetState, _) ->
                     state = sheetState
-                    when (sheetState) {
-                        BottomSheetBehavior.STATE_COLLAPSED, BottomSheetBehavior.STATE_HIDDEN -> {
-                            changeSearchbarVisibility(View.VISIBLE)
-                        }
-                        BottomSheetBehavior.STATE_EXPANDED -> {
-                            changeSearchbarVisibility(View.GONE)
-                        }
+                    if (sheetState == BottomSheetBehavior.STATE_EXPANDED) {
+                        changeSearchbarVisibility(View.VISIBLE)
                     }
                 }
                 .launchIn(lifecycleScope)

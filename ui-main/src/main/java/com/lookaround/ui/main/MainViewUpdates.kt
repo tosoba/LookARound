@@ -1,14 +1,15 @@
 package com.lookaround.ui.main
 
 import android.location.Location
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.model.*
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
+import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
-import java.util.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -26,8 +27,15 @@ val MainViewModel.bottomSheetStateUpdates: Flow<BottomSheetState>
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-val MainViewModel.searchFocusUpdates: Flow<Boolean>
-    get() = states.map { it.searchFocused }.debounce(500L).distinctUntilChanged()
+val MainViewModel.searchInitiatedUpdates: Flow<Unit>
+    get() =
+        states
+            .map { (_, _, bottomSheetState, _, searchFocused) ->
+                bottomSheetState.state != BottomSheetBehavior.STATE_EXPANDED && searchFocused
+            }
+            .filter { it }
+            .map {}
+            .debounce(500L)
 
 @FlowPreview
 @ExperimentalCoroutinesApi
