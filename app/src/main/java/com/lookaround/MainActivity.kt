@@ -34,6 +34,7 @@ import com.lookaround.ui.search.composable.SearchBar
 import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.filter
@@ -41,7 +42,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -247,7 +247,17 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
             viewModel
                 .bottomSheetStateUpdates
-                .onEach { (sheetState, _) -> state = sheetState }
+                .onEach { (sheetState, _) ->
+                    state = sheetState
+                    when (sheetState) {
+                        BottomSheetBehavior.STATE_COLLAPSED, BottomSheetBehavior.STATE_HIDDEN -> {
+                            changeSearchbarVisibility(View.VISIBLE)
+                        }
+                        BottomSheetBehavior.STATE_EXPANDED -> {
+                            changeSearchbarVisibility(View.GONE)
+                        }
+                    }
+                }
                 .launchIn(lifecycleScope)
         }
     }
