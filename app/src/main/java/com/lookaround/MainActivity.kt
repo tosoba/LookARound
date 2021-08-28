@@ -21,7 +21,6 @@ import com.lookaround.core.android.ext.slideChangeVisibility
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
-import com.lookaround.ui.camera.CameraFragment
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.map.MapFragment
@@ -118,6 +117,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     override fun onBackPressed() {
         if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
             bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_COLLAPSED
+            if (viewModel.state.searchFocused) super.onBackPressed()
         } else {
             super.onBackPressed()
         }
@@ -169,9 +169,15 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
     private fun initSearch() {
         viewModel
-            .searchInitiatedUpdates
-            .filter { lifecycle.isResumed && currentTopFragment !is SearchFragment }
-            .onEach { showSearchFragment() }
+            .searchFragmentVisibilityUpdates
+            .filter { lifecycle.isResumed }
+            .onEach {
+                if (it && currentTopFragment !is SearchFragment) {
+                    showSearchFragment()
+                } else if (!it && currentTopFragment is SearchFragment) {
+                    supportFragmentManager.popBackStack()
+                }
+            }
             .launchIn(lifecycleScope)
 
         binding.searchBarView.setContent {
@@ -184,18 +190,12 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                             lifecycleScope.launchWhenResumed {
                                 viewModel.intent(MainIntent.SearchFocusChanged(focused))
                             }
-                        },
-                        onTextValueChange = { textValue ->
-                            lifecycleScope.launchWhenResumed {
-                                viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
-                            }
-                        },
-                        onBackPressed = {
-                            if (currentTopFragment !is CameraFragment) {
-                                supportFragmentManager.popBackStack()
-                            }
                         }
-                    )
+                    ) { textValue ->
+                        lifecycleScope.launchWhenResumed {
+                            viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
+                        }
+                    }
                 }
             }
         }

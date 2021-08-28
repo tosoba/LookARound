@@ -27,15 +27,14 @@ val MainViewModel.bottomSheetStateUpdates: Flow<BottomSheetState>
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-val MainViewModel.searchInitiatedUpdates: Flow<Unit>
+val MainViewModel.searchFragmentVisibilityUpdates: Flow<Boolean>
     get() =
         states
             .map { (_, _, bottomSheetState, _, searchFocused) ->
                 bottomSheetState.state != BottomSheetBehavior.STATE_EXPANDED && searchFocused
             }
-            .filter { it }
-            .map {}
             .debounce(500L)
+            .distinctUntilChanged()
 
 @FlowPreview
 @ExperimentalCoroutinesApi
