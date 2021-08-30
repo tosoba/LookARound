@@ -75,6 +75,9 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.3.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
 
+    implementation("com.jakewharton:disklrucache:2.0.2")
+    implementation(files("../libs/bitmap-lru-cache.jar"))
+
     implementation("com.google.dagger:hilt-android:2.35")
     kapt("com.google.dagger:hilt-android-compiler:2.35")
     kapt("androidx.hilt:hilt-compiler:1.0.0")
