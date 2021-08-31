@@ -88,7 +88,7 @@ class PlacesFragment :
         binding.placeMapRecyclerView.setContent {
             LookARoundTheme {
                 val markers = mainViewModel.states.collectAsState().value.markers
-                val flag = remember { mutableStateOf(true) }
+                val flag = remember { mutableStateOf(false) }
                 if (markers is WithValue) {
                     Column(Modifier.padding(horizontal = 10.dp)) {
                         BottomSheetHeaderText("Places")
@@ -123,7 +123,7 @@ class PlacesFragment :
                                             )
                                         } else {
                                             PlaceMapListItem(
-                                                point.location,
+                                                point,
                                                 mainViewModel.locationReadyUpdates,
                                                 this@PlacesFragment::getBitmapFor,
                                                 Modifier.weight(1f)

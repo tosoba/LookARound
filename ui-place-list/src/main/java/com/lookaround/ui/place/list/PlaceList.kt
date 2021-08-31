@@ -14,14 +14,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.ext.formattedDistanceTo
+import com.lookaround.core.android.model.INamedLocation
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.composable.BottomSheetHeaderText
 import com.lookaround.core.android.view.composable.PlaceItem
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
 
 @Composable
 fun PlacesList(markers: List<Marker>, locationFlow: Flow<Location>, modifier: Modifier = Modifier) {
@@ -50,46 +48,43 @@ fun PlacesList(markers: List<Marker>, locationFlow: Flow<Location>, modifier: Mo
 
 @Composable
 internal fun PlaceMapListItem(
-    location: Location,
+    point: INamedLocation,
     userLocationFlow: Flow<Location>,
     capturePlaceMap: suspend (Location) -> Bitmap,
     modifier: Modifier = Modifier
 ) {
-    var captureJob: Job?
-    val scope = rememberCoroutineScope()
-    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-    val userLocation = userLocationFlow.collectAsState(initial = null)
-    var t by remember { mutableStateOf(0) }
+    val bitmap = placeMapState(point = point, getPlaceMapBitmap = capturePlaceMap)
+    val distanceLabelState =
+        userLocationFlow
+            .map { point.location.formattedDistanceTo(it) }
+            .collectAsState(initial = null)
 
-    DisposableEffect(key1 = location) {
-        captureJob =
-            scope.launch {
-                launch {
-                    val b = capturePlaceMap(location)
-                    bitmap = b
-                    t = b.byteCount
-                }
-                userLocationFlow
-                    .onEach {
-                        // TODO: set distance text
-                    }
-                    .launchIn(scope)
-            }
-        onDispose { captureJob?.cancel() }
-    }
-
-    bitmap?.let { loadedBitmap ->
+    if (bitmap.value is Success<Bitmap>) {
         Column {
-            Image(bitmap = loadedBitmap.asImageBitmap(), "", modifier)
-            userLocation.value?.let { Text(location.formattedDistanceTo(it)) }
-            Text(t.toString())
+            Image(bitmap = (bitmap.value as Success<Bitmap>).result.asImageBitmap(), "", modifier)
+            distanceLabelState.value?.let { Text(text = it) }
+            Text((bitmap.value as Success<Bitmap>).result.width.toString())
         }
+    } else {
+        // TODO loading placeholder (with shimmer or smth)
+        Column { distanceLabelState.value?.let { Text(text = it) } }
     }
-        ?: run {
-            // TODO loading placeholder (with shimmer or smth)
-            Column {
-                userLocation.value?.let { Text(location.formattedDistanceTo(it)) }
-                Text(t.toString())
-            }
-        }
 }
+
+@Composable
+private fun placeMapState(
+    point: INamedLocation,
+    getPlaceMapBitmap: suspend (Location) -> Bitmap,
+): State<SimpleLoadable<Bitmap>> =
+    produceState(initialValue = Loading, point) {
+        val image = getPlaceMapBitmap(point.location)
+        value = Success(image)
+    }
+
+private sealed class SimpleLoadable<out T>
+
+private data class Success<out T>(val result: T) : SimpleLoadable<T>()
+
+private object Error : SimpleLoadable<Nothing>()
+
+private object Loading : SimpleLoadable<Nothing>()
