@@ -8,10 +8,7 @@ import android.view.View
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Switch
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
@@ -29,7 +26,6 @@ import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.composable.BottomSheetHeaderText
-import com.lookaround.core.android.view.composable.PlaceItem
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
@@ -40,13 +36,13 @@ import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import uk.co.senab.bitmapcache.CacheableBitmapDrawable
-import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -90,26 +86,18 @@ class PlacesFragment :
         binding.placeMapRecyclerView.setContent {
             LookARoundTheme {
                 val markers = mainViewModel.states.collectAsState().value.markers
-                val flag = remember { mutableStateOf(false) }
                 if (markers is WithValue) {
                     Column(Modifier.padding(horizontal = 10.dp)) {
                         BottomSheetHeaderText("Places")
-                        Switch(flag.value, flag::value::set)
-                        val configuration = LocalConfiguration.current
+                        val config = LocalConfiguration.current
                         LazyColumn(
                             modifier = Modifier.padding(horizontal = 10.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(
                                 markers.value.chunked(
-                                    size =
-                                        if (configuration.orientation ==
-                                                Configuration.ORIENTATION_LANDSCAPE
-                                        ) {
-                                            3
-                                        } else {
-                                            2
-                                        }
+                                    if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) 3
+                                    else 2
                                 )
                             ) { chunk ->
                                 Row(
@@ -117,20 +105,12 @@ class PlacesFragment :
                                     modifier = Modifier.wrapContentHeight()
                                 ) {
                                     chunk.forEach { point ->
-                                        if (flag.value) {
-                                            PlaceItem(
-                                                point,
-                                                mainViewModel.locationReadyUpdates,
-                                                Modifier.weight(1f)
-                                            )
-                                        } else {
-                                            PlaceMapListItem(
-                                                point,
-                                                mainViewModel.locationReadyUpdates,
-                                                this@PlacesFragment::getBitmapFor,
-                                                Modifier.weight(1f)
-                                            )
-                                        }
+                                        PlaceMapListItem(
+                                            point,
+                                            mainViewModel.locationReadyUpdates,
+                                            this@PlacesFragment::getBitmapFor,
+                                            Modifier.weight(1f)
+                                        )
                                     }
                                 }
                             }
