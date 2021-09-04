@@ -65,15 +65,16 @@ internal fun PlaceMapListItem(
             .map { point.location.formattedDistanceTo(it) }
             .collectAsState(initial = null)
 
-    if (bitmap.value is Success<Bitmap>) {
-        Column {
-            Image(bitmap = (bitmap.value as Success<Bitmap>).result.asImageBitmap(), "", modifier)
-            distanceLabelState.value?.let { Text(text = it) }
+    Column {
+        if (bitmap.value is Success<Bitmap>) {
+            val b = (bitmap.value as Success<Bitmap>).result
+            val ib = b.asImageBitmap()
+            Image(bitmap = ib, "", modifier)
+        }
+        distanceLabelState.value?.let { Text(text = it) }
+        if (bitmap.value is Success<Bitmap>) {
             Text((bitmap.value as Success<Bitmap>).result.width.toString())
         }
-    } else {
-        // TODO loading placeholder (with shimmer or smth)
-        Column { distanceLabelState.value?.let { Text(text = it) } }
     }
 }
 
