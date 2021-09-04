@@ -5,19 +5,17 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.os.Bundle
 import android.view.View
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Switch
-import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.assistedActivityViewModel
@@ -42,13 +40,13 @@ import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import uk.co.senab.bitmapcache.CacheableBitmapDrawable
+import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -76,8 +74,6 @@ class PlacesFragment :
         BroadcastChannel<Pair<Location, CompletableDeferred<Bitmap>>>(Channel.BUFFERED)
     private val mapReady = CompletableDeferred<Unit>()
 
-    private val img = MutableLiveData<Bitmap?>(null)
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mapController.launch {
             setSceneLoadListener(this@PlacesFragment)
@@ -90,21 +86,6 @@ class PlacesFragment :
             .filterIsInstance<MapSceneSignal.RetryLoadScene>()
             .onEach { mapController.await().loadScene(it.scene) }
             .launchIn(lifecycleScope)
-
-        binding.testImage.setContent {
-            LookARoundTheme {
-                var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-                img.observe(viewLifecycleOwner) { bitmap = it }
-                bitmap?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = "test-img",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-        }
 
         binding.placeMapRecyclerView.setContent {
             LookARoundTheme {
@@ -201,7 +182,6 @@ class PlacesFragment :
             .onEach { (location, deferred) ->
                 val bitmap = getCachedOrCaptureBitmapFor(location)
                 deferred.complete(bitmap)
-                img.value = bitmap
             }
             .launchIn(lifecycleScope)
         mapReady.complete(Unit)
