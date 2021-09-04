@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
@@ -18,7 +21,10 @@ import com.lookaround.core.android.model.INamedLocation
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.composable.BottomSheetHeaderText
 import com.lookaround.core.android.view.composable.PlaceItem
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.map
 
 @Composable
@@ -50,10 +56,10 @@ fun PlacesList(markers: List<Marker>, locationFlow: Flow<Location>, modifier: Mo
 internal fun PlaceMapListItem(
     point: INamedLocation,
     userLocationFlow: Flow<Location>,
-    capturePlaceMap: suspend (Location) -> Bitmap,
+    getPlaceBitmap: suspend (Location) -> ReceiveChannel<Bitmap>,
     modifier: Modifier = Modifier
 ) {
-    val bitmap = placeMapState(point = point, getPlaceMapBitmap = capturePlaceMap)
+    val bitmap = placeMapState(point = point, getPlaceMapBitmap = getPlaceBitmap)
     val distanceLabelState =
         userLocationFlow
             .map { point.location.formattedDistanceTo(it) }
@@ -74,11 +80,10 @@ internal fun PlaceMapListItem(
 @Composable
 private fun placeMapState(
     point: INamedLocation,
-    getPlaceMapBitmap: suspend (Location) -> Bitmap,
+    getPlaceMapBitmap: suspend (Location) -> ReceiveChannel<Bitmap>,
 ): State<SimpleLoadable<Bitmap>> =
     produceState(initialValue = Loading, point) {
-        val image = getPlaceMapBitmap(point.location)
-        value = Success(image)
+        getPlaceMapBitmap(point.location).consumeAsFlow().collect { value = Success(it) }
     }
 
 private sealed class SimpleLoadable<out T>

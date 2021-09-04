@@ -42,9 +42,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import uk.co.senab.bitmapcache.CacheableBitmapDrawable
 
@@ -70,7 +72,9 @@ class PlacesFragment :
         lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
 
     @Inject internal lateinit var mapCaptureCache: MapCaptureCache
-    private var processingPlaces: Boolean = false
+    private val getLocationBitmapChannel =
+        BroadcastChannel<Pair<Location, SendChannel<Bitmap>>>(Channel.BUFFERED)
+    private val mapReady = CompletableDeferred<Unit>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mapController.launch {
@@ -140,6 +144,7 @@ class PlacesFragment :
     }
 
     override fun onDestroyView() {
+        getLocationBitmapChannel.close()
         binding.map.onDestroy()
         super.onDestroyView()
     }
@@ -168,19 +173,34 @@ class PlacesFragment :
     }
 
     override fun onViewComplete() {
-        if (processingPlaces) return
+        if (mapReady.isCompleted) return
         if (!viewModel.state.sceneLoaded) {
             Timber.d("Scene is not loaded")
             return
         }
-        processingPlaces = true
+
+        getLocationBitmapChannel
+            .asFlow()
+            .onEach { (location, sendChannel) ->
+                val bitmap = getCachedOrCaptureBitmapFor(location)
+                sendChannel.send(bitmap)
+            }
+            .launchIn(lifecycleScope)
+        mapReady.complete(Unit)
     }
 
-    private suspend fun getBitmapFor(location: Location): Bitmap {
+    private suspend fun getBitmapFor(location: Location): ReceiveChannel<Bitmap> {
+        mapReady.await()
+        val channel = Channel<Bitmap>(Channel.RENDEZVOUS)
+        getLocationBitmapChannel.send(location to channel)
+        return channel
+    }
+
+    private suspend fun getCachedOrCaptureBitmapFor(location: Location): Bitmap {
         val cached = getCachedBitmap(location)
         if (cached != null) return cached.bitmap
         val bitmap = captureBitmap(location)
-        lifecycleScope.launch { cacheBitmap(location, bitmap) }
+        cacheBitmap(location, bitmap)
         return bitmap
     }
 
