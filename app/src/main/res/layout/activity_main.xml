@@ -8,16 +8,9 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/main_fragment_container"
-        android:name="com.lookaround.ui.map.MapFragment"
+        android:name="com.lookaround.ui.camera.CameraFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/testase"
-        android:name="com.lookaround.ui.place.list.PlacesFragment"
-        android:layout_width="match_parent"
-        android:layout_gravity="center"
-        android:layout_height="wrap_content" />
 
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/search_bar_view"
