@@ -1,4 +1,4 @@
-package com.lookaround.ui.place.map.list
+package com.lookaround.ui.place.list
 
 import com.lookaround.core.android.model.Marker
 

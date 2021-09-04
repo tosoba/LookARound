@@ -1,45 +1,57 @@
-package com.lookaround.ui.place.map.list
+package com.lookaround.ui.place.list
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.location.Location
 import android.os.Bundle
 import android.view.View
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.lookaround.core.android.ext.*
+import com.lookaround.core.android.ext.assistedActivityViewModel
+import com.lookaround.core.android.ext.assistedViewModel
+import com.lookaround.core.android.ext.captureFrame
+import com.lookaround.core.android.ext.init
 import com.lookaround.core.android.map.MapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
+import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.composable.BottomSheetHeaderText
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
-import com.lookaround.ui.main.markerUpdates
-import com.lookaround.ui.place.map.list.databinding.FragmentPlaceMapListBinding
+import com.lookaround.ui.place.list.databinding.FragmentPlaceListBinding
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import uk.co.senab.bitmapcache.CacheableBitmapDrawable
-import javax.inject.Inject
 
-@FlowPreview
 @ExperimentalCoroutinesApi
+@FlowPreview
 @AndroidEntryPoint
 @WithFragmentBindings
-class PlaceMapListFragment :
-    Fragment(R.layout.fragment_place_map_list), MapController.SceneLoadListener, MapChangeListener {
-    private val binding by viewBinding(FragmentPlaceMapListBinding::bind)
+class PlaceListFragment :
+    Fragment(R.layout.fragment_place_list), MapController.SceneLoadListener, MapChangeListener {
+    private val binding: FragmentPlaceListBinding by viewBinding(FragmentPlaceListBinding::bind)
 
     @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
     private val mainViewModel: MainViewModel by assistedActivityViewModel {
@@ -55,18 +67,14 @@ class PlaceMapListFragment :
         lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
 
     @Inject internal lateinit var mapCaptureCache: MapCaptureCache
-    private val mapCaptureRequestChannel =
-        BroadcastChannel<PlaceMapCaptureRequest>(Channel.BUFFERED)
-    private var processingPlaces: Boolean = false
+    private val getLocationBitmapChannel =
+        BroadcastChannel<Pair<Location, CompletableDeferred<Bitmap>>>(Channel.BUFFERED)
+    private val mapReady = CompletableDeferred<Unit>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.placeMapListHeaderView.setContent {
-            LookARoundTheme { BottomSheetHeaderText("Place maps") }
-        }
-
         mapController.launch {
-            setSceneLoadListener(this@PlaceMapListFragment)
-            setMapChangeListener(this@PlaceMapListFragment)
+            setSceneLoadListener(this@PlaceListFragment)
+            setMapChangeListener(this@PlaceListFragment)
             loadScene(MapScene.BUBBLE_WRAP)
         }
 
@@ -75,10 +83,50 @@ class PlaceMapListFragment :
             .filterIsInstance<MapSceneSignal.RetryLoadScene>()
             .onEach { mapController.await().loadScene(it.scene) }
             .launchIn(lifecycleScope)
+
+        binding.placeMapRecyclerView.setContent {
+            LookARoundTheme {
+                val markers = mainViewModel.states.collectAsState().value.markers
+                if (markers is WithValue) {
+                    Column(Modifier.padding(horizontal = 10.dp)) {
+                        BottomSheetHeaderText("Places")
+                        val config = LocalConfiguration.current
+                        LazyColumn(
+                            modifier = Modifier.padding(horizontal = 10.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(
+                                markers.value.chunked(
+                                    if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) 3
+                                    else 2
+                                )
+                            ) { chunk ->
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    modifier = Modifier.wrapContentHeight()
+                                ) {
+                                    chunk.forEach { point ->
+                                        PlaceMapListItem(
+                                            point,
+                                            mainViewModel.locationReadyUpdates,
+                                            this@PlaceListFragment::getBitmapFor,
+                                            Modifier.weight(1f).clickable {
+                                                (activity as? PlaceMapItemActionController)
+                                                    ?.onPlaceMapItemClick(point)
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
-        mapCaptureRequestChannel.close()
+        getLocationBitmapChannel.close()
         binding.map.onDestroy()
         super.onDestroyView()
     }
@@ -107,42 +155,35 @@ class PlaceMapListFragment :
     }
 
     override fun onViewComplete() {
-        if (processingPlaces) return
+        if (mapReady.isCompleted) return
         if (!viewModel.state.sceneLoaded) {
             Timber.d("Scene is not loaded")
             return
         }
-        processPlaces()
-        processingPlaces = true
-    }
 
-    private fun processPlaces() {
-        mapCaptureRequestChannel
+        getLocationBitmapChannel
             .asFlow()
-            .onEach(::processMapCaptureRequest)
+            .onEach { (location, deferred) ->
+                val bitmap = getCachedOrCaptureBitmapFor(location)
+                deferred.complete(bitmap)
+            }
             .launchIn(lifecycleScope)
-        initPlaceMapList()
+        mapReady.complete(Unit)
     }
 
-    private suspend fun processMapCaptureRequest(request: PlaceMapCaptureRequest) {
-        val (location, bitmapCallback, cacheableBitmapDrawableCallback) = request
+    private suspend fun getBitmapFor(location: Location): Bitmap {
+        mapReady.await()
+        val deferred = CompletableDeferred<Bitmap>()
+        getLocationBitmapChannel.send(location to deferred)
+        return deferred.await()
+    }
+
+    private suspend fun getCachedOrCaptureBitmapFor(location: Location): Bitmap {
         val cached = getCachedBitmap(location)
-        if (cached != null) {
-            cacheableBitmapDrawableCallback(cached)
-            return
-        }
+        if (cached != null) return cached.bitmap
         val bitmap = captureBitmap(location)
-        bitmapCallback(bitmap)
         cacheBitmap(location, bitmap)
-    }
-
-    private suspend fun getCachedBitmap(location: Location): CacheableBitmapDrawable? =
-        if (mapCaptureCache.isEnabled) withContext(Dispatchers.IO) { mapCaptureCache[location] }
-        else null
-
-    private suspend fun cacheBitmap(location: Location, bitmap: Bitmap) {
-        if (!mapCaptureCache.isEnabled) return
-        withContext(Dispatchers.IO) { mapCaptureCache[location] = bitmap }
+        return bitmap
     }
 
     private suspend fun captureBitmap(location: Location): Bitmap =
@@ -156,15 +197,13 @@ class PlaceMapListFragment :
             captureFrame(true)
         }
 
-    private fun initPlaceMapList() {
-        val placeMapListAdapter =
-            PlaceMapListAdapter(mapCaptureRequestChannel, mainViewModel.locationReadyUpdates) {
-                val controller =
-                    activity as? PlaceMapItemActionController ?: return@PlaceMapListAdapter
-                controller.onPlaceMapItemClick(marker = it)
-            }
-        binding.placeMapRecyclerView.adapter = placeMapListAdapter
-        mainViewModel.markerUpdates.onEach(placeMapListAdapter::update).launchIn(lifecycleScope)
+    private suspend fun getCachedBitmap(location: Location): CacheableBitmapDrawable? =
+        if (mapCaptureCache.isEnabled) withContext(Dispatchers.IO) { mapCaptureCache[location] }
+        else null
+
+    private suspend fun cacheBitmap(location: Location, bitmap: Bitmap) {
+        if (!mapCaptureCache.isEnabled) return
+        withContext(Dispatchers.IO) { mapCaptureCache[location] = bitmap }
     }
 
     private suspend fun MapController.loadScene(scene: MapScene) {

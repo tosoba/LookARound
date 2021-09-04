@@ -64,7 +64,6 @@ dependencies {
     implementation(project(":ui-main"))
     implementation(project(":ui-map"))
     implementation(project(":ui-place-list"))
-    implementation(project(":ui-place-map-list"))
     implementation(project(":ui-place-types"))
     implementation(project(":ui-search"))
 

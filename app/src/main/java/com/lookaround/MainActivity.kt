@@ -24,8 +24,8 @@ import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.map.MapFragment
-import com.lookaround.ui.place.list.PlacesFragment
-import com.lookaround.ui.place.map.list.PlaceMapItemActionController
+import com.lookaround.ui.place.list.PlaceListFragment
+import com.lookaround.ui.place.list.PlaceMapItemActionController
 import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.SearchBar
@@ -204,7 +204,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             savedInstanceState?.getInt(SavedStateKeys.BOTTOM_SHEET_STATE.name)
 
         with(binding.bottomSheetViewPager) {
-            val fragments = arrayOf(PlaceTypesFragment(), PlacesFragment())
+            val fragments = arrayOf(PlaceTypesFragment(), PlaceListFragment())
             offscreenPageLimit = fragments.size - 1
             adapter =
                 object :
