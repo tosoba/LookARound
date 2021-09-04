@@ -4,6 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/test_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <androidx.cardview.widget.CardView
         android:layout_width="170dp"
         android:layout_height="250dp"
