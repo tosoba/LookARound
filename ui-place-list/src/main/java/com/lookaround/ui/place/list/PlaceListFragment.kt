@@ -9,6 +9,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Button
+import androidx.compose.material.Text
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -84,21 +86,29 @@ class PlaceListFragment :
             .onEach { mapController.await().loadScene(it.scene) }
             .launchIn(lifecycleScope)
 
+        val reloadBitmapTrigger = Channel<Unit>()
         binding.placeMapRecyclerView.setContent {
             LookARoundTheme {
                 val markers = mainViewModel.states.collectAsState().value.markers
                 if (markers is WithValue) {
                     Column(Modifier.padding(horizontal = 10.dp)) {
                         BottomSheetHeaderText("Places")
-                        val config = LocalConfiguration.current
+                        Button(
+                            onClick = {
+                                lifecycleScope.launch {
+                                    withContext(Dispatchers.IO) { mapCaptureCache.clear() }
+                                    reloadBitmapTrigger.send(Unit)
+                                }
+                            }
+                        ) { Text("Reload maps") }
+                        val orientation = LocalConfiguration.current.orientation
                         LazyColumn(
                             modifier = Modifier.padding(horizontal = 10.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(
                                 markers.value.chunked(
-                                    if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) 3
-                                    else 2
+                                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
                                 )
                             ) { chunk ->
                                 Row(
@@ -107,13 +117,16 @@ class PlaceListFragment :
                                 ) {
                                     chunk.forEach { point ->
                                         PlaceMapListItem(
-                                            point,
-                                            mainViewModel.locationReadyUpdates,
-                                            this@PlaceListFragment::getBitmapFor,
-                                            Modifier.weight(1f).clickable {
-                                                (activity as? PlaceMapItemActionController)
-                                                    ?.onPlaceMapItemClick(point)
-                                            }
+                                            point = point,
+                                            userLocationFlow = mainViewModel.locationReadyUpdates,
+                                            getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
+                                            reloadBitmapTrigger =
+                                                reloadBitmapTrigger.receiveAsFlow(),
+                                            modifier =
+                                                Modifier.weight(1f).clickable {
+                                                    (activity as? PlaceMapItemActionController)
+                                                        ?.onPlaceMapItemClick(point)
+                                                }
                                         )
                                     }
                                 }
@@ -173,16 +186,16 @@ class PlaceListFragment :
 
     private suspend fun getBitmapFor(location: Location): Bitmap {
         mapReady.await()
-        val deferred = CompletableDeferred<Bitmap>()
-        getLocationBitmapChannel.send(location to deferred)
-        return deferred.await()
+        val deferredBitmap = CompletableDeferred<Bitmap>()
+        getLocationBitmapChannel.send(location to deferredBitmap)
+        return deferredBitmap.await()
     }
 
     private suspend fun getCachedOrCaptureBitmapFor(location: Location): Bitmap {
         val cached = getCachedBitmap(location)
         if (cached != null) return cached.bitmap
         val bitmap = captureBitmap(location)
-        cacheBitmap(location, bitmap)
+        lifecycleScope.launch { cacheBitmap(location, bitmap) }
         return bitmap
     }
 
