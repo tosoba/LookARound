@@ -31,7 +31,10 @@ val MainViewModel.searchFragmentVisibilityUpdates: Flow<Boolean>
     get() =
         states
             .map { (_, _, bottomSheetState, _, searchFocused) ->
-                bottomSheetState.state != BottomSheetBehavior.STATE_EXPANDED && searchFocused
+                val (wrappedState, _) = bottomSheetState
+                wrappedState != BottomSheetBehavior.STATE_EXPANDED &&
+                    wrappedState != BottomSheetBehavior.STATE_DRAGGING &&
+                    searchFocused
             }
             .debounce(500L)
             .distinctUntilChanged()
