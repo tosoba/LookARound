@@ -21,8 +21,10 @@ import com.lookaround.core.android.ext.slideChangeVisibility
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
+import com.lookaround.ui.camera.CameraFragment
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.list.PlaceListFragment
 import com.lookaround.ui.place.list.PlaceMapItemActionController
@@ -82,6 +84,8 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        supportFragmentManager.addOnBackStackChangedListener { signalTopFragmentChanged() }
+
         window.decorView.systemUiVisibility =
             (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
         window.statusBarColor = Color.TRANSPARENT
@@ -99,6 +103,11 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             .unableToLoadPlacesWithoutLocationSignals
             .onEach { Timber.tag("PLACES").e("Failed to load places without location.") }
             .launchIn(lifecycleScope)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        signalTopFragmentChanged()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -162,6 +171,16 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                     commit()
                 }
             }
+        }
+    }
+
+    private fun signalTopFragmentChanged() {
+        lifecycleScope.launch {
+            viewModel.signal(
+                MainSignal.TopFragmentChanged(
+                    cameraObscured = currentTopFragment !is CameraFragment
+                )
+            )
         }
     }
 

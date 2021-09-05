@@ -1,18 +1,18 @@
 package com.lookaround.ui.camera
 
 import androidx.camera.view.PreviewView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.model.LoadingInProgress
 import com.lookaround.core.android.model.Ready
 import com.lookaround.ui.camera.model.CameraPreviewState
+import com.lookaround.ui.camera.model.CameraState
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.model.MainSignal
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -69,3 +69,19 @@ internal fun arDisabledUpdates(
         .filter { (anyPermissionDenied, locationDisabled) ->
             anyPermissionDenied || locationDisabled
         }
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+fun cameraViewObscuredUpdates(
+    mainViewModel: MainViewModel,
+    cameraViewModel: CameraViewModel
+): Flow<Boolean> =
+    combine(
+            mainViewModel.signals.filterIsInstance<MainSignal.TopFragmentChanged>(),
+            mainViewModel.states.map { it.bottomSheetState },
+            cameraViewModel.states.map(CameraState::previewState::get).filter { it.isLive }
+        ) { (obscured), (sheetState, _), _ ->
+            obscured || sheetState == BottomSheetBehavior.STATE_EXPANDED
+        }
+        .distinctUntilChanged()
+        .debounce(500L)

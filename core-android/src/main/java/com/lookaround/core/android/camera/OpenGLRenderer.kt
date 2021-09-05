@@ -122,8 +122,6 @@ class OpenGLRenderer {
                 if (isShutdown) return@execute
                 if (nativeContext == 0L) nativeContext = initContext()
 
-                setBlurEnabled(nativeContext, true)
-
                 if (setWindowSurface(nativeContext, surface)) {
                     this.surfaceRotationDegrees = surfaceRotationDegrees
                     this.surfaceSize = surfaceSize

@@ -30,6 +30,8 @@ import com.lookaround.ui.main.markerUpdates
 import com.lookaround.ui.main.model.MainIntent
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import java.util.*
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -39,8 +41,6 @@ import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
-import java.util.*
-import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -161,6 +161,11 @@ class CameraFragment :
             .maxPageFlow
             .onEach { (maxPage, setCurrentPage) -> onCameraMaxPageChanged(maxPage, setCurrentPage) }
             .onStart { onCameraMaxPageChanged(cameraRenderer.maxPage, false) }
+            .launchIn(lifecycleScope)
+
+        cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
+            .onEach { Timber.tag("OBSC").e(it.toString()) }
+            .onEach(openGLRenderer::setBlurEnabled)
             .launchIn(lifecycleScope)
 
         arCameraView.onMarkerPressed = ::onMarkerPressed
