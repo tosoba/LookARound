@@ -159,6 +159,7 @@ precision mediump float;
 uniform samplerExternalOES sampler;
 uniform mat4 texTransform;
 uniform float height;
+uniform float lod;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -167,7 +168,7 @@ const float sigma = 3.;
 const float r = sigma * 2.;
 const float invTwoSigmaSqr = 1. / (2. * sigma * sigma);
 
-vec4 gaussBlur( samplerExternalOES tex, vec2 uv, vec2 d, float lod )
+vec4 gaussBlur( samplerExternalOES tex, vec2 uv, vec2 d )
 {
     vec4 c = texture(tex, uv, lod);
     for (float i = 1.; i < r; ++i) {
@@ -181,8 +182,7 @@ vec4 gaussBlur( samplerExternalOES tex, vec2 uv, vec2 d, float lod )
 
 void main() {
     vec2 transTexCoord = (texTransform * vec4(texCoord, 0, 1.0)).xy;
-    float lod = 3.;
-    fragColor = gaussBlur(sampler, transTexCoord, vec2(exp2(lod) / height, 0.), lod);
+    fragColor = gaussBlur(sampler, transTexCoord, vec2(exp2(lod) / height, 0.));
 }
 )SRC";
 
@@ -191,6 +191,7 @@ precision mediump float;
 
 uniform sampler2D sampler;
 uniform float height;
+uniform float lod;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -199,7 +200,7 @@ const float sigma = 3.;
 const float r = sigma * 2.;
 const float invTwoSigmaSqr = 1. / (2. * sigma * sigma);
 
-vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float lod )
+vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d )
 {
     vec4 c = texture(tex, uv, lod);
     for (float i = 1.; i < r; ++i) {
@@ -213,8 +214,7 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float lod )
 
 void main() {
     vec2 transTexCoord = texCoord;
-    float lod = 3.;
-    fragColor = gaussBlur(sampler, transTexCoord, vec2(exp2(lod) / height, 0.), lod);
+    fragColor = gaussBlur(sampler, transTexCoord, vec2(exp2(lod) / height, 0.));
 }
 )SRC";
 
@@ -223,6 +223,7 @@ void main() {
 precision mediump float;
 uniform sampler2D sampler;
 uniform float width;
+uniform float lod;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -231,7 +232,7 @@ const float sigma = 3.;
 const float r = sigma * 2.;
 const float invTwoSigmaSqr = 1. / (2. * sigma * sigma);
 
-vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float lod )
+vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d )
 {
     vec4 c = texture(tex, uv, lod);
     for (float i = 1.; i < r; ++i) {
@@ -244,8 +245,7 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float lod )
 }
 
 void main() {
-    float lod = 3.;
-    fragColor = gaussBlur(sampler, texCoord, vec2(exp2(lod) / width, 0.), lod);
+    fragColor = gaussBlur(sampler, texCoord, vec2(exp2(lod) / width, 0.));
 }
 )SRC";
 
@@ -254,28 +254,36 @@ void main() {
         EGLConfig config;
         EGLContext context;
         std::pair<ANativeWindow *, EGLSurface> windowSurface;
-        EGLSurface pbufferSurface;
+        EGLSurface bufferSurface;
+
         GLuint programNoBlur;
         GLint positionHandleNoBlur;
         GLint samplerHandleNoBlur;
         GLint vertTransformHandleNoBlur;
         GLint texTransformHandleNoBlur;
+
         GLuint programVOES;
         GLint positionHandleVOES;
         GLint samplerHandleVOES;
         GLint vertTransformHandleVOES;
         GLint texTransformHandleVOES;
         GLint heightHandleVOES;
+        GLint lodHandleVOES;
+
         GLuint programH;
         GLint positionHandleH;
         GLint samplerHandleH;
         GLint vertTransformHandleH;
         GLint widthHandle;
+        GLint lodHandleH;
+
         GLuint programV2D;
         GLint positionHandleV2D;
         GLint samplerHandleV2D;
         GLint vertTransformHandleV2D;
-        GLint heightHandle2D;
+        GLint heightHandleV2D;
+        GLint lodHandleV2D;
+
         GLuint inputTextureId;
         GLuint pass1TextureId;
         GLuint fbo1Id;
@@ -291,7 +299,13 @@ void main() {
         GLuint fbo6Id;
         GLuint pass7TextureId;
         GLuint fbo7Id;
+
         GLboolean blurEnabled;
+        GLfloat lod;
+        GLint currentAnimationFrame;
+
+        static constexpr GLfloat MAX_LOD = 3.f;
+        static constexpr GLint ANIMATION_FRAMES = 30;
 
         NativeContext(EGLDisplay display, EGLConfig config, EGLContext context,
                       ANativeWindow *window, EGLSurface surface,
@@ -300,7 +314,7 @@ void main() {
                   config(config),
                   context(context),
                   windowSurface(std::make_pair(window, surface)),
-                  pbufferSurface(pbufferSurface),
+                  bufferSurface(pbufferSurface),
                   programNoBlur(-1),
                   positionHandleNoBlur(-1),
                   samplerHandleNoBlur(-1),
@@ -312,16 +326,19 @@ void main() {
                   vertTransformHandleVOES(-1),
                   texTransformHandleVOES(-1),
                   heightHandleVOES(-1),
+                  lodHandleVOES(-1),
                   programH(-1),
                   positionHandleH(-1),
                   samplerHandleH(-1),
                   vertTransformHandleH(-1),
                   widthHandle(-1),
+                  lodHandleH(-1),
                   programV2D(-1),
                   positionHandleV2D(-1),
                   samplerHandleV2D(-1),
                   vertTransformHandleV2D(-1),
-                  heightHandle2D(-1),
+                  heightHandleV2D(-1),
+                  lodHandleV2D(-1),
                   inputTextureId(-1),
                   pass1TextureId(-1),
                   fbo1Id(-1),
@@ -337,7 +354,14 @@ void main() {
                   fbo6Id(-1),
                   pass7TextureId(-1),
                   fbo7Id(-1),
-                  blurEnabled(GL_FALSE) {}
+                  blurEnabled(GL_FALSE),
+                  lod(0.f),
+                  currentAnimationFrame(-1) {}
+
+        [[nodiscard]] GLboolean IsAnimating() const {
+            return currentAnimationFrame > -1 &&
+                   currentAnimationFrame < NativeContext::ANIMATION_FRAMES;
+        }
     };
 
     const char *ShaderTypeString(GLenum shaderType) {
@@ -413,8 +437,8 @@ void main() {
 
     void DestroySurface(NativeContext *nativeContext) {
         if (nativeContext->windowSurface.first) {
-            eglMakeCurrent(nativeContext->display, nativeContext->pbufferSurface,
-                           nativeContext->pbufferSurface, nativeContext->context);
+            eglMakeCurrent(nativeContext->display, nativeContext->bufferSurface,
+                           nativeContext->bufferSurface, nativeContext->context);
             eglDestroySurface(nativeContext->display,
                               nativeContext->windowSurface.second);
             nativeContext->windowSurface.second = nullptr;
@@ -534,6 +558,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->heightHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "height"));
     assert(nativeContext->heightHandleVOES != -1);
+    nativeContext->lodHandleVOES =
+            CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "lod"));
+    assert(nativeContext->lodHandleVOES != -1);
     nativeContext->texTransformHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "texTransform"));
     assert(nativeContext->texTransformHandleVOES != -1);
@@ -549,6 +576,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->widthHandle =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "width"));
     assert(nativeContext->widthHandle != -1);
+    nativeContext->lodHandleH =
+            CHECK_GL(glGetUniformLocation(nativeContext->programH, "lod"));
+    assert(nativeContext->lodHandleH != -1);
     nativeContext->vertTransformHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "vertTransform"));
     assert(nativeContext->vertTransformHandleH != -1);
@@ -564,9 +594,12 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->vertTransformHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "vertTransform"));
     assert(nativeContext->vertTransformHandleV2D != -1);
-    nativeContext->heightHandle2D =
+    nativeContext->heightHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "height"));
-    assert(nativeContext->heightHandle2D != -1);
+    assert(nativeContext->heightHandleV2D != -1);
+    nativeContext->lodHandleV2D =
+            CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "lod"));
+    assert(nativeContext->lodHandleV2D != -1);
 
     CHECK_GL(glGenTextures(1, &(nativeContext->inputTextureId)));
 
@@ -700,7 +733,19 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
 
     auto nativeWindow = nativeContext->windowSurface.first;
 
-    if (nativeContext->blurEnabled) {
+    if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
+        if (nativeContext->IsAnimating()) {
+            if (nativeContext->blurEnabled) {
+                nativeContext->lod +=
+                        NativeContext::MAX_LOD / (GLfloat) NativeContext::ANIMATION_FRAMES;
+                ++nativeContext->currentAnimationFrame;
+            } else {
+                nativeContext->lod -=
+                        NativeContext::MAX_LOD / (GLfloat) NativeContext::ANIMATION_FRAMES;
+                --nativeContext->currentAnimationFrame;
+            }
+        }
+
         auto prepareDrawVOES = [&](float height) {
             CHECK_GL(glVertexAttribPointer(nativeContext->positionHandleVOES,
                                            vertexComponents, vertexType, normalized,
@@ -713,8 +758,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
             CHECK_GL(glUniform1i(nativeContext->samplerHandleVOES, 0));
             CHECK_GL(glUniformMatrix4fv(nativeContext->texTransformHandleVOES, numMatrices,
                                         transpose, texTransformArray));
-            CHECK_GL(
-                    glUniform1f(nativeContext->heightHandleVOES, height));
+            CHECK_GL(glUniform1f(nativeContext->heightHandleVOES, height));
+            CHECK_GL(glUniform1f(nativeContext->lodHandleVOES, nativeContext->lod));
         };
 
         auto prepareDrawH = [&](float width) {
@@ -728,6 +773,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                     vertTransformArray));
             CHECK_GL(glUniform1i(nativeContext->samplerHandleH, 0));
             CHECK_GL(glUniform1f(nativeContext->widthHandle, width));
+            CHECK_GL(glUniform1f(nativeContext->lodHandleH, nativeContext->lod));
         };
 
         auto prepareDrawV2D = [&](float height) {
@@ -740,7 +786,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                     nativeContext->vertTransformHandleV2D, numMatrices, transpose,
                     vertTransformArray));
             CHECK_GL(glUniform1i(nativeContext->samplerHandleV2D, 0));
-            CHECK_GL(glUniform1f(nativeContext->heightHandle2D, height));
+            CHECK_GL(glUniform1f(nativeContext->heightHandleV2D, height));
+            CHECK_GL(glUniform1f(nativeContext->lodHandleV2D, nativeContext->lod));
         };
 
         auto width = ANativeWindow_getWidth(nativeWindow);
@@ -833,6 +880,12 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setBlurEnabled(
         JNIEnv *env, jclass clazz, jlong context, jboolean enabled) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
     nativeContext->blurEnabled = enabled;
+    if (enabled && nativeContext->currentAnimationFrame == -1) {
+        nativeContext->currentAnimationFrame = 0;
+    } else if (!enabled &&
+               nativeContext->currentAnimationFrame == NativeContext::ANIMATION_FRAMES) {
+        nativeContext->currentAnimationFrame = NativeContext::ANIMATION_FRAMES - 1;
+    }
 }
 
 JNIEXPORT void JNICALL
@@ -850,15 +903,15 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_closeContext(
         nativeContext->programH = 0;
     }
 
+    if (nativeContext->programV2D) {
+        CHECK_GL(glDeleteProgram(nativeContext->programV2D));
+        nativeContext->programV2D = 0;
+    }
+
     DestroySurface(nativeContext);
-
-    eglDestroySurface(nativeContext->display, nativeContext->pbufferSurface);
-
-    eglMakeCurrent(nativeContext->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
-                   EGL_NO_CONTEXT);
-
+    eglDestroySurface(nativeContext->display, nativeContext->bufferSurface);
+    eglMakeCurrent(nativeContext->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglDestroyContext(nativeContext->display, nativeContext->context);
-
     eglTerminate(nativeContext->display);
 
     delete nativeContext;
