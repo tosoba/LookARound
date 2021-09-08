@@ -164,7 +164,6 @@ class CameraFragment :
             .launchIn(lifecycleScope)
 
         cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
-            .onEach { Timber.tag("OBSC").e(it.toString()) }
             .onEach(openGLRenderer::setBlurEnabled)
             .launchIn(lifecycleScope)
 

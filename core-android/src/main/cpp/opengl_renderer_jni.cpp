@@ -123,7 +123,7 @@ namespace {
 #endif
 
 namespace {
-    constexpr char VERTEX_SHADER_SRC[] = R"SRC(#version 310 es
+    constexpr char VERTEX_SHADER_SRC_TRANSFORM[] = R"SRC(#version 310 es
 
 uniform mat4 vertTransform;
 
@@ -136,7 +136,18 @@ void main() {
 }
 )SRC";
 
-    constexpr char FRAGMENT_SHADER_NO_BLURSRC[] = R"SRC(#version 310 es
+    constexpr char VERTEX_SHADER_SRC_NO_TRANSFORM[] = R"SRC(#version 310 es
+
+in vec4 position;
+out vec2 texCoord;
+
+void main() {
+    texCoord = ((vec4(position.xy, 0, 1.0)).xy + vec2(1.0, 1.0)) * 0.5;
+    gl_Position = position;
+}
+)SRC";
+
+    constexpr char FRAGMENT_SHADER_SRC_NO_BLUR[] = R"SRC(#version 310 es
 #extension GL_OES_EGL_image_external : require
 precision mediump float;
 
@@ -182,7 +193,7 @@ vec4 gaussBlur( samplerExternalOES tex, vec2 uv, vec2 d )
 
 void main() {
     vec2 transTexCoord = (texTransform * vec4(texCoord, 0, 1.0)).xy;
-    fragColor = gaussBlur(sampler, transTexCoord, vec2(exp2(lod) / height, 0.));
+    fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height));
 }
 )SRC";
 
@@ -214,7 +225,7 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d )
 
 void main() {
     vec2 transTexCoord = texCoord;
-    fragColor = gaussBlur(sampler, transTexCoord, vec2(exp2(lod) / height, 0.));
+    fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height));
 }
 )SRC";
 
@@ -273,14 +284,12 @@ void main() {
         GLuint programH;
         GLint positionHandleH;
         GLint samplerHandleH;
-        GLint vertTransformHandleH;
         GLint widthHandle;
         GLint lodHandleH;
 
         GLuint programV2D;
         GLint positionHandleV2D;
         GLint samplerHandleV2D;
-        GLint vertTransformHandleV2D;
         GLint heightHandleV2D;
         GLint lodHandleV2D;
 
@@ -330,13 +339,11 @@ void main() {
                   programH(-1),
                   positionHandleH(-1),
                   samplerHandleH(-1),
-                  vertTransformHandleH(-1),
                   widthHandle(-1),
                   lodHandleH(-1),
                   programV2D(-1),
                   positionHandleV2D(-1),
                   samplerHandleV2D(-1),
-                  vertTransformHandleV2D(-1),
                   heightHandleV2D(-1),
                   lodHandleV2D(-1),
                   inputTextureId(-1),
@@ -403,8 +410,8 @@ void main() {
     }
 
     // Returns a handle to the output program
-    GLuint CreateGlProgram(const char *fragmentShaderSrc) {
-        GLuint vertexShader = CompileShader(GL_VERTEX_SHADER, VERTEX_SHADER_SRC);
+    GLuint CreateGlProgram(const char *vertexShaderSrc, const char *fragmentShaderSrc) {
+        GLuint vertexShader = CompileShader(GL_VERTEX_SHADER, vertexShaderSrc);
         assert(vertexShader);
 
         GLuint fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSrc);
@@ -529,7 +536,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
             new NativeContext(eglDisplay, config, eglContext, /*window=*/nullptr,
                     /*surface=*/nullptr, eglPbuffer);
 
-    nativeContext->programNoBlur = CreateGlProgram(FRAGMENT_SHADER_NO_BLURSRC);
+    nativeContext->programNoBlur = CreateGlProgram(VERTEX_SHADER_SRC_TRANSFORM,
+                                                   FRAGMENT_SHADER_SRC_NO_BLUR);
     assert(nativeContext->programNoBlur);
     nativeContext->positionHandleNoBlur =
             CHECK_GL(glGetAttribLocation(nativeContext->programNoBlur, "position"));
@@ -544,7 +552,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
             CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "texTransform"));
     assert(nativeContext->texTransformHandleNoBlur != -1);
 
-    nativeContext->programVOES = CreateGlProgram(FRAGMENT_SHADER_SRC_V_OES);
+    nativeContext->programVOES = CreateGlProgram(VERTEX_SHADER_SRC_TRANSFORM,
+                                                 FRAGMENT_SHADER_SRC_V_OES);
     assert(nativeContext->programVOES);
     nativeContext->positionHandleVOES =
             CHECK_GL(glGetAttribLocation(nativeContext->programVOES, "position"));
@@ -565,7 +574,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "texTransform"));
     assert(nativeContext->texTransformHandleVOES != -1);
 
-    nativeContext->programH = CreateGlProgram(FRAGMENT_SHADER_SRC_H);
+    nativeContext->programH = CreateGlProgram(VERTEX_SHADER_SRC_NO_TRANSFORM,
+                                              FRAGMENT_SHADER_SRC_H);
     assert(nativeContext->programH);
     nativeContext->positionHandleH =
             CHECK_GL(glGetAttribLocation(nativeContext->programH, "position"));
@@ -579,11 +589,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->lodHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "lod"));
     assert(nativeContext->lodHandleH != -1);
-    nativeContext->vertTransformHandleH =
-            CHECK_GL(glGetUniformLocation(nativeContext->programH, "vertTransform"));
-    assert(nativeContext->vertTransformHandleH != -1);
 
-    nativeContext->programV2D = CreateGlProgram(FRAGMENT_SHADER_SRC_V_2D);
+    nativeContext->programV2D = CreateGlProgram(VERTEX_SHADER_SRC_NO_TRANSFORM,
+                                                FRAGMENT_SHADER_SRC_V_2D);
     assert(nativeContext->programV2D);
     nativeContext->positionHandleV2D =
             CHECK_GL(glGetAttribLocation(nativeContext->programV2D, "position"));
@@ -591,9 +599,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->samplerHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "sampler"));
     assert(nativeContext->samplerHandleV2D != -1);
-    nativeContext->vertTransformHandleV2D =
-            CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "vertTransform"));
-    assert(nativeContext->vertTransformHandleV2D != -1);
     nativeContext->heightHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "height"));
     assert(nativeContext->heightHandleV2D != -1);
@@ -768,9 +773,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                                            vertexStride, vertices));
             CHECK_GL(glEnableVertexAttribArray(nativeContext->positionHandleH));
             CHECK_GL(glUseProgram(nativeContext->programH));
-            CHECK_GL(glUniformMatrix4fv(
-                    nativeContext->vertTransformHandleH, numMatrices, transpose,
-                    vertTransformArray));
             CHECK_GL(glUniform1i(nativeContext->samplerHandleH, 0));
             CHECK_GL(glUniform1f(nativeContext->widthHandle, width));
             CHECK_GL(glUniform1f(nativeContext->lodHandleH, nativeContext->lod));
@@ -782,9 +784,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                                            vertexStride, vertices));
             CHECK_GL(glEnableVertexAttribArray(nativeContext->positionHandleV2D));
             CHECK_GL(glUseProgram(nativeContext->programV2D));
-            CHECK_GL(glUniformMatrix4fv(
-                    nativeContext->vertTransformHandleV2D, numMatrices, transpose,
-                    vertTransformArray));
             CHECK_GL(glUniform1i(nativeContext->samplerHandleV2D, 0));
             CHECK_GL(glUniform1f(nativeContext->heightHandleV2D, height));
             CHECK_GL(glUniform1f(nativeContext->lodHandleV2D, nativeContext->lod));
