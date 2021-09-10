@@ -314,7 +314,10 @@ void main() {
         GLint currentAnimationFrame;
 
         static constexpr GLfloat MAX_LOD = 3.f;
-        static constexpr GLint ANIMATION_FRAMES = 30;
+        static constexpr GLfloat MIN_LOD = -3.f;
+        static constexpr GLint LOD_ANIMATION_FRAMES = 30;
+        static constexpr GLfloat LOD_INCREMENT = (NativeContext::MAX_LOD - NativeContext::MIN_LOD) /
+                                                 (GLfloat) NativeContext::LOD_ANIMATION_FRAMES;
 
         NativeContext(EGLDisplay display, EGLConfig config, EGLContext context,
                       ANativeWindow *window, EGLSurface surface,
@@ -362,12 +365,12 @@ void main() {
                   pass7TextureId(-1),
                   fbo7Id(-1),
                   blurEnabled(GL_FALSE),
-                  lod(0.f),
+                  lod(MIN_LOD),
                   currentAnimationFrame(-1) {}
 
         [[nodiscard]] GLboolean IsAnimating() const {
             return currentAnimationFrame > -1 &&
-                   currentAnimationFrame < NativeContext::ANIMATION_FRAMES;
+                   currentAnimationFrame < NativeContext::LOD_ANIMATION_FRAMES;
         }
     };
 
@@ -741,12 +744,10 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
         if (nativeContext->IsAnimating()) {
             if (nativeContext->blurEnabled) {
-                nativeContext->lod +=
-                        NativeContext::MAX_LOD / (GLfloat) NativeContext::ANIMATION_FRAMES;
+                nativeContext->lod += NativeContext::LOD_INCREMENT;
                 ++nativeContext->currentAnimationFrame;
             } else {
-                nativeContext->lod -=
-                        NativeContext::MAX_LOD / (GLfloat) NativeContext::ANIMATION_FRAMES;
+                nativeContext->lod -= NativeContext::LOD_INCREMENT;
                 --nativeContext->currentAnimationFrame;
             }
         }
@@ -882,8 +883,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setBlurEnabled(
     if (enabled && nativeContext->currentAnimationFrame == -1) {
         nativeContext->currentAnimationFrame = 0;
     } else if (!enabled &&
-               nativeContext->currentAnimationFrame == NativeContext::ANIMATION_FRAMES) {
-        nativeContext->currentAnimationFrame = NativeContext::ANIMATION_FRAMES - 1;
+               nativeContext->currentAnimationFrame == NativeContext::LOD_ANIMATION_FRAMES) {
+        nativeContext->currentAnimationFrame = NativeContext::LOD_ANIMATION_FRAMES - 1;
     }
 }
 
