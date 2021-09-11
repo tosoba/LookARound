@@ -193,7 +193,11 @@ vec4 gaussBlur( samplerExternalOES tex, vec2 uv, vec2 d )
 
 void main() {
     vec2 transTexCoord = (texTransform * vec4(texCoord, 0, 1.0)).xy;
-    fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height));
+    if (transTexCoord.x > .5 && transTexCoord.y > .5) {
+        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height));
+    } else {
+        fragColor = texture(sampler, transTexCoord);
+    }
 }
 )SRC";
 
@@ -225,7 +229,11 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d )
 
 void main() {
     vec2 transTexCoord = texCoord;
-    fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height));
+    if (transTexCoord.x > .5 && transTexCoord.y > .5) {
+        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height));
+    } else {
+        fragColor = texture(sampler, transTexCoord);
+    }
 }
 )SRC";
 
@@ -256,7 +264,11 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d )
 }
 
 void main() {
-    fragColor = gaussBlur(sampler, texCoord, vec2(exp2(lod) / width, 0.));
+    if (texCoord.x > .5 && texCoord.y > .5) {
+        fragColor = gaussBlur(sampler, texCoord, vec2(exp2(lod) / width, 0.));
+    } else {
+        fragColor = texture(sampler, texCoord);
+    }
 }
 )SRC";
 
@@ -708,7 +720,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_getTexName(
 JNIEXPORT jboolean JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
         JNIEnv *env, jobject clazz, jlong context, jlong timestampNs,
-        jfloatArray jvertTransformArray, jfloatArray jtexTransformArray) {
+        jfloatArray jvertTransformArray, jfloatArray jtexTransformArray,
+        jfloatArray jdrawnRectsCoordinates, jint jdrawnRectsLength) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
 
     // We use a single triangle with the viewport inscribed within for our

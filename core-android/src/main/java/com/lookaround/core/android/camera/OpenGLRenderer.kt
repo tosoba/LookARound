@@ -33,6 +33,7 @@ class OpenGLRenderer {
         }
 
         private val RENDERER_COUNT = AtomicInteger(0)
+        private const val DRAWN_RECTS_MAX_SIZE = 12
     }
 
     private val executor =
@@ -61,6 +62,9 @@ class OpenGLRenderer {
     val previewStreamStateLiveData = MutableLiveData(StreamState.IDLE)
 
     var drawnRects: List<RectF> = emptyList()
+        set(value) {
+            field = value.take(DRAWN_RECTS_MAX_SIZE)
+        }
 
     @MainThread
     fun setBlurEnabled(enabled: Boolean, animated: Boolean) {
@@ -243,7 +247,15 @@ class OpenGLRenderer {
         if (surfaceSize == null) return
 
         calculateSurfaceTransform()
-        val success = renderTexture(nativeContext, timestampNs, surfaceTransform, previewTransform)
+        val success =
+            renderTexture(
+                nativeContext,
+                timestampNs,
+                surfaceTransform,
+                previewTransform,
+                getDrawnRectsCoordinates(),
+                drawnRects.size
+            )
         if (!success) return
 
         frameUpdateListener?.let { (executor, listener) ->
@@ -253,6 +265,18 @@ class OpenGLRenderer {
                 Timber.tag("OGL").i("Unable to send frame update. Ignore.")
             }
         }
+    }
+
+    private fun getDrawnRectsCoordinates(): FloatArray {
+        val drawnRectsCoordinates = FloatArray(DRAWN_RECTS_MAX_SIZE * 4)
+        var coordinateIndex = 0
+        for (rect in drawnRects) {
+            drawnRectsCoordinates[coordinateIndex++] = rect.left
+            drawnRectsCoordinates[coordinateIndex++] = rect.top
+            drawnRectsCoordinates[coordinateIndex++] = rect.right
+            drawnRectsCoordinates[coordinateIndex++] = rect.bottom
+        }
+        return drawnRectsCoordinates
     }
 
     /**
@@ -455,7 +479,9 @@ class OpenGLRenderer {
         nativeContext: Long,
         timestampNs: Long,
         vertexTransform: FloatArray,
-        textureTransform: FloatArray
+        textureTransform: FloatArray,
+        drawnRectsCoordinates: FloatArray,
+        drawnRectsLength: Int
     ): Boolean
 
     @WorkerThread private external fun closeContext(nativeContext: Long)
