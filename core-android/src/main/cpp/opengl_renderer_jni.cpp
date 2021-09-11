@@ -169,11 +169,12 @@ precision mediump float;
 
 uniform samplerExternalOES sampler;
 uniform mat4 texTransform;
-uniform float width;
 uniform float height;
 uniform float lod;
 uniform float maxLod;
+uniform float minLod;
 uniform int drawnRectsLength;
+uniform vec4 drawnRects[12];
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -182,22 +183,38 @@ const float sigma = 3.;
 const float r = sigma * 2.;
 const float invTwoSigmaSqr = 1. / (2. * sigma * sigma);
 
-vec4 gaussBlur( samplerExternalOES tex, vec2 uv, vec2 d )
+vec4 gaussBlur( samplerExternalOES tex, vec2 uv, vec2 d, float l )
 {
-    vec4 c = texture(tex, uv, lod);
+    vec4 c = texture(tex, uv, l);
     for (float i = 1.; i < r; ++i) {
         c += (
-            texture(tex, uv + d * i, lod) +
-            texture(tex, uv - d * i, lod)
+            texture(tex, uv + d * i, l) +
+            texture(tex, uv - d * i, l)
         ) * exp(- i * i * invTwoSigmaSqr);
     }
     return c / c.a;
 }
 
+bool isWithinDrawnRect( vec2 pos )
+{
+    for (int i = 0; i < drawnRectsLength; ++i) {
+        if (pos.x >= drawnRects[i].x
+            && pos.x <= drawnRects[i].z
+            && pos.y >= drawnRects[i].y
+            && pos.y <= drawnRects[i].w) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void main() {
     vec2 transTexCoord = (texTransform * vec4(texCoord, 0, 1.0)).xy;
-    if (transTexCoord.x > .5 && transTexCoord.y > .5) {
-        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height));
+    bool texCoordWithinDrawnRect = isWithinDrawnRect(transTexCoord);
+    if (texCoordWithinDrawnRect) {
+        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), maxLod);
+    } else if (lod > minLod) {
+        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), lod);
     } else {
         fragColor = texture(sampler, transTexCoord);
     }
@@ -208,11 +225,12 @@ void main() {
 precision mediump float;
 
 uniform sampler2D sampler;
-uniform float width;
 uniform float height;
 uniform float lod;
 uniform float maxLod;
+uniform float minLod;
 uniform int drawnRectsLength;
+uniform vec4 drawnRects[12];
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -221,22 +239,38 @@ const float sigma = 3.;
 const float r = sigma * 2.;
 const float invTwoSigmaSqr = 1. / (2. * sigma * sigma);
 
-vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d )
+vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float l )
 {
-    vec4 c = texture(tex, uv, lod);
+    vec4 c = texture(tex, uv, l);
     for (float i = 1.; i < r; ++i) {
         c += (
-            texture(tex, uv + d * i, lod) +
-            texture(tex, uv - d * i, lod)
+            texture(tex, uv + d * i, l) +
+            texture(tex, uv - d * i, l)
         ) * exp(- i * i * invTwoSigmaSqr);
     }
     return c / c.a;
 }
 
+bool isWithinDrawnRect( vec2 pos )
+{
+    for (int i = 0; i < drawnRectsLength; ++i) {
+        if (pos.x >= drawnRects[i].x
+            && pos.x <= drawnRects[i].z
+            && pos.y >= drawnRects[i].y
+            && pos.y <= drawnRects[i].w) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void main() {
     vec2 transTexCoord = texCoord;
-    if (transTexCoord.x > .5 && transTexCoord.y > .5) {
-        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height));
+    bool texCoordWithinDrawnRect = isWithinDrawnRect(transTexCoord);
+    if (texCoordWithinDrawnRect) {
+        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), maxLod);
+    } else if (lod > minLod) {
+        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), lod);
     } else {
         fragColor = texture(sampler, transTexCoord);
     }
@@ -248,10 +282,11 @@ void main() {
 precision mediump float;
 uniform sampler2D sampler;
 uniform float width;
-uniform float height;
 uniform float lod;
 uniform float maxLod;
+uniform float minLod;
 uniform int drawnRectsLength;
+uniform vec4 drawnRects[12];
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -260,23 +295,40 @@ const float sigma = 3.;
 const float r = sigma * 2.;
 const float invTwoSigmaSqr = 1. / (2. * sigma * sigma);
 
-vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d )
+vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float l )
 {
-    vec4 c = texture(tex, uv, lod);
+    vec4 c = texture(tex, uv, l);
     for (float i = 1.; i < r; ++i) {
         c += (
-            texture(tex, uv + d * i, lod) +
-            texture(tex, uv - d * i, lod)
+            texture(tex, uv + d * i, l) +
+            texture(tex, uv - d * i, l)
         ) * exp(- i * i * invTwoSigmaSqr);
     }
     return c / c.a;
 }
 
+bool isWithinDrawnRect( vec2 pos )
+{
+    for (int i = 0; i < drawnRectsLength; ++i) {
+        if (pos.x >= drawnRects[i].x
+            && pos.x <= drawnRects[i].z
+            && pos.y >= drawnRects[i].y
+            && pos.y <= drawnRects[i].w) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void main() {
-    if (texCoord.x > .5 && texCoord.y > .5) {
-        fragColor = gaussBlur(sampler, texCoord, vec2(exp2(lod) / width, 0.));
+    vec2 transTexCoord = texCoord;
+    bool texCoordWithinDrawnRect = isWithinDrawnRect(transTexCoord);
+    if (texCoordWithinDrawnRect) {
+        fragColor = gaussBlur(sampler, transTexCoord, vec2(exp2(lod) / width, 0.), maxLod);
+    } else if (lod > minLod) {
+        fragColor = gaussBlur(sampler, transTexCoord, vec2(exp2(lod) / width, 0.), lod);
     } else {
-        fragColor = texture(sampler, texCoord);
+        fragColor = texture(sampler, transTexCoord);
     }
 }
 )SRC";
@@ -299,28 +351,28 @@ void main() {
         GLint samplerHandleVOES;
         GLint vertTransformHandleVOES;
         GLint texTransformHandleVOES;
-        GLint widthHandleVOES;
         GLint heightHandleVOES;
         GLint lodHandleVOES;
         GLint maxLodHandleVOES;
+        GLint minLodHandleVOES;
         GLint drawnRectsLengthHandleVOES;
 
         GLuint programH;
         GLint positionHandleH;
         GLint samplerHandleH;
         GLint widthHandleH;
-        GLint heightHandleH;
         GLint lodHandleH;
         GLint maxLodHandleH;
+        GLint minLodHandleH;
         GLint drawnRectsLengthHandleH;
 
         GLuint programV2D;
         GLint positionHandleV2D;
         GLint samplerHandleV2D;
-        GLint widthHandleV2D;
         GLint heightHandleV2D;
         GLint lodHandleV2D;
         GLint maxLodHandleV2D;
+        GLint minLodHandleV2D;
         GLint drawnRectsLengthHandleV2D;
 
         GLuint inputTextureId;
@@ -367,26 +419,26 @@ void main() {
                   samplerHandleVOES(-1),
                   vertTransformHandleVOES(-1),
                   texTransformHandleVOES(-1),
-                  widthHandleVOES(-1),
                   heightHandleVOES(-1),
                   lodHandleVOES(-1),
                   maxLodHandleVOES(-1),
+                  minLodHandleVOES(-1),
                   drawnRectsLengthHandleVOES(-1),
                   programH(-1),
                   positionHandleH(-1),
                   samplerHandleH(-1),
                   widthHandleH(-1),
-                  heightHandleH(-1),
                   lodHandleH(-1),
                   maxLodHandleH(-1),
+                  minLodHandleH(-1),
                   drawnRectsLengthHandleH(-1),
                   programV2D(-1),
                   positionHandleV2D(-1),
                   samplerHandleV2D(-1),
-                  widthHandleV2D(-1),
                   heightHandleV2D(-1),
                   lodHandleV2D(-1),
                   maxLodHandleV2D(-1),
+                  minLodHandleV2D(-1),
                   drawnRectsLengthHandleV2D(-1),
                   inputTextureId(-1),
                   pass1TextureId(-1),
@@ -606,9 +658,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->vertTransformHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "vertTransform"));
     assert(nativeContext->vertTransformHandleVOES != -1);
-    nativeContext->widthHandleVOES =
-            CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "width"));
-    assert(nativeContext->widthHandleVOES != -1);
     nativeContext->heightHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "height"));
     assert(nativeContext->heightHandleVOES != -1);
@@ -618,6 +667,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->maxLodHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "maxLod"));
     assert(nativeContext->maxLodHandleVOES != -1);
+    nativeContext->minLodHandleVOES =
+            CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "minLod"));
+    assert(nativeContext->minLodHandleVOES != -1);
     nativeContext->drawnRectsLengthHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "drawnRectsLength"));
     assert(nativeContext->drawnRectsLengthHandleVOES != -1);
@@ -637,15 +689,15 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->widthHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "width"));
     assert(nativeContext->widthHandleH != -1);
-    nativeContext->heightHandleH =
-            CHECK_GL(glGetUniformLocation(nativeContext->programH, "height"));
-    assert(nativeContext->heightHandleH != -1);
     nativeContext->lodHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "lod"));
     assert(nativeContext->lodHandleH != -1);
     nativeContext->maxLodHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "maxLod"));
     assert(nativeContext->maxLodHandleH != -1);
+    nativeContext->minLodHandleH =
+            CHECK_GL(glGetUniformLocation(nativeContext->programH, "minLod"));
+    assert(nativeContext->minLodHandleH != -1);
     nativeContext->drawnRectsLengthHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "drawnRectsLength"));
     assert(nativeContext->drawnRectsLengthHandleH != -1);
@@ -659,9 +711,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->samplerHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "sampler"));
     assert(nativeContext->samplerHandleV2D != -1);
-    nativeContext->widthHandleV2D =
-            CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "width"));
-    assert(nativeContext->widthHandleV2D != -1);
     nativeContext->heightHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "height"));
     assert(nativeContext->heightHandleV2D != -1);
@@ -671,6 +720,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->maxLodHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "maxLod"));
     assert(nativeContext->maxLodHandleV2D != -1);
+    nativeContext->minLodHandleV2D =
+            CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "minLod"));
+    assert(nativeContext->minLodHandleV2D != -1);
     nativeContext->drawnRectsLengthHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "drawnRectsLength"));
     assert(nativeContext->drawnRectsLengthHandleV2D != -1);
@@ -777,11 +829,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
         jfloatArray jvertTransformArray, jfloatArray jtexTransformArray,
         jfloatArray jdrawnRectsCoordinates, jint jdrawnRectsLength) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
-
-//    const jfloat *coordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates, nullptr);
-//    for (jint i = 0; i < jdrawnRectsLength; ++i) {
-//        coordinates[i]>0;
-//    }
+    auto nativeWindow = nativeContext->windowSurface.first;
 
     // We use a single triangle with the viewport inscribed within for our
     // vertices. This could also be done with a quad or two triangles.
@@ -799,7 +847,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     //                          +-------+-------+-->
     //                       (-1,-1)  (1,-1)  (3,-1)
     constexpr GLfloat vertices[] = {-1.0f, -1.0f, 3.0f, -1.0f, -1.0f, 3.0f};
-
     GLint vertexComponents = 2;
     GLenum vertexType = GL_FLOAT;
     GLboolean normalized = GL_FALSE;
@@ -808,10 +855,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     GLsizei numMatrices = 1;
     GLboolean transpose = GL_FALSE;
     GLfloat *vertTransformArray = env->GetFloatArrayElements(jvertTransformArray, nullptr);
-    GLfloat *texTransformArray =
-            env->GetFloatArrayElements(jtexTransformArray, nullptr);
-
-    auto nativeWindow = nativeContext->windowSurface.first;
+    GLfloat *texTransformArray = env->GetFloatArrayElements(jtexTransformArray, nullptr);
+    GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates, nullptr);
 
     if (nativeContext->blurEnabled || nativeContext->IsAnimating() || jdrawnRectsLength > 0) {
         if (nativeContext->IsAnimating()) {
@@ -836,11 +881,27 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
             CHECK_GL(glUniform1i(nativeContext->samplerHandleVOES, 0));
             CHECK_GL(glUniformMatrix4fv(nativeContext->texTransformHandleVOES, numMatrices,
                                         transpose, texTransformArray));
-            CHECK_GL(glUniform1f(nativeContext->widthHandleVOES, width));
             CHECK_GL(glUniform1f(nativeContext->heightHandleVOES, height));
             CHECK_GL(glUniform1f(nativeContext->lodHandleVOES, nativeContext->lod));
             CHECK_GL(glUniform1f(nativeContext->maxLodHandleVOES, NativeContext::MAX_LOD));
-            CHECK_GL(glUniform1i(nativeContext->drawnRectsLengthHandleVOES, jdrawnRectsLength));
+            CHECK_GL(glUniform1f(nativeContext->minLodHandleVOES, NativeContext::MIN_LOD));
+            CHECK_GL(glUniform1i(nativeContext->drawnRectsLengthHandleVOES,
+                                 (GLint) jdrawnRectsLength));
+
+            std::vector<GLfloat> coordinates(drawnRectsCoordinates, drawnRectsCoordinates + 48);
+            for (uint i = 0, j = 0; i < jdrawnRectsLength; ++i) {
+                coordinates[j] /= width;
+                ++j;
+                coordinates[j] /= height;
+                ++j;
+                coordinates[j] /= width;
+                ++j;
+                coordinates[j] /= height;
+                ++j;
+            }
+            CHECK_GL(
+                    glUniform4fv(glGetUniformLocation(nativeContext->programVOES, "drawnRects"), 12,
+                                 coordinates.data()));
         };
 
         auto prepareDrawH = [&](GLfloat width, GLfloat height) {
@@ -851,10 +912,26 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
             CHECK_GL(glUseProgram(nativeContext->programH));
             CHECK_GL(glUniform1i(nativeContext->samplerHandleH, 0));
             CHECK_GL(glUniform1f(nativeContext->widthHandleH, width));
-            CHECK_GL(glUniform1f(nativeContext->heightHandleH, height));
             CHECK_GL(glUniform1f(nativeContext->lodHandleH, nativeContext->lod));
             CHECK_GL(glUniform1f(nativeContext->maxLodHandleH, NativeContext::MAX_LOD));
-            CHECK_GL(glUniform1i(nativeContext->drawnRectsLengthHandleH, jdrawnRectsLength));
+            CHECK_GL(glUniform1f(nativeContext->minLodHandleH, NativeContext::MIN_LOD));
+            CHECK_GL(
+                    glUniform1i(nativeContext->drawnRectsLengthHandleH, (GLint) jdrawnRectsLength));
+
+            std::vector<GLfloat> coordinates(drawnRectsCoordinates, drawnRectsCoordinates + 48);
+            for (uint i = 0, j = 0; i < jdrawnRectsLength; ++i) {
+                coordinates[j] /= width;
+                ++j;
+                coordinates[j] /= height;
+                ++j;
+                coordinates[j] /= width;
+                ++j;
+                coordinates[j] /= height;
+                ++j;
+            }
+            CHECK_GL(
+                    glUniform4fv(glGetUniformLocation(nativeContext->programH, "drawnRects"), 12,
+                                 coordinates.data()));
         };
 
         auto prepareDrawV2D = [&](GLfloat width, GLfloat height) {
@@ -864,11 +941,27 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
             CHECK_GL(glEnableVertexAttribArray(nativeContext->positionHandleV2D));
             CHECK_GL(glUseProgram(nativeContext->programV2D));
             CHECK_GL(glUniform1i(nativeContext->samplerHandleV2D, 0));
-            CHECK_GL(glUniform1f(nativeContext->widthHandleV2D, width));
             CHECK_GL(glUniform1f(nativeContext->heightHandleV2D, height));
             CHECK_GL(glUniform1f(nativeContext->lodHandleV2D, nativeContext->lod));
             CHECK_GL(glUniform1f(nativeContext->maxLodHandleV2D, NativeContext::MAX_LOD));
-            CHECK_GL(glUniform1f(nativeContext->drawnRectsLengthHandleV2D, jdrawnRectsLength));
+            CHECK_GL(glUniform1f(nativeContext->minLodHandleV2D, NativeContext::MIN_LOD));
+            CHECK_GL(glUniform1i(nativeContext->drawnRectsLengthHandleV2D,
+                                 (GLint) jdrawnRectsLength));
+
+            std::vector<GLfloat> coordinates(drawnRectsCoordinates, drawnRectsCoordinates + 48);
+            for (uint i = 0, j = 0; i < jdrawnRectsLength; ++i) {
+                coordinates[j] /= width;
+                ++j;
+                coordinates[j] /= height;
+                ++j;
+                coordinates[j] /= width;
+                ++j;
+                coordinates[j] /= height;
+                ++j;
+            }
+            CHECK_GL(
+                    glUniform4fv(glGetUniformLocation(nativeContext->programV2D, "drawnRects"), 12,
+                                 coordinates.data()));
         };
 
         auto width = ANativeWindow_getWidth(nativeWindow);
@@ -927,6 +1020,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
 
     env->ReleaseFloatArrayElements(jvertTransformArray, vertTransformArray, JNI_ABORT);
     env->ReleaseFloatArrayElements(jtexTransformArray, texTransformArray, JNI_ABORT);
+    env->ReleaseFloatArrayElements(jdrawnRectsCoordinates, drawnRectsCoordinates, JNI_ABORT);
 
     // Check that all GL operations completed successfully. If not, log an error and return.
     GLenum glError = glGetError();

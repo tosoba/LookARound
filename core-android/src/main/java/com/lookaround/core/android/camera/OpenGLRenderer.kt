@@ -66,6 +66,19 @@ class OpenGLRenderer {
             field = value.take(DRAWN_RECTS_MAX_SIZE)
         }
 
+    private val drawnRectsCoordinates: FloatArray
+        get() {
+            val drawnRectsCoordinates = FloatArray(DRAWN_RECTS_MAX_SIZE * 4)
+            var coordinateIndex = 0
+            for (rect in drawnRects) {
+                drawnRectsCoordinates[coordinateIndex++] = rect.left
+                drawnRectsCoordinates[coordinateIndex++] = rect.top
+                drawnRectsCoordinates[coordinateIndex++] = rect.right
+                drawnRectsCoordinates[coordinateIndex++] = rect.bottom
+            }
+            return drawnRectsCoordinates
+        }
+
     @MainThread
     fun setBlurEnabled(enabled: Boolean, animated: Boolean) {
         try {
@@ -253,7 +266,7 @@ class OpenGLRenderer {
                 timestampNs,
                 surfaceTransform,
                 previewTransform,
-                getDrawnRectsCoordinates(),
+                drawnRectsCoordinates,
                 drawnRects.size
             )
         if (!success) return
@@ -265,18 +278,6 @@ class OpenGLRenderer {
                 Timber.tag("OGL").i("Unable to send frame update. Ignore.")
             }
         }
-    }
-
-    private fun getDrawnRectsCoordinates(): FloatArray {
-        val drawnRectsCoordinates = FloatArray(DRAWN_RECTS_MAX_SIZE * 4)
-        var coordinateIndex = 0
-        for (rect in drawnRects) {
-            drawnRectsCoordinates[coordinateIndex++] = rect.left
-            drawnRectsCoordinates[coordinateIndex++] = rect.top
-            drawnRectsCoordinates[coordinateIndex++] = rect.right
-            drawnRectsCoordinates[coordinateIndex++] = rect.bottom
-        }
-        return drawnRectsCoordinates
     }
 
     /**
