@@ -469,7 +469,7 @@ void main() {
 extern "C" {
 JNIEXPORT jlong JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
-        JNIEnv *env, jclass clazz) {
+        JNIEnv *env, jobject clazz) {
     EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     assert(eglDisplay != EGL_NO_DISPLAY);
 
@@ -616,7 +616,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
 
 JNIEXPORT jboolean JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_setWindowSurface(
-        JNIEnv *env, jclass clazz, jlong context, jobject jsurface) {
+        JNIEnv *env, jobject clazz, jlong context, jobject jsurface) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
 
     // Destroy previously connected surface
@@ -700,14 +700,14 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setWindowSurface(
 
 JNIEXPORT jint JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_getTexName(
-        JNIEnv *env, jclass clazz, jlong context) {
+        JNIEnv *env, jobject clazz, jlong context) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
     return nativeContext->inputTextureId;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
-        JNIEnv *env, jclass clazz, jlong context, jlong timestampNs,
+        JNIEnv *env, jobject clazz, jlong context, jlong timestampNs,
         jfloatArray jvertTransformArray, jfloatArray jtexTransformArray) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
 
@@ -877,7 +877,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
 
 JNIEXPORT void JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_setBlurEnabled(
-        JNIEnv *env, jclass clazz, jlong context, jboolean enabled) {
+        JNIEnv *env, jobject clazz, jlong context, jboolean enabled) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
     nativeContext->blurEnabled = enabled;
     if (enabled && nativeContext->currentAnimationFrame == -1) {
@@ -890,7 +890,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setBlurEnabled(
 
 JNIEXPORT void JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_closeContext(
-        JNIEnv *env, jclass clazz, jlong context) {
+        JNIEnv *env, jobject clazz, jlong context) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
 
     if (nativeContext->programVOES) {
