@@ -2,6 +2,7 @@ package com.lookaround.core.android.ar.view
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.RectF
 import android.location.Location
 import android.os.Bundle
 import android.os.Parcelable
@@ -12,8 +13,8 @@ import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.model.Range
-import kotlinx.parcelize.Parcelize
 import kotlin.math.atan2
+import kotlinx.parcelize.Parcelize
 
 abstract class ARView<R : MarkerRenderer> : View {
     open var povLocation: Location? = null
@@ -62,13 +63,16 @@ abstract class ARView<R : MarkerRenderer> : View {
         super.onDraw(canvas)
         val povLocation = this.povLocation ?: return
         preRender(canvas, povLocation)
+        val drawnRects = mutableListOf<RectF>()
         markers.forEach { marker ->
             calculateMarkerScreenPosition(marker, povLocation)
             if (!shouldDraw(marker)) return@forEach
-            marker.renderer?.draw(marker, canvas, orientation)
-                ?: markerRenderer?.draw(marker, canvas, orientation)
+            val drawnRect =
+                marker.renderer?.draw(marker, canvas, orientation)
+                    ?: markerRenderer?.draw(marker, canvas, orientation)
+            if (drawnRect != null) drawnRects.add(drawnRect)
         }
-        markerRenderer?.postDrawAll()
+        markerRenderer?.postDrawAll(drawnRects)
         postRender(canvas, povLocation)
     }
 

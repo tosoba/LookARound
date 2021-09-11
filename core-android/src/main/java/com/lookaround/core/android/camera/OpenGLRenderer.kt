@@ -1,6 +1,7 @@
 package com.lookaround.core.android.camera
 
 import android.annotation.SuppressLint
+import android.graphics.RectF
 import android.graphics.SurfaceTexture
 import android.opengl.Matrix
 import android.os.Process
@@ -58,6 +59,8 @@ class OpenGLRenderer {
 
     private val activeStreamStateObserver = AtomicReference<PreviewStreamStateObserver?>()
     val previewStreamStateLiveData = MutableLiveData(StreamState.IDLE)
+
+    var drawnRects: List<RectF> = emptyList()
 
     @MainThread
     fun setBlurEnabled(enabled: Boolean, animated: Boolean) {

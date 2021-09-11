@@ -163,6 +163,11 @@ class CameraFragment :
             .onStart { onCameraMaxPageChanged(cameraRenderer.maxPage, false) }
             .launchIn(lifecycleScope)
 
+        cameraRenderer
+            .drawnRectsFlow
+            .onEach(openGLRenderer::drawnRects::set)
+            .launchIn(lifecycleScope)
+
         cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
             .onEach { enabled -> openGLRenderer.setBlurEnabled(enabled, true) }
             .launchIn(lifecycleScope)

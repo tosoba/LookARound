@@ -17,9 +17,9 @@ import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.ext.*
+import java.util.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.util.*
 
 class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     override val markerHeightPx: Float
@@ -63,6 +63,10 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         markerWidthPx = (displayMetrics.widthPixels / markerWidthDivisor).toFloat()
     }
 
+    private val drawnRectsStateFlow: MutableStateFlow<List<RectF>> = MutableStateFlow(emptyList())
+    val drawnRectsFlow: Flow<List<RectF>>
+        get() = drawnRectsStateFlow
+
     private val maxPageStateFlow: MutableStateFlow<MaxPageChanged> =
         MutableStateFlow(MaxPageChanged(0, false))
     val maxPageFlow: Flow<MaxPageChanged>
@@ -76,6 +80,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             assert(value >= 0)
             field = value
         }
+
     var povLocation: Location? = null
         @MainThread
         internal set(value) {
@@ -122,22 +127,31 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             }
         }
 
-    override fun draw(marker: ARMarker, canvas: Canvas, orientation: Orientation) {
-        val wrapped = markersMap[marker.wrapped.id] ?: return
+    override fun draw(marker: ARMarker, canvas: Canvas, orientation: Orientation): RectF? {
+        val wrapped = markersMap[marker.wrapped.id] ?: return null
         marker.y = wrapped.pagedPosition?.y ?: calculatePagedPositionOf(wrapped).y
         wrapped.pagedPosition?.page?.let { if (it > maxPage) maxPage = it }
-        if (wrapped.pagedPosition?.page != currentPage) return
+        if (wrapped.pagedPosition?.page != currentPage) return null
 
-        val rect =
+        val markerRect =
             RectF(
                 marker.x - markerWidthPx / 2,
                 marker.y - markerHeightPx / 2,
                 marker.x + markerWidthPx / 2,
                 marker.y + markerHeightPx / 2
             )
-        canvas.drawRoundRect(rect, markerCornerRadiusPx, markerCornerRadiusPx, backgroundPaint)
-        canvas.drawTitleText(marker, rect)
-        canvas.drawDistanceText(marker, rect)
+        val canvasRect = RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat())
+        if (!RectF.intersects(canvasRect, markerRect)) return null
+
+        canvas.drawRoundRect(
+            markerRect,
+            markerCornerRadiusPx,
+            markerCornerRadiusPx,
+            backgroundPaint
+        )
+        canvas.drawTitleText(marker, markerRect)
+        canvas.drawDistanceText(marker, markerRect)
+        return markerRect
     }
 
     private fun Canvas.drawTitleText(marker: ARMarker, rect: RectF) {
@@ -188,11 +202,12 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         )
     }
 
-    override fun postDrawAll() {
+    override fun postDrawAll(drawnRects: List<RectF>) {
         val changeCurrent = currentPage > maxPage
         maxPageStateFlow.value = MaxPageChanged(maxPage, changeCurrent)
         if (changeCurrent) currentPage = maxPage
         maxPage = 0
+        drawnRectsStateFlow.value = drawnRects
     }
 
     override fun onSaveInstanceState(): Bundle =
