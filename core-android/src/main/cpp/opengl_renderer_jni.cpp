@@ -169,8 +169,11 @@ precision mediump float;
 
 uniform samplerExternalOES sampler;
 uniform mat4 texTransform;
+uniform float width;
 uniform float height;
 uniform float lod;
+uniform float maxLod;
+uniform int drawnRectsLength;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -205,8 +208,11 @@ void main() {
 precision mediump float;
 
 uniform sampler2D sampler;
+uniform float width;
 uniform float height;
 uniform float lod;
+uniform float maxLod;
+uniform int drawnRectsLength;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -242,7 +248,10 @@ void main() {
 precision mediump float;
 uniform sampler2D sampler;
 uniform float width;
+uniform float height;
 uniform float lod;
+uniform float maxLod;
+uniform int drawnRectsLength;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -290,20 +299,29 @@ void main() {
         GLint samplerHandleVOES;
         GLint vertTransformHandleVOES;
         GLint texTransformHandleVOES;
+        GLint widthHandleVOES;
         GLint heightHandleVOES;
         GLint lodHandleVOES;
+        GLint maxLodHandleVOES;
+        GLint drawnRectsLengthHandleVOES;
 
         GLuint programH;
         GLint positionHandleH;
         GLint samplerHandleH;
-        GLint widthHandle;
+        GLint widthHandleH;
+        GLint heightHandleH;
         GLint lodHandleH;
+        GLint maxLodHandleH;
+        GLint drawnRectsLengthHandleH;
 
         GLuint programV2D;
         GLint positionHandleV2D;
         GLint samplerHandleV2D;
+        GLint widthHandleV2D;
         GLint heightHandleV2D;
         GLint lodHandleV2D;
+        GLint maxLodHandleV2D;
+        GLint drawnRectsLengthHandleV2D;
 
         GLuint inputTextureId;
         GLuint pass1TextureId;
@@ -349,18 +367,27 @@ void main() {
                   samplerHandleVOES(-1),
                   vertTransformHandleVOES(-1),
                   texTransformHandleVOES(-1),
+                  widthHandleVOES(-1),
                   heightHandleVOES(-1),
                   lodHandleVOES(-1),
+                  maxLodHandleVOES(-1),
+                  drawnRectsLengthHandleVOES(-1),
                   programH(-1),
                   positionHandleH(-1),
                   samplerHandleH(-1),
-                  widthHandle(-1),
+                  widthHandleH(-1),
+                  heightHandleH(-1),
                   lodHandleH(-1),
+                  maxLodHandleH(-1),
+                  drawnRectsLengthHandleH(-1),
                   programV2D(-1),
                   positionHandleV2D(-1),
                   samplerHandleV2D(-1),
+                  widthHandleV2D(-1),
                   heightHandleV2D(-1),
                   lodHandleV2D(-1),
+                  maxLodHandleV2D(-1),
+                  drawnRectsLengthHandleV2D(-1),
                   inputTextureId(-1),
                   pass1TextureId(-1),
                   fbo1Id(-1),
@@ -579,12 +606,21 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->vertTransformHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "vertTransform"));
     assert(nativeContext->vertTransformHandleVOES != -1);
+    nativeContext->widthHandleVOES =
+            CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "width"));
+    assert(nativeContext->widthHandleVOES != -1);
     nativeContext->heightHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "height"));
     assert(nativeContext->heightHandleVOES != -1);
     nativeContext->lodHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "lod"));
     assert(nativeContext->lodHandleVOES != -1);
+    nativeContext->maxLodHandleVOES =
+            CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "maxLod"));
+    assert(nativeContext->maxLodHandleVOES != -1);
+    nativeContext->drawnRectsLengthHandleVOES =
+            CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "drawnRectsLength"));
+    assert(nativeContext->drawnRectsLengthHandleVOES != -1);
     nativeContext->texTransformHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "texTransform"));
     assert(nativeContext->texTransformHandleVOES != -1);
@@ -598,12 +634,21 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->samplerHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "sampler"));
     assert(nativeContext->samplerHandleH != -1);
-    nativeContext->widthHandle =
+    nativeContext->widthHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "width"));
-    assert(nativeContext->widthHandle != -1);
+    assert(nativeContext->widthHandleH != -1);
+    nativeContext->heightHandleH =
+            CHECK_GL(glGetUniformLocation(nativeContext->programH, "height"));
+    assert(nativeContext->heightHandleH != -1);
     nativeContext->lodHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "lod"));
     assert(nativeContext->lodHandleH != -1);
+    nativeContext->maxLodHandleH =
+            CHECK_GL(glGetUniformLocation(nativeContext->programH, "maxLod"));
+    assert(nativeContext->maxLodHandleH != -1);
+    nativeContext->drawnRectsLengthHandleH =
+            CHECK_GL(glGetUniformLocation(nativeContext->programH, "drawnRectsLength"));
+    assert(nativeContext->drawnRectsLengthHandleH != -1);
 
     nativeContext->programV2D = CreateGlProgram(VERTEX_SHADER_SRC_NO_TRANSFORM,
                                                 FRAGMENT_SHADER_SRC_V_2D);
@@ -614,12 +659,21 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->samplerHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "sampler"));
     assert(nativeContext->samplerHandleV2D != -1);
+    nativeContext->widthHandleV2D =
+            CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "width"));
+    assert(nativeContext->widthHandleV2D != -1);
     nativeContext->heightHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "height"));
     assert(nativeContext->heightHandleV2D != -1);
     nativeContext->lodHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "lod"));
     assert(nativeContext->lodHandleV2D != -1);
+    nativeContext->maxLodHandleV2D =
+            CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "maxLod"));
+    assert(nativeContext->maxLodHandleV2D != -1);
+    nativeContext->drawnRectsLengthHandleV2D =
+            CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "drawnRectsLength"));
+    assert(nativeContext->drawnRectsLengthHandleV2D != -1);
 
     CHECK_GL(glGenTextures(1, &(nativeContext->inputTextureId)));
 
@@ -724,6 +778,11 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
         jfloatArray jdrawnRectsCoordinates, jint jdrawnRectsLength) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
 
+//    const jfloat *coordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates, nullptr);
+//    for (jint i = 0; i < jdrawnRectsLength; ++i) {
+//        coordinates[i]>0;
+//    }
+
     // We use a single triangle with the viewport inscribed within for our
     // vertices. This could also be done with a quad or two triangles.
     //                          ^
@@ -754,7 +813,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
 
     auto nativeWindow = nativeContext->windowSurface.first;
 
-    if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
+    if (nativeContext->blurEnabled || nativeContext->IsAnimating() || jdrawnRectsLength > 0) {
         if (nativeContext->IsAnimating()) {
             if (nativeContext->blurEnabled) {
                 nativeContext->lod += NativeContext::LOD_INCREMENT;
@@ -765,7 +824,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
             }
         }
 
-        auto prepareDrawVOES = [&](float height) {
+        auto prepareDrawVOES = [&](GLfloat width, GLfloat height) {
             CHECK_GL(glVertexAttribPointer(nativeContext->positionHandleVOES,
                                            vertexComponents, vertexType, normalized,
                                            vertexStride, vertices));
@@ -777,30 +836,39 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
             CHECK_GL(glUniform1i(nativeContext->samplerHandleVOES, 0));
             CHECK_GL(glUniformMatrix4fv(nativeContext->texTransformHandleVOES, numMatrices,
                                         transpose, texTransformArray));
+            CHECK_GL(glUniform1f(nativeContext->widthHandleVOES, width));
             CHECK_GL(glUniform1f(nativeContext->heightHandleVOES, height));
             CHECK_GL(glUniform1f(nativeContext->lodHandleVOES, nativeContext->lod));
+            CHECK_GL(glUniform1f(nativeContext->maxLodHandleVOES, NativeContext::MAX_LOD));
+            CHECK_GL(glUniform1i(nativeContext->drawnRectsLengthHandleVOES, jdrawnRectsLength));
         };
 
-        auto prepareDrawH = [&](float width) {
+        auto prepareDrawH = [&](GLfloat width, GLfloat height) {
             CHECK_GL(glVertexAttribPointer(nativeContext->positionHandleH,
                                            vertexComponents, vertexType, normalized,
                                            vertexStride, vertices));
             CHECK_GL(glEnableVertexAttribArray(nativeContext->positionHandleH));
             CHECK_GL(glUseProgram(nativeContext->programH));
             CHECK_GL(glUniform1i(nativeContext->samplerHandleH, 0));
-            CHECK_GL(glUniform1f(nativeContext->widthHandle, width));
+            CHECK_GL(glUniform1f(nativeContext->widthHandleH, width));
+            CHECK_GL(glUniform1f(nativeContext->heightHandleH, height));
             CHECK_GL(glUniform1f(nativeContext->lodHandleH, nativeContext->lod));
+            CHECK_GL(glUniform1f(nativeContext->maxLodHandleH, NativeContext::MAX_LOD));
+            CHECK_GL(glUniform1i(nativeContext->drawnRectsLengthHandleH, jdrawnRectsLength));
         };
 
-        auto prepareDrawV2D = [&](float height) {
+        auto prepareDrawV2D = [&](GLfloat width, GLfloat height) {
             CHECK_GL(glVertexAttribPointer(nativeContext->positionHandleV2D,
                                            vertexComponents, vertexType, normalized,
                                            vertexStride, vertices));
             CHECK_GL(glEnableVertexAttribArray(nativeContext->positionHandleV2D));
             CHECK_GL(glUseProgram(nativeContext->programV2D));
             CHECK_GL(glUniform1i(nativeContext->samplerHandleV2D, 0));
+            CHECK_GL(glUniform1f(nativeContext->widthHandleV2D, width));
             CHECK_GL(glUniform1f(nativeContext->heightHandleV2D, height));
             CHECK_GL(glUniform1f(nativeContext->lodHandleV2D, nativeContext->lod));
+            CHECK_GL(glUniform1f(nativeContext->maxLodHandleV2D, NativeContext::MAX_LOD));
+            CHECK_GL(glUniform1f(nativeContext->drawnRectsLengthHandleV2D, jdrawnRectsLength));
         };
 
         auto width = ANativeWindow_getWidth(nativeWindow);
@@ -812,32 +880,32 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
             glDrawArrays(GL_TRIANGLES, 0, 3);
         };
 
-        prepareDrawVOES(height / 2.f);
+        prepareDrawVOES(width / 2.f, height / 2.f);
         glViewport(0, 0, width / 2.f, height / 2.f);
         bindAndDraw(nativeContext->fbo1Id, nativeContext->inputTextureId, GL_TEXTURE_EXTERNAL_OES);
 
-        prepareDrawH(width / 2.f);
+        prepareDrawH(width / 2.f, height / 2.f);
         bindAndDraw(nativeContext->fbo2Id, nativeContext->pass1TextureId);
 
-        prepareDrawV2D(height / 4.f);
+        prepareDrawV2D(width / 4.f, height / 4.f);
         glViewport(0, 0, width / 4.f, height / 4.f);
         bindAndDraw(nativeContext->fbo3Id, nativeContext->pass2TextureId);
 
-        prepareDrawH(width / 4.f);
+        prepareDrawH(width / 4.f, height / 4.f);
         bindAndDraw(nativeContext->fbo4Id, nativeContext->pass3TextureId);
 
-        prepareDrawV2D(height / 2.f);
+        prepareDrawV2D(width / 2.f, height / 2.f);
         glViewport(0, 0, width / 2.f, height / 2.f);
         bindAndDraw(nativeContext->fbo5Id, nativeContext->pass4TextureId);
 
-        prepareDrawH(width / 2.f);
+        prepareDrawH(width / 2.f, height / 2.f);
         bindAndDraw(nativeContext->fbo6Id, nativeContext->pass5TextureId);
 
-        prepareDrawV2D(height);
+        prepareDrawV2D(width, height);
         glViewport(0, 0, width, height);
         bindAndDraw(nativeContext->fbo7Id, nativeContext->pass6TextureId);
 
-        prepareDrawH(width);
+        prepareDrawH(width, height);
         bindAndDraw(0, nativeContext->pass7TextureId);
     } else {
         glViewport(0, 0, ANativeWindow_getWidth(nativeWindow),
