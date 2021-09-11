@@ -17,13 +17,13 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import com.google.common.util.concurrent.ListenableFuture
 import com.lookaround.core.android.ext.shouldUseTextureView
-import timber.log.Timber
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
+import timber.log.Timber
 
 class OpenGLRenderer {
     companion object {
@@ -60,11 +60,11 @@ class OpenGLRenderer {
     val previewStreamStateLiveData = MutableLiveData(StreamState.IDLE)
 
     @MainThread
-    fun setBlurEnabled(enabled: Boolean) {
+    fun setBlurEnabled(enabled: Boolean, animated: Boolean) {
         try {
             executor.execute {
                 if (isShutdown || nativeContext == 0L) return@execute
-                setBlurEnabled(nativeContext, enabled)
+                setBlurEnabled(nativeContext, enabled, animated)
             }
         } catch (e: RejectedExecutionException) {
             Timber.tag("OGL").i("Renderer already shutting down. Ignore.")
@@ -457,5 +457,6 @@ class OpenGLRenderer {
 
     @WorkerThread private external fun closeContext(nativeContext: Long)
 
-    @WorkerThread private external fun setBlurEnabled(nativeContext: Long, enabled: Boolean)
+    @WorkerThread
+    private external fun setBlurEnabled(nativeContext: Long, enabled: Boolean, animated: Boolean)
 }

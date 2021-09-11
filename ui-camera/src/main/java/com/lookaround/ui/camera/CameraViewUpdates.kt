@@ -80,7 +80,7 @@ fun cameraViewObscuredUpdates(
             mainViewModel.signals.filterIsInstance<MainSignal.TopFragmentChanged>(),
             mainViewModel.states.map { it.bottomSheetState },
             cameraViewModel.states.map(CameraState::previewState::get).filter { it.isLive }
-        ) { (obscured), (sheetState, _), _ ->
+        ) { (obscured, _), (sheetState, _), _ ->
             obscured || sheetState == BottomSheetBehavior.STATE_EXPANDED
         }
         .distinctUntilChanged()

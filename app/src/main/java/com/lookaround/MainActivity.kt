@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        supportFragmentManager.addOnBackStackChangedListener { signalTopFragmentChanged() }
+        supportFragmentManager.addOnBackStackChangedListener { signalTopFragmentChanged(false) }
 
         window.decorView.systemUiVisibility =
             (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
@@ -107,7 +107,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
     override fun onResume() {
         super.onResume()
-        signalTopFragmentChanged()
+        signalTopFragmentChanged(true)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -174,11 +174,12 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         }
     }
 
-    private fun signalTopFragmentChanged() {
+    private fun signalTopFragmentChanged(onResume: Boolean) {
         lifecycleScope.launch {
             viewModel.signal(
                 MainSignal.TopFragmentChanged(
-                    cameraObscured = currentTopFragment !is CameraFragment
+                    cameraObscured = currentTopFragment !is CameraFragment,
+                    onResume
                 )
             )
         }

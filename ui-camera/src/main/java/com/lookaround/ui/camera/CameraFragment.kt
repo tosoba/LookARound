@@ -164,7 +164,7 @@ class CameraFragment :
             .launchIn(lifecycleScope)
 
         cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
-            .onEach(openGLRenderer::setBlurEnabled)
+            .onEach { enabled -> openGLRenderer.setBlurEnabled(enabled, true) }
             .launchIn(lifecycleScope)
 
         arCameraView.onMarkerPressed = ::onMarkerPressed

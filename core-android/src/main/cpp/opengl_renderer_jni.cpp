@@ -877,14 +877,24 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
 
 JNIEXPORT void JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_setBlurEnabled(
-        JNIEnv *env, jobject clazz, jlong context, jboolean enabled) {
+        JNIEnv *env, jobject clazz, jlong context, jboolean enabled, jboolean animated) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
     nativeContext->blurEnabled = enabled;
     if (enabled && nativeContext->currentAnimationFrame == -1) {
-        nativeContext->currentAnimationFrame = 0;
+        if (animated) {
+            nativeContext->currentAnimationFrame = 0;
+        } else {
+            nativeContext->currentAnimationFrame = NativeContext::LOD_ANIMATION_FRAMES;
+            nativeContext->lod = NativeContext::MAX_LOD;
+        }
     } else if (!enabled &&
                nativeContext->currentAnimationFrame == NativeContext::LOD_ANIMATION_FRAMES) {
-        nativeContext->currentAnimationFrame = NativeContext::LOD_ANIMATION_FRAMES - 1;
+        if (animated) {
+            nativeContext->currentAnimationFrame = NativeContext::LOD_ANIMATION_FRAMES - 1;
+        } else {
+            nativeContext->currentAnimationFrame = -1;
+            nativeContext->lod = NativeContext::MIN_LOD;
+        }
     }
 }
 
