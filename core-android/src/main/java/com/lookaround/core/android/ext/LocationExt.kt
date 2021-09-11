@@ -8,7 +8,7 @@ fun Location.formattedDistanceTo(other: Location): String = distanceTo(other).fo
 val Float.formattedDistance: String
     get() =
         if (this >= 1_000) {
-            "${(this / 1_000).roundToDecimalPlaces(1)} km away"
+            "${(this / 1_000).roundToDecimalPlaces(1)} km"
         } else {
-            "${roundToInt()} m away"
+            "${roundToInt()} m"
         }
