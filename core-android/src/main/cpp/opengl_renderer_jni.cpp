@@ -212,7 +212,7 @@ void main() {
     vec2 transTexCoord = (texTransform * vec4(texCoord, 0, 1.0)).xy;
     bool texCoordWithinDrawnRect = isWithinDrawnRect(transTexCoord);
     if (texCoordWithinDrawnRect) {
-        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), maxLod);
+        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(maxLod) / height), maxLod);
     } else if (lod > minLod) {
         fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), lod);
     } else {
@@ -268,7 +268,7 @@ void main() {
     vec2 transTexCoord = texCoord;
     bool texCoordWithinDrawnRect = isWithinDrawnRect(transTexCoord);
     if (texCoordWithinDrawnRect) {
-        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), maxLod);
+        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(maxLod) / height), maxLod);
     } else if (lod > minLod) {
         fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), lod);
     } else {
@@ -324,7 +324,7 @@ void main() {
     vec2 transTexCoord = texCoord;
     bool texCoordWithinDrawnRect = isWithinDrawnRect(transTexCoord);
     if (texCoordWithinDrawnRect) {
-        fragColor = gaussBlur(sampler, transTexCoord, vec2(exp2(lod) / width, 0.), maxLod);
+        fragColor = gaussBlur(sampler, transTexCoord, vec2(exp2(maxLod) / width, 0.), maxLod);
     } else if (lod > minLod) {
         fragColor = gaussBlur(sampler, transTexCoord, vec2(exp2(lod) / width, 0.), lod);
     } else {
