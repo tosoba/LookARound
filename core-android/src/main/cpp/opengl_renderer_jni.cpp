@@ -142,7 +142,7 @@ in vec4 position;
 out vec2 texCoord;
 
 void main() {
-    texCoord = ((vec4(position.xy, 0, 1.0)).xy + vec2(1.0, 1.0)) * 0.5;
+    texCoord = position.xy;
     gl_Position = position;
 }
 )SRC";
