@@ -123,7 +123,7 @@ namespace {
 #endif
 
 namespace {
-    constexpr char VERTEX_SHADER_SRC_TRANSFORM[] = R"SRC(#version 310 es
+    constexpr char VERTEX_SHADER_SRC_NO_BLUR[] = R"SRC(#version 310 es
 
 uniform mat4 vertTransform;
 
@@ -131,18 +131,48 @@ in vec4 position;
 out vec2 texCoord;
 
 void main() {
-    texCoord = ((vertTransform * vec4(position.xy, 0, 1.0)).xy + vec2(1.0, 1.0)) * 0.5;
+    texCoord = ((vertTransform * vec4(position.xy, 0, 1.0)).xy + vec2(1.0)) * 0.5;
+    gl_Position = position;
+}
+)SRC";
+
+    constexpr char VERTEX_SHADER_SRC_TRANSFORM[] = R"SRC(#version 310 es
+
+uniform mat4 vertTransform;
+uniform vec4 drawnRects[12];
+uniform int drawnRectsLength;
+
+in vec4 position;
+out vec2 texCoord;
+out vec4 transDrawnRects[12];
+
+void main() {
+    texCoord = ((vertTransform * vec4(position.xy, 0, 1.0)).xy + vec2(1.0)) * 0.5;
+    for (int i = 0; i < drawnRectsLength; ++i) {
+        vec2 transTopLeft = ((vertTransform * vec4(drawnRects[i].xy, 0, 1.0)).xy + vec2(1.0)) * 0.5;
+        vec2 transBottomRight = ((vertTransform * vec4(drawnRects[i].zw, 0, 1.0)).xy + vec2(1.0)) * 0.5;
+        transDrawnRects[i] = vec4(transTopLeft, transBottomRight);
+    }
     gl_Position = position;
 }
 )SRC";
 
     constexpr char VERTEX_SHADER_SRC_NO_TRANSFORM[] = R"SRC(#version 310 es
 
+uniform vec4 drawnRects[12];
+uniform int drawnRectsLength;
+
 in vec4 position;
 out vec2 texCoord;
+out vec4 transDrawnRects[12];
 
 void main() {
-    texCoord = position.xy;
+    texCoord = (position.xy + vec2(1.0)) * 0.5;
+    for (int i = 0; i < drawnRectsLength; ++i) {
+        vec2 transTopLeft = (drawnRects[i].xy + vec2(1.0)) * 0.5;
+        vec2 transBottomRight = (drawnRects[i].zw + vec2(1.0)) * 0.5;
+        transDrawnRects[i] = vec4(transTopLeft, transBottomRight);
+    }
     gl_Position = position;
 }
 )SRC";
@@ -174,8 +204,8 @@ uniform float lod;
 uniform float maxLod;
 uniform float minLod;
 uniform int drawnRectsLength;
-uniform vec4 drawnRects[12];
 
+in vec4 transDrawnRects[12];
 in vec2 texCoord;
 out vec4 fragColor;
 
@@ -198,10 +228,10 @@ vec4 gaussBlur( samplerExternalOES tex, vec2 uv, vec2 d, float l )
 bool isWithinDrawnRect( vec2 pos )
 {
     for (int i = 0; i < drawnRectsLength; ++i) {
-        if (pos.x >= drawnRects[i].x
-            && pos.x <= drawnRects[i].z
-            && pos.y >= drawnRects[i].y
-            && pos.y <= drawnRects[i].w) {
+        if (pos.x >= transDrawnRects[i].x
+            && pos.x <= transDrawnRects[i].z
+            && pos.y <= transDrawnRects[i].y
+            && pos.y >= transDrawnRects[i].w) {
             return true;
         }
     }
@@ -230,8 +260,8 @@ uniform float lod;
 uniform float maxLod;
 uniform float minLod;
 uniform int drawnRectsLength;
-uniform vec4 drawnRects[12];
 
+in vec4 transDrawnRects[12];
 in vec2 texCoord;
 out vec4 fragColor;
 
@@ -254,10 +284,10 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float l )
 bool isWithinDrawnRect( vec2 pos )
 {
     for (int i = 0; i < drawnRectsLength; ++i) {
-        if (pos.x >= drawnRects[i].x
-            && pos.x <= drawnRects[i].z
-            && pos.y >= drawnRects[i].y
-            && pos.y <= drawnRects[i].w) {
+        if (pos.x >= transDrawnRects[i].x
+            && pos.x <= transDrawnRects[i].z
+            && pos.y <= transDrawnRects[i].y
+            && pos.y >= transDrawnRects[i].w) {
             return true;
         }
     }
@@ -286,8 +316,8 @@ uniform float lod;
 uniform float maxLod;
 uniform float minLod;
 uniform int drawnRectsLength;
-uniform vec4 drawnRects[12];
 
+in vec4 transDrawnRects[12];
 in vec2 texCoord;
 out vec4 fragColor;
 
@@ -310,10 +340,10 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float l )
 bool isWithinDrawnRect( vec2 pos )
 {
     for (int i = 0; i < drawnRectsLength; ++i) {
-        if (pos.x >= drawnRects[i].x
-            && pos.x <= drawnRects[i].z
-            && pos.y >= drawnRects[i].y
-            && pos.y <= drawnRects[i].w) {
+        if (pos.x >= transDrawnRects[i].x
+            && pos.x <= transDrawnRects[i].z
+            && pos.y <= transDrawnRects[i].y
+            && pos.y >= transDrawnRects[i].w) {
             return true;
         }
     }
@@ -630,7 +660,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
             new NativeContext(eglDisplay, config, eglContext, /*window=*/nullptr,
                     /*surface=*/nullptr, eglPbuffer);
 
-    nativeContext->programNoBlur = CreateGlProgram(VERTEX_SHADER_SRC_TRANSFORM,
+    nativeContext->programNoBlur = CreateGlProgram(VERTEX_SHADER_SRC_NO_BLUR,
                                                    FRAGMENT_SHADER_SRC_NO_BLUR);
     assert(nativeContext->programNoBlur);
     nativeContext->positionHandleNoBlur =
