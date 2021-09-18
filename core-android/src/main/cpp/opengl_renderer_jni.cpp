@@ -237,7 +237,7 @@ bool isWithinDrawnRect( vec2 pos )
 {
     for (int i = 0; i < drawnRectsLength; ++i) {
         vec2 ttlt = (texTransform * vec4(transDrawnRects[i].xy, 0, 1.0)).xy;
-        vec2 ttrb = (texTransform * vec4(transDrawnRects[i].xy, 0, 1.0)).xy;
+        vec2 ttrb = (texTransform * vec4(transDrawnRects[i].zw, 0, 1.0)).xy;
         vec4 tt = vec4(ttlt, ttrb);
         if (pos.x >= tt.x
             && pos.x <= tt.z
