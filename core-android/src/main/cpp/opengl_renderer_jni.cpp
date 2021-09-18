@@ -124,6 +124,8 @@ namespace {
 
 namespace {
     constexpr char VERTEX_SHADER_SRC_NO_BLUR[] = R"SRC(#version 310 es
+precision mediump float;
+precision mediump int;
 
 uniform mat4 vertTransform;
 
@@ -137,6 +139,8 @@ void main() {
 )SRC";
 
     constexpr char VERTEX_SHADER_SRC_TRANSFORM[] = R"SRC(#version 310 es
+precision mediump float;
+precision mediump int;
 
 uniform mat4 vertTransform;
 uniform vec4 drawnRects[12];
@@ -158,6 +162,8 @@ void main() {
 )SRC";
 
     constexpr char VERTEX_SHADER_SRC_NO_TRANSFORM[] = R"SRC(#version 310 es
+precision mediump float;
+precision mediump int;
 
 uniform vec4 drawnRects[12];
 uniform int drawnRectsLength;
@@ -180,6 +186,7 @@ void main() {
     constexpr char FRAGMENT_SHADER_SRC_NO_BLUR[] = R"SRC(#version 310 es
 #extension GL_OES_EGL_image_external : require
 precision mediump float;
+precision mediump int;
 
 uniform samplerExternalOES sampler;
 uniform mat4 texTransform;
@@ -196,6 +203,7 @@ void main() {
     constexpr char FRAGMENT_SHADER_SRC_V_OES[] = R"SRC(#version 310 es
 #extension GL_OES_EGL_image_external_essl3 : require
 precision mediump float;
+precision mediump int;
 
 uniform samplerExternalOES sampler;
 uniform mat4 texTransform;
@@ -256,6 +264,7 @@ void main() {
 
     constexpr char FRAGMENT_SHADER_SRC_V_2D[] = R"SRC(#version 310 es
 precision mediump float;
+precision mediump int;
 
 uniform sampler2D sampler;
 uniform float height;
@@ -311,8 +320,9 @@ void main() {
 )SRC";
 
     constexpr char FRAGMENT_SHADER_SRC_H[] = R"SRC(#version 310 es
-
 precision mediump float;
+precision mediump int;
+
 uniform sampler2D sampler;
 uniform float width;
 uniform float lod;
