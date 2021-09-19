@@ -353,6 +353,30 @@ void main() {
         GLfloat lod;
         GLint currentAnimationFrame;
 
+        GLint vertexComponents = 2;
+        GLenum vertexType = GL_FLOAT;
+        GLboolean normalized = GL_FALSE;
+        GLsizei vertexStride = 0;
+
+        GLsizei numMatrices = 1;
+        GLboolean transpose = GL_FALSE;
+
+        // We use a single triangle with the viewport inscribed within for our
+        // VERTICES. This could also be done with a quad or two triangles.
+        //                          ^
+        //                          |
+        //                       (-1,3)
+        //                          +_
+        //                          | \_
+        //                          |   \_
+        //                       (-1,1)   \(1,1)
+        //                          +-------+_
+        //                          |       | \_
+        //                          |   +   |   \_
+        //                          |       |     \_
+        //                          +-------+-------+-->
+        //                       (-1,-1)  (1,-1)  (3,-1)
+        static constexpr GLfloat VERTICES[] = {-1.0f, -1.0f, 3.0f, -1.0f, -1.0f, 3.0f};
         static constexpr GLfloat MAX_LOD = 3.f;
         static constexpr GLfloat MIN_LOD = -3.f;
         static constexpr GLint LOD_ANIMATION_FRAMES = 30;
@@ -424,6 +448,65 @@ void main() {
                 lod -= NativeContext::LOD_INCREMENT;
                 --currentAnimationFrame;
             }
+        }
+
+        void PrepareDrawNoBlur(const GLfloat *vertTransformArray,
+                               const GLfloat *texTransformArray) const {
+            CHECK_GL(glVertexAttribPointer(positionHandleNoBlur,
+                                           vertexComponents, vertexType, normalized,
+                                           vertexStride, VERTICES));
+            CHECK_GL(glEnableVertexAttribArray(positionHandleNoBlur));
+            CHECK_GL(glUseProgram(programNoBlur));
+            CHECK_GL(glUniformMatrix4fv(
+                    vertTransformHandleNoBlur, numMatrices, transpose,
+                    vertTransformArray));
+            CHECK_GL(glUniform1i(samplerHandleNoBlur, 0));
+            CHECK_GL(glUniformMatrix4fv(texTransformHandleNoBlur, numMatrices,
+                                        transpose, texTransformArray));
+            CHECK_GL(glBindTexture(GL_TEXTURE_EXTERNAL_OES, inputTextureId));
+        }
+
+        void PrepareDrawVOES(GLfloat height,
+                             const GLfloat *vertTransformArray,
+                             const GLfloat *texTransformArray) const {
+            CHECK_GL(glVertexAttribPointer(positionHandleVOES,
+                                           vertexComponents, vertexType, normalized,
+                                           vertexStride, VERTICES));
+            CHECK_GL(glEnableVertexAttribArray(positionHandleVOES));
+            CHECK_GL(glUseProgram(programVOES));
+            CHECK_GL(glUniformMatrix4fv(
+                    vertTransformHandleVOES, numMatrices, transpose,
+                    vertTransformArray));
+            CHECK_GL(glUniform1i(samplerHandleVOES, 0));
+            CHECK_GL(glUniformMatrix4fv(texTransformHandleVOES, numMatrices,
+                                        transpose, texTransformArray));
+            CHECK_GL(glUniform1f(heightHandleVOES, height));
+            CHECK_GL(glUniform1f(lodHandleVOES, lod));
+            CHECK_GL(glUniform1f(minLodHandleVOES, NativeContext::MIN_LOD));
+        }
+
+        void PrepareDrawV2D(GLfloat height) const {
+            CHECK_GL(glVertexAttribPointer(positionHandleV2D,
+                                           vertexComponents, vertexType, normalized,
+                                           vertexStride, VERTICES));
+            CHECK_GL(glEnableVertexAttribArray(positionHandleV2D));
+            CHECK_GL(glUseProgram(programV2D));
+            CHECK_GL(glUniform1i(samplerHandleV2D, 0));
+            CHECK_GL(glUniform1f(heightHandleV2D, height));
+            CHECK_GL(glUniform1f(lodHandleV2D, lod));
+            CHECK_GL(glUniform1f(minLodHandleV2D, NativeContext::MIN_LOD));
+        }
+
+        void PrepareDrawH(GLfloat width) const {
+            CHECK_GL(glVertexAttribPointer(positionHandleH,
+                                           vertexComponents, vertexType, normalized,
+                                           vertexStride, VERTICES));
+            CHECK_GL(glEnableVertexAttribArray(positionHandleH));
+            CHECK_GL(glUseProgram(programH));
+            CHECK_GL(glUniform1i(samplerHandleH, 0));
+            CHECK_GL(glUniform1f(widthHandleH, width));
+            CHECK_GL(glUniform1f(lodHandleH, lod));
+            CHECK_GL(glUniform1f(minLodHandleH, NativeContext::MIN_LOD));
         }
     };
 
@@ -775,79 +858,15 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
     auto nativeWindow = nativeContext->windowSurface.first;
 
-    // We use a single triangle with the viewport inscribed within for our
-    // vertices. This could also be done with a quad or two triangles.
-    //                          ^
-    //                          |
-    //                       (-1,3)
-    //                          +_
-    //                          | \_
-    //                          |   \_
-    //                       (-1,1)   \(1,1)
-    //                          +-------+_
-    //                          |       | \_
-    //                          |   +   |   \_
-    //                          |       |     \_
-    //                          +-------+-------+-->
-    //                       (-1,-1)  (1,-1)  (3,-1)
-    constexpr GLfloat vertices[] = {-1.0f, -1.0f, 3.0f, -1.0f, -1.0f, 3.0f};
-    GLint vertexComponents = 2;
-    GLenum vertexType = GL_FLOAT;
-    GLboolean normalized = GL_FALSE;
-    GLsizei vertexStride = 0;
-
-    GLsizei numMatrices = 1;
-    GLboolean transpose = GL_FALSE;
     GLfloat *vertTransformArray = env->GetFloatArrayElements(jvertTransformArray, nullptr);
     GLfloat *texTransformArray = env->GetFloatArrayElements(jtexTransformArray, nullptr);
     GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates, nullptr);
 
+    auto width = ANativeWindow_getWidth(nativeWindow);
+    auto height = ANativeWindow_getHeight(nativeWindow);
+
     if (nativeContext->blurEnabled || nativeContext->IsAnimating() || jdrawnRectsLength > 0) {
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
-
-        auto prepareDrawVOES = [&](GLfloat width, GLfloat height) {
-            CHECK_GL(glVertexAttribPointer(nativeContext->positionHandleVOES,
-                                           vertexComponents, vertexType, normalized,
-                                           vertexStride, vertices));
-            CHECK_GL(glEnableVertexAttribArray(nativeContext->positionHandleVOES));
-            CHECK_GL(glUseProgram(nativeContext->programVOES));
-            CHECK_GL(glUniformMatrix4fv(
-                    nativeContext->vertTransformHandleVOES, numMatrices, transpose,
-                    vertTransformArray));
-            CHECK_GL(glUniform1i(nativeContext->samplerHandleVOES, 0));
-            CHECK_GL(glUniformMatrix4fv(nativeContext->texTransformHandleVOES, numMatrices,
-                                        transpose, texTransformArray));
-            CHECK_GL(glUniform1f(nativeContext->heightHandleVOES, height));
-            CHECK_GL(glUniform1f(nativeContext->lodHandleVOES, nativeContext->lod));
-            CHECK_GL(glUniform1f(nativeContext->minLodHandleVOES, NativeContext::MIN_LOD));
-        };
-
-        auto prepareDrawH = [&](GLfloat width, GLfloat height) {
-            CHECK_GL(glVertexAttribPointer(nativeContext->positionHandleH,
-                                           vertexComponents, vertexType, normalized,
-                                           vertexStride, vertices));
-            CHECK_GL(glEnableVertexAttribArray(nativeContext->positionHandleH));
-            CHECK_GL(glUseProgram(nativeContext->programH));
-            CHECK_GL(glUniform1i(nativeContext->samplerHandleH, 0));
-            CHECK_GL(glUniform1f(nativeContext->widthHandleH, width));
-            CHECK_GL(glUniform1f(nativeContext->lodHandleH, nativeContext->lod));
-            CHECK_GL(glUniform1f(nativeContext->minLodHandleH, NativeContext::MIN_LOD));
-        };
-
-        auto prepareDrawV2D = [&](GLfloat width, GLfloat height) {
-            CHECK_GL(glVertexAttribPointer(nativeContext->positionHandleV2D,
-                                           vertexComponents, vertexType, normalized,
-                                           vertexStride, vertices));
-            CHECK_GL(glEnableVertexAttribArray(nativeContext->positionHandleV2D));
-            CHECK_GL(glUseProgram(nativeContext->programV2D));
-            CHECK_GL(glUniform1i(nativeContext->samplerHandleV2D, 0));
-            CHECK_GL(glUniform1f(nativeContext->heightHandleV2D, height));
-            CHECK_GL(glUniform1f(nativeContext->lodHandleV2D, nativeContext->lod));
-            CHECK_GL(glUniform1f(nativeContext->minLodHandleV2D, NativeContext::MIN_LOD));
-        };
-
-        auto width = ANativeWindow_getWidth(nativeWindow);
-        auto height = ANativeWindow_getHeight(nativeWindow);
 
         auto bindAndDraw = [&](GLuint fboId, GLuint textureId, GLenum texTarget = GL_TEXTURE_2D) {
             CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, fboId));
@@ -855,48 +874,36 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
             glDrawArrays(GL_TRIANGLES, 0, 3);
         };
 
-        prepareDrawVOES(width / 2.f, height / 2.f);
+        nativeContext->PrepareDrawVOES(height / 2.f, vertTransformArray, texTransformArray);
         glViewport(0, 0, width / 2.f, height / 2.f);
         bindAndDraw(nativeContext->fbo1Id, nativeContext->inputTextureId, GL_TEXTURE_EXTERNAL_OES);
 
-        prepareDrawH(width / 2.f, height / 2.f);
+        nativeContext->PrepareDrawH(width / 2.f);
         bindAndDraw(nativeContext->fbo2Id, nativeContext->pass1TextureId);
 
-        prepareDrawV2D(width / 4.f, height / 4.f);
+        nativeContext->PrepareDrawV2D(height / 4.f);
         glViewport(0, 0, width / 4.f, height / 4.f);
         bindAndDraw(nativeContext->fbo3Id, nativeContext->pass2TextureId);
 
-        prepareDrawH(width / 4.f, height / 4.f);
+        nativeContext->PrepareDrawH(width / 4.f);
         bindAndDraw(nativeContext->fbo4Id, nativeContext->pass3TextureId);
 
-        prepareDrawV2D(width / 2.f, height / 2.f);
+        nativeContext->PrepareDrawV2D(height / 2.f);
         glViewport(0, 0, width / 2.f, height / 2.f);
         bindAndDraw(nativeContext->fbo5Id, nativeContext->pass4TextureId);
 
-        prepareDrawH(width / 2.f, height / 2.f);
+        nativeContext->PrepareDrawH(width / 2.f);
         bindAndDraw(nativeContext->fbo6Id, nativeContext->pass5TextureId);
 
-        prepareDrawV2D(width, height);
+        nativeContext->PrepareDrawV2D(height);
         glViewport(0, 0, width, height);
         bindAndDraw(nativeContext->fbo7Id, nativeContext->pass6TextureId);
 
-        prepareDrawH(width, height);
+        nativeContext->PrepareDrawH(width);
         bindAndDraw(0, nativeContext->pass7TextureId);
     } else {
-        glViewport(0, 0, ANativeWindow_getWidth(nativeWindow),
-                   ANativeWindow_getHeight(nativeWindow));
-        CHECK_GL(glVertexAttribPointer(nativeContext->positionHandleNoBlur,
-                                       vertexComponents, vertexType, normalized,
-                                       vertexStride, vertices));
-        CHECK_GL(glEnableVertexAttribArray(nativeContext->positionHandleNoBlur));
-        CHECK_GL(glUseProgram(nativeContext->programNoBlur));
-        CHECK_GL(glUniformMatrix4fv(
-                nativeContext->vertTransformHandleNoBlur, numMatrices, transpose,
-                vertTransformArray));
-        CHECK_GL(glUniform1i(nativeContext->samplerHandleNoBlur, 0));
-        CHECK_GL(glUniformMatrix4fv(nativeContext->texTransformHandleNoBlur, numMatrices,
-                                    transpose, texTransformArray));
-        CHECK_GL(glBindTexture(GL_TEXTURE_EXTERNAL_OES, nativeContext->inputTextureId));
+        nativeContext->PrepareDrawNoBlur(vertTransformArray, texTransformArray);
+        glViewport(0, 0, width, height);
         glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 
