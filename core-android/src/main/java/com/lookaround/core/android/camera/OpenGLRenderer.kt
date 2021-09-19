@@ -72,9 +72,9 @@ class OpenGLRenderer {
             var coordinateIndex = 0
             for (rect in drawnRects) {
                 drawnRectsCoordinates[coordinateIndex++] = rect.left
-                drawnRectsCoordinates[coordinateIndex++] = rect.top
-                drawnRectsCoordinates[coordinateIndex++] = rect.right
                 drawnRectsCoordinates[coordinateIndex++] = rect.bottom
+                drawnRectsCoordinates[coordinateIndex++] = rect.width()
+                drawnRectsCoordinates[coordinateIndex++] = rect.height()
             }
             return drawnRectsCoordinates
         }

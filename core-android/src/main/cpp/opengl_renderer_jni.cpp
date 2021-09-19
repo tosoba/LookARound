@@ -530,30 +530,32 @@ void main() {
         void DrawBlur(GLfloat width,
                       GLfloat height,
                       const GLfloat *vertTransformArray,
-                      const GLfloat *texTransformArray) const {
+                      const GLfloat *texTransformArray,
+                      GLfloat x = .0f,
+                      GLfloat y = .0f) const {
             PrepareDrawVOES(height / 2.f, vertTransformArray, texTransformArray);
-            glViewport(0, 0, width / 2.f, height / 2.f);
+            glViewport(x, y, width / 2.f, height / 2.f);
             BIND_AND_DRAW(fbo1Id, inputTextureId, GL_TEXTURE_EXTERNAL_OES);
 
             PrepareDrawH(width / 2.f);
             BIND_AND_DRAW(fbo2Id, pass1TextureId);
 
             PrepareDrawV2D(height / 4.f);
-            glViewport(0, 0, width / 4.f, height / 4.f);
+            glViewport(x, y, width / 4.f, height / 4.f);
             BIND_AND_DRAW(fbo3Id, pass2TextureId);
 
             PrepareDrawH(width / 4.f);
             BIND_AND_DRAW(fbo4Id, pass3TextureId);
 
             PrepareDrawV2D(height / 2.f);
-            glViewport(0, 0, width / 2.f, height / 2.f);
+            glViewport(x, y, width / 2.f, height / 2.f);
             BIND_AND_DRAW(fbo5Id, pass4TextureId);
 
             PrepareDrawH(width / 2.f);
             BIND_AND_DRAW(fbo6Id, pass5TextureId);
 
             PrepareDrawV2D(height);
-            glViewport(0, 0, width, height);
+            glViewport(x, y, width, height);
             BIND_AND_DRAW(fbo7Id, pass6TextureId);
 
             PrepareDrawH(width);
@@ -909,7 +911,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
 
     GLfloat *vertTransformArray = env->GetFloatArrayElements(jvertTransformArray, nullptr);
     GLfloat *texTransformArray = env->GetFloatArrayElements(jtexTransformArray, nullptr);
-    GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates, nullptr);
 
     auto width = ANativeWindow_getWidth(nativeWindow);
     auto height = ANativeWindow_getHeight(nativeWindow);
@@ -923,19 +924,32 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
         if (jdrawnRectsLength > 0) {
             glEnable(GL_SCISSOR_TEST);
 
+            GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates,
+                                                                        nullptr);
+            GLfloat *drawnRectCoordinate = drawnRectsCoordinates;
             for (uint i = 0; i < jdrawnRectsLength; ++i) {
-
+                auto markerLeft = *drawnRectCoordinate;
+                ++drawnRectCoordinate;
+                auto markerBottom = *drawnRectCoordinate;
+                ++drawnRectCoordinate;
+                auto markerWidth = *drawnRectCoordinate;
+                ++drawnRectCoordinate;
+                auto markerHeight = *drawnRectCoordinate;
+                ++drawnRectCoordinate;
+                CHECK_GL(glScissor(markerLeft, height - markerBottom, markerWidth, markerHeight));
+                nativeContext->DrawBlur(width, height, vertTransformArray,
+                                        texTransformArray, 0, 0);
             }
 
-            CHECK_GL(glScissor(0, 0, width, height));
-
             glDisable(GL_SCISSOR_TEST);
+
+            env->ReleaseFloatArrayElements(jdrawnRectsCoordinates, drawnRectsCoordinates,
+                                           JNI_ABORT);
         }
     }
 
     env->ReleaseFloatArrayElements(jvertTransformArray, vertTransformArray, JNI_ABORT);
     env->ReleaseFloatArrayElements(jtexTransformArray, texTransformArray, JNI_ABORT);
-    env->ReleaseFloatArrayElements(jdrawnRectsCoordinates, drawnRectsCoordinates, JNI_ABORT);
 
     // Check that all GL operations completed successfully. If not, log an error and return.
     GLenum glError = glGetError();
