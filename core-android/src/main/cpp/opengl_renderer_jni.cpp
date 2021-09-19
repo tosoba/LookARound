@@ -506,6 +506,16 @@ void main() {
             return currentAnimationFrame > -1 &&
                    currentAnimationFrame < NativeContext::LOD_ANIMATION_FRAMES;
         }
+
+        void AnimateLod() {
+            if (blurEnabled) {
+                lod += NativeContext::LOD_INCREMENT;
+                ++currentAnimationFrame;
+            } else {
+                lod -= NativeContext::LOD_INCREMENT;
+                --currentAnimationFrame;
+            }
+        }
     };
 
     const char *ShaderTypeString(GLenum shaderType) {
@@ -902,15 +912,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates, nullptr);
 
     if (nativeContext->blurEnabled || nativeContext->IsAnimating() || jdrawnRectsLength > 0) {
-        if (nativeContext->IsAnimating()) {
-            if (nativeContext->blurEnabled) {
-                nativeContext->lod += NativeContext::LOD_INCREMENT;
-                ++nativeContext->currentAnimationFrame;
-            } else {
-                nativeContext->lod -= NativeContext::LOD_INCREMENT;
-                --nativeContext->currentAnimationFrame;
-            }
-        }
+        if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
 
         auto prepareDrawVOES = [&](GLfloat width, GLfloat height) {
             CHECK_GL(glVertexAttribPointer(nativeContext->positionHandleVOES,
