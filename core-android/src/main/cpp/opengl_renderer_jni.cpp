@@ -435,21 +435,7 @@ void main() {
                   lod(MIN_LOD),
                   currentAnimationFrame(-1) {}
 
-        [[nodiscard]] GLboolean IsAnimating() const {
-            return currentAnimationFrame > -1 &&
-                   currentAnimationFrame < NativeContext::LOD_ANIMATION_FRAMES;
-        }
-
-        void AnimateLod() {
-            if (blurEnabled) {
-                lod += NativeContext::LOD_INCREMENT;
-                ++currentAnimationFrame;
-            } else {
-                lod -= NativeContext::LOD_INCREMENT;
-                --currentAnimationFrame;
-            }
-        }
-
+    private:
         void PrepareDrawNoBlur(const GLfloat *vertTransformArray,
                                const GLfloat *texTransformArray) const {
             CHECK_GL(glVertexAttribPointer(positionHandleNoBlur,
@@ -507,6 +493,71 @@ void main() {
             CHECK_GL(glUniform1f(widthHandleH, width));
             CHECK_GL(glUniform1f(lodHandleH, lod));
             CHECK_GL(glUniform1f(minLodHandleH, NativeContext::MIN_LOD));
+        }
+
+        static void
+        BIND_AND_DRAW(GLuint fboId, GLuint textureId, GLenum texTarget = GL_TEXTURE_2D) {
+            CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, fboId));
+            CHECK_GL(glBindTexture(texTarget, textureId));
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
+
+    public:
+        [[nodiscard]] GLboolean IsAnimating() const {
+            return currentAnimationFrame > -1 &&
+                   currentAnimationFrame < NativeContext::LOD_ANIMATION_FRAMES;
+        }
+
+        void AnimateLod() {
+            if (blurEnabled) {
+                lod += NativeContext::LOD_INCREMENT;
+                ++currentAnimationFrame;
+            } else {
+                lod -= NativeContext::LOD_INCREMENT;
+                --currentAnimationFrame;
+            }
+        }
+
+        void DrawNoBlur(GLfloat width,
+                        GLfloat height,
+                        const GLfloat *vertTransformArray,
+                        const GLfloat *texTransformArray) const {
+            PrepareDrawNoBlur(vertTransformArray, texTransformArray);
+            glViewport(0, 0, width, height);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
+
+        void DrawBlur(GLfloat width,
+                      GLfloat height,
+                      const GLfloat *vertTransformArray,
+                      const GLfloat *texTransformArray) const {
+            PrepareDrawVOES(height / 2.f, vertTransformArray, texTransformArray);
+            glViewport(0, 0, width / 2.f, height / 2.f);
+            BIND_AND_DRAW(fbo1Id, inputTextureId, GL_TEXTURE_EXTERNAL_OES);
+
+            PrepareDrawH(width / 2.f);
+            BIND_AND_DRAW(fbo2Id, pass1TextureId);
+
+            PrepareDrawV2D(height / 4.f);
+            glViewport(0, 0, width / 4.f, height / 4.f);
+            BIND_AND_DRAW(fbo3Id, pass2TextureId);
+
+            PrepareDrawH(width / 4.f);
+            BIND_AND_DRAW(fbo4Id, pass3TextureId);
+
+            PrepareDrawV2D(height / 2.f);
+            glViewport(0, 0, width / 2.f, height / 2.f);
+            BIND_AND_DRAW(fbo5Id, pass4TextureId);
+
+            PrepareDrawH(width / 2.f);
+            BIND_AND_DRAW(fbo6Id, pass5TextureId);
+
+            PrepareDrawV2D(height);
+            glViewport(0, 0, width, height);
+            BIND_AND_DRAW(fbo7Id, pass6TextureId);
+
+            PrepareDrawH(width);
+            BIND_AND_DRAW(0, pass7TextureId);
         }
     };
 
@@ -790,9 +841,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setWindowSurface(
 
     auto width = ANativeWindow_getWidth(nativeWindow);
     auto height = ANativeWindow_getHeight(nativeWindow);
-
     CHECK_GL(glViewport(0, 0, width, height));
-    CHECK_GL(glScissor(0, 0, width, height));
 
     auto initFrameBuffer = [](GLuint *textureId, GLuint *fboId, GLsizei width, GLsizei height) {
         CHECK_GL(glGenTextures(1, textureId));
@@ -865,46 +914,23 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     auto width = ANativeWindow_getWidth(nativeWindow);
     auto height = ANativeWindow_getHeight(nativeWindow);
 
-    if (nativeContext->blurEnabled || nativeContext->IsAnimating() || jdrawnRectsLength > 0) {
+    if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
-
-        auto bindAndDraw = [&](GLuint fboId, GLuint textureId, GLenum texTarget = GL_TEXTURE_2D) {
-            CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, fboId));
-            CHECK_GL(glBindTexture(texTarget, textureId));
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-        };
-
-        nativeContext->PrepareDrawVOES(height / 2.f, vertTransformArray, texTransformArray);
-        glViewport(0, 0, width / 2.f, height / 2.f);
-        bindAndDraw(nativeContext->fbo1Id, nativeContext->inputTextureId, GL_TEXTURE_EXTERNAL_OES);
-
-        nativeContext->PrepareDrawH(width / 2.f);
-        bindAndDraw(nativeContext->fbo2Id, nativeContext->pass1TextureId);
-
-        nativeContext->PrepareDrawV2D(height / 4.f);
-        glViewport(0, 0, width / 4.f, height / 4.f);
-        bindAndDraw(nativeContext->fbo3Id, nativeContext->pass2TextureId);
-
-        nativeContext->PrepareDrawH(width / 4.f);
-        bindAndDraw(nativeContext->fbo4Id, nativeContext->pass3TextureId);
-
-        nativeContext->PrepareDrawV2D(height / 2.f);
-        glViewport(0, 0, width / 2.f, height / 2.f);
-        bindAndDraw(nativeContext->fbo5Id, nativeContext->pass4TextureId);
-
-        nativeContext->PrepareDrawH(width / 2.f);
-        bindAndDraw(nativeContext->fbo6Id, nativeContext->pass5TextureId);
-
-        nativeContext->PrepareDrawV2D(height);
-        glViewport(0, 0, width, height);
-        bindAndDraw(nativeContext->fbo7Id, nativeContext->pass6TextureId);
-
-        nativeContext->PrepareDrawH(width);
-        bindAndDraw(0, nativeContext->pass7TextureId);
+        nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray);
     } else {
-        nativeContext->PrepareDrawNoBlur(vertTransformArray, texTransformArray);
-        glViewport(0, 0, width, height);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
+
+        if (jdrawnRectsLength > 0) {
+            glEnable(GL_SCISSOR_TEST);
+
+            for (uint i = 0; i < jdrawnRectsLength; ++i) {
+
+            }
+
+            CHECK_GL(glScissor(0, 0, width, height));
+
+            glDisable(GL_SCISSOR_TEST);
+        }
     }
 
     env->ReleaseFloatArrayElements(jvertTransformArray, vertTransformArray, JNI_ABORT);
