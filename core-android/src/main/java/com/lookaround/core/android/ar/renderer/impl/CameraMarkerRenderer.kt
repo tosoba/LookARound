@@ -106,7 +106,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private val titleTextPaint: TextPaint by
         lazy(LazyThreadSafetyMode.NONE) {
             TextPaint().apply {
-                color = Color.BLACK
+                color = Color.WHITE
                 style = Paint.Style.FILL
                 isAntiAlias = true
                 textSize = markerTitleTextSizePx
@@ -118,7 +118,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private val distanceTextPaint: TextPaint by
         lazy(LazyThreadSafetyMode.NONE) {
             TextPaint().apply {
-                color = Color.BLACK
+                color = Color.WHITE
                 style = Paint.Style.FILL
                 isAntiAlias = true
                 textSize = markerDistanceTextSizePx
@@ -143,12 +143,12 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         val canvasRect = RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat())
         if (!RectF.intersects(canvasRect, markerRect)) return null
 
-        canvas.drawRoundRect(
-            markerRect,
-            markerCornerRadiusPx,
-            markerCornerRadiusPx,
-            backgroundPaint
-        )
+//        canvas.drawRoundRect(
+//            markerRect,
+//            markerCornerRadiusPx,
+//            markerCornerRadiusPx,
+//            backgroundPaint
+//        )
         canvas.drawTitleText(marker, markerRect)
         canvas.drawDistanceText(marker, markerRect)
         return markerRect

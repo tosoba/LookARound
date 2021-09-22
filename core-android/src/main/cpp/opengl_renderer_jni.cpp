@@ -454,7 +454,8 @@ void main() {
 
         void PrepareDrawVOES(GLfloat height,
                              const GLfloat *vertTransformArray,
-                             const GLfloat *texTransformArray) const {
+                             const GLfloat *texTransformArray,
+                             bool withMaxLod) const {
             CHECK_GL(glVertexAttribPointer(positionHandleVOES,
                                            vertexComponents, vertexType, normalized,
                                            vertexStride, VERTICES));
@@ -467,11 +468,11 @@ void main() {
             CHECK_GL(glUniformMatrix4fv(texTransformHandleVOES, numMatrices,
                                         transpose, texTransformArray));
             CHECK_GL(glUniform1f(heightHandleVOES, height));
-            CHECK_GL(glUniform1f(lodHandleVOES, lod));
+            CHECK_GL(glUniform1f(lodHandleVOES, withMaxLod ? NativeContext::MAX_LOD : lod));
             CHECK_GL(glUniform1f(minLodHandleVOES, NativeContext::MIN_LOD));
         }
 
-        void PrepareDrawV2D(GLfloat height) const {
+        void PrepareDrawV2D(GLfloat height, bool withMaxLod) const {
             CHECK_GL(glVertexAttribPointer(positionHandleV2D,
                                            vertexComponents, vertexType, normalized,
                                            vertexStride, VERTICES));
@@ -479,11 +480,11 @@ void main() {
             CHECK_GL(glUseProgram(programV2D));
             CHECK_GL(glUniform1i(samplerHandleV2D, 0));
             CHECK_GL(glUniform1f(heightHandleV2D, height));
-            CHECK_GL(glUniform1f(lodHandleV2D, lod));
+            CHECK_GL(glUniform1f(lodHandleV2D, withMaxLod ? NativeContext::MAX_LOD : lod));
             CHECK_GL(glUniform1f(minLodHandleV2D, NativeContext::MIN_LOD));
         }
 
-        void PrepareDrawH(GLfloat width) const {
+        void PrepareDrawH(GLfloat width, bool withMaxLod) const {
             CHECK_GL(glVertexAttribPointer(positionHandleH,
                                            vertexComponents, vertexType, normalized,
                                            vertexStride, VERTICES));
@@ -491,7 +492,7 @@ void main() {
             CHECK_GL(glUseProgram(programH));
             CHECK_GL(glUniform1i(samplerHandleH, 0));
             CHECK_GL(glUniform1f(widthHandleH, width));
-            CHECK_GL(glUniform1f(lodHandleH, lod));
+            CHECK_GL(glUniform1f(lodHandleH, withMaxLod ? NativeContext::MAX_LOD : lod));
             CHECK_GL(glUniform1f(minLodHandleH, NativeContext::MIN_LOD));
         }
 
@@ -531,34 +532,35 @@ void main() {
                       GLfloat height,
                       const GLfloat *vertTransformArray,
                       const GLfloat *texTransformArray,
+                      bool withMaxLod = false,
                       GLfloat x = .0f,
                       GLfloat y = .0f) const {
-            PrepareDrawVOES(height / 2.f, vertTransformArray, texTransformArray);
+            PrepareDrawVOES(height / 2.f, vertTransformArray, texTransformArray, withMaxLod);
             glViewport(x, y, width / 2.f, height / 2.f);
             BIND_AND_DRAW(fbo1Id, inputTextureId, GL_TEXTURE_EXTERNAL_OES);
 
-            PrepareDrawH(width / 2.f);
+            PrepareDrawH(width / 2.f, withMaxLod);
             BIND_AND_DRAW(fbo2Id, pass1TextureId);
 
-            PrepareDrawV2D(height / 4.f);
+            PrepareDrawV2D(height / 4.f, withMaxLod);
             glViewport(x, y, width / 4.f, height / 4.f);
             BIND_AND_DRAW(fbo3Id, pass2TextureId);
 
-            PrepareDrawH(width / 4.f);
+            PrepareDrawH(width / 4.f, withMaxLod);
             BIND_AND_DRAW(fbo4Id, pass3TextureId);
 
-            PrepareDrawV2D(height / 2.f);
+            PrepareDrawV2D(height / 2.f, withMaxLod);
             glViewport(x, y, width / 2.f, height / 2.f);
             BIND_AND_DRAW(fbo5Id, pass4TextureId);
 
-            PrepareDrawH(width / 2.f);
+            PrepareDrawH(width / 2.f, withMaxLod);
             BIND_AND_DRAW(fbo6Id, pass5TextureId);
 
-            PrepareDrawV2D(height);
+            PrepareDrawV2D(height, withMaxLod);
             glViewport(x, y, width, height);
             BIND_AND_DRAW(fbo7Id, pass6TextureId);
 
-            PrepareDrawH(width);
+            PrepareDrawH(width, withMaxLod);
             BIND_AND_DRAW(0, pass7TextureId);
         }
     };
@@ -727,6 +729,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     auto *nativeContext =
             new NativeContext(eglDisplay, config, eglContext, /*window=*/nullptr,
                     /*surface=*/nullptr, eglPbuffer);
+
+    glEnable(GL_SCISSOR_TEST);
 
     nativeContext->programNoBlur = CreateGlProgram(VERTEX_SHADER_SRC_NO_BLUR,
                                                    FRAGMENT_SHADER_SRC_NO_BLUR);
@@ -919,10 +923,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
         nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray);
     } else {
-        nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
-
         if (jdrawnRectsLength > 0) {
-            glEnable(GL_SCISSOR_TEST);
+            nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray, true);
 
             GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates,
                                                                         nullptr);
@@ -937,15 +939,13 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                 auto markerHeight = *drawnRectCoordinate;
                 ++drawnRectCoordinate;
                 CHECK_GL(glScissor(markerLeft, height - markerBottom, markerWidth, markerHeight));
-                nativeContext->DrawBlur(width, height, vertTransformArray,
-                                        texTransformArray, 0, 0);
             }
-
-            glDisable(GL_SCISSOR_TEST);
 
             env->ReleaseFloatArrayElements(jdrawnRectsCoordinates, drawnRectsCoordinates,
                                            JNI_ABORT);
         }
+
+//        nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
     }
 
     env->ReleaseFloatArrayElements(jvertTransformArray, vertTransformArray, JNI_ABORT);
