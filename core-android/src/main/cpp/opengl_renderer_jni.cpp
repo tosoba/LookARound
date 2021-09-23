@@ -922,7 +922,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
         nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray);
     } else {
         if (jdrawnRectsLength > 0) {
-            nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray, true);
+            nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
 
             GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates,
                                                                         nullptr);
@@ -945,7 +945,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                                            JNI_ABORT);
         }
 
-        nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
+        nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray, true);
 
         if (jdrawnRectsLength > 0) glDisable(GL_SCISSOR_TEST);
     }
