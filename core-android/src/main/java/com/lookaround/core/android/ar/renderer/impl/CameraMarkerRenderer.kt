@@ -29,7 +29,6 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private val actionBarHeightPx: Float = context.actionBarHeight
     private val cameraViewHeightPx: Float
 
-    private val markerCornerRadiusPx: Float = context.dpToPx(MARKER_CORNER_RADIUS_DP)
     private val markerPaddingPx: Float = context.dpToPx(MARKER_PADDING_DP)
     private val markerTitleTextSizePx: Float = context.spToPx(MARKER_TITLE_TEXT_SIZE_SP)
     private val markerDistanceTextSizePx: Float = context.spToPx(MARKER_DISTANCE_TEXT_SIZE_SP)
@@ -94,15 +93,6 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private val markersMap: LinkedHashMap<UUID, CameraMarker> = LinkedHashMap()
     private val markerBearingsMap: TreeMap<Float, CameraMarker> = TreeMap()
 
-    private val backgroundPaint: Paint by
-        lazy(LazyThreadSafetyMode.NONE) {
-            Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.FILL_AND_STROKE
-                color = Color.GRAY
-                alpha = 225
-            }
-        }
-
     private val titleTextPaint: TextPaint by
         lazy(LazyThreadSafetyMode.NONE) {
             TextPaint().apply {
@@ -143,12 +133,6 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         val canvasRect = RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat())
         if (!RectF.intersects(canvasRect, markerRect)) return null
 
-//        canvas.drawRoundRect(
-//            markerRect,
-//            markerCornerRadiusPx,
-//            markerCornerRadiusPx,
-//            backgroundPaint
-//        )
         canvas.drawTitleText(marker, markerRect)
         canvas.drawDistanceText(marker, markerRect)
         return markerRect
@@ -325,7 +309,6 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     companion object {
         private const val TAKEN_BEARING_LIMIT_DEGREES = 45f
         private const val MARKER_VERTICAL_SPACING_PX = 50f
-        private const val MARKER_CORNER_RADIUS_DP = 12f
         private const val NUMBER_OF_ROWS_PORTRAIT = 4
         private const val NUMBER_OF_ROWS_LANDSCAPE = 2
         private const val MARKER_WIDTH_DIVISOR_PORTRAIT = 2
