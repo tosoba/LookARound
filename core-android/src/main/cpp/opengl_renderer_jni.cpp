@@ -922,13 +922,12 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
         nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray);
     } else {
         if (jdrawnRectsLength > 0) {
-            nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
+            nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray, true);
 
+            glEnable(GL_SCISSOR_TEST);
             GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates,
                                                                         nullptr);
             GLfloat *drawnRectCoordinate = drawnRectsCoordinates;
-            glEnable(GL_SCISSOR_TEST);
-
             for (uint i = 0; i < jdrawnRectsLength; ++i) {
                 auto markerLeft = *drawnRectCoordinate;
                 ++drawnRectCoordinate;
@@ -939,15 +938,15 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                 auto markerHeight = *drawnRectCoordinate;
                 ++drawnRectCoordinate;
                 CHECK_GL(glScissor(markerLeft, height - markerBottom, markerWidth, markerHeight));
+                nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
             }
 
+            glDisable(GL_SCISSOR_TEST);
             env->ReleaseFloatArrayElements(jdrawnRectsCoordinates, drawnRectsCoordinates,
                                            JNI_ABORT);
+        } else {
+            nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
         }
-
-        nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray, true);
-
-        if (jdrawnRectsLength > 0) glDisable(GL_SCISSOR_TEST);
     }
 
     env->ReleaseFloatArrayElements(jvertTransformArray, vertTransformArray, JNI_ABORT);
