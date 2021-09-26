@@ -297,6 +297,47 @@ void main() {
 }
 )SRC";
 
+    struct BlurFrameBufferPassesSequence {
+    private:
+        GLuint textureId, fboId;
+        const GLsizei width, height;
+
+    public:
+        BlurFrameBufferPassesSequence(GLsizei width, GLsizei height) : width(width),
+                                                                       height(height) {
+            CHECK_GL(glGenTextures(1, &textureId));
+            CHECK_GL(glBindTexture(GL_TEXTURE_2D, textureId));
+            CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+            CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+            CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+            CHECK_GL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+                                  GL_UNSIGNED_BYTE, nullptr));
+            CHECK_GL(glBindTexture(GL_TEXTURE_2D, 0));
+
+            CHECK_GL(glGenFramebuffers(1, &fboId));
+            CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, fboId));
+            CHECK_GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                            textureId, 0));
+            CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+        }
+
+        [[nodiscard]] const GLuint &TextureId() const {
+            return textureId;
+        }
+
+        [[nodiscard]] const GLuint &FboId() const {
+            return fboId;
+        }
+
+        [[nodiscard]] const GLsizei &Width() const {
+            return width;
+        }
+
+        [[nodiscard]] const GLsizei &Height() const {
+            return height;
+        }
+    };
+
     struct NativeContext {
         EGLDisplay display;
         EGLConfig config;
@@ -334,20 +375,7 @@ void main() {
         GLint minLodHandleV2D;
 
         GLuint inputTextureId;
-        GLuint pass1TextureId;
-        GLuint fbo1Id;
-        GLuint pass2TextureId;
-        GLuint fbo2Id;
-        GLuint pass3TextureId;
-        GLuint fbo3Id;
-        GLuint pass4TextureId;
-        GLuint fbo4Id;
-        GLuint pass5TextureId;
-        GLuint fbo5Id;
-        GLuint pass6TextureId;
-        GLuint fbo6Id;
-        GLuint pass7TextureId;
-        GLuint fbo7Id;
+        std::vector<std::vector<BlurFrameBufferPassesSequence>> blurFrameBufferPassesSequences;
 
         GLboolean blurEnabled;
         GLfloat lod;
@@ -377,11 +405,14 @@ void main() {
         //                          +-------+-------+-->
         //                       (-1,-1)  (1,-1)  (3,-1)
         static constexpr GLfloat VERTICES[] = {-1.0f, -1.0f, 3.0f, -1.0f, -1.0f, 3.0f};
+
         static constexpr GLfloat MAX_LOD = 3.f;
         static constexpr GLfloat MIN_LOD = -3.f;
         static constexpr GLint LOD_ANIMATION_FRAMES = 30;
         static constexpr GLfloat LOD_INCREMENT = (NativeContext::MAX_LOD - NativeContext::MIN_LOD) /
                                                  (GLfloat) NativeContext::LOD_ANIMATION_FRAMES;
+
+        static constexpr u_short DRAWN_RECTS_MAX_SIZE = 12;
 
         NativeContext(EGLDisplay display, EGLConfig config, EGLContext context,
                       ANativeWindow *window, EGLSurface surface,
@@ -417,23 +448,11 @@ void main() {
                   lodHandleV2D(-1),
                   minLodHandleV2D(-1),
                   inputTextureId(-1),
-                  pass1TextureId(-1),
-                  fbo1Id(-1),
-                  pass2TextureId(-1),
-                  fbo2Id(-1),
-                  pass3TextureId(-1),
-                  fbo3Id(-1),
-                  pass4TextureId(-1),
-                  fbo4Id(-1),
-                  pass5TextureId(-1),
-                  fbo5Id(-1),
-                  pass6TextureId(-1),
-                  fbo6Id(-1),
-                  pass7TextureId(-1),
-                  fbo7Id(-1),
                   blurEnabled(GL_FALSE),
                   lod(MIN_LOD),
-                  currentAnimationFrame(-1) {}
+                  currentAnimationFrame(-1) {
+            blurFrameBufferPassesSequences.reserve(DRAWN_RECTS_MAX_SIZE);
+        }
 
     private:
         void PrepareDrawNoBlur(const GLfloat *vertTransformArray,
@@ -528,59 +547,58 @@ void main() {
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
 
-        void DrawBlur(GLfloat width,
-                      GLfloat height,
+        void InitBlurFrameBufferPassesSequence(GLsizei width, GLsizei height) {
+            blurFrameBufferPassesSequences.emplace_back(std::vector<BlurFrameBufferPassesSequence>{
+                    BlurFrameBufferPassesSequence(width / 2, height / 2),
+                    BlurFrameBufferPassesSequence(width / 2, height / 2),
+                    BlurFrameBufferPassesSequence(width / 4, height / 4),
+                    BlurFrameBufferPassesSequence(width / 4, height / 4),
+                    BlurFrameBufferPassesSequence(width / 2, height / 2),
+                    BlurFrameBufferPassesSequence(width / 2, height / 2),
+                    BlurFrameBufferPassesSequence(width, height)
+            });
+        }
+
+        void DrawBlur(u_short blurFrameBufferPassSequenceIndex,
                       const GLfloat *vertTransformArray,
                       const GLfloat *texTransformArray,
                       bool withMaxLod = false,
                       GLfloat x = .0f,
                       GLfloat y = .0f) const {
-            PrepareDrawVOES(height / 2.f, vertTransformArray, texTransformArray, withMaxLod);
-            glViewport(x, y, width / 2.f, height / 2.f);
-            BIND_AND_DRAW(fbo1Id, inputTextureId, GL_TEXTURE_EXTERNAL_OES);
+            auto blurPassSequence = blurFrameBufferPassesSequences[blurFrameBufferPassSequenceIndex];
 
-            PrepareDrawH(width / 2.f, withMaxLod);
-            BIND_AND_DRAW(fbo2Id, pass1TextureId);
+            PrepareDrawVOES(blurPassSequence[0].Height(),
+                            vertTransformArray,
+                            texTransformArray,
+                            withMaxLod);
+            glViewport(x, y, blurPassSequence[0].Width(), blurPassSequence[0].Height());
+            BIND_AND_DRAW(blurPassSequence[0].FboId(), inputTextureId, GL_TEXTURE_EXTERNAL_OES);
 
-            PrepareDrawV2D(height / 4.f, withMaxLod);
-            glViewport(x, y, width / 4.f, height / 4.f);
-            BIND_AND_DRAW(fbo3Id, pass2TextureId);
+            PrepareDrawH(blurPassSequence[1].Width(), withMaxLod);
+            BIND_AND_DRAW(blurPassSequence[1].FboId(), blurPassSequence[0].TextureId());
 
-            PrepareDrawH(width / 4.f, withMaxLod);
-            BIND_AND_DRAW(fbo4Id, pass3TextureId);
+            PrepareDrawV2D(blurPassSequence[2].Height(), withMaxLod);
+            glViewport(x, y, blurPassSequence[2].Width(), blurPassSequence[2].Height());
+            BIND_AND_DRAW(blurPassSequence[2].FboId(), blurPassSequence[1].TextureId());
 
-            PrepareDrawV2D(height / 2.f, withMaxLod);
-            glViewport(x, y, width / 2.f, height / 2.f);
-            BIND_AND_DRAW(fbo5Id, pass4TextureId);
+            PrepareDrawH(blurPassSequence[3].Width(), withMaxLod);
+            BIND_AND_DRAW(blurPassSequence[3].FboId(), blurPassSequence[2].TextureId());
 
-            PrepareDrawH(width / 2.f, withMaxLod);
-            BIND_AND_DRAW(fbo6Id, pass5TextureId);
+            PrepareDrawV2D(blurPassSequence[4].Height(), withMaxLod);
+            glViewport(x, y, blurPassSequence[4].Width(), blurPassSequence[4].Height());
+            BIND_AND_DRAW(blurPassSequence[4].FboId(), blurPassSequence[3].TextureId());
 
-            PrepareDrawV2D(height, withMaxLod);
-            glViewport(x, y, width, height);
-            BIND_AND_DRAW(fbo7Id, pass6TextureId);
+            PrepareDrawH(blurPassSequence[5].Width(), withMaxLod);
+            BIND_AND_DRAW(blurPassSequence[5].FboId(), blurPassSequence[4].TextureId());
 
-            PrepareDrawH(width, withMaxLod);
-            BIND_AND_DRAW(0, pass7TextureId);
+            PrepareDrawV2D(blurPassSequence[6].Height(), withMaxLod);
+            glViewport(x, y, blurPassSequence[6].Width(), blurPassSequence[6].Height());
+            BIND_AND_DRAW(blurPassSequence[6].FboId(), blurPassSequence[5].TextureId());
+
+            PrepareDrawH(blurPassSequence[6].Width(), withMaxLod);
+            BIND_AND_DRAW(0, blurPassSequence[6].TextureId());
         }
     };
-
-    void InitFrameBuffer(GLuint *textureId, GLuint *fboId, GLsizei width, GLsizei height) {
-        CHECK_GL(glGenTextures(1, textureId));
-        CHECK_GL(glBindTexture(GL_TEXTURE_2D, *textureId));
-        CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-        CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-        CHECK_GL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
-                              nullptr));
-        CHECK_GL(glBindTexture(GL_TEXTURE_2D, 0));
-
-        CHECK_GL(glGenFramebuffers(1, fboId));
-        CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, *fboId));
-        CHECK_GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                                        *textureId, 0));
-        CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-    }
 
     const char *ShaderTypeString(GLenum shaderType) {
         switch (shaderType) {
@@ -862,36 +880,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setWindowSurface(
 
     auto width = ANativeWindow_getWidth(nativeWindow);
     auto height = ANativeWindow_getHeight(nativeWindow);
-    CHECK_GL(glViewport(0, 0, width, height));
-
-    InitFrameBuffer(&(nativeContext->pass1TextureId),
-                    &(nativeContext->fbo1Id),
-                    width / 2,
-                    height / 2);
-    InitFrameBuffer(&(nativeContext->pass2TextureId),
-                    &(nativeContext->fbo2Id),
-                    width / 2,
-                    height / 2);
-    InitFrameBuffer(&(nativeContext->pass3TextureId),
-                    &(nativeContext->fbo3Id),
-                    width / 4,
-                    height / 4);
-    InitFrameBuffer(&(nativeContext->pass4TextureId),
-                    &(nativeContext->fbo4Id),
-                    width / 4,
-                    height / 4);
-    InitFrameBuffer(&(nativeContext->pass5TextureId),
-                    &(nativeContext->fbo5Id),
-                    width / 2,
-                    height / 2);
-    InitFrameBuffer(&(nativeContext->pass6TextureId),
-                    &(nativeContext->fbo6Id),
-                    width / 2,
-                    height / 2);
-    InitFrameBuffer(&(nativeContext->pass7TextureId),
-                    &(nativeContext->fbo7Id),
-                    width,
-                    height);
+    for (u_short i = 0; i < NativeContext::DRAWN_RECTS_MAX_SIZE; ++i) {
+        nativeContext->InitBlurFrameBufferPassesSequence(width, height);
+    }
 
     return JNI_TRUE;
 }
@@ -919,10 +910,10 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
 
     if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
-        nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray);
+        nativeContext->DrawBlur(1, vertTransformArray, texTransformArray);
     } else {
         if (jdrawnRectsLength > 0) {
-            nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray, true);
+            nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
 
             glEnable(GL_SCISSOR_TEST);
             GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates,
@@ -938,7 +929,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                 auto markerHeight = *drawnRectCoordinate;
                 ++drawnRectCoordinate;
                 CHECK_GL(glScissor(markerLeft, height - markerBottom, markerWidth, markerHeight));
-                nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
+                nativeContext->DrawBlur(i, vertTransformArray, texTransformArray, true);
             }
 
             glDisable(GL_SCISSOR_TEST);
