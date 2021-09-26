@@ -462,9 +462,8 @@ void main() {
                                            vertexStride, VERTICES));
             CHECK_GL(glEnableVertexAttribArray(positionHandleNoBlur));
             CHECK_GL(glUseProgram(programNoBlur));
-            CHECK_GL(glUniformMatrix4fv(
-                    vertTransformHandleNoBlur, numMatrices, transpose,
-                    vertTransformArray));
+            CHECK_GL(glUniformMatrix4fv(vertTransformHandleNoBlur, numMatrices, transpose,
+                                        vertTransformArray));
             CHECK_GL(glUniform1i(samplerHandleNoBlur, 0));
             CHECK_GL(glUniformMatrix4fv(texTransformHandleNoBlur, numMatrices,
                                         transpose, texTransformArray));
@@ -929,16 +928,17 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                                                                         nullptr);
             GLfloat *drawnRectCoordinate = drawnRectsCoordinates;
             for (uint i = 0; i < jdrawnRectsLength; ++i) {
-                auto markerLeft = *drawnRectCoordinate;
+                auto markerLeftX = *drawnRectCoordinate;
                 ++drawnRectCoordinate;
-                auto markerBottom = *drawnRectCoordinate;
+                auto markerBottomY = height - *drawnRectCoordinate;
                 ++drawnRectCoordinate;
                 auto markerWidth = *drawnRectCoordinate;
                 ++drawnRectCoordinate;
                 auto markerHeight = *drawnRectCoordinate;
                 ++drawnRectCoordinate;
-                CHECK_GL(glScissor(markerLeft, height - markerBottom, markerWidth, markerHeight));
-                nativeContext->DrawBlur(i, vertTransformArray, texTransformArray, true);
+                CHECK_GL(glScissor(markerLeftX, markerBottomY, markerWidth, markerHeight));
+                nativeContext->DrawBlur(i, vertTransformArray, texTransformArray, true, markerLeftX,
+                                        markerBottomY);
             }
 
             env->ReleaseFloatArrayElements(jdrawnRectsCoordinates, drawnRectsCoordinates,
