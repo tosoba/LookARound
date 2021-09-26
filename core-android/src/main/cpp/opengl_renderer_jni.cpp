@@ -890,6 +890,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setWindowSurface(
         nativeContext->InitBlurFrameBufferPassesSequence(width, height);
     }
 
+    glEnable(GL_SCISSOR_TEST);
+    CHECK_GL(glScissor(0, 0, width, height));
+
     return JNI_TRUE;
 }
 
@@ -914,6 +917,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     auto width = ANativeWindow_getWidth(nativeWindow);
     auto height = ANativeWindow_getHeight(nativeWindow);
 
+    CHECK_GL(glScissor(0, 0, width, height));
     if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
         nativeContext->DrawBlur(0, vertTransformArray, texTransformArray);
@@ -921,7 +925,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
         if (jdrawnRectsLength > 0) {
             nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
 
-            glEnable(GL_SCISSOR_TEST);
             GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates,
                                                                         nullptr);
             GLfloat *drawnRectCoordinate = drawnRectsCoordinates;
@@ -938,7 +941,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                 nativeContext->DrawBlur(i, vertTransformArray, texTransformArray, true);
             }
 
-            glDisable(GL_SCISSOR_TEST);
             env->ReleaseFloatArrayElements(jdrawnRectsCoordinates, drawnRectsCoordinates,
                                            JNI_ABORT);
         } else {
