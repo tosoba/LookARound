@@ -565,6 +565,23 @@ void main() {
         }
     };
 
+    void InitFrameBuffer(GLuint *textureId, GLuint *fboId, GLsizei width, GLsizei height) {
+        CHECK_GL(glGenTextures(1, textureId));
+        CHECK_GL(glBindTexture(GL_TEXTURE_2D, *textureId));
+        CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+        CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+        CHECK_GL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
+                              nullptr));
+        CHECK_GL(glBindTexture(GL_TEXTURE_2D, 0));
+
+        CHECK_GL(glGenFramebuffers(1, fboId));
+        CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, *fboId));
+        CHECK_GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                        *textureId, 0));
+        CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    }
+
     const char *ShaderTypeString(GLenum shaderType) {
         switch (shaderType) {
             case GL_VERTEX_SHADER:
@@ -847,48 +864,31 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setWindowSurface(
     auto height = ANativeWindow_getHeight(nativeWindow);
     CHECK_GL(glViewport(0, 0, width, height));
 
-    auto initFrameBuffer = [](GLuint *textureId, GLuint *fboId, GLsizei width, GLsizei height) {
-        CHECK_GL(glGenTextures(1, textureId));
-        CHECK_GL(glBindTexture(GL_TEXTURE_2D, *textureId));
-        CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-        CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-        CHECK_GL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
-                              nullptr));
-        CHECK_GL(glBindTexture(GL_TEXTURE_2D, 0));
-
-        CHECK_GL(glGenFramebuffers(1, fboId));
-        CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, *fboId));
-        CHECK_GL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                                        *textureId, 0));
-        CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-    };
-
-    initFrameBuffer(&(nativeContext->pass1TextureId),
+    InitFrameBuffer(&(nativeContext->pass1TextureId),
                     &(nativeContext->fbo1Id),
                     width / 2,
                     height / 2);
-    initFrameBuffer(&(nativeContext->pass2TextureId),
+    InitFrameBuffer(&(nativeContext->pass2TextureId),
                     &(nativeContext->fbo2Id),
                     width / 2,
                     height / 2);
-    initFrameBuffer(&(nativeContext->pass3TextureId),
+    InitFrameBuffer(&(nativeContext->pass3TextureId),
                     &(nativeContext->fbo3Id),
                     width / 4,
                     height / 4);
-    initFrameBuffer(&(nativeContext->pass4TextureId),
+    InitFrameBuffer(&(nativeContext->pass4TextureId),
                     &(nativeContext->fbo4Id),
                     width / 4,
                     height / 4);
-    initFrameBuffer(&(nativeContext->pass5TextureId),
+    InitFrameBuffer(&(nativeContext->pass5TextureId),
                     &(nativeContext->fbo5Id),
                     width / 2,
                     height / 2);
-    initFrameBuffer(&(nativeContext->pass6TextureId),
+    InitFrameBuffer(&(nativeContext->pass6TextureId),
                     &(nativeContext->fbo6Id),
                     width / 2,
                     height / 2);
-    initFrameBuffer(&(nativeContext->pass7TextureId),
+    InitFrameBuffer(&(nativeContext->pass7TextureId),
                     &(nativeContext->fbo7Id),
                     width,
                     height);
