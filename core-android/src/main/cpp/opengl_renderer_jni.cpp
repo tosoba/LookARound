@@ -597,6 +597,12 @@ void main() {
 
             PrepareDrawH(blurPassSequence[6].Width(), withMaxLod);
             BIND_AND_DRAW(0, blurPassSequence[6].TextureId());
+
+            for (u_short i = 0; i < 7; ++i) {
+                CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, blurPassSequence[i].FboId()));
+                glClear(GL_COLOR_BUFFER_BIT);
+            }
+            CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
         }
     };
 
@@ -910,7 +916,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
 
     if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
-        nativeContext->DrawBlur(1, vertTransformArray, texTransformArray);
+        nativeContext->DrawBlur(0, vertTransformArray, texTransformArray);
     } else {
         if (jdrawnRectsLength > 0) {
             nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
