@@ -892,8 +892,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setWindowSurface(
     glEnable(GL_SCISSOR_TEST);
     CHECK_GL(glScissor(0, 0, width, height));
 
-    glEnable(GL_STENCIL_TEST);
-
     return JNI_TRUE;
 }
 
@@ -918,18 +916,25 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     auto width = ANativeWindow_getWidth(nativeWindow);
     auto height = ANativeWindow_getHeight(nativeWindow);
     CHECK_GL(glScissor(0, 0, width, height));
+
+    glEnable(GL_STENCIL_TEST);
     glClear(GL_STENCIL_BUFFER_BIT);
+    glDisable(GL_STENCIL_TEST);
 
     if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
         nativeContext->DrawBlur(0, vertTransformArray, texTransformArray);
     } else {
         if (jdrawnRectsLength > 0) {
+            glEnable(GL_STENCIL_TEST);
+            glClear(GL_STENCIL_BUFFER_BIT);
+
             glStencilMask(0x00);
             nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
 
             glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
             glStencilFunc(GL_ALWAYS, 1, 0xFF);
+            glStencilMask(0xFF);
 
             GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates,
                                                                         nullptr);
@@ -945,9 +950,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                 ++drawnRectCoordinate;
 
                 CHECK_GL(glScissor(markerLeftX, markerBottomY, markerWidth, markerHeight));
-                glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-                glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should pass the stencil test
-                glStencilMask(0xFF);
                 nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
             }
 
