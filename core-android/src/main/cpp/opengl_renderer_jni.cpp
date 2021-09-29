@@ -892,6 +892,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setWindowSurface(
     glEnable(GL_SCISSOR_TEST);
     CHECK_GL(glScissor(0, 0, width, height));
 
+    glEnable(GL_STENCIL_TEST);
+
     return JNI_TRUE;
 }
 
@@ -915,14 +917,19 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
 
     auto width = ANativeWindow_getWidth(nativeWindow);
     auto height = ANativeWindow_getHeight(nativeWindow);
-
     CHECK_GL(glScissor(0, 0, width, height));
+    glClear(GL_STENCIL_BUFFER_BIT);
+
     if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
         nativeContext->DrawBlur(0, vertTransformArray, texTransformArray);
     } else {
         if (jdrawnRectsLength > 0) {
+            glStencilMask(0x00);
             nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
+
+            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+            glStencilFunc(GL_ALWAYS, 1, 0xFF);
 
             GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates,
                                                                         nullptr);
@@ -936,10 +943,18 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                 ++drawnRectCoordinate;
                 auto markerHeight = *drawnRectCoordinate;
                 ++drawnRectCoordinate;
+
                 CHECK_GL(glScissor(markerLeftX, markerBottomY, markerWidth, markerHeight));
-                nativeContext->DrawBlur(i, vertTransformArray, texTransformArray, true, markerLeftX,
-                                        markerBottomY);
+                glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+                glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should pass the stencil test
+                glStencilMask(0xFF);
+                nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
             }
+
+            glStencilFunc(GL_EQUAL, 1, 0xFF);
+            glStencilMask(0x00); // disable writing to the stencil buffer
+            CHECK_GL(glScissor(0, 0, width, height));
+            nativeContext->DrawBlur(0, vertTransformArray, texTransformArray, true);
 
             env->ReleaseFloatArrayElements(jdrawnRectsCoordinates, drawnRectsCoordinates,
                                            JNI_ABORT);
