@@ -7,6 +7,7 @@ import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.model.LoadingInProgress
 import com.lookaround.core.android.model.Ready
 import com.lookaround.ui.camera.model.CameraPreviewState
+import com.lookaround.ui.camera.model.CameraSignal
 import com.lookaround.ui.camera.model.CameraState
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainSignal
@@ -85,3 +86,14 @@ fun cameraViewObscuredUpdates(
         }
         .distinctUntilChanged()
         .debounce(500L)
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+fun cameraTouchUpdates(mainViewModel: MainViewModel, cameraViewModel: CameraViewModel): Flow<Unit> =
+    cameraViewModel
+        .signals
+        .filterIsInstance<CameraSignal.CameraTouch>()
+        .filter {
+            mainViewModel.state.locationState is Ready && cameraViewModel.state.previewState.isLive
+        }
+        .map {}

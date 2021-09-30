@@ -85,6 +85,10 @@ class CameraFragment :
             }
             .launchIn(lifecycleScope)
 
+        cameraTouchUpdates(mainViewModel, cameraViewModel)
+            .onEach { binding.onCameraTouch() }
+            .launchIn(lifecycleScope)
+
         initARWithPermissionCheck()
 
         binding.grantPermissionsButton.setOnClickListener { initARWithPermissionCheck() }
@@ -173,7 +177,7 @@ class CameraFragment :
             .launchIn(lifecycleScope)
 
         arCameraView.onMarkerPressed = ::onMarkerPressed
-        arCameraView.onTouch = ::onCameraTouch
+        arCameraView.onTouch = ::signalCameraTouch
         arCameraView.markerRenderer = cameraRenderer
 
         arRadarView.rotableBackground = R.drawable.radar_arrow
@@ -333,18 +337,13 @@ class CameraFragment :
         binding.arRadarView.orientation = orientation
     }
 
+    private fun signalCameraTouch() {
+        lifecycleScope.launch { cameraViewModel.signal(CameraSignal.CameraTouch) }
+    }
+
     private fun onMarkerPressed(marker: ARMarker) {
         Timber.tag("MP")
             .d("Pressed marker with id: ${marker.wrapped.id}; name: ${marker.wrapped.name}")
-    }
-
-    private fun onCameraTouch() {
-        with(binding) {
-            val targetVisibility = arCameraRangeViewsGroup.toggleVisibility()
-            if (arCameraPageSeekbar.isEnabled) arCameraPageViewsGroup.visibility = targetVisibility
-            changeRadarViewTopGuideline(targetVisibility)
-            (activity as? AREventsListener)?.onCameraTouch(targetVisibility)
-        }
     }
 
     private fun FragmentCameraBinding.changeRadarViewTopGuideline(targetVisibility: Int) {
@@ -365,5 +364,14 @@ class CameraFragment :
         arViewsGroup.visibility = View.GONE
         arCameraPageViewsGroup.visibility = View.GONE
         arCameraRangeViewsGroup.visibility = View.GONE
+    }
+
+    private fun FragmentCameraBinding.onCameraTouch() {
+        val targetVisibility = arCameraRangeViewsGroup.toggleVisibility()
+        if (arCameraPageSeekbar.isEnabled) {
+            arCameraPageViewsGroup.visibility = targetVisibility
+        }
+        changeRadarViewTopGuideline(targetVisibility)
+        (activity as? AREventsListener)?.onCameraTouch(targetVisibility)
     }
 }
