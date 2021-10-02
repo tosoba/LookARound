@@ -35,7 +35,7 @@
         android:id="@+id/ar_radar_view"
         android:layout_width="96dp"
         android:layout_height="96dp"
-        android:layout_marginTop="65dp"
+        android:layout_marginTop="40dp"
         android:layout_marginRight="15dp"
         android:background="@drawable/radar_background"
         android:visibility="gone"
