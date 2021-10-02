@@ -695,19 +695,19 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
                         eglVersionString == nullptr
                         ? "Unknown" : eglVersionString);
 
-    int configAttribs[] = {EGL_RENDERABLE_TYPE,
-                           EGL_OPENGL_ES2_BIT,
-                           EGL_SURFACE_TYPE,
-                           EGL_WINDOW_BIT | EGL_PBUFFER_BIT,
-                           EGL_RECORDABLE_ANDROID,
-                           EGL_TRUE,
-                           EGL_NONE};
+    EGLint configAttribs[] = {EGL_RENDERABLE_TYPE,
+                              EGL_OPENGL_ES3_BIT,
+                              EGL_SURFACE_TYPE,
+                              EGL_WINDOW_BIT | EGL_PBUFFER_BIT,
+                              EGL_STENCIL_SIZE, 8,
+                              EGL_RECORDABLE_ANDROID,
+                              EGL_TRUE,
+                              EGL_NONE};
     EGLConfig config;
     EGLint numConfigs;
     EGLint configSize = 1;
     EGLBoolean chooseConfigSuccess =
-            eglChooseConfig(eglDisplay, static_cast<EGLint *>(configAttribs), &config,
-                            configSize, &numConfigs);
+            eglChooseConfig(eglDisplay, configAttribs, &config, configSize, &numConfigs);
     if (chooseConfigSuccess != EGL_TRUE) {
         ThrowException(env, "java/lang/IllegalArgumentException",
                        "EGL Error: eglChooseConfig failed. ");
