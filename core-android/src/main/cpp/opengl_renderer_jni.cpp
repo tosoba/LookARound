@@ -930,7 +930,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
             nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
 
             glEnable(GL_STENCIL_TEST);
-            glClear(GL_STENCIL_BUFFER_BIT);
             glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
             glStencilFunc(GL_ALWAYS, 1, 0xFF);
             glStencilMask(0xFF);
