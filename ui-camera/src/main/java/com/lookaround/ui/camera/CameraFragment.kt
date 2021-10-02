@@ -139,7 +139,7 @@ class CameraFragment :
                         changeRadarViewTopGuideline(View.VISIBLE)
                         showARViews()
                     }
-                    BottomSheetBehavior.STATE_EXPANDED -> {
+                    BottomSheetBehavior.STATE_EXPANDED, BottomSheetBehavior.STATE_DRAGGING -> {
                         changeRadarViewTopGuideline(View.GONE)
                         hideARViews()
                     }
