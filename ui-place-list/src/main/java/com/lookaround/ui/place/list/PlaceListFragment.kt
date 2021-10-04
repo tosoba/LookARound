@@ -55,20 +55,26 @@ class PlaceListFragment :
     Fragment(R.layout.fragment_place_list), MapController.SceneLoadListener, MapChangeListener {
     private val binding: FragmentPlaceListBinding by viewBinding(FragmentPlaceListBinding::bind)
 
-    @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
+    @Inject
+    internal lateinit var mainViewModelFactory: MainViewModel.Factory
     private val mainViewModel: MainViewModel by assistedActivityViewModel {
         mainViewModelFactory.create(it)
     }
 
-    @Inject internal lateinit var viewModelFactory: MapSceneViewModel.Factory
+    @Inject
+    internal lateinit var viewModelFactory: MapSceneViewModel.Factory
     private val viewModel: MapSceneViewModel by assistedViewModel { viewModelFactory.create(it) }
 
-    @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
-    @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
-    private val mapController: Deferred<MapController> by
-        lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
+    @Inject
+    internal lateinit var mapTilesHttpHandler: HttpHandler
 
-    @Inject internal lateinit var mapCaptureCache: MapCaptureCache
+    @Inject
+    internal lateinit var glViewHolderFactory: GLViewHolderFactory
+    private val mapController: Deferred<MapController> by
+    lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
+
+    @Inject
+    internal lateinit var mapCaptureCache: MapCaptureCache
     private val getLocationBitmapChannel =
         BroadcastChannel<Pair<Location, CompletableDeferred<Bitmap>>>(Channel.BUFFERED)
     private val mapReady = CompletableDeferred<Unit>()
@@ -121,9 +127,10 @@ class PlaceListFragment :
                                             userLocationFlow = mainViewModel.locationReadyUpdates,
                                             getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
                                             reloadBitmapTrigger =
-                                                reloadBitmapTrigger.receiveAsFlow(),
-                                            modifier =
-                                                Modifier.weight(1f).clickable {
+                                            reloadBitmapTrigger.receiveAsFlow(),
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickable {
                                                     (activity as? PlaceMapItemActionController)
                                                         ?.onPlaceMapItemClick(point)
                                                 }
@@ -177,7 +184,7 @@ class PlaceListFragment :
         getLocationBitmapChannel
             .asFlow()
             .onEach { (location, deferred) ->
-                val bitmap = getCachedOrCaptureBitmapFor(location)
+                val bitmap = captureBitmapAndCacheBitmap(location)
                 deferred.complete(bitmap)
             }
             .launchIn(lifecycleScope)
@@ -185,15 +192,16 @@ class PlaceListFragment :
     }
 
     private suspend fun getBitmapFor(location: Location): Bitmap {
+        val cached = getCachedBitmap(location)
+        if (cached != null) return cached.bitmap
+
         mapReady.await()
         val deferredBitmap = CompletableDeferred<Bitmap>()
         getLocationBitmapChannel.send(location to deferredBitmap)
         return deferredBitmap.await()
     }
 
-    private suspend fun getCachedOrCaptureBitmapFor(location: Location): Bitmap {
-        val cached = getCachedBitmap(location)
-        if (cached != null) return cached.bitmap
+    private suspend fun captureBitmapAndCacheBitmap(location: Location): Bitmap {
         val bitmap = captureBitmap(location)
         lifecycleScope.launch { cacheBitmap(location, bitmap) }
         return bitmap
