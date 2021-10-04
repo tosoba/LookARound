@@ -3,8 +3,12 @@ package com.lookaround.core.android.ext
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.viewpager.widget.ViewPager
+import biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.lookaround.core.android.view.BoxedSeekbar
+import java.lang.IllegalArgumentException
 
 fun ShimmerFrameLayout.showAndStart() {
     visibility = View.VISIBLE
@@ -51,9 +55,41 @@ fun View.slideChangeVisibility(
                     override fun onAnimationEnd(animation: Animation) {
                         visibility = View.GONE
                     }
+
                     override fun onAnimationRepeat(animation: Animation) = Unit
                 }
             )
         }
     )
 }
+
+fun ViewPager.setupBottomSheetBehavior(): ViewPagerBottomSheetBehavior<View> {
+    bottomSheetParentView?.let { parentView ->
+        val behavior = ViewPagerBottomSheetBehavior.from(parentView)
+        val invalidate =
+            ViewPagerBottomSheetBehavior::class.java.getDeclaredMethod("invalidateScrollingChild")
+        invalidate.isAccessible = true
+        addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
+            override fun onPageSelected(position: Int) {
+                post {
+                    invalidate.invoke(behavior)
+                }
+            }
+        })
+        return behavior
+    } ?: throw IllegalArgumentException()
+}
+
+private val View.bottomSheetParentView: View?
+    get() {
+        var current: View? = this
+        while (current != null) {
+            val params = current.layoutParams
+            if (params is CoordinatorLayout.LayoutParams && params.behavior is ViewPagerBottomSheetBehavior<*>) {
+                return current
+            }
+            val parent = current.parent
+            current = if (parent == null || parent !is View) null else parent
+        }
+        return null
+    }

@@ -14,10 +14,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ar.listener.AREventsListener
-import com.lookaround.core.android.ext.assistedViewModel
-import com.lookaround.core.android.ext.isResumed
-import com.lookaround.core.android.ext.setSlideInFromBottom
-import com.lookaround.core.android.ext.slideChangeVisibility
+import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
@@ -52,10 +49,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
     private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
 
-    private val bottomSheetBehavior by
-        lazy(LazyThreadSafetyMode.NONE) {
-            ViewPagerBottomSheetBehavior.from(binding.bottomSheetViewPager)
-        }
+    private lateinit var bottomSheetBehavior: ViewPagerBottomSheetBehavior<View>
     private var lastLiveBottomSheetState: Int? = null
 
     private var latestARState: ARState? = null
@@ -235,7 +229,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                     override fun getCount(): Int = fragments.size
                     override fun getItem(position: Int): Fragment = fragments[position]
                 }
-            BottomSheetUtils.setupViewPager(this)
+            bottomSheetBehavior = setupBottomSheetBehavior()
             addOnPageChangeListener(
                 object : ViewPager.OnPageChangeListener {
                     override fun onPageScrolled(
