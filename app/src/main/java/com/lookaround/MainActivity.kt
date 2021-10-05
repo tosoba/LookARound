@@ -5,9 +5,9 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.lifecycleScope
-import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import biz.laenger.android.vpbs.BottomSheetUtils
 import biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -219,15 +219,20 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             val fragments = arrayOf(PlaceTypesFragment(), PlaceListFragment())
             offscreenPageLimit = fragments.size - 1
             adapter =
-                object :
-                    FragmentPagerAdapter(
-                        supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
-                    override fun getCount(): Int = fragments.size
-                    override fun getItem(position: Int): Fragment = fragments[position]
+                object : FragmentStateAdapter(supportFragmentManager, this@MainActivity.lifecycle) {
+                    override fun createFragment(position: Int): Fragment = fragments[position]
+                    override fun getItemCount(): Int = fragments.size
                 }
-            BottomSheetUtils.setupViewPager(this)
-            addOnPageChangeListener(
-                object : ViewPager.SimpleOnPageChangeListener() {
+            registerOnPageChangeCallback(
+                object : ViewPager2.OnPageChangeCallback() {
+                    override fun onPageScrolled(
+                        position: Int,
+                        positionOffset: Float,
+                        positionOffsetPixels: Int
+                    ) = Unit
+
+                    override fun onPageScrollStateChanged(state: Int) = Unit
+
                     override fun onPageSelected(position: Int) {
                         binding.bottomNavigationView.selectedItemId =
                             when (position) {

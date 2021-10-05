@@ -31,7 +31,7 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <com.lookaround.core.android.view.WrapContentViewPager
+            <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/bottom_sheet_view_pager"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
