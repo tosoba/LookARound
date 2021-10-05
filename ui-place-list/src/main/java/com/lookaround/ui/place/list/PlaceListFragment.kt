@@ -55,26 +55,21 @@ class PlaceListFragment :
     Fragment(R.layout.fragment_place_list), MapController.SceneLoadListener, MapChangeListener {
     private val binding: FragmentPlaceListBinding by viewBinding(FragmentPlaceListBinding::bind)
 
-    @Inject
-    internal lateinit var mainViewModelFactory: MainViewModel.Factory
+    @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
     private val mainViewModel: MainViewModel by assistedActivityViewModel {
         mainViewModelFactory.create(it)
     }
 
-    @Inject
-    internal lateinit var viewModelFactory: MapSceneViewModel.Factory
+    @Inject internal lateinit var viewModelFactory: MapSceneViewModel.Factory
     private val viewModel: MapSceneViewModel by assistedViewModel { viewModelFactory.create(it) }
 
-    @Inject
-    internal lateinit var mapTilesHttpHandler: HttpHandler
+    @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
 
-    @Inject
-    internal lateinit var glViewHolderFactory: GLViewHolderFactory
+    @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by
-    lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
+        lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
 
-    @Inject
-    internal lateinit var mapCaptureCache: MapCaptureCache
+    @Inject internal lateinit var mapCaptureCache: MapCaptureCache
     private val getLocationBitmapChannel =
         BroadcastChannel<Pair<Location, CompletableDeferred<Bitmap>>>(Channel.BUFFERED)
     private val mapReady = CompletableDeferred<Unit>()
@@ -105,36 +100,30 @@ class PlaceListFragment :
                                     withContext(Dispatchers.IO) { mapCaptureCache.clear() }
                                     reloadBitmapTrigger.send(Unit)
                                 }
-                            }
-                        ) { Text("Reload maps") }
+                            }) { Text("Reload maps") }
                         val orientation = LocalConfiguration.current.orientation
                         LazyColumn(
                             modifier = Modifier.padding(horizontal = 10.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
+                            verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(
                                 markers.value.chunked(
-                                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
-                                )
-                            ) { chunk ->
+                                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) 3
+                                    else 2)) { chunk ->
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                    modifier = Modifier.wrapContentHeight()
-                                ) {
+                                    modifier = Modifier.wrapContentHeight()) {
                                     chunk.forEach { point ->
                                         PlaceMapListItem(
                                             point = point,
                                             userLocationFlow = mainViewModel.locationReadyUpdates,
                                             getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
                                             reloadBitmapTrigger =
-                                            reloadBitmapTrigger.receiveAsFlow(),
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clickable {
+                                                reloadBitmapTrigger.receiveAsFlow(),
+                                            modifier =
+                                                Modifier.weight(1f).clickable {
                                                     (activity as? PlaceMapItemActionController)
                                                         ?.onPlaceMapItemClick(point)
-                                                }
-                                        )
+                                                })
                                     }
                                 }
                             }
@@ -211,10 +200,7 @@ class PlaceListFragment :
         mapController.await().run {
             updateCameraPosition(
                 CameraUpdateFactory.newLngLatZoom(
-                    LngLat(location.longitude, location.latitude),
-                    15f
-                )
-            )
+                    LngLat(location.longitude, location.latitude), 15f))
             captureFrame(true)
         }
 
@@ -230,9 +216,7 @@ class PlaceListFragment :
     private suspend fun MapController.loadScene(scene: MapScene) {
         viewModel.intent(MapSceneIntent.LoadingScene(scene))
         loadSceneFile(
-            scene.url,
-            listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
-        )
+            scene.url, listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY)))
     }
 
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {

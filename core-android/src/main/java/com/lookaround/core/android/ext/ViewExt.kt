@@ -57,10 +57,8 @@ fun View.slideChangeVisibility(
                     }
 
                     override fun onAnimationRepeat(animation: Animation) = Unit
-                }
-            )
-        }
-    )
+                })
+        })
 }
 
 fun ViewPager.setupBottomSheetBehavior(): ViewPagerBottomSheetBehavior<View> {
@@ -69,15 +67,15 @@ fun ViewPager.setupBottomSheetBehavior(): ViewPagerBottomSheetBehavior<View> {
         val invalidate =
             ViewPagerBottomSheetBehavior::class.java.getDeclaredMethod("invalidateScrollingChild")
         invalidate.isAccessible = true
-        addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
-            override fun onPageSelected(position: Int) {
-                post {
-                    invalidate.invoke(behavior)
+        addOnPageChangeListener(
+            object : ViewPager.SimpleOnPageChangeListener() {
+                override fun onPageSelected(position: Int) {
+                    post { invalidate.invoke(behavior) }
                 }
-            }
-        })
+            })
         return behavior
-    } ?: throw IllegalArgumentException()
+    }
+        ?: throw IllegalArgumentException()
 }
 
 private val View.bottomSheetParentView: View?
@@ -85,7 +83,8 @@ private val View.bottomSheetParentView: View?
         var current: View? = this
         while (current != null) {
             val params = current.layoutParams
-            if (params is CoordinatorLayout.LayoutParams && params.behavior is ViewPagerBottomSheetBehavior<*>) {
+            if (params is CoordinatorLayout.LayoutParams &&
+                params.behavior is ViewPagerBottomSheetBehavior<*>) {
                 return current
             }
             val parent = current.parent
