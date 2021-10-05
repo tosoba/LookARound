@@ -31,19 +31,13 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <FrameLayout
+            <com.lookaround.core.android.view.WrapContentViewPager
+                android:id="@+id/bottom_sheet_view_pager"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:behavior_hideable="true"
                 app:behavior_peekHeight="55dp"
-                app:layout_behavior="biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior">
-
-                <com.lookaround.core.android.view.WrapContentViewPager
-                    android:id="@+id/bottom_sheet_view_pager"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-            </FrameLayout>
+                app:layout_behavior="biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

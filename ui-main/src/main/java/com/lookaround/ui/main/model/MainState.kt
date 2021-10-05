@@ -8,7 +8,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class MainState(
-    val markers: Loadable<ParcelableList<Marker>> = Empty,
+    val markers: Loadable<ParcelableList<Marker>> = Ready(ParcelableList(SampleMarkers.get())),
     val locationState: Loadable<Location> = Empty,
     val bottomSheetState: BottomSheetState =
         BottomSheetState(ViewPagerBottomSheetBehavior.STATE_HIDDEN, false),
