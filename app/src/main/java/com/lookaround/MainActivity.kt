@@ -116,9 +116,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             outState.putInt(SavedStateKeys.BOTTOM_SHEET_STATE.name, it)
         }
         outState.putInt(
-            SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name,
-            selectedBottomNavigationViewItemId
-        )
+            SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name, selectedBottomNavigationViewItemId)
     }
 
     override fun onBackPressed() {
@@ -135,9 +133,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         binding.searchBarView.visibility = View.VISIBLE
         binding.bottomNavigationView.visibility = View.VISIBLE
         onBottomSheetStateChanged(
-            lastLiveBottomSheetState ?: ViewPagerBottomSheetBehavior.STATE_COLLAPSED,
-            false
-        )
+            lastLiveBottomSheetState ?: ViewPagerBottomSheetBehavior.STATE_COLLAPSED, false)
     }
 
     override fun onARLoading() {
@@ -178,10 +174,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         lifecycleScope.launch {
             viewModel.signal(
                 MainSignal.TopFragmentChanged(
-                    cameraObscured = currentTopFragment !is CameraFragment,
-                    onResume
-                )
-            )
+                    cameraObscured = currentTopFragment !is CameraFragment, onResume))
         }
     }
 
@@ -208,8 +201,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                             lifecycleScope.launchWhenResumed {
                                 viewModel.intent(MainIntent.SearchFocusChanged(focused))
                             }
-                        }
-                    ) { textValue ->
+                        }) { textValue ->
                         lifecycleScope.launchWhenResumed {
                             viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
                         }
@@ -229,21 +221,13 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             adapter =
                 object :
                     FragmentPagerAdapter(
-                        supportFragmentManager,
-                        BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-                    ) {
+                        supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
                     override fun getCount(): Int = fragments.size
                     override fun getItem(position: Int): Fragment = fragments[position]
                 }
             BottomSheetUtils.setupViewPager(this)
             addOnPageChangeListener(
-                object : ViewPager.OnPageChangeListener {
-                    override fun onPageScrolled(
-                        position: Int,
-                        positionOffset: Float,
-                        positionOffsetPixels: Int
-                    ) = Unit
-
+                object : ViewPager.SimpleOnPageChangeListener() {
                     override fun onPageSelected(position: Int) {
                         binding.bottomNavigationView.selectedItemId =
                             when (position) {
@@ -253,10 +237,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                             }
                         requestLayout()
                     }
-
-                    override fun onPageScrollStateChanged(state: Int) = Unit
-                }
-            )
+                })
         }
 
         with(bottomSheetBehavior) {
@@ -266,8 +247,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                         onBottomSheetStateChanged(newState, true)
 
                     override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
-                }
-            )
+                })
 
             viewModel
                 .bottomSheetStateUpdates
