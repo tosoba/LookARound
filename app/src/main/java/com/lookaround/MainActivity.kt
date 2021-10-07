@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
             fun showBottomSheetFragmentAt(index: Int) {
                 with(supportFragmentManager.beginTransaction()) {
+                    setCustomAnimations(R.anim.slide_in, R.anim.slide_out)
                     bottomSheetFragments
                         .filterIndexed { i, fragment -> i != index && fragment.isAdded }
                         .forEach(this::hide)
