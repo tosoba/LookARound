@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.collectAsState
@@ -100,18 +101,30 @@ class PlaceListFragment :
                                     withContext(Dispatchers.IO) { mapCaptureCache.clear() }
                                     reloadBitmapTrigger.send(Unit)
                                 }
-                            }) { Text("Reload maps") }
+                            }
+                        ) { Text("Reload maps") }
+
                         val orientation = LocalConfiguration.current.orientation
+                        val state = rememberLazyListState()
+                        binding
+                            .disallowInterceptTouchContainer
+                            .shouldRequestDisallowInterceptTouchEvent =
+                            state.firstVisibleItemIndex != 0 ||
+                                state.firstVisibleItemScrollOffset != 0
                         LazyColumn(
+                            state = state,
                             modifier = Modifier.padding(horizontal = 10.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
                             items(
                                 markers.value.chunked(
-                                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) 3
-                                    else 2)) { chunk ->
+                                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
+                                )
+                            ) { chunk ->
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                    modifier = Modifier.wrapContentHeight()) {
+                                    modifier = Modifier.wrapContentHeight()
+                                ) {
                                     chunk.forEach { point ->
                                         PlaceMapListItem(
                                             point = point,
@@ -123,7 +136,8 @@ class PlaceListFragment :
                                                 Modifier.weight(1f).clickable {
                                                     (activity as? PlaceMapItemActionController)
                                                         ?.onPlaceMapItemClick(point)
-                                                })
+                                                }
+                                        )
                                     }
                                 }
                             }
@@ -200,7 +214,10 @@ class PlaceListFragment :
         mapController.await().run {
             updateCameraPosition(
                 CameraUpdateFactory.newLngLatZoom(
-                    LngLat(location.longitude, location.latitude), 15f))
+                    LngLat(location.longitude, location.latitude),
+                    15f
+                )
+            )
             captureFrame(true)
         }
 
@@ -216,7 +233,9 @@ class PlaceListFragment :
     private suspend fun MapController.loadScene(scene: MapScene) {
         viewModel.intent(MapSceneIntent.LoadingScene(scene))
         loadSceneFile(
-            scene.url, listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY)))
+            scene.url,
+            listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
+        )
     }
 
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {

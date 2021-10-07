@@ -31,13 +31,13 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/bottom_sheet_view_pager"
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/bottom_sheet_fragment_container_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:behavior_hideable="true"
                 app:behavior_peekHeight="55dp"
-                app:layout_behavior="biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior" />
+                app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

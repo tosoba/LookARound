@@ -22,9 +22,16 @@
 
     </androidx.cardview.widget.CardView>
 
-    <androidx.compose.ui.platform.ComposeView
-        android:id="@+id/place_map_recycler_view"
+    <com.lookaround.core.android.view.DisallowInterceptTouchLayout
+        android:id="@+id/disallow_intercept_touch_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content">
+
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/place_map_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </com.lookaround.core.android.view.DisallowInterceptTouchLayout>
 
 </FrameLayout>

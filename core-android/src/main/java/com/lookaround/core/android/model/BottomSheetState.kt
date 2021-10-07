@@ -1,11 +1,11 @@
 package com.lookaround.core.android.model
 
 import android.os.Parcelable
-import biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class BottomSheetState(
-    @ViewPagerBottomSheetBehavior.State val state: Int,
-    val changedByUser: Boolean
+    @BottomSheetBehavior.State val state: Int,
+    val changedByUser: Boolean,
 ) : Parcelable

@@ -6,10 +6,6 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
-import biz.laenger.android.vpbs.BottomSheetUtils
-import biz.laenger.android.vpbs.ViewPagerBottomSheetBehavior
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -54,7 +50,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
     private val bottomSheetBehavior by
         lazy(LazyThreadSafetyMode.NONE) {
-            ViewPagerBottomSheetBehavior.from(binding.bottomSheetViewPager)
+            BottomSheetBehavior.from(binding.bottomSheetFragmentContainerView)
         }
     private var lastLiveBottomSheetState: Int? = null
 
@@ -62,16 +58,35 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     private var selectedBottomNavigationViewItemId: Int = R.id.action_place_types
     private val onBottomNavItemSelectedListener by
         lazy(LazyThreadSafetyMode.NONE) {
+            val bottomSheetFragments = arrayOf(PlaceTypesFragment(), PlaceListFragment())
+
+            fun showBottomSheetFragmentAt(index: Int) {
+                with(supportFragmentManager.beginTransaction()) {
+                    bottomSheetFragments
+                        .filterIndexed { i, fragment -> i != index && fragment.isAdded }
+                        .forEach(this::hide)
+                    val fragmentToShow = bottomSheetFragments[index]
+                    if (fragmentToShow.isAdded) {
+                        show(fragmentToShow)
+                    } else {
+                        add(R.id.bottom_sheet_fragment_container_view, fragmentToShow)
+                    }
+                    commit()
+                }
+            }
+
             BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
                 selectedBottomNavigationViewItemId = menuItem.itemId
-                binding.bottomSheetViewPager.currentItem =
-                    when (menuItem.itemId) {
-                        R.id.action_place_types -> 0
-                        R.id.action_place_list -> 1
-                        else -> throw IllegalArgumentException()
-                    }
+                showBottomSheetFragmentAt(
+                    index =
+                        when (menuItem.itemId) {
+                            R.id.action_place_types -> 0
+                            R.id.action_place_list -> 1
+                            else -> throw IllegalArgumentException()
+                        }
+                )
                 if (latestARState == ARState.ENABLED) {
-                    bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_EXPANDED
+                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
                 }
                 true
             }
@@ -116,12 +131,14 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             outState.putInt(SavedStateKeys.BOTTOM_SHEET_STATE.name, it)
         }
         outState.putInt(
-            SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name, selectedBottomNavigationViewItemId)
+            SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name,
+            selectedBottomNavigationViewItemId
+        )
     }
 
     override fun onBackPressed() {
-        if (bottomSheetBehavior.state == ViewPagerBottomSheetBehavior.STATE_EXPANDED) {
-            bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_COLLAPSED
+        if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
             if (viewModel.state.searchFocused) super.onBackPressed()
         } else {
             super.onBackPressed()
@@ -133,7 +150,9 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         binding.searchBarView.visibility = View.VISIBLE
         binding.bottomNavigationView.visibility = View.VISIBLE
         onBottomSheetStateChanged(
-            lastLiveBottomSheetState ?: ViewPagerBottomSheetBehavior.STATE_COLLAPSED, false)
+            lastLiveBottomSheetState ?: BottomSheetBehavior.STATE_COLLAPSED,
+            false
+        )
     }
 
     override fun onARLoading() {
@@ -174,7 +193,10 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         lifecycleScope.launch {
             viewModel.signal(
                 MainSignal.TopFragmentChanged(
-                    cameraObscured = currentTopFragment !is CameraFragment, onResume))
+                    cameraObscured = currentTopFragment !is CameraFragment,
+                    onResume
+                )
+            )
         }
     }
 
@@ -201,7 +223,8 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                             lifecycleScope.launchWhenResumed {
                                 viewModel.intent(MainIntent.SearchFocusChanged(focused))
                             }
-                        }) { textValue ->
+                        }
+                    ) { textValue ->
                         lifecycleScope.launchWhenResumed {
                             viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
                         }
@@ -215,50 +238,21 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         lastLiveBottomSheetState =
             savedInstanceState?.getInt(SavedStateKeys.BOTTOM_SHEET_STATE.name)
 
-        with(binding.bottomSheetViewPager) {
-            val fragments = arrayOf(PlaceTypesFragment(), PlaceListFragment())
-            offscreenPageLimit = fragments.size - 1
-            adapter =
-                object : FragmentStateAdapter(supportFragmentManager, this@MainActivity.lifecycle) {
-                    override fun createFragment(position: Int): Fragment = fragments[position]
-                    override fun getItemCount(): Int = fragments.size
-                }
-            registerOnPageChangeCallback(
-                object : ViewPager2.OnPageChangeCallback() {
-                    override fun onPageScrolled(
-                        position: Int,
-                        positionOffset: Float,
-                        positionOffsetPixels: Int
-                    ) = Unit
-
-                    override fun onPageScrollStateChanged(state: Int) = Unit
-
-                    override fun onPageSelected(position: Int) {
-                        binding.bottomNavigationView.selectedItemId =
-                            when (position) {
-                                0 -> R.id.action_place_types
-                                1 -> R.id.action_place_list
-                                else -> throw IllegalArgumentException()
-                            }
-                        requestLayout()
-                    }
-                })
-        }
-
         with(bottomSheetBehavior) {
             setBottomSheetCallback(
-                object : ViewPagerBottomSheetBehavior.BottomSheetCallback() {
+                object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) =
                         onBottomSheetStateChanged(newState, true)
 
                     override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
-                })
+                }
+            )
 
             viewModel
                 .bottomSheetStateUpdates
                 .onEach { (sheetState, _) ->
                     state = sheetState
-                    if (sheetState == ViewPagerBottomSheetBehavior.STATE_EXPANDED) {
+                    if (sheetState == BottomSheetBehavior.STATE_EXPANDED) {
                         changeSearchbarVisibility(View.VISIBLE)
                     }
                 }
