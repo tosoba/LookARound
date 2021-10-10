@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+@ExperimentalStdlibApi
 @FlowPreview
 @ExperimentalCoroutinesApi
 @AndroidEntryPoint
@@ -56,33 +57,46 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
     private var latestARState: ARState? = null
     private var selectedBottomNavigationViewItemId: Int = R.id.action_place_types
-    private val onBottomNavItemSelectedListener by
-        lazy(LazyThreadSafetyMode.NONE) {
-            val bottomSheetFragments = arrayOf(PlaceTypesFragment(), PlaceListFragment())
 
-            fun showBottomSheetFragmentAt(index: Int) {
-                with(supportFragmentManager.beginTransaction()) {
-                    setCustomAnimations(R.anim.slide_in, R.anim.slide_out)
-                    bottomSheetFragments
-                        .filterIndexed { i, fragment -> i != index && fragment.isAdded }
-                        .forEach(this::hide)
-                    val fragmentToShow = bottomSheetFragments[index]
-                    if (fragmentToShow.isAdded) show(fragmentToShow)
-                    else add(R.id.bottom_sheet_fragment_container_view, fragmentToShow)
-                    commit()
+    private val bottomSheetFragments: Map<Class<out Fragment>, Fragment> by
+        lazy(LazyThreadSafetyMode.NONE) {
+            val bottomSheetFragmentClasses =
+                listOf(PlaceTypesFragment::class.java, PlaceListFragment::class.java)
+            buildMap {
+                putAll(
+                    supportFragmentManager.fragments
+                        .filter { bottomSheetFragmentClasses.contains(it::class.java) }
+                        .map { it::class.java to it }
+                )
+                bottomSheetFragmentClasses.forEach {
+                    if (!containsKey(it)) put(it, it.newInstance())
                 }
             }
+        }
 
+    private inline fun <reified F : Fragment> showBottomSheetFragment() {
+        with(supportFragmentManager.beginTransaction()) {
+            setCustomAnimations(R.anim.slide_in, R.anim.slide_out)
+            bottomSheetFragments
+                .filter { (i, fragment) -> i != F::class.java && fragment.isAdded }
+                .map(Map.Entry<Class<out Fragment>, Fragment>::value)
+                .forEach(this::hide)
+            val fragmentToShow = requireNotNull(bottomSheetFragments[F::class.java])
+            if (fragmentToShow.isAdded) show(fragmentToShow)
+            else add(R.id.bottom_sheet_fragment_container_view, fragmentToShow)
+            commit()
+        }
+    }
+
+    private val onBottomNavItemSelectedListener by
+        lazy(LazyThreadSafetyMode.NONE) {
             BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
                 selectedBottomNavigationViewItemId = menuItem.itemId
-                showBottomSheetFragmentAt(
-                    index =
-                        when (menuItem.itemId) {
-                            R.id.action_place_types -> 0
-                            R.id.action_place_list -> 1
-                            else -> throw IllegalArgumentException()
-                        }
-                )
+                when (menuItem.itemId) {
+                    R.id.action_place_types -> showBottomSheetFragment<PlaceTypesFragment>()
+                    R.id.action_place_list -> showBottomSheetFragment<PlaceListFragment>()
+                    else -> throw IllegalArgumentException()
+                }
                 if (latestARState == ARState.ENABLED) {
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
                 }
