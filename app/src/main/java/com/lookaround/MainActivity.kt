@@ -67,11 +67,8 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                         .filterIndexed { i, fragment -> i != index && fragment.isAdded }
                         .forEach(this::hide)
                     val fragmentToShow = bottomSheetFragments[index]
-                    if (fragmentToShow.isAdded) {
-                        show(fragmentToShow)
-                    } else {
-                        add(R.id.bottom_sheet_fragment_container_view, fragmentToShow)
-                    }
+                    if (fragmentToShow.isAdded) show(fragmentToShow)
+                    else add(R.id.bottom_sheet_fragment_container_view, fragmentToShow)
                     commit()
                 }
             }

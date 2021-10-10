@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,13 +18,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.lookaround.core.android.ext.assistedActivityViewModel
-import com.lookaround.core.android.ext.assistedViewModel
-import com.lookaround.core.android.ext.captureFrame
-import com.lookaround.core.android.ext.init
+import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.MapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
@@ -88,11 +88,23 @@ class PlaceListFragment :
             .onEach { mapController.await().loadScene(it.scene) }
             .launchIn(lifecycleScope)
 
+        val mapLayoutParams = getMapLayoutParams()
+        binding.map.layoutParams = mapLayoutParams
+        val bitmapDimension = requireContext().pxToDp(mapLayoutParams.width.toFloat())
+
         val reloadBitmapTrigger = Channel<Unit>()
         binding.placeMapRecyclerView.setContent {
             LookARoundTheme {
                 val markers = mainViewModel.states.collectAsState().value.markers
                 if (markers is WithValue) {
+                    val placeholder =
+                        requireNotNull(
+                                AppCompatResources.getDrawable(
+                                    requireContext(),
+                                    R.drawable.ic_baseline_place_24
+                                )
+                            )
+                            .toBitmap()
                     Column(Modifier.padding(horizontal = 10.dp)) {
                         BottomSheetHeaderText("Places")
                         Button(
@@ -105,14 +117,14 @@ class PlaceListFragment :
                         ) { Text("Reload maps") }
 
                         val orientation = LocalConfiguration.current.orientation
-                        val state = rememberLazyListState()
+                        val lazyListState = rememberLazyListState()
                         binding
                             .disallowInterceptTouchContainer
                             .shouldRequestDisallowInterceptTouchEvent =
-                            state.firstVisibleItemIndex != 0 ||
-                                state.firstVisibleItemScrollOffset != 0
+                            lazyListState.firstVisibleItemIndex != 0 ||
+                                lazyListState.firstVisibleItemScrollOffset != 0
                         LazyColumn(
-                            state = state,
+                            state = lazyListState,
                             modifier = Modifier.padding(horizontal = 10.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
@@ -132,11 +144,13 @@ class PlaceListFragment :
                                             getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
                                             reloadBitmapTrigger =
                                                 reloadBitmapTrigger.receiveAsFlow(),
+                                            bitmapDimension = bitmapDimension.toInt(),
                                             modifier =
-                                                Modifier.weight(1f).clickable {
+                                                Modifier.weight(1f, fill = false).clickable {
                                                     (activity as? PlaceMapItemActionController)
                                                         ?.onPlaceMapItemClick(point)
-                                                }
+                                                },
+                                            placeholder = placeholder
                                         )
                                     }
                                 }
@@ -192,6 +206,20 @@ class PlaceListFragment :
             }
             .launchIn(lifecycleScope)
         mapReady.complete(Unit)
+    }
+
+    private fun getMapLayoutParams(): ViewGroup.LayoutParams {
+        val spacingPx = requireContext().dpToPx(10f)
+        val displayMetrics = resources.displayMetrics
+        val orientation = resources.configuration.orientation
+        val mapDimensionPx =
+            (displayMetrics.widthPixels -
+                spacingPx * (if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 3)) /
+                (if (orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2)
+        val mapLayoutParams = binding.map.layoutParams
+        mapLayoutParams.width = mapDimensionPx.toInt()
+        mapLayoutParams.height = mapDimensionPx.toInt()
+        return mapLayoutParams
     }
 
     private suspend fun getBitmapFor(location: Location): Bitmap {

@@ -30,22 +30,26 @@ fun PlaceItem(point: INamedLocation, locationFlow: Flow<Location>, modifier: Mod
 }
 
 @Composable
-fun PlaceItemDistanceText(point: INamedLocation, location: Location) {
+fun PlaceItemDistanceText(
+    point: INamedLocation,
+    location: Location,
+    modifier: Modifier = Modifier
+) {
     Text(
         text = point.location.formattedDistanceTo(location),
         style = MaterialTheme.typography.subtitle2,
         color = LookARoundTheme.colors.textSecondary,
-        modifier = Modifier.heightIn(min = 16.dp).wrapContentHeight()
+        modifier = Modifier.heightIn(min = 16.dp).wrapContentHeight() then modifier
     )
 }
 
 @Composable
-fun PlaceItemNameText(point: INamedLocation) {
+fun PlaceItemNameText(point: INamedLocation, modifier: Modifier = Modifier) {
     Text(
         text = point.name,
         style = MaterialTheme.typography.subtitle1,
         color = LookARoundTheme.colors.textPrimary,
-        modifier = Modifier.heightIn(min = 20.dp).wrapContentHeight()
+        modifier = Modifier.heightIn(min = 20.dp).wrapContentHeight() then modifier
     )
 }
 

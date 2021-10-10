@@ -54,6 +54,8 @@ val Context.bottomNavigationViewHeight: Int
 fun Context.dpToPx(value: Float): Float =
     TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, resources.displayMetrics)
 
+fun Context.pxToDp(value: Float): Float = value / resources.displayMetrics.density
+
 fun Context.spToPx(value: Float): Float =
     TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)
 

@@ -4,8 +4,9 @@ import android.graphics.Bitmap
 import android.location.Location
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -25,33 +26,32 @@ internal fun PlaceMapListItem(
     userLocationFlow: Flow<Location>,
     getPlaceBitmap: suspend (Location) -> Bitmap,
     reloadBitmapTrigger: Flow<Unit>,
-    modifier: Modifier = Modifier
+    bitmapDimension: Int,
+    modifier: Modifier = Modifier,
+    placeholder: Bitmap
 ) {
-    var bitmapState by remember { mutableStateOf<Bitmap?>(null) }
-    LaunchedEffect(key1 = point.location) { bitmapState = getPlaceBitmap(point.location) }
+    var bitmap by remember { mutableStateOf(placeholder) }
+    LaunchedEffect(key1 = point.location) { bitmap = getPlaceBitmap(point.location) }
     LaunchedEffect(key1 = point.location) {
-        reloadBitmapTrigger
-            .onEach {
-                bitmapState = null
-                bitmapState = getPlaceBitmap(point.location)
-            }
-            .launchIn(this)
+        reloadBitmapTrigger.onEach { bitmap = getPlaceBitmap(point.location) }.launchIn(this)
     }
     val userLocationState = userLocationFlow.collectAsState(initial = null)
 
     LookARoundCard(modifier = modifier) {
-        Column(modifier = Modifier.padding(5.dp)) {
-            bitmapState?.let { bitmap ->
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = point.location.toString(),
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            PlaceItemNameText(point)
+        Column {
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = point.location.toString(),
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.width(bitmapDimension.dp).height(bitmapDimension.dp)
+            )
+            PlaceItemNameText(point, modifier = Modifier.padding(5.dp))
             userLocationState.value?.let { userLocation ->
-                PlaceItemDistanceText(point = point, location = userLocation)
+                PlaceItemDistanceText(
+                    point = point,
+                    location = userLocation,
+                    modifier = Modifier.padding(5.dp)
+                )
             }
         }
     }
