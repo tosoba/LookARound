@@ -16,6 +16,7 @@ import com.lookaround.core.android.model.INamedLocation
 import com.lookaround.core.android.view.composable.LookARoundCard
 import com.lookaround.core.android.view.composable.PlaceItemDistanceText
 import com.lookaround.core.android.view.composable.PlaceItemNameText
+import com.lookaround.core.android.view.composable.ShimmerAnimation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -28,9 +29,8 @@ internal fun PlaceMapListItem(
     reloadBitmapTrigger: Flow<Unit>,
     bitmapDimension: Int,
     modifier: Modifier = Modifier,
-    placeholder: Bitmap
 ) {
-    var bitmap by remember { mutableStateOf(placeholder) }
+    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     LaunchedEffect(key1 = point.location) { bitmap = getPlaceBitmap(point.location) }
     LaunchedEffect(key1 = point.location) {
         reloadBitmapTrigger.onEach { bitmap = getPlaceBitmap(point.location) }.launchIn(this)
@@ -39,12 +39,16 @@ internal fun PlaceMapListItem(
 
     LookARoundCard(modifier = modifier) {
         Column {
-            Image(
-                bitmap = bitmap.asImageBitmap(),
-                contentDescription = point.location.toString(),
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier.width(bitmapDimension.dp).height(bitmapDimension.dp)
-            )
+            val bitmapModifier = Modifier.width(bitmapDimension.dp).height(bitmapDimension.dp)
+            bitmap?.let {
+                Image(
+                    bitmap = it.asImageBitmap(),
+                    contentDescription = point.location.toString(),
+                    contentScale = ContentScale.FillBounds,
+                    modifier = bitmapModifier
+                )
+            }
+                ?: run { ShimmerAnimation(bitmapModifier) }
             PlaceItemNameText(point, modifier = Modifier.padding(5.dp))
             userLocationState.value?.let { userLocation ->
                 PlaceItemDistanceText(

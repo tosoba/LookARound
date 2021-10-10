@@ -6,7 +6,6 @@ import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,7 +17,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -97,14 +95,6 @@ class PlaceListFragment :
             LookARoundTheme {
                 val markers = mainViewModel.states.collectAsState().value.markers
                 if (markers is WithValue) {
-                    val placeholder =
-                        requireNotNull(
-                                AppCompatResources.getDrawable(
-                                    requireContext(),
-                                    R.drawable.ic_baseline_place_24
-                                )
-                            )
-                            .toBitmap()
                     Column(Modifier.padding(horizontal = 10.dp)) {
                         BottomSheetHeaderText("Places")
                         Button(
@@ -150,7 +140,6 @@ class PlaceListFragment :
                                                     (activity as? PlaceMapItemActionController)
                                                         ?.onPlaceMapItemClick(point)
                                                 },
-                                            placeholder = placeholder
                                         )
                                     }
                                 }
