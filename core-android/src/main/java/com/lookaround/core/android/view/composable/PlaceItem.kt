@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.Flow
 fun PlaceItem(point: INamedLocation, locationFlow: Flow<Location>, modifier: Modifier = Modifier) {
     LookARoundCard(modifier = modifier) {
         Column(modifier = Modifier.padding(5.dp)) {
-            PlaceItemNameText(point)
+            PlaceItemNameText(point.name)
             val location = locationFlow.collectAsState(null).value
             if (location != null) PlaceItemDistanceText(point, location)
         }
@@ -44,9 +44,9 @@ fun PlaceItemDistanceText(
 }
 
 @Composable
-fun PlaceItemNameText(point: INamedLocation, modifier: Modifier = Modifier) {
+fun PlaceItemNameText(name: String, modifier: Modifier = Modifier) {
     Text(
-        text = point.name,
+        text = name,
         style = MaterialTheme.typography.subtitle1,
         color = LookARoundTheme.colors.textPrimary,
         modifier = Modifier.heightIn(min = 20.dp).wrapContentHeight() then modifier

@@ -88,7 +88,6 @@ class PlaceListFragment :
 
         val mapLayoutParams = getMapLayoutParams()
         binding.map.layoutParams = mapLayoutParams
-        val bitmapDimension = requireContext().pxToDp(mapLayoutParams.width.toFloat())
 
         val reloadBitmapTrigger = Channel<Unit>()
         binding.placeMapRecyclerView.setContent {
@@ -134,7 +133,10 @@ class PlaceListFragment :
                                             getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
                                             reloadBitmapTrigger =
                                                 reloadBitmapTrigger.receiveAsFlow(),
-                                            bitmapDimension = bitmapDimension.toInt(),
+                                            bitmapDimension =
+                                                requireContext()
+                                                    .pxToDp(mapLayoutParams.width.toFloat())
+                                                    .toInt(),
                                             modifier =
                                                 Modifier.weight(1f, fill = false).clickable {
                                                     (activity as? PlaceMapItemActionController)

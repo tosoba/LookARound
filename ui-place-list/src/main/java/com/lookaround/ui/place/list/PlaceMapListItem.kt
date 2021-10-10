@@ -49,7 +49,7 @@ internal fun PlaceMapListItem(
                 )
             }
                 ?: run { ShimmerAnimation(bitmapModifier) }
-            PlaceItemNameText(point, modifier = Modifier.padding(5.dp))
+            PlaceItemNameText(point.name, modifier = Modifier.padding(5.dp))
             userLocationState.value?.let { userLocation ->
                 PlaceItemDistanceText(
                     point = point,
