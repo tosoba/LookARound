@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/disallow_intercept_touch_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
     <androidx.cardview.widget.CardView
         android:layout_width="170dp"
         android:layout_height="250dp"
-        android:layout_marginLeft="-250dp"
+        android:layout_marginLeft="-2000dp"
         android:elevation="5dp"
         android:padding="10dp"
         app:cardCornerRadius="25dp"
@@ -22,16 +23,9 @@
 
     </androidx.cardview.widget.CardView>
 
-    <com.lookaround.core.android.view.DisallowInterceptTouchLayout
-        android:id="@+id/disallow_intercept_touch_container"
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/place_map_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content" />
 
-        <androidx.compose.ui.platform.ComposeView
-            android:id="@+id/place_map_recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-    </com.lookaround.core.android.view.DisallowInterceptTouchLayout>
-
-</FrameLayout>
+</com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout>

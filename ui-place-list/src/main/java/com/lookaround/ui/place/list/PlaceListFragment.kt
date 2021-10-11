@@ -6,20 +6,25 @@ import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Button
-import androidx.compose.material.Text
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.MapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
@@ -46,6 +51,7 @@ import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import uk.co.senab.bitmapcache.CacheableBitmapDrawable
 
+@ExperimentalFoundationApi
 @ExperimentalCoroutinesApi
 @FlowPreview
 @AndroidEntryPoint
@@ -92,58 +98,71 @@ class PlaceListFragment :
         val reloadBitmapTrigger = Channel<Unit>()
         binding.placeMapRecyclerView.setContent {
             LookARoundTheme {
-                val markers = mainViewModel.states.collectAsState().value.markers
+                val mainState = mainViewModel.states.collectAsState().value
+                val markers = mainState.markers
+                val bottomSheetState = mainState.bottomSheetState.state
                 if (markers is WithValue) {
-                    Column(Modifier.padding(horizontal = 10.dp)) {
-                        BottomSheetHeaderText("Places")
-                        Button(
-                            onClick = {
-                                lifecycleScope.launch {
-                                    withContext(Dispatchers.IO) { mapCaptureCache.clear() }
-                                    reloadBitmapTrigger.send(Unit)
+                    val orientation = LocalConfiguration.current.orientation
+                    val lazyListState = rememberLazyListState()
+                    binding
+                        .disallowInterceptTouchContainer
+                        .shouldRequestDisallowInterceptTouchEvent =
+                        (lazyListState.firstVisibleItemIndex != 0 ||
+                            lazyListState.firstVisibleItemScrollOffset != 0) &&
+                            bottomSheetState == BottomSheetBehavior.STATE_EXPANDED
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = Modifier.padding(horizontal = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        stickyHeader {
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.wrapContentHeight()
+                            ) {
+                                BottomSheetHeaderText("Places")
+                                IconButton(
+                                    onClick = {
+                                        lifecycleScope.launch {
+                                            withContext(Dispatchers.IO) { mapCaptureCache.clear() }
+                                            reloadBitmapTrigger.send(Unit)
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Refresh,
+                                        tint = LookARoundTheme.colors.iconPrimary,
+                                        contentDescription = stringResource(R.string.refresh)
+                                    )
                                 }
                             }
-                        ) { Text("Reload maps") }
+                        }
 
-                        val orientation = LocalConfiguration.current.orientation
-                        val lazyListState = rememberLazyListState()
-                        binding
-                            .disallowInterceptTouchContainer
-                            .shouldRequestDisallowInterceptTouchEvent =
-                            lazyListState.firstVisibleItemIndex != 0 ||
-                                lazyListState.firstVisibleItemScrollOffset != 0
-                        LazyColumn(
-                            state = lazyListState,
-                            modifier = Modifier.padding(horizontal = 10.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(
-                                markers.value.chunked(
-                                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
-                                )
-                            ) { chunk ->
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                    modifier = Modifier.wrapContentHeight()
-                                ) {
-                                    chunk.forEach { point ->
-                                        PlaceMapListItem(
-                                            point = point,
-                                            userLocationFlow = mainViewModel.locationReadyUpdates,
-                                            getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
-                                            reloadBitmapTrigger =
-                                                reloadBitmapTrigger.receiveAsFlow(),
-                                            bitmapDimension =
-                                                requireContext()
-                                                    .pxToDp(mapLayoutParams.width.toFloat())
-                                                    .toInt(),
-                                            modifier =
-                                                Modifier.weight(1f, fill = false).clickable {
-                                                    (activity as? PlaceMapItemActionController)
-                                                        ?.onPlaceMapItemClick(point)
-                                                },
-                                        )
-                                    }
+                        items(
+                            markers.value.chunked(
+                                if (orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
+                            )
+                        ) { chunk ->
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.wrapContentHeight()
+                            ) {
+                                chunk.forEach { point ->
+                                    PlaceMapListItem(
+                                        point = point,
+                                        userLocationFlow = mainViewModel.locationReadyUpdates,
+                                        getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
+                                        reloadBitmapTrigger = reloadBitmapTrigger.receiveAsFlow(),
+                                        bitmapDimension =
+                                            requireContext()
+                                                .pxToDp(mapLayoutParams.width.toFloat())
+                                                .toInt(),
+                                        modifier =
+                                            Modifier.weight(1f, fill = false).clickable {
+                                                (activity as? PlaceMapItemActionController)
+                                                    ?.onPlaceMapItemClick(point)
+                                            },
+                                    )
                                 }
                             }
                         }

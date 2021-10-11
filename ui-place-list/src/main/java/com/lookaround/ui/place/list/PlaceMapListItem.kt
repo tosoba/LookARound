@@ -33,7 +33,12 @@ internal fun PlaceMapListItem(
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     LaunchedEffect(key1 = point.location) { bitmap = getPlaceBitmap(point.location) }
     LaunchedEffect(key1 = point.location) {
-        reloadBitmapTrigger.onEach { bitmap = getPlaceBitmap(point.location) }.launchIn(this)
+        reloadBitmapTrigger
+            .onEach {
+                bitmap = null
+                bitmap = getPlaceBitmap(point.location)
+            }
+            .launchIn(this)
     }
     val userLocationState = userLocationFlow.collectAsState(initial = null)
 

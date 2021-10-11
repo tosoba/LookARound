@@ -5,7 +5,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.widget.FrameLayout
 
-class DisallowInterceptTouchLayout : FrameLayout {
+class DisallowInterceptTouchEventFrameLayout : FrameLayout {
     var shouldRequestDisallowInterceptTouchEvent = true
 
     constructor(context: Context) : super(context)
