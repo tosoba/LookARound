@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         with(supportFragmentManager.beginTransaction()) {
             setCustomAnimations(R.anim.slide_in, R.anim.slide_out)
             bottomSheetFragments
-                .filter { (i, fragment) -> i != F::class.java && fragment.isAdded }
+                .filter { (clazz, fragment) -> clazz != F::class.java && fragment.isAdded }
                 .map(Map.Entry<Class<out Fragment>, Fragment>::value)
                 .forEach(this::hide)
             val fragmentToShow = requireNotNull(bottomSheetFragments[F::class.java])
@@ -280,8 +280,16 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                 ?.getInt(SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name)
                 ?.let(::selectedBottomNavigationViewItemId::set)
             selectedItemId = selectedBottomNavigationViewItemId
-
             setOnNavigationItemSelectedListener(onBottomNavItemSelectedListener)
+
+            val notAdded = bottomSheetFragments.values.filterNot(Fragment::isAdded)
+            if (notAdded.isNotEmpty()) {
+                with(supportFragmentManager.beginTransaction()) {
+                    notAdded.forEach { add(R.id.bottom_sheet_fragment_container_view, it) }
+                    bottomSheetFragments.values.forEach(this::hide)
+                    commit()
+                }
+            }
 
             viewModel
                 .placesBottomNavItemVisibilityUpdates

@@ -140,7 +140,7 @@ class PlaceListFragment :
 
                         items(
                             markers.value.chunked(
-                                if (orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2
+                                if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
                             )
                         ) { chunk ->
                             Row(
@@ -224,8 +224,8 @@ class PlaceListFragment :
         val orientation = resources.configuration.orientation
         val mapDimensionPx =
             (displayMetrics.widthPixels -
-                spacingPx * (if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 3)) /
-                (if (orientation == Configuration.ORIENTATION_LANDSCAPE) 3 else 2)
+                spacingPx * (if (orientation == Configuration.ORIENTATION_LANDSCAPE) 5 else 3)) /
+                (if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2)
         val mapLayoutParams = binding.map.layoutParams
         mapLayoutParams.width = mapDimensionPx.toInt()
         mapLayoutParams.height = mapDimensionPx.toInt()
