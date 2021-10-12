@@ -451,9 +451,9 @@ void main() {
             CHECK_GL(glBindTexture(GL_TEXTURE_EXTERNAL_OES, inputTextureId));
         }
 
-        void PrepareDrawVOES(GLfloat height,
-                             const GLfloat *vertTransformArray,
+        void PrepareDrawVOES(const GLfloat *vertTransformArray,
                              const GLfloat *texTransformArray,
+                             GLfloat height,
                              bool withMaxLod) const {
             CHECK_GL(glVertexAttribPointer(positionHandleVOES,
                                            vertexComponents, vertexType, normalized,
@@ -498,21 +498,21 @@ void main() {
         static void BindAndDraw(GLuint fboId, GLuint textureId, GLenum texTarget = GL_TEXTURE_2D) {
             CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, fboId));
             CHECK_GL(glBindTexture(texTarget, textureId));
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, 3));
         }
 
         static void PrepareStencilForDrawingRects() {
-            glEnable(GL_STENCIL_TEST);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-            glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            glStencilMask(0xFF);
+            CHECK_GL(glEnable(GL_STENCIL_TEST));
+            CHECK_GL(glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE));
+            CHECK_GL(glStencilFunc(GL_ALWAYS, 1, 0xFF));
+            CHECK_GL(glStencilMask(0xFF));
         }
 
         void DrawBlurredRects(const GLfloat *vertTransformArray,
                               const GLfloat *texTransformArray,
                               int32_t width,
                               int32_t height) const {
-            glStencilFunc(GL_EQUAL, 1, 0xFF);
+            CHECK_GL(glStencilFunc(GL_EQUAL, 1, 0xFF));
             CHECK_GL(glScissor(0, 0, width, height));
             DrawBlur(width, height, vertTransformArray, texTransformArray, true);
         }
@@ -559,8 +559,8 @@ void main() {
                         const GLfloat *vertTransformArray,
                         const GLfloat *texTransformArray) const {
             PrepareDrawNoBlur(vertTransformArray, texTransformArray);
-            glViewport(0, 0, width, height);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            CHECK_GL(glViewport(0, 0, width, height));
+            CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, 3));
         }
 
         void DrawBlur(GLfloat width,
@@ -568,29 +568,29 @@ void main() {
                       const GLfloat *vertTransformArray,
                       const GLfloat *texTransformArray,
                       bool withMaxLod = false) const {
-            PrepareDrawVOES(height / 2.f, vertTransformArray, texTransformArray, withMaxLod);
-            glViewport(0, 0, width / 2.f, height / 2.f);
+            PrepareDrawVOES(vertTransformArray, texTransformArray, height / 2.f, withMaxLod);
+            CHECK_GL(glViewport(0, 0, width / 2.f, height / 2.f));
             BindAndDraw(fbo1Id, inputTextureId, GL_TEXTURE_EXTERNAL_OES);
 
             PrepareDrawH(width / 2.f, withMaxLod);
             BindAndDraw(fbo2Id, pass1TextureId);
 
             PrepareDrawV2D(height / 4.f, withMaxLod);
-            glViewport(0, 0, width / 4.f, height / 4.f);
+            CHECK_GL(glViewport(0, 0, width / 4.f, height / 4.f));
             BindAndDraw(fbo3Id, pass2TextureId);
 
             PrepareDrawH(width / 4.f, withMaxLod);
             BindAndDraw(fbo4Id, pass3TextureId);
 
             PrepareDrawV2D(height / 2.f, withMaxLod);
-            glViewport(0, 0, width / 2.f, height / 2.f);
+            CHECK_GL(glViewport(0, 0, width / 2.f, height / 2.f));
             BindAndDraw(fbo5Id, pass4TextureId);
 
             PrepareDrawH(width / 2.f, withMaxLod);
             BindAndDraw(fbo6Id, pass5TextureId);
 
             PrepareDrawV2D(height, withMaxLod);
-            glViewport(0, 0, width, height);
+            CHECK_GL(glViewport(0, 0, width, height));
             BindAndDraw(fbo7Id, pass6TextureId);
 
             PrepareDrawH(width, withMaxLod);
@@ -905,7 +905,6 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setWindowSurface(
     assert(surface != EGL_NO_SURFACE);
 
     nativeContext->windowSurface = std::make_pair(nativeWindow, surface);
-
     eglMakeCurrent(nativeContext->display, surface, surface, nativeContext->context);
 
     auto width = ANativeWindow_getWidth(nativeWindow);
@@ -969,9 +968,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     auto height = ANativeWindow_getHeight(nativeWindow);
     CHECK_GL(glScissor(0, 0, width, height));
 
-    glEnable(GL_STENCIL_TEST);
-    glClear(GL_STENCIL_BUFFER_BIT);
-    glDisable(GL_STENCIL_TEST);
+    CHECK_GL(glEnable(GL_STENCIL_TEST));
+    CHECK_GL(glClear(GL_STENCIL_BUFFER_BIT));
+    CHECK_GL(glDisable(GL_STENCIL_TEST));
 
     if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
