@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.marker.SimpleARMarker
@@ -24,7 +23,6 @@ import com.lookaround.core.android.view.BoxedSeekbar
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import com.lookaround.ui.camera.model.*
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.markerUpdates
 import com.lookaround.ui.main.model.MainIntent
@@ -131,22 +129,6 @@ class CameraFragment :
         initARCameraPageViews()
         initARCameraRangeViews()
 
-        mainViewModel
-            .bottomSheetStateUpdates
-            .onEach { (state, _) ->
-                when (state) {
-                    BottomSheetBehavior.STATE_COLLAPSED, BottomSheetBehavior.STATE_HIDDEN -> {
-                        changeRadarViewTopGuideline(View.VISIBLE)
-                        showARViews()
-                    }
-                    BottomSheetBehavior.STATE_EXPANDED, BottomSheetBehavior.STATE_DRAGGING -> {
-                        changeRadarViewTopGuideline(View.GONE)
-                        hideARViews()
-                    }
-                }
-            }
-            .launchIn(lifecycleScope)
-
         requireContext()
             .initCamera(
                 lifecycleOwner = this@CameraFragment,
@@ -173,7 +155,16 @@ class CameraFragment :
             .launchIn(lifecycleScope)
 
         cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
-            .onEach { enabled -> openGLRenderer.setBlurEnabled(enabled, true) }
+            .onEach { obscured ->
+                openGLRenderer.setBlurEnabled(obscured, true)
+                if (obscured) {
+                    changeRadarViewTopGuideline(View.GONE)
+                    hideARViews()
+                } else {
+                    changeRadarViewTopGuideline(View.VISIBLE)
+                    showARViews()
+                }
+            }
             .launchIn(lifecycleScope)
 
         arCameraView.onMarkerPressed = ::onMarkerPressed

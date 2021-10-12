@@ -379,7 +379,7 @@ void main() {
         static constexpr GLfloat VERTICES[] = {-1.0f, -1.0f, 3.0f, -1.0f, -1.0f, 3.0f};
         static constexpr GLfloat MAX_LOD = 3.f;
         static constexpr GLfloat MIN_LOD = -3.f;
-        static constexpr GLint LOD_ANIMATION_FRAMES = 30;
+        static constexpr GLint LOD_ANIMATION_FRAMES = 18;
         static constexpr GLfloat LOD_INCREMENT = (NativeContext::MAX_LOD - NativeContext::MIN_LOD) /
                                                  (GLfloat) NativeContext::LOD_ANIMATION_FRAMES;
 
@@ -495,11 +495,47 @@ void main() {
             CHECK_GL(glUniform1f(minLodHandleH, NativeContext::MIN_LOD));
         }
 
-        static void
-        BIND_AND_DRAW(GLuint fboId, GLuint textureId, GLenum texTarget = GL_TEXTURE_2D) {
+        static void BindAndDraw(GLuint fboId, GLuint textureId, GLenum texTarget = GL_TEXTURE_2D) {
             CHECK_GL(glBindFramebuffer(GL_FRAMEBUFFER, fboId));
             CHECK_GL(glBindTexture(texTarget, textureId));
             glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
+
+        static void PrepareStencilForDrawingRects() {
+            glEnable(GL_STENCIL_TEST);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+            glStencilFunc(GL_ALWAYS, 1, 0xFF);
+            glStencilMask(0xFF);
+        }
+
+        void DrawBlurredRects(const GLfloat *vertTransformArray,
+                              const GLfloat *texTransformArray,
+                              int32_t width,
+                              int32_t height) const {
+            glStencilFunc(GL_EQUAL, 1, 0xFF);
+            CHECK_GL(glScissor(0, 0, width, height));
+            DrawBlur(width, height, vertTransformArray, texTransformArray, true);
+        }
+
+        void DrawScissoredRectsInStencil(const GLfloat *vertTransformArray,
+                                         const GLfloat *texTransformArray,
+                                         GLfloat *drawnRectsCoordinates,
+                                         jint jdrawnRectsLength,
+                                         int32_t width,
+                                         int32_t height) const {
+            GLfloat *drawnRectCoordinate = drawnRectsCoordinates;
+            for (uint i = 0; i < jdrawnRectsLength; ++i) {
+                auto rectLeftX = *drawnRectCoordinate;
+                ++drawnRectCoordinate;
+                auto rectBottomY = height - *drawnRectCoordinate;
+                ++drawnRectCoordinate;
+                auto rectWidth = *drawnRectCoordinate;
+                ++drawnRectCoordinate;
+                auto rectHeight = *drawnRectCoordinate;
+                ++drawnRectCoordinate;
+                CHECK_GL(glScissor(rectLeftX, rectBottomY, rectWidth, rectHeight));
+                DrawNoBlur(width, height, vertTransformArray, texTransformArray);
+            }
         }
 
     public:
@@ -534,31 +570,46 @@ void main() {
                       bool withMaxLod = false) const {
             PrepareDrawVOES(height / 2.f, vertTransformArray, texTransformArray, withMaxLod);
             glViewport(0, 0, width / 2.f, height / 2.f);
-            BIND_AND_DRAW(fbo1Id, inputTextureId, GL_TEXTURE_EXTERNAL_OES);
+            BindAndDraw(fbo1Id, inputTextureId, GL_TEXTURE_EXTERNAL_OES);
 
             PrepareDrawH(width / 2.f, withMaxLod);
-            BIND_AND_DRAW(fbo2Id, pass1TextureId);
+            BindAndDraw(fbo2Id, pass1TextureId);
 
             PrepareDrawV2D(height / 4.f, withMaxLod);
             glViewport(0, 0, width / 4.f, height / 4.f);
-            BIND_AND_DRAW(fbo3Id, pass2TextureId);
+            BindAndDraw(fbo3Id, pass2TextureId);
 
             PrepareDrawH(width / 4.f, withMaxLod);
-            BIND_AND_DRAW(fbo4Id, pass3TextureId);
+            BindAndDraw(fbo4Id, pass3TextureId);
 
             PrepareDrawV2D(height / 2.f, withMaxLod);
             glViewport(0, 0, width / 2.f, height / 2.f);
-            BIND_AND_DRAW(fbo5Id, pass4TextureId);
+            BindAndDraw(fbo5Id, pass4TextureId);
 
             PrepareDrawH(width / 2.f, withMaxLod);
-            BIND_AND_DRAW(fbo6Id, pass5TextureId);
+            BindAndDraw(fbo6Id, pass5TextureId);
 
             PrepareDrawV2D(height, withMaxLod);
             glViewport(0, 0, width, height);
-            BIND_AND_DRAW(fbo7Id, pass6TextureId);
+            BindAndDraw(fbo7Id, pass6TextureId);
 
             PrepareDrawH(width, withMaxLod);
-            BIND_AND_DRAW(0, pass7TextureId);
+            BindAndDraw(0, pass7TextureId);
+        }
+
+        void DrawBlurredRects(JNIEnv *env,
+                              const GLfloat *vertTransformArray, const GLfloat *texTransformArray,
+                              jfloatArray jdrawnRectsCoordinates, jint jdrawnRectsLength,
+                              int32_t width, int32_t height) {
+            PrepareStencilForDrawingRects();
+            GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates,
+                                                                        nullptr);
+            DrawScissoredRectsInStencil(vertTransformArray, texTransformArray,
+                                        drawnRectsCoordinates, jdrawnRectsLength,
+                                        width, height);
+            DrawBlurredRects(vertTransformArray, texTransformArray, width, height);
+            env->ReleaseFloatArrayElements(jdrawnRectsCoordinates, drawnRectsCoordinates,
+                                           JNI_ABORT);
         }
     };
 
@@ -925,40 +976,19 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
         nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray);
+
+        if (jdrawnRectsLength > 0 && !nativeContext->blurEnabled) {
+            nativeContext->DrawBlurredRects(env, vertTransformArray, texTransformArray,
+                                            jdrawnRectsCoordinates, jdrawnRectsLength,
+                                            width, height);
+        }
     } else {
+        nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
+
         if (jdrawnRectsLength > 0) {
-            nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
-
-            glEnable(GL_STENCIL_TEST);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-            glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            glStencilMask(0xFF);
-
-            GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates,
-                                                                        nullptr);
-            GLfloat *drawnRectCoordinate = drawnRectsCoordinates;
-            for (uint i = 0; i < jdrawnRectsLength; ++i) {
-                auto markerLeftX = *drawnRectCoordinate;
-                ++drawnRectCoordinate;
-                auto markerBottomY = height - *drawnRectCoordinate;
-                ++drawnRectCoordinate;
-                auto markerWidth = *drawnRectCoordinate;
-                ++drawnRectCoordinate;
-                auto markerHeight = *drawnRectCoordinate;
-                ++drawnRectCoordinate;
-
-                CHECK_GL(glScissor(markerLeftX, markerBottomY, markerWidth, markerHeight));
-                nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
-            }
-
-            glStencilFunc(GL_EQUAL, 1, 0xFF);
-            CHECK_GL(glScissor(0, 0, width, height));
-            nativeContext->DrawBlur(width, height, vertTransformArray, texTransformArray, true);
-
-            env->ReleaseFloatArrayElements(jdrawnRectsCoordinates, drawnRectsCoordinates,
-                                           JNI_ABORT);
-        } else {
-            nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
+            nativeContext->DrawBlurredRects(env, vertTransformArray, texTransformArray,
+                                            jdrawnRectsCoordinates, jdrawnRectsLength,
+                                            width, height);
         }
     }
 
