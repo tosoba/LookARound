@@ -99,6 +99,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                     R.id.action_place_list -> showBottomSheetFragment<PlaceListFragment>()
                     else -> throw IllegalArgumentException()
                 }
+                binding.bottomSheetFragmentContainerView.requestLayout()
                 if (latestARState == ARState.ENABLED) {
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
                 }
