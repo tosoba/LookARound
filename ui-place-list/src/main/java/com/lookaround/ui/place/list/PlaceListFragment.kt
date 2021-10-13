@@ -31,12 +31,14 @@ import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
+import com.lookaround.core.android.model.Empty
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.composable.BottomSheetHeaderText
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
+import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.databinding.FragmentPlaceListBinding
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
@@ -98,10 +100,26 @@ class PlaceListFragment :
         val reloadBitmapTrigger = Channel<Unit>()
         binding.placeMapRecyclerView.setContent {
             LookARoundTheme {
-                val mainState = mainViewModel.states.collectAsState().value
-                val markers = mainState.markers
-                val bottomSheetState = mainState.bottomSheetState.state
+                val markers =
+                    mainViewModel
+                        .states
+                        .map(MainState::markers::get)
+                        .collectAsState(initial = Empty)
+                        .value
                 if (markers is WithValue) {
+                    val bottomSheetState =
+                        mainViewModel
+                            .states
+                            .map { it.bottomSheetState.state }
+                            .collectAsState(initial = BottomSheetBehavior.STATE_HIDDEN)
+                            .value
+                    val bottomSheetSlideOffset =
+                        mainViewModel
+                            .states
+                            .map(MainState::bottomSheetSlideOffset::get)
+                            .collectAsState(initial = -1f)
+                            .value
+
                     val orientation = LocalConfiguration.current.orientation
                     val lazyListState = rememberLazyListState()
                     binding
@@ -110,11 +128,16 @@ class PlaceListFragment :
                         (lazyListState.firstVisibleItemIndex != 0 ||
                             lazyListState.firstVisibleItemScrollOffset != 0) &&
                             bottomSheetState == BottomSheetBehavior.STATE_EXPANDED
+
                     LazyColumn(
                         state = lazyListState,
                         modifier = Modifier.padding(horizontal = 10.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
+                        if (bottomSheetSlideOffset > 0f) {
+                            item { Spacer(Modifier.height((bottomSheetSlideOffset * 112f).dp)) }
+                        }
+
                         stickyHeader {
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,

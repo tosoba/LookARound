@@ -12,6 +12,7 @@ data class MainState(
     val locationState: Loadable<Location> = Empty,
     val bottomSheetState: BottomSheetState =
         BottomSheetState(BottomSheetBehavior.STATE_HIDDEN, false),
+    val bottomSheetSlideOffset: Float = -1f,
     val searchQuery: String = "",
     val searchFocused: Boolean = false
 ) : Parcelable

@@ -231,7 +231,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         binding.searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
-                    val (_, _, _, searchQuery, searchFocused) = viewModel.state
+                    val (_, _, _, _, searchQuery, searchFocused) = viewModel.state
                     SearchBar(
                         state = rememberSearchBarState(searchQuery, searchFocused),
                         onSearchFocusChange = { focused ->
@@ -254,12 +254,13 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             savedInstanceState?.getInt(SavedStateKeys.BOTTOM_SHEET_STATE.name)
 
         with(bottomSheetBehavior) {
-            setBottomSheetCallback(
+            addBottomSheetCallback(
                 object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) =
                         onBottomSheetStateChanged(newState, true)
 
-                    override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
+                    override fun onSlide(bottomSheet: View, slideOffset: Float) =
+                        onBottomSheetSlideChanged(slideOffset)
                 }
             )
 
@@ -317,6 +318,10 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         lifecycleScope.launch {
             viewModel.intent(MainIntent.BottomSheetStateChanged(newState, changedByUser))
         }
+    }
+
+    private fun onBottomSheetSlideChanged(slideOffset: Float) {
+        lifecycleScope.launch { viewModel.intent(MainIntent.BottomSheetSlideChanged(slideOffset)) }
     }
 
     private fun changeSearchbarVisibility(targetVisibility: Int) {

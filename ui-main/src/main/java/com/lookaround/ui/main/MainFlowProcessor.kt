@@ -13,11 +13,11 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.main.model.MainStateUpdate
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class MainFlowProcessor
@@ -49,6 +49,9 @@ constructor(
             },
             intents.filterIsInstance<MainIntent.SearchFocusChanged>().map { (focused) ->
                 MainStateUpdate.SearchFocusChanged(focused)
+            },
+            intents.filterIsInstance<MainIntent.BottomSheetSlideChanged>().map { (slideOffset) ->
+                MainStateUpdate.BottomSheetSlideChanged(slideOffset)
             }
         )
 

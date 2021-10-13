@@ -3,8 +3,6 @@ package com.lookaround.ui.place.types.composable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
@@ -21,7 +19,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.lookaround.core.android.view.composable.BottomSheetHeaderText
 import com.lookaround.core.android.view.composable.LookARoundCard
 import com.lookaround.core.android.view.composable.LookARoundSurface
 import com.lookaround.core.android.view.composable.VerticalGrid
@@ -34,71 +31,7 @@ import dev.chrisbanes.accompanist.coil.CoilImage
 import kotlin.math.max
 
 @Composable
-fun PlaceTypesView(onPlaceTypeClicked: (IPlaceType) -> Unit) {
-    PlaceTypes(
-        listOf(
-            PlaceTypeGroup(
-                name = "General",
-                placeTypes =
-                    listOf(
-                        PlaceType(
-                            wrapped = Amenity.PARKING,
-                            imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
-                        ),
-                        PlaceType(
-                            wrapped = Amenity.RESTAURANT,
-                            imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
-                        ),
-                        PlaceType(
-                            wrapped = Amenity.FUEL,
-                            imageUrl = "https://source.unsplash.com/_jk8KIyN_uA"
-                        ),
-                        PlaceType(
-                            wrapped = Amenity.BANK,
-                            imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
-                        )
-                    )
-            ),
-        ),
-        onPlaceTypeClicked
-    )
-}
-
-@Composable
-private fun PlaceTypes(groups: List<PlaceTypeGroup>, onClick: (IPlaceType) -> Unit = {}) {
-    Column {
-        BottomSheetHeaderText("Categories")
-        LazyColumn {
-            itemsIndexed(groups) { index, group -> PlaceTypeGroup(group, index, onClick = onClick) }
-        }
-        Spacer(Modifier.height(8.dp))
-    }
-}
-
-@Composable
-private fun PlaceTypeImage(
-    imageUrl: String,
-    contentDescription: String?,
-    modifier: Modifier = Modifier,
-    elevation: Dp = 0.dp
-) {
-    LookARoundSurface(
-        color = Color.LightGray,
-        elevation = elevation,
-        shape = CircleShape,
-        modifier = modifier
-    ) {
-        CoilImage(
-            data = imageUrl,
-            contentDescription = contentDescription,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}
-
-@Composable
-private fun PlaceTypeGroup(
+internal fun PlaceTypeGroupItem(
     group: PlaceTypeGroup,
     index: Int,
     modifier: Modifier = Modifier,
@@ -122,6 +55,28 @@ private fun PlaceTypeGroup(
             }
         }
         Spacer(Modifier.height(4.dp))
+    }
+}
+
+@Composable
+private fun PlaceTypeImage(
+    imageUrl: String,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    elevation: Dp = 0.dp
+) {
+    LookARoundSurface(
+        color = Color.LightGray,
+        elevation = elevation,
+        shape = CircleShape,
+        modifier = modifier
+    ) {
+        CoilImage(
+            data = imageUrl,
+            contentDescription = contentDescription,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 

@@ -56,6 +56,11 @@ sealed class MainStateUpdate : StateUpdate<MainState> {
         override fun invoke(state: MainState): MainState = state.copy(bottomSheetState = sheetState)
     }
 
+    data class BottomSheetSlideChanged(val slideOffset: Float) : MainStateUpdate() {
+        override fun invoke(state: MainState): MainState =
+            state.copy(bottomSheetSlideOffset = slideOffset)
+    }
+
     data class SearchQueryChanged(val query: String) : MainStateUpdate() {
         override fun invoke(state: MainState): MainState =
             if (state.searchQuery == query) state else state.copy(searchQuery = query)
