@@ -12,14 +12,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -98,6 +93,13 @@ class PlaceListFragment :
         binding.map.layoutParams = mapLayoutParams
 
         val reloadBitmapTrigger = Channel<Unit>()
+        binding.reloadMapsFab.setOnClickListener {
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) { mapCaptureCache.clear() }
+                reloadBitmapTrigger.send(Unit)
+            }
+        }
+
         binding.placeMapRecyclerView.setContent {
             LookARoundTheme {
                 val markers =
@@ -122,12 +124,16 @@ class PlaceListFragment :
 
                     val orientation = LocalConfiguration.current.orientation
                     val lazyListState = rememberLazyListState()
+
                     binding
                         .disallowInterceptTouchContainer
                         .shouldRequestDisallowInterceptTouchEvent =
                         (lazyListState.firstVisibleItemIndex != 0 ||
                             lazyListState.firstVisibleItemScrollOffset != 0) &&
                             bottomSheetState == BottomSheetBehavior.STATE_EXPANDED
+                    binding.reloadMapsFab.visibility =
+                        if (bottomSheetState == BottomSheetBehavior.STATE_EXPANDED) View.VISIBLE
+                        else View.GONE
 
                     LazyColumn(
                         state = lazyListState,
@@ -138,28 +144,7 @@ class PlaceListFragment :
                             item { Spacer(Modifier.height((bottomSheetSlideOffset * 112f).dp)) }
                         }
 
-                        stickyHeader {
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.wrapContentHeight()
-                            ) {
-                                BottomSheetHeaderText("Places")
-                                IconButton(
-                                    onClick = {
-                                        lifecycleScope.launch {
-                                            withContext(Dispatchers.IO) { mapCaptureCache.clear() }
-                                            reloadBitmapTrigger.send(Unit)
-                                        }
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Refresh,
-                                        tint = LookARoundTheme.colors.iconPrimary,
-                                        contentDescription = stringResource(R.string.refresh)
-                                    )
-                                }
-                            }
-                        }
+                        stickyHeader { BottomSheetHeaderText("Places") }
 
                         items(
                             markers.value.chunked(
