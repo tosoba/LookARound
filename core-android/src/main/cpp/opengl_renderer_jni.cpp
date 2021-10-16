@@ -133,7 +133,7 @@ in vec4 position;
 out vec2 texCoord;
 
 void main() {
-    texCoord = ((vertTransform * vec4(position.xy, 0, 1.0)).xy + vec2(1.0)) * 0.5;
+    texCoord = ((vertTransform * vec4(position.xy, 0., 1.)).xy + vec2(1.)) * 0.5;
     gl_Position = position;
 }
 )SRC";
@@ -148,7 +148,7 @@ in vec4 position;
 out vec2 texCoord;
 
 void main() {
-    texCoord = ((vertTransform * vec4(position.xy, 0, 1.0)).xy + vec2(1.0)) * 0.5;
+    texCoord = ((vertTransform * vec4(position.xy, 0., 1.)).xy + vec2(1.)) * 0.5;
     gl_Position = position;
 }
 )SRC";
@@ -161,7 +161,7 @@ in vec4 position;
 out vec2 texCoord;
 
 void main() {
-    texCoord = (position.xy + vec2(1.0)) * 0.5;
+    texCoord = (position.xy + vec2(1.)) * 0.5;
     gl_Position = position;
 }
 )SRC";
@@ -173,13 +173,39 @@ precision mediump int;
 
 uniform samplerExternalOES sampler;
 uniform mat4 texTransform;
+uniform float width;
+uniform float height;
+uniform bool roundCorners;
 
 in vec2 texCoord;
 out vec4 fragColor;
 
+const float PI = 3.14159265;
+
+float udRoundBox( vec2 p, vec2 b, float r ) {
+    return length(max(abs(p) - b + r, 0.)) - r;
+}
+
+float computeBox() {
+    float iRadius = min(width, height) * 0.2;
+    vec2 halfRes = 0.5 * vec2(width, height);
+    return udRoundBox(gl_FragCoord.xy - halfRes, halfRes, iRadius);
+}
+
 void main() {
-    vec2 transTexCoord = (texTransform * vec4(texCoord, 0, 1.0)).xy;
-    fragColor = texture(sampler, transTexCoord);
+    vec2 transTexCoord = (texTransform * vec4(texCoord, 0., 1.)).xy;
+    vec4 texColor = texture(sampler, transTexCoord);
+    if (roundCorners) {
+        float box = computeBox();
+        vec3 color = mix(texColor.rgb, vec3(0.), smoothstep(0., 1., box));
+        if (color == vec3(0.)) {
+            discard;
+        } else {
+            fragColor = vec4(color, texColor.a);
+        }
+    } else {
+        fragColor = texColor;
+    }
 }
 )SRC";
 
@@ -214,7 +240,7 @@ vec4 gaussBlur( samplerExternalOES tex, vec2 uv, vec2 d, float l )
 }
 
 void main() {
-    vec2 transTexCoord = (texTransform * vec4(texCoord, 0, 1.0)).xy;
+    vec2 transTexCoord = (texTransform * vec4(texCoord, 0., 1.)).xy;
     if (lod > minLod) {
         fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), lod);
     } else {
@@ -309,6 +335,9 @@ void main() {
         GLint samplerHandleNoBlur;
         GLint vertTransformHandleNoBlur;
         GLint texTransformHandleNoBlur;
+        GLint widthHandleNoBlur;
+        GLint heightHandleNoBlur;
+        GLint roundCornersHandleNoBlur;
 
         GLuint programVOES;
         GLint positionHandleVOES;
@@ -396,6 +425,9 @@ void main() {
                   samplerHandleNoBlur(-1),
                   vertTransformHandleNoBlur(-1),
                   texTransformHandleNoBlur(-1),
+                  widthHandleNoBlur(-1),
+                  heightHandleNoBlur(-1),
+                  roundCornersHandleNoBlur(-1),
                   programVOES(-1),
                   positionHandleVOES(-1),
                   samplerHandleVOES(-1),
@@ -437,7 +469,10 @@ void main() {
 
     private:
         void PrepareDrawNoBlur(const GLfloat *vertTransformArray,
-                               const GLfloat *texTransformArray) const {
+                               const GLfloat *texTransformArray,
+                               GLfloat width,
+                               GLfloat height,
+                               GLboolean roundCorners) const {
             CHECK_GL(glVertexAttribPointer(positionHandleNoBlur,
                                            vertexComponents, vertexType, normalized,
                                            vertexStride, VERTICES));
@@ -448,6 +483,9 @@ void main() {
             CHECK_GL(glUniform1i(samplerHandleNoBlur, 0));
             CHECK_GL(glUniformMatrix4fv(texTransformHandleNoBlur, numMatrices,
                                         transpose, texTransformArray));
+            CHECK_GL(glUniform1f(widthHandleNoBlur, width));
+            CHECK_GL(glUniform1f(heightHandleNoBlur, height));
+            CHECK_GL(glUniform1i(roundCornersHandleNoBlur, roundCorners));
             CHECK_GL(glBindTexture(GL_TEXTURE_EXTERNAL_OES, inputTextureId));
         }
 
@@ -534,7 +572,8 @@ void main() {
                 auto rectHeight = *drawnRectCoordinate;
                 ++drawnRectCoordinate;
                 CHECK_GL(glScissor(rectLeftX, rectBottomY, rectWidth, rectHeight));
-                DrawNoBlur(width, height, vertTransformArray, texTransformArray);
+                DrawNoBlur(rectLeftX, rectBottomY, rectWidth, rectHeight, vertTransformArray,
+                           texTransformArray, GL_TRUE);
             }
         }
 
@@ -554,12 +593,15 @@ void main() {
             }
         }
 
-        void DrawNoBlur(GLfloat width,
+        void DrawNoBlur(GLint x,
+                        GLint y,
+                        GLfloat width,
                         GLfloat height,
                         const GLfloat *vertTransformArray,
-                        const GLfloat *texTransformArray) const {
-            PrepareDrawNoBlur(vertTransformArray, texTransformArray);
-            CHECK_GL(glViewport(0, 0, width, height));
+                        const GLfloat *texTransformArray,
+                        GLboolean roundCorners = GL_FALSE) const {
+            PrepareDrawNoBlur(vertTransformArray, texTransformArray, width, height, roundCorners);
+            CHECK_GL(glViewport(x, y, width, height));
             CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, 3));
         }
 
@@ -810,6 +852,15 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->texTransformHandleNoBlur =
             CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "texTransform"));
     assert(nativeContext->texTransformHandleNoBlur != -1);
+    nativeContext->widthHandleNoBlur =
+            CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "width"));
+    assert(nativeContext->widthHandleNoBlur != -1);
+    nativeContext->heightHandleNoBlur =
+            CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "height"));
+    assert(nativeContext->heightHandleNoBlur != -1);
+    nativeContext->roundCornersHandleNoBlur =
+            CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "roundCorners"));
+    assert(nativeContext->roundCornersHandleNoBlur != -1);
 
     nativeContext->programVOES = CreateGlProgram(VERTEX_SHADER_SRC_TRANSFORM,
                                                  FRAGMENT_SHADER_SRC_V_OES);
@@ -982,7 +1033,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
                                             width, height);
         }
     } else {
-        nativeContext->DrawNoBlur(width, height, vertTransformArray, texTransformArray);
+        nativeContext->DrawNoBlur(0, 0, width, height, vertTransformArray, texTransformArray);
 
         if (jdrawnRectsLength > 0) {
             nativeContext->DrawBlurredRects(env, vertTransformArray, texTransformArray,
