@@ -175,12 +175,12 @@ uniform samplerExternalOES sampler;
 uniform mat4 texTransform;
 uniform float width;
 uniform float height;
+uniform int x;
+uniform int y;
 uniform bool roundCorners;
 
 in vec2 texCoord;
 out vec4 fragColor;
-
-const float PI = 3.14159265;
 
 float udRoundBox(vec2 p, vec2 b, float r) {
     return length(max(abs(p) - b + r, 0.)) - r;
@@ -189,7 +189,8 @@ float udRoundBox(vec2 p, vec2 b, float r) {
 float computeBox() {
     float radius = 100.;
     vec2 res = vec2(width, height);
-    return udRoundBox(2. * gl_FragCoord.xy - res, res, radius);
+    vec2 coord = vec2(gl_FragCoord.x - float(x), gl_FragCoord.y - float(y));
+    return udRoundBox(2. * coord - res, res, radius);
 }
 
 void main() {
@@ -337,6 +338,8 @@ void main() {
         GLint texTransformHandleNoBlur;
         GLint widthHandleNoBlur;
         GLint heightHandleNoBlur;
+        GLint xHandleNoBlur;
+        GLint yHandleNoBlur;
         GLint roundCornersHandleNoBlur;
 
         GLuint programVOES;
@@ -427,6 +430,8 @@ void main() {
                   texTransformHandleNoBlur(-1),
                   widthHandleNoBlur(-1),
                   heightHandleNoBlur(-1),
+                  xHandleNoBlur(-1),
+                  yHandleNoBlur(-1),
                   roundCornersHandleNoBlur(-1),
                   programVOES(-1),
                   positionHandleVOES(-1),
@@ -470,6 +475,8 @@ void main() {
     private:
         void PrepareDrawNoBlur(const GLfloat *vertTransformArray,
                                const GLfloat *texTransformArray,
+                               GLint x,
+                               GLint y,
                                GLfloat width,
                                GLfloat height,
                                GLboolean roundCorners) const {
@@ -485,6 +492,8 @@ void main() {
                                         transpose, texTransformArray));
             CHECK_GL(glUniform1f(widthHandleNoBlur, width));
             CHECK_GL(glUniform1f(heightHandleNoBlur, height));
+            CHECK_GL(glUniform1i(xHandleNoBlur, width));
+            CHECK_GL(glUniform1i(yHandleNoBlur, height));
             CHECK_GL(glUniform1i(roundCornersHandleNoBlur, roundCorners));
             CHECK_GL(glBindTexture(GL_TEXTURE_EXTERNAL_OES, inputTextureId));
         }
@@ -600,7 +609,8 @@ void main() {
                         const GLfloat *vertTransformArray,
                         const GLfloat *texTransformArray,
                         GLboolean roundCorners = GL_FALSE) const {
-            PrepareDrawNoBlur(vertTransformArray, texTransformArray, width, height, roundCorners);
+            PrepareDrawNoBlur(vertTransformArray, texTransformArray, x, y, width, height,
+                              roundCorners);
             CHECK_GL(glViewport(x, y, width, height));
             CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, 3));
         }
@@ -858,6 +868,12 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->heightHandleNoBlur =
             CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "height"));
     assert(nativeContext->heightHandleNoBlur != -1);
+    nativeContext->xHandleNoBlur =
+            CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "x"));
+    assert(nativeContext->xHandleNoBlur != -1);
+    nativeContext->yHandleNoBlur =
+            CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "y"));
+    assert(nativeContext->yHandleNoBlur != -1);
     nativeContext->roundCornersHandleNoBlur =
             CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "roundCorners"));
     assert(nativeContext->roundCornersHandleNoBlur != -1);
