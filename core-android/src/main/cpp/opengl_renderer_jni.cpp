@@ -182,14 +182,14 @@ out vec4 fragColor;
 
 const float PI = 3.14159265;
 
-float udRoundBox( vec2 p, vec2 b, float r ) {
+float udRoundBox(vec2 p, vec2 b, float r) {
     return length(max(abs(p) - b + r, 0.)) - r;
 }
 
 float computeBox() {
-    float iRadius = min(width, height) * 0.2;
-    vec2 halfRes = 0.5 * vec2(width, height);
-    return udRoundBox(gl_FragCoord.xy - halfRes, halfRes, iRadius);
+    float radius = 100.;
+    vec2 res = vec2(width, height);
+    return udRoundBox(2. * gl_FragCoord.xy - res, res, radius);
 }
 
 void main() {
@@ -198,7 +198,7 @@ void main() {
     if (roundCorners) {
         float box = computeBox();
         vec3 color = mix(texColor.rgb, vec3(0.), smoothstep(0., 1., box));
-        if (color == vec3(0.)) {
+        if (box > 1.) {
             discard;
         } else {
             fragColor = vec4(color, texColor.a);
