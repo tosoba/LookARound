@@ -98,7 +98,12 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
     private inline fun <reified F : Fragment> FragmentTransaction.showBottomSheetFragment() {
         if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
-            setCustomAnimations(R.anim.slide_in, R.anim.slide_out)
+            when (F::class.java) {
+                PlaceTypesFragment::class.java ->
+                    setCustomAnimations(R.anim.slide_in_from_left, R.anim.slide_out_to_left)
+                PlaceListFragment::class.java ->
+                    setCustomAnimations(R.anim.slide_in_from_right, R.anim.slide_out_to_right)
+            }
         }
         bottomSheetFragments
             .filter { (clazz, fragment) -> clazz != F::class.java && fragment.isAdded }
