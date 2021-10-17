@@ -256,8 +256,18 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         with(bottomSheetBehavior) {
             addBottomSheetCallback(
                 object : BottomSheetBehavior.BottomSheetCallback() {
-                    override fun onStateChanged(bottomSheet: View, newState: Int) =
+                    override fun onStateChanged(bottomSheet: View, newState: Int) {
                         onBottomSheetStateChanged(newState, true)
+                        onBottomSheetSlideChanged(
+                            slideOffset =
+                                when (newState) {
+                                    BottomSheetBehavior.STATE_EXPANDED -> 1f
+                                    BottomSheetBehavior.STATE_COLLAPSED -> 0f
+                                    BottomSheetBehavior.STATE_HIDDEN -> -1f
+                                    else -> return
+                                }
+                        )
+                    }
 
                     override fun onSlide(bottomSheet: View, slideOffset: Float) =
                         onBottomSheetSlideChanged(slideOffset)
