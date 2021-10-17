@@ -146,6 +146,12 @@ class PlaceListFragment :
 
                         stickyHeader { BottomSheetHeaderText("Places") }
 
+                        if (bottomSheetState == BottomSheetBehavior.STATE_COLLAPSED ||
+                                bottomSheetState == BottomSheetBehavior.STATE_HIDDEN
+                        ) {
+                            return@LazyColumn
+                        }
+
                         items(
                             markers.value.chunked(
                                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
