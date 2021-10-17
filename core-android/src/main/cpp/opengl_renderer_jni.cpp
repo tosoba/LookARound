@@ -202,7 +202,7 @@ void main() {
         if (box > 1.) {
             discard;
         } else {
-            fragColor = vec4(color, texColor.a);
+            fragColor = texColor;
         }
     } else {
         fragColor = texColor;
@@ -492,8 +492,8 @@ void main() {
                                         transpose, texTransformArray));
             CHECK_GL(glUniform1f(widthHandleNoBlur, width));
             CHECK_GL(glUniform1f(heightHandleNoBlur, height));
-            CHECK_GL(glUniform1i(xHandleNoBlur, width));
-            CHECK_GL(glUniform1i(yHandleNoBlur, height));
+            CHECK_GL(glUniform1i(xHandleNoBlur, x));
+            CHECK_GL(glUniform1i(yHandleNoBlur, y));
             CHECK_GL(glUniform1i(roundCornersHandleNoBlur, roundCorners));
             CHECK_GL(glBindTexture(GL_TEXTURE_EXTERNAL_OES, inputTextureId));
         }
