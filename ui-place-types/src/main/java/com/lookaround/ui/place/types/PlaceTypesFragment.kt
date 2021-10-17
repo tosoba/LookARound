@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.lookaround.core.android.ext.assistedActivityViewModel
-import com.lookaround.core.android.view.composable.BottomSheetHeaderText
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.Amenity
 import com.lookaround.ui.main.MainViewModel
@@ -58,8 +57,6 @@ class PlaceTypesFragment : Fragment() {
                         if (bottomSheetSlideOffset > 0f) {
                             item { Spacer(Modifier.height((bottomSheetSlideOffset * 112f).dp)) }
                         }
-
-                        stickyHeader { BottomSheetHeaderText("Categories") }
 
                         itemsIndexed(
                             listOf(

@@ -1,5 +1,6 @@
 package com.lookaround.ui.main.model
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.base.arch.StateUpdate
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
@@ -53,7 +54,17 @@ sealed class MainStateUpdate : StateUpdate<MainState> {
     }
 
     data class BottomSheetStateChanged(val sheetState: BottomSheetState) : MainStateUpdate() {
-        override fun invoke(state: MainState): MainState = state.copy(bottomSheetState = sheetState)
+        override fun invoke(state: MainState): MainState =
+            state.copy(
+                bottomSheetState = sheetState,
+                bottomSheetSlideOffset =
+                    when (sheetState.state) {
+                        BottomSheetBehavior.STATE_EXPANDED -> 1f
+                        BottomSheetBehavior.STATE_COLLAPSED -> 0f
+                        BottomSheetBehavior.STATE_HIDDEN -> -1f
+                        else -> state.bottomSheetSlideOffset
+                    }
+            )
     }
 
     data class BottomSheetSlideChanged(val slideOffset: Float) : MainStateUpdate() {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -12,39 +12,24 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <LinearLayout
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/bottom_sheet_fragment_container_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:weightSum="1">
+        android:visibility="gone"
+        app:behavior_hideable="true"
+        app:behavior_skipCollapsed="true"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" />
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/bottom_sheet_fragment_container_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:behavior_hideable="true"
-                app:behavior_peekHeight="55dp"
-                app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" />
-
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottom_navigation_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="@android:color/transparent"
-            android:visibility="gone"
-            app:elevation="0dp"
-            app:itemHorizontalTranslationEnabled="false"
-            app:menu="@menu/main_bottom_nav_menu" />
-
-    </LinearLayout>
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@android:color/transparent"
+        app:elevation="0dp"
+        app:itemHorizontalTranslationEnabled="false"
+        app:menu="@menu/main_bottom_nav_menu" />
 
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/search_bar_view"
@@ -53,4 +38,4 @@
         android:layout_gravity="top"
         android:visibility="gone" />
 
-</FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

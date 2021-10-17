@@ -3,4 +3,5 @@
     <string name="place_types">Place types</string>
     <string name="places">Places</string>
     <string name="place_maps">Place maps</string>
+    <string name="unchecked">Unchecked</string>
 </resources>

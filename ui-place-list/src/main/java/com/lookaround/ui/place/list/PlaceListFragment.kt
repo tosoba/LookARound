@@ -28,7 +28,6 @@ import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Empty
 import com.lookaround.core.android.model.WithValue
-import com.lookaround.core.android.view.composable.BottomSheetHeaderText
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
@@ -143,8 +142,6 @@ class PlaceListFragment :
                         if (bottomSheetSlideOffset > 0f) {
                             item { Spacer(Modifier.height((bottomSheetSlideOffset * 112f).dp)) }
                         }
-
-                        stickyHeader { BottomSheetHeaderText("Places") }
 
                         if (bottomSheetState == BottomSheetBehavior.STATE_COLLAPSED ||
                                 bottomSheetState == BottomSheetBehavior.STATE_HIDDEN
