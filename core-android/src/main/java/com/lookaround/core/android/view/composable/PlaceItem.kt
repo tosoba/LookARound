@@ -68,6 +68,7 @@ fun PlaceInfoItem(text: String, color: Color, modifier: Modifier = Modifier) {
 @Composable
 fun LookARoundCard(
     modifier: Modifier = Modifier,
+    backgroundColor: Color = Color.White,
     elevation: Dp = 4.dp,
     shape: Shape = RoundedCornerShape(12.dp),
     content: @Composable () -> Unit
@@ -75,7 +76,7 @@ fun LookARoundCard(
     Card(
         elevation = elevation,
         shape = shape,
-        backgroundColor = Color.White,
+        backgroundColor = backgroundColor,
         modifier = modifier,
         content = content
     )

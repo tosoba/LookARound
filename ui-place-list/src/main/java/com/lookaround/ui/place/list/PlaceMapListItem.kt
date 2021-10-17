@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -42,7 +43,11 @@ internal fun PlaceMapListItem(
     }
     val userLocationState = userLocationFlow.collectAsState(initial = null)
 
-    LookARoundCard(modifier = modifier) {
+    LookARoundCard(
+        backgroundColor = Color.White.copy(alpha = .5f),
+        elevation = 0.dp,
+        modifier = modifier
+    ) {
         Column {
             val bitmapModifier = Modifier.width(bitmapDimension.dp).height(bitmapDimension.dp)
             bitmap?.let {
