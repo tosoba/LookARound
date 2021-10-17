@@ -331,59 +331,59 @@ void main() {
         std::pair<ANativeWindow *, EGLSurface> windowSurface;
         EGLSurface bufferSurface;
 
-        GLuint programNoBlur;
-        GLint positionHandleNoBlur;
-        GLint samplerHandleNoBlur;
-        GLint vertTransformHandleNoBlur;
-        GLint texTransformHandleNoBlur;
-        GLint widthHandleNoBlur;
-        GLint heightHandleNoBlur;
-        GLint xHandleNoBlur;
-        GLint yHandleNoBlur;
-        GLint roundCornersHandleNoBlur;
+        GLuint programNoBlur = -1;
+        GLint positionHandleNoBlur = -1;
+        GLint samplerHandleNoBlur = -1;
+        GLint vertTransformHandleNoBlur = -1;
+        GLint texTransformHandleNoBlur = -1;
+        GLint widthHandleNoBlur = -1;
+        GLint heightHandleNoBlur = -1;
+        GLint xHandleNoBlur = -1;
+        GLint yHandleNoBlur = -1;
+        GLint roundCornersHandleNoBlur = -1;
 
-        GLuint programVOES;
-        GLint positionHandleVOES;
-        GLint samplerHandleVOES;
-        GLint vertTransformHandleVOES;
-        GLint texTransformHandleVOES;
-        GLint heightHandleVOES;
-        GLint lodHandleVOES;
-        GLint minLodHandleVOES;
+        GLuint programVOES = -1;
+        GLint positionHandleVOES = -1;
+        GLint samplerHandleVOES = -1;
+        GLint vertTransformHandleVOES = -1;
+        GLint texTransformHandleVOES = -1;
+        GLint heightHandleVOES = -1;
+        GLint lodHandleVOES = -1;
+        GLint minLodHandleVOES = -1;
 
-        GLuint programH;
-        GLint positionHandleH;
-        GLint samplerHandleH;
-        GLint widthHandleH;
-        GLint lodHandleH;
-        GLint minLodHandleH;
+        GLuint programH = -1;
+        GLint positionHandleH = -1;
+        GLint samplerHandleH = -1;
+        GLint widthHandleH = -1;
+        GLint lodHandleH = -1;
+        GLint minLodHandleH = -1;
 
-        GLuint programV2D;
-        GLint positionHandleV2D;
-        GLint samplerHandleV2D;
-        GLint heightHandleV2D;
-        GLint lodHandleV2D;
-        GLint minLodHandleV2D;
+        GLuint programV2D = -1;
+        GLint positionHandleV2D = -1;
+        GLint samplerHandleV2D = -1;
+        GLint heightHandleV2D = -1;
+        GLint lodHandleV2D = -1;
+        GLint minLodHandleV2D = -1;
 
-        GLuint inputTextureId;
-        GLuint pass1TextureId;
-        GLuint fbo1Id;
-        GLuint pass2TextureId;
-        GLuint fbo2Id;
-        GLuint pass3TextureId;
-        GLuint fbo3Id;
-        GLuint pass4TextureId;
-        GLuint fbo4Id;
-        GLuint pass5TextureId;
-        GLuint fbo5Id;
-        GLuint pass6TextureId;
-        GLuint fbo6Id;
-        GLuint pass7TextureId;
-        GLuint fbo7Id;
+        GLuint inputTextureId = -1;
+        GLuint pass1TextureId = -1;
+        GLuint fbo1Id = -1;
+        GLuint pass2TextureId = -1;
+        GLuint fbo2Id = -1;
+        GLuint pass3TextureId = -1;
+        GLuint fbo3Id = -1;
+        GLuint pass4TextureId = -1;
+        GLuint fbo4Id = -1;
+        GLuint pass5TextureId = -1;
+        GLuint fbo5Id = -1;
+        GLuint pass6TextureId = -1;
+        GLuint fbo6Id = -1;
+        GLuint pass7TextureId = -1;
+        GLuint fbo7Id = -1;
 
-        GLboolean blurEnabled;
-        GLfloat lod;
-        GLint currentAnimationFrame;
+        GLboolean blurEnabled = GL_FALSE;
+        GLfloat lod = MIN_LOD;
+        GLint currentAnimationFrame = -1;
 
         GLint vertexComponents = 2;
         GLenum vertexType = GL_FLOAT;
@@ -415,62 +415,17 @@ void main() {
         static constexpr GLfloat LOD_INCREMENT = (NativeContext::MAX_LOD - NativeContext::MIN_LOD) /
                                                  (GLfloat) NativeContext::LOD_ANIMATION_FRAMES;
 
-        NativeContext(EGLDisplay display, EGLConfig config, EGLContext context,
-                      ANativeWindow *window, EGLSurface surface,
+        NativeContext(EGLDisplay display,
+                      EGLConfig config,
+                      EGLContext context,
+                      ANativeWindow *window,
+                      EGLSurface surface,
                       EGLSurface pbufferSurface)
                 : display(display),
                   config(config),
                   context(context),
                   windowSurface(std::make_pair(window, surface)),
-                  bufferSurface(pbufferSurface),
-                  programNoBlur(-1),
-                  positionHandleNoBlur(-1),
-                  samplerHandleNoBlur(-1),
-                  vertTransformHandleNoBlur(-1),
-                  texTransformHandleNoBlur(-1),
-                  widthHandleNoBlur(-1),
-                  heightHandleNoBlur(-1),
-                  xHandleNoBlur(-1),
-                  yHandleNoBlur(-1),
-                  roundCornersHandleNoBlur(-1),
-                  programVOES(-1),
-                  positionHandleVOES(-1),
-                  samplerHandleVOES(-1),
-                  vertTransformHandleVOES(-1),
-                  texTransformHandleVOES(-1),
-                  heightHandleVOES(-1),
-                  lodHandleVOES(-1),
-                  minLodHandleVOES(-1),
-                  programH(-1),
-                  positionHandleH(-1),
-                  samplerHandleH(-1),
-                  widthHandleH(-1),
-                  lodHandleH(-1),
-                  minLodHandleH(-1),
-                  programV2D(-1),
-                  positionHandleV2D(-1),
-                  samplerHandleV2D(-1),
-                  heightHandleV2D(-1),
-                  lodHandleV2D(-1),
-                  minLodHandleV2D(-1),
-                  inputTextureId(-1),
-                  pass1TextureId(-1),
-                  fbo1Id(-1),
-                  pass2TextureId(-1),
-                  fbo2Id(-1),
-                  pass3TextureId(-1),
-                  fbo3Id(-1),
-                  pass4TextureId(-1),
-                  fbo4Id(-1),
-                  pass5TextureId(-1),
-                  fbo5Id(-1),
-                  pass6TextureId(-1),
-                  fbo6Id(-1),
-                  pass7TextureId(-1),
-                  fbo7Id(-1),
-                  blurEnabled(GL_FALSE),
-                  lod(MIN_LOD),
-                  currentAnimationFrame(-1) {}
+                  bufferSurface(pbufferSurface) {}
 
     private:
         void PrepareDrawNoBlur(const GLfloat *vertTransformArray,
