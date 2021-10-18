@@ -32,6 +32,7 @@ import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.databinding.FragmentPlaceListBinding
 import com.mapzen.tangram.*
@@ -110,14 +111,16 @@ class PlaceListFragment :
                 if (markers is WithValue) {
                     val bottomSheetState =
                         mainViewModel
-                            .states
-                            .map { it.bottomSheetState.state }
+                            .signals
+                            .filterIsInstance<MainSignal.BottomSheetStateChanged>()
+                            .map(MainSignal.BottomSheetStateChanged::state::get)
                             .collectAsState(initial = BottomSheetBehavior.STATE_HIDDEN)
                             .value
                     val bottomSheetSlideOffset =
                         mainViewModel
-                            .states
-                            .map(MainState::bottomSheetSlideOffset::get)
+                            .signals
+                            .filterIsInstance<MainSignal.BottomSheetSlideChanged>()
+                            .map(MainSignal.BottomSheetSlideChanged::slideOffset::get)
                             .collectAsState(initial = -1f)
                             .value
 
@@ -143,11 +146,7 @@ class PlaceListFragment :
                             item { Spacer(Modifier.height((bottomSheetSlideOffset * 112f).dp)) }
                         }
 
-                        if (bottomSheetState == BottomSheetBehavior.STATE_COLLAPSED ||
-                                bottomSheetState == BottomSheetBehavior.STATE_HIDDEN
-                        ) {
-                            return@LazyColumn
-                        }
+                        if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN) return@LazyColumn
 
                         items(
                             markers.value.chunked(

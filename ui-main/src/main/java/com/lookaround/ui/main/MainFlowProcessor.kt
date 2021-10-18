@@ -2,7 +2,6 @@ package com.lookaround.ui.main
 
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.base.arch.FlowProcessor
-import com.lookaround.core.android.model.BottomSheetState
 import com.lookaround.core.android.model.LocationFactory
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.model.LocationDataDTO
@@ -43,15 +42,14 @@ constructor(
             intents.filterIsInstance<MainIntent.LocationPermissionDenied>().map {
                 MainStateUpdate.LocationPermissionDenied
             },
-            bottomSheetStateUpdates(intents, currentState),
             intents.filterIsInstance<MainIntent.SearchQueryChanged>().map { (query) ->
                 MainStateUpdate.SearchQueryChanged(query)
             },
             intents.filterIsInstance<MainIntent.SearchFocusChanged>().map { (focused) ->
                 MainStateUpdate.SearchFocusChanged(focused)
             },
-            intents.filterIsInstance<MainIntent.BottomSheetSlideChanged>().map { (slideOffset) ->
-                MainStateUpdate.BottomSheetSlideChanged(slideOffset)
+            intents.filterIsInstance<MainIntent.LiveBottomSheetStateChanged>().map { (sheetState) ->
+                MainStateUpdate.LiveBottomSheetStateChanged(sheetState)
             }
         )
 
@@ -122,21 +120,6 @@ constructor(
                             )
                     }
                 }
-
-    private fun bottomSheetStateUpdates(
-        intents: Flow<MainIntent>,
-        currentState: () -> MainState
-    ): Flow<MainStateUpdate.BottomSheetStateChanged> =
-        intents
-            .filterIsInstance<MainIntent.BottomSheetStateChanged>()
-            .distinctUntilChanged()
-            .filterNot { (newSheetState, isChangedByUser) ->
-                val (currentSheetState, wasChangedByUser) = currentState().bottomSheetState
-                currentSheetState == newSheetState && !wasChangedByUser && isChangedByUser
-            }
-            .map { (sheetState, changedByUser) ->
-                MainStateUpdate.BottomSheetStateChanged(BottomSheetState(sheetState, changedByUser))
-            }
 
     companion object {
         private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L

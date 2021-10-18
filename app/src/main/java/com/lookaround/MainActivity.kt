@@ -53,8 +53,6 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         lazy(LazyThreadSafetyMode.NONE) {
             BottomSheetBehavior.from(binding.bottomSheetFragmentContainerView)
         }
-    private var lastLiveBottomSheetState: Int? = null
-
     private var latestARState: ARState? = null
     private var selectedBottomNavigationViewItemId: Int = R.id.action_unchecked
 
@@ -126,7 +124,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         window.statusBarColor = Color.TRANSPARENT
 
         initSearch()
-        initBottomSheet(savedInstanceState)
+        initBottomSheet()
         initBottomNavigationView(savedInstanceState)
 
         viewModel
@@ -147,9 +145,6 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        lastLiveBottomSheetState?.let {
-            outState.putInt(SavedStateKeys.BOTTOM_SHEET_STATE.name, it)
-        }
         outState.putInt(
             SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name,
             selectedBottomNavigationViewItemId
@@ -158,7 +153,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
     override fun onBackPressed() {
         if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
             if (viewModel.state.searchFocused) super.onBackPressed()
         } else {
             super.onBackPressed()
@@ -169,25 +164,27 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         latestARState = ARState.ENABLED
         binding.searchBarView.visibility = View.VISIBLE
         binding.bottomNavigationView.visibility = View.VISIBLE
-        onBottomSheetStateChanged(
-            lastLiveBottomSheetState ?: BottomSheetBehavior.STATE_HIDDEN,
-            false
-        )
+        bottomSheetBehavior.state = viewModel.state.lastLiveBottomSheetState
     }
 
     override fun onARLoading() {
         latestARState = ARState.LOADING
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
-        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
     override fun onARDisabled(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
+        if (latestARState == ARState.ENABLED) {
+            lifecycleScope.launch {
+                viewModel.intent(MainIntent.LiveBottomSheetStateChanged(bottomSheetBehavior.state))
+            }
+        }
         latestARState = ARState.DISABLED
+
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
-        lastLiveBottomSheetState = viewModel.state.bottomSheetState.state
-        onBottomSheetStateChanged(BottomSheetBehavior.STATE_HIDDEN, false)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
     override fun onCameraTouch(targetVisibility: Int) {
@@ -235,7 +232,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         binding.searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
-                    val (_, _, _, _, searchQuery, searchFocused) = viewModel.state
+                    val (_, _, _, searchQuery, searchFocused) = viewModel.state
                     SearchBar(
                         state = rememberSearchBarState(searchQuery, searchFocused),
                         onSearchFocusChange = { focused ->
@@ -253,15 +250,12 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         }
     }
 
-    private fun initBottomSheet(savedInstanceState: Bundle?) {
-        lastLiveBottomSheetState =
-            savedInstanceState?.getInt(SavedStateKeys.BOTTOM_SHEET_STATE.name)
-
+    private fun initBottomSheet() {
         with(bottomSheetBehavior) {
             addBottomSheetCallback(
                 object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) =
-                        onBottomSheetStateChanged(newState, true)
+                        onBottomSheetStateChanged(newState)
 
                     override fun onSlide(bottomSheet: View, slideOffset: Float) =
                         onBottomSheetSlideChanged(slideOffset)
@@ -270,8 +264,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
             viewModel
                 .bottomSheetStateUpdates
-                .onEach { (sheetState, _) ->
-                    state = sheetState
+                .onEach { sheetState ->
                     when (sheetState) {
                         BottomSheetBehavior.STATE_EXPANDED ->
                             changeSearchbarVisibility(View.VISIBLE)
@@ -318,18 +311,27 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         }
     }
 
-    private fun onBottomSheetStateChanged(
-        @BottomSheetBehavior.State newState: Int,
-        changedByUser: Boolean
-    ) {
-        if (changedByUser) lastLiveBottomSheetState = newState
-        lifecycleScope.launch {
-            viewModel.intent(MainIntent.BottomSheetStateChanged(newState, changedByUser))
+    private fun onBottomSheetStateChanged(@BottomSheetBehavior.State sheetState: Int) {
+        if (latestARState == ARState.ENABLED) {
+            lifecycleScope.launch {
+                viewModel.intent(MainIntent.LiveBottomSheetStateChanged(sheetState))
+            }
         }
+        when (sheetState) {
+            BottomSheetBehavior.STATE_EXPANDED -> 1f
+            BottomSheetBehavior.STATE_COLLAPSED -> 0f
+            BottomSheetBehavior.STATE_HIDDEN -> -1f
+            else -> null
+        }?.let { slideOffset ->
+            lifecycleScope.launch {
+                viewModel.signal(MainSignal.BottomSheetSlideChanged(slideOffset))
+            }
+        }
+        lifecycleScope.launch { viewModel.signal(MainSignal.BottomSheetStateChanged(sheetState)) }
     }
 
     private fun onBottomSheetSlideChanged(slideOffset: Float) {
-        lifecycleScope.launch { viewModel.intent(MainIntent.BottomSheetSlideChanged(slideOffset)) }
+        lifecycleScope.launch { viewModel.signal(MainSignal.BottomSheetSlideChanged(slideOffset)) }
     }
 
     private fun changeSearchbarVisibility(targetVisibility: Int) {
@@ -344,7 +346,6 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     }
 
     private enum class SavedStateKeys {
-        BOTTOM_SHEET_STATE,
         BOTTOM_NAV_SELECTED_ITEM_ID
     }
 

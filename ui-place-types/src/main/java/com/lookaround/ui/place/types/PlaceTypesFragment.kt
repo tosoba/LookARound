@@ -20,13 +20,14 @@ import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.Amenity
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainIntent
-import com.lookaround.ui.main.model.MainState
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.place.types.composable.PlaceTypeGroupItem
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -49,8 +50,9 @@ class PlaceTypesFragment : Fragment() {
                 LookARoundTheme {
                     val bottomSheetSlideOffset =
                         mainViewModel
-                            .states
-                            .map(MainState::bottomSheetSlideOffset::get)
+                            .signals
+                            .filterIsInstance<MainSignal.BottomSheetSlideChanged>()
+                            .map(MainSignal.BottomSheetSlideChanged::slideOffset::get)
                             .collectAsState(initial = -1f)
                             .value
                     LazyColumn {

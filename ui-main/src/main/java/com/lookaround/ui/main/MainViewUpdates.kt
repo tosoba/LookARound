@@ -3,7 +3,10 @@ package com.lookaround.ui.main
 import android.location.Location
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.exception.LocationUpdateFailureException
-import com.lookaround.core.android.model.*
+import com.lookaround.core.android.model.Failed
+import com.lookaround.core.android.model.Marker
+import com.lookaround.core.android.model.ParcelableList
+import com.lookaround.core.android.model.WithValue
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import java.util.*
@@ -16,24 +19,31 @@ import kotlinx.coroutines.flow.*
 val MainViewModel.locationUpdateFailureUpdates: Flow<Unit>
     get() =
         states
-            .map { it.locationState }
+            .map(MainState::locationState::get)
             .filter { (it as? Failed)?.error is LocationUpdateFailureException }
             .map {}
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-val MainViewModel.bottomSheetStateUpdates: Flow<BottomSheetState>
-    get() = states.map { it.bottomSheetState }
+val MainViewModel.bottomSheetStateUpdates: Flow<Int>
+    get() =
+        signals
+            .filterIsInstance<MainSignal.BottomSheetStateChanged>()
+            .map(MainSignal.BottomSheetStateChanged::state::get)
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 val MainViewModel.searchFragmentVisibilityUpdates: Flow<Boolean>
     get() =
         states
-            .map { (_, _, bottomSheetState, _, _, searchFocused) ->
-                val (wrappedState, _) = bottomSheetState
-                wrappedState != BottomSheetBehavior.STATE_EXPANDED &&
-                    wrappedState != BottomSheetBehavior.STATE_DRAGGING &&
+            .map(MainState::searchFocused::get)
+            .combine(
+                signals
+                    .filterIsInstance<MainSignal.BottomSheetStateChanged>()
+                    .map(MainSignal.BottomSheetStateChanged::state::get)
+            ) { searchFocused, bottomSheetState ->
+                bottomSheetState != BottomSheetBehavior.STATE_EXPANDED &&
+                    bottomSheetState != BottomSheetBehavior.STATE_DRAGGING &&
                     searchFocused
             }
             .debounce(500L)
@@ -65,7 +75,7 @@ val MainViewModel.placesBottomNavItemVisibilityUpdates: Flow<Boolean>
 val MainViewModel.locationReadyUpdates: Flow<Location>
     get() =
         states
-            .map { it.locationState }
+            .map(MainState::locationState::get)
             .filterIsInstance<WithValue<Location>>()
             .map { it.value }
             .distinctUntilChangedBy { Objects.hash(it.latitude, it.longitude) }

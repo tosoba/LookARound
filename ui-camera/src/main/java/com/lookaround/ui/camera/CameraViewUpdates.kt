@@ -11,7 +11,6 @@ import com.lookaround.ui.camera.model.CameraSignal
 import com.lookaround.ui.camera.model.CameraState
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainSignal
-import com.lookaround.ui.main.model.MainState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -79,16 +78,23 @@ fun cameraViewObscuredUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<Boolean> =
     combine(
-            mainViewModel.signals.filterIsInstance<MainSignal.TopFragmentChanged>(),
-            mainViewModel.states.map(MainState::bottomSheetState::get),
+            mainViewModel
+                .signals
+                .filterIsInstance<MainSignal.TopFragmentChanged>()
+                .map(MainSignal.TopFragmentChanged::cameraObscured::get),
+            mainViewModel
+                .signals
+                .filterIsInstance<MainSignal.BottomSheetStateChanged>()
+                .map(MainSignal.BottomSheetStateChanged::state::get),
             cameraViewModel
                 .states
                 .map(CameraState::previewState::get)
                 .filter(CameraPreviewState::isLive::get)
-        ) { (obscured, _), (sheetState, _), _ ->
+        ) { obscured, sheetState, _ ->
             obscured ||
                 sheetState == BottomSheetBehavior.STATE_EXPANDED ||
-                sheetState == BottomSheetBehavior.STATE_DRAGGING
+                sheetState == BottomSheetBehavior.STATE_DRAGGING ||
+                sheetState == BottomSheetBehavior.STATE_SETTLING
         }
         .distinctUntilChanged()
         .debounce(500L)

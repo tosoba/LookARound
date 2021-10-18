@@ -9,11 +9,9 @@ sealed class MainIntent {
     object LocationPermissionGranted : MainIntent()
     object LocationPermissionDenied : MainIntent()
 
-    data class BottomSheetStateChanged(
+    data class LiveBottomSheetStateChanged(
         @BottomSheetBehavior.State val state: Int,
-        val changedByUser: Boolean,
     ) : MainIntent()
-    data class BottomSheetSlideChanged(val slideOffset: Float) : MainIntent()
 
     data class SearchQueryChanged(val query: String) : MainIntent()
     data class SearchFocusChanged(val focused: Boolean) : MainIntent()

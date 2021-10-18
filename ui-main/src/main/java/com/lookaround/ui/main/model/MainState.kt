@@ -10,9 +10,7 @@ import kotlinx.parcelize.Parcelize
 data class MainState(
     val markers: Loadable<ParcelableList<Marker>> = Ready(ParcelableList(SampleMarkers.get())),
     val locationState: Loadable<Location> = Empty,
-    val bottomSheetState: BottomSheetState =
-        BottomSheetState(BottomSheetBehavior.STATE_HIDDEN, false),
-    val bottomSheetSlideOffset: Float = -1f,
+    val lastLiveBottomSheetState: Int = BottomSheetBehavior.STATE_HIDDEN,
     val searchQuery: String = "",
     val searchFocused: Boolean = false
 ) : Parcelable

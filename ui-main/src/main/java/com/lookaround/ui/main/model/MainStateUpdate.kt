@@ -53,23 +53,11 @@ sealed class MainStateUpdate : StateUpdate<MainState> {
             state.copyWithLocationException(LocationUpdateFailureException)
     }
 
-    data class BottomSheetStateChanged(val sheetState: BottomSheetState) : MainStateUpdate() {
+    data class LiveBottomSheetStateChanged(
+        @BottomSheetBehavior.State val sheetState: Int,
+    ) : MainStateUpdate() {
         override fun invoke(state: MainState): MainState =
-            state.copy(
-                bottomSheetState = sheetState,
-                bottomSheetSlideOffset =
-                    when (sheetState.state) {
-                        BottomSheetBehavior.STATE_EXPANDED -> 1f
-                        BottomSheetBehavior.STATE_COLLAPSED -> 0f
-                        BottomSheetBehavior.STATE_HIDDEN -> -1f
-                        else -> state.bottomSheetSlideOffset
-                    }
-            )
-    }
-
-    data class BottomSheetSlideChanged(val slideOffset: Float) : MainStateUpdate() {
-        override fun invoke(state: MainState): MainState =
-            state.copy(bottomSheetSlideOffset = slideOffset)
+            state.copy(lastLiveBottomSheetState = sheetState)
     }
 
     data class SearchQueryChanged(val query: String) : MainStateUpdate() {
