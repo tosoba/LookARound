@@ -50,6 +50,10 @@ constructor(
             },
             intents.filterIsInstance<MainIntent.LiveBottomSheetStateChanged>().map { (sheetState) ->
                 MainStateUpdate.LiveBottomSheetStateChanged(sheetState)
+            },
+            intents.filterIsInstance<MainIntent.BottomNavigationViewItemSelected>().map { (itemId)
+                ->
+                MainStateUpdate.BottomNavigationViewItemSelected(itemId)
             }
         )
 

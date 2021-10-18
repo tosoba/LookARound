@@ -53,8 +53,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         lazy(LazyThreadSafetyMode.NONE) {
             BottomSheetBehavior.from(binding.bottomSheetFragmentContainerView)
         }
-    private var latestARState: ARState? = null
-    private var selectedBottomNavigationViewItemId: Int = R.id.action_unchecked
+    private var latestARState: ARState = ARState.INITIAL
 
     private val bottomSheetFragments: Map<Class<out Fragment>, Fragment> by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -75,7 +74,9 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     private val onBottomNavItemSelectedListener by
         lazy(LazyThreadSafetyMode.NONE) {
             BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
-                selectedBottomNavigationViewItemId = menuItem.itemId
+                lifecycleScope.launch {
+                    viewModel.intent(MainIntent.BottomNavigationViewItemSelected(menuItem.itemId))
+                }
                 if (menuItem.itemId == R.id.action_unchecked) {
                     return@OnNavigationItemSelectedListener true
                 }
@@ -125,7 +126,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
         initSearch()
         initBottomSheet()
-        initBottomNavigationView(savedInstanceState)
+        initBottomNavigationView()
 
         viewModel
             .locationUpdateFailureUpdates
@@ -141,14 +142,6 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     override fun onResume() {
         super.onResume()
         signalTopFragmentChanged(true)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putInt(
-            SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name,
-            selectedBottomNavigationViewItemId
-        )
     }
 
     override fun onBackPressed() {
@@ -276,12 +269,9 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         }
     }
 
-    private fun initBottomNavigationView(savedInstanceState: Bundle?) {
+    private fun initBottomNavigationView() {
         with(binding.bottomNavigationView) {
-            savedInstanceState
-                ?.getInt(SavedStateKeys.BOTTOM_NAV_SELECTED_ITEM_ID.name)
-                ?.let(::selectedBottomNavigationViewItemId::set)
-            selectedItemId = selectedBottomNavigationViewItemId
+            selectedItemId = viewModel.state.selectedBottomNavigationViewItemId
             setOnNavigationItemSelectedListener(onBottomNavItemSelectedListener)
 
             fragmentTransaction {
@@ -345,11 +335,8 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         }
     }
 
-    private enum class SavedStateKeys {
-        BOTTOM_NAV_SELECTED_ITEM_ID
-    }
-
     private enum class ARState {
+        INITIAL,
         LOADING,
         ENABLED,
         DISABLED

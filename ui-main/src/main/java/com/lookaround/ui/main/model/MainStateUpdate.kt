@@ -5,7 +5,10 @@ import com.lookaround.core.android.base.arch.StateUpdate
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.exception.LocationUpdateFailureException
-import com.lookaround.core.android.model.*
+import com.lookaround.core.android.model.Marker
+import com.lookaround.core.android.model.ParcelableList
+import com.lookaround.core.android.model.Ready
+import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.model.NodeDTO
 
 sealed class MainStateUpdate : StateUpdate<MainState> {
@@ -68,6 +71,12 @@ sealed class MainStateUpdate : StateUpdate<MainState> {
     data class SearchFocusChanged(val focused: Boolean) : MainStateUpdate() {
         override fun invoke(state: MainState): MainState =
             if (state.searchFocused == focused) state else state.copy(searchFocused = focused)
+    }
+
+    data class BottomNavigationViewItemSelected(val itemId: Int) : MainStateUpdate() {
+        override fun invoke(state: MainState): MainState =
+            if (state.selectedBottomNavigationViewItemId == itemId) state
+            else state.copy(selectedBottomNavigationViewItemId = itemId)
     }
 
     protected fun MainState.copyWithLocationException(throwable: Throwable): MainState =

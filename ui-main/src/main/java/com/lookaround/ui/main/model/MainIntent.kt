@@ -15,4 +15,6 @@ sealed class MainIntent {
 
     data class SearchQueryChanged(val query: String) : MainIntent()
     data class SearchFocusChanged(val focused: Boolean) : MainIntent()
+
+    data class BottomNavigationViewItemSelected(val itemId: Int) : MainIntent()
 }

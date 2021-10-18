@@ -4,6 +4,7 @@ import android.location.Location
 import android.os.Parcelable
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.model.*
+import com.lookaround.ui.main.R
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -12,5 +13,6 @@ data class MainState(
     val locationState: Loadable<Location> = Empty,
     val lastLiveBottomSheetState: Int = BottomSheetBehavior.STATE_HIDDEN,
     val searchQuery: String = "",
-    val searchFocused: Boolean = false
+    val searchFocused: Boolean = false,
+    val selectedBottomNavigationViewItemId: Int = R.id.action_unchecked,
 ) : Parcelable

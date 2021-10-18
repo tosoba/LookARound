@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="place_types">Place types</string>
+    <string name="places">Places</string>
+    <string name="unchecked">Unchecked</string>
+</resources>
