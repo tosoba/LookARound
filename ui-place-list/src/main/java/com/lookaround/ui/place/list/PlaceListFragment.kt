@@ -86,7 +86,7 @@ class PlaceListFragment :
         viewModel
             .signals
             .filterIsInstance<MapSceneSignal.RetryLoadScene>()
-            .onEach { mapController.await().loadScene(it.scene) }
+            .onEach { (scene) -> mapController.await().loadScene(scene) }
             .launchIn(lifecycleScope)
 
         val mapLayoutParams = getMapLayoutParams()

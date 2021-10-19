@@ -23,12 +23,12 @@ import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
-import javax.inject.Inject
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -66,7 +66,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         viewModel
             .signals
             .filterIsInstance<MapSceneSignal.RetryLoadScene>()
-            .onEach { mapController.await().loadScene(it.scene) }
+            .onEach { (scene) -> mapController.await().loadScene(scene) }
             .launchIn(lifecycleScope)
     }
 
