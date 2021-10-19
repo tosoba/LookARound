@@ -102,78 +102,76 @@ class PlaceListFragment :
 
         binding.placeMapRecyclerView.setContent {
             LookARoundTheme {
+                val bottomSheetState =
+                    mainViewModel
+                        .signals
+                        .filterIsInstance<MainSignal.BottomSheetStateChanged>()
+                        .map(MainSignal.BottomSheetStateChanged::state::get)
+                        .collectAsState(initial = BottomSheetBehavior.STATE_HIDDEN)
+                        .value
+                if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN) return@LookARoundTheme
+
                 val markers =
                     mainViewModel
                         .states
                         .map(MainState::markers::get)
                         .collectAsState(initial = Empty)
                         .value
-                if (markers is WithValue) {
-                    val bottomSheetState =
-                        mainViewModel
-                            .signals
-                            .filterIsInstance<MainSignal.BottomSheetStateChanged>()
-                            .map(MainSignal.BottomSheetStateChanged::state::get)
-                            .collectAsState(initial = BottomSheetBehavior.STATE_HIDDEN)
-                            .value
-                    val bottomSheetSlideOffset =
-                        mainViewModel
-                            .signals
-                            .filterIsInstance<MainSignal.BottomSheetSlideChanged>()
-                            .map(MainSignal.BottomSheetSlideChanged::slideOffset::get)
-                            .collectAsState(initial = -1f)
-                            .value
+                if (markers !is WithValue) return@LookARoundTheme
 
-                    val orientation = LocalConfiguration.current.orientation
-                    val lazyListState = rememberLazyListState()
+                val bottomSheetSlideOffset =
+                    mainViewModel
+                        .signals
+                        .filterIsInstance<MainSignal.BottomSheetSlideChanged>()
+                        .map(MainSignal.BottomSheetSlideChanged::slideOffset::get)
+                        .collectAsState(initial = -1f)
+                        .value
 
-                    binding
-                        .disallowInterceptTouchContainer
-                        .shouldRequestDisallowInterceptTouchEvent =
-                        (lazyListState.firstVisibleItemIndex != 0 ||
-                            lazyListState.firstVisibleItemScrollOffset != 0) &&
-                            bottomSheetState == BottomSheetBehavior.STATE_EXPANDED
-                    binding.reloadMapsFab.visibility =
-                        if (bottomSheetState == BottomSheetBehavior.STATE_EXPANDED) View.VISIBLE
-                        else View.GONE
+                val orientation = LocalConfiguration.current.orientation
+                val lazyListState = rememberLazyListState()
 
-                    LazyColumn(
-                        state = lazyListState,
-                        modifier = Modifier.padding(horizontal = 10.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        if (bottomSheetSlideOffset > 0f) {
-                            item { Spacer(Modifier.height((bottomSheetSlideOffset * 112f).dp)) }
-                        }
+                binding.disallowInterceptTouchContainer.shouldRequestDisallowInterceptTouchEvent =
+                    (lazyListState.firstVisibleItemIndex != 0 ||
+                        lazyListState.firstVisibleItemScrollOffset != 0) &&
+                        bottomSheetState == BottomSheetBehavior.STATE_EXPANDED
+                binding.reloadMapsFab.visibility =
+                    if (bottomSheetState == BottomSheetBehavior.STATE_EXPANDED) View.VISIBLE
+                    else View.GONE
 
-                        if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN) return@LazyColumn
+                LazyColumn(
+                    state = lazyListState,
+                    modifier = Modifier.padding(horizontal = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    if (bottomSheetSlideOffset > 0f) {
+                        item { Spacer(Modifier.height((bottomSheetSlideOffset * 112f).dp)) }
+                    }
 
-                        items(
-                            markers.value.chunked(
-                                if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
-                            )
-                        ) { chunk ->
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                modifier = Modifier.wrapContentHeight()
-                            ) {
-                                chunk.forEach { point ->
-                                    PlaceMapListItem(
-                                        point = point,
-                                        userLocationFlow = mainViewModel.locationReadyUpdates,
-                                        getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
-                                        reloadBitmapTrigger = reloadBitmapTrigger.receiveAsFlow(),
-                                        bitmapDimension =
-                                            requireContext()
-                                                .pxToDp(mapLayoutParams.width.toFloat())
-                                                .toInt(),
-                                        modifier =
-                                            Modifier.weight(1f, fill = false).clickable {
-                                                (activity as? PlaceMapItemActionController)
-                                                    ?.onPlaceMapItemClick(point)
-                                            },
-                                    )
-                                }
+                    items(
+                        markers.value.chunked(
+                            if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
+                        )
+                    ) { chunk ->
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.wrapContentHeight()
+                        ) {
+                            chunk.forEach { point ->
+                                PlaceMapListItem(
+                                    point = point,
+                                    userLocationFlow = mainViewModel.locationReadyUpdates,
+                                    getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
+                                    reloadBitmapTrigger = reloadBitmapTrigger.receiveAsFlow(),
+                                    bitmapDimension =
+                                        requireContext()
+                                            .pxToDp(mapLayoutParams.width.toFloat())
+                                            .toInt(),
+                                    modifier =
+                                        Modifier.weight(1f, fill = false).clickable {
+                                            (activity as? PlaceMapItemActionController)
+                                                ?.onPlaceMapItemClick(point)
+                                        },
+                                )
                             }
                         }
                     }
