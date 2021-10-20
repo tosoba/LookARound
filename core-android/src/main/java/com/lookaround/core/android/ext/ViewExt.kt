@@ -3,6 +3,8 @@ package com.lookaround.core.android.ext
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.lookaround.core.android.view.BoxedSeekbar
 
@@ -52,6 +54,16 @@ fun View.slideChangeVisibility(
                         visibility = View.GONE
                     }
                     override fun onAnimationRepeat(animation: Animation) = Unit
-                })
-        })
+                }
+            )
+        }
+    )
+}
+
+fun ViewPager2.disableNestedScrolling() {
+    (getChildAt(0) as? RecyclerView)?.apply {
+        isNestedScrollingEnabled = false
+        overScrollMode = View.OVER_SCROLL_NEVER
+    }
+        ?: throw IllegalStateException("First child of the ViewPager is not of type RecyclerView.")
 }

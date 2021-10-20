@@ -6,8 +6,9 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -49,27 +50,10 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
     private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
 
-    private val bottomSheetBehavior by
-        lazy(LazyThreadSafetyMode.NONE) {
-            BottomSheetBehavior.from(binding.bottomSheetFragmentContainerView)
-        }
     private var latestARState: ARState = ARState.INITIAL
 
-    private val bottomSheetFragments: Map<Class<out Fragment>, Fragment> by
-        lazy(LazyThreadSafetyMode.NONE) {
-            val bottomSheetFragmentClasses =
-                listOf(PlaceTypesFragment::class.java, PlaceListFragment::class.java)
-            buildMap {
-                putAll(
-                    supportFragmentManager.fragments
-                        .filter { bottomSheetFragmentClasses.contains(it::class.java) }
-                        .map { it::class.java to it }
-                )
-                bottomSheetFragmentClasses.forEach {
-                    if (!containsKey(it)) put(it, it.newInstance())
-                }
-            }
-        }
+    private val bottomSheetBehavior by
+        lazy(LazyThreadSafetyMode.NONE) { BottomSheetBehavior.from(binding.bottomSheetViewPager) }
 
     private val onBottomNavItemSelectedListener by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -81,35 +65,19 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                     return@OnNavigationItemSelectedListener true
                 }
 
-                fragmentTransaction {
+                binding.bottomSheetViewPager.currentItem =
                     when (menuItem.itemId) {
-                        R.id.action_place_types -> showBottomSheetFragment<PlaceTypesFragment>()
-                        R.id.action_place_list -> showBottomSheetFragment<PlaceListFragment>()
+                        R.id.action_place_types -> 0
+                        R.id.action_place_list -> 1
                         else -> throw IllegalArgumentException()
                     }
-                }
+
                 if (latestARState == ARState.ENABLED) {
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
                 }
                 true
             }
         }
-
-    private inline fun <reified F : Fragment> FragmentTransaction.showBottomSheetFragment() {
-        if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
-            when (F::class.java) {
-                PlaceTypesFragment::class.java ->
-                    setCustomAnimations(R.anim.slide_in_from_left, R.anim.slide_out_to_left)
-                PlaceListFragment::class.java ->
-                    setCustomAnimations(R.anim.slide_in_from_right, R.anim.slide_out_to_right)
-            }
-        }
-        bottomSheetFragments
-            .filter { (clazz, fragment) -> clazz != F::class.java && fragment.isAdded }
-            .map(Map.Entry<Class<out Fragment>, Fragment>::value)
-            .forEach(this::hide)
-        show(requireNotNull(bottomSheetFragments[F::class.java]))
-    }
 
     private val currentTopFragment: Fragment?
         get() = supportFragmentManager.findFragmentById(R.id.main_fragment_container)
@@ -244,44 +212,54 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     }
 
     private fun initBottomSheet() {
-        with(bottomSheetBehavior) {
-            addBottomSheetCallback(
-                object : BottomSheetBehavior.BottomSheetCallback() {
-                    override fun onStateChanged(bottomSheet: View, newState: Int) =
-                        onBottomSheetStateChanged(newState)
-                    override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
-                }
-            )
+        bottomSheetBehavior.addBottomSheetCallback(
+            object : BottomSheetBehavior.BottomSheetCallback() {
+                override fun onStateChanged(bottomSheet: View, newState: Int) =
+                    onBottomSheetStateChanged(newState)
+                override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
+            }
+        )
 
-            viewModel
-                .bottomSheetStateUpdates
-                .onEach { sheetState ->
-                    when (sheetState) {
-                        BottomSheetBehavior.STATE_EXPANDED ->
-                            changeSearchbarVisibility(View.VISIBLE)
-                        BottomSheetBehavior.STATE_HIDDEN ->
-                            binding.bottomNavigationView.selectedItemId = R.id.action_unchecked
+        with(binding.bottomSheetViewPager) {
+            val fragments = arrayOf(PlaceTypesFragment(), PlaceListFragment())
+            offscreenPageLimit = fragments.size - 1
+            adapter =
+                object : FragmentStateAdapter(this@MainActivity) {
+                    override fun getItemCount(): Int = fragments.size
+                    override fun createFragment(position: Int): Fragment = fragments[position]
+                }
+            registerOnPageChangeCallback(
+                object : ViewPager2.OnPageChangeCallback() {
+                    override fun onPageSelected(position: Int) {
+                        if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) return
+                        binding.bottomNavigationView.selectedItemId =
+                            when (position) {
+                                0 -> R.id.action_place_types
+                                1 -> R.id.action_place_list
+                                else -> throw IllegalArgumentException()
+                            }
                     }
                 }
-                .launchIn(lifecycleScope)
+            )
+            disableNestedScrolling()
         }
+
+        viewModel
+            .bottomSheetStateUpdates
+            .onEach { sheetState ->
+                when (sheetState) {
+                    BottomSheetBehavior.STATE_EXPANDED -> changeSearchbarVisibility(View.VISIBLE)
+                    BottomSheetBehavior.STATE_HIDDEN ->
+                        binding.bottomNavigationView.selectedItemId = R.id.action_unchecked
+                }
+            }
+            .launchIn(lifecycleScope)
     }
 
     private fun initBottomNavigationView() {
         with(binding.bottomNavigationView) {
             selectedItemId = viewModel.state.selectedBottomNavigationViewItemId
             setOnNavigationItemSelectedListener(onBottomNavItemSelectedListener)
-
-            fragmentTransaction {
-                val notAddedFragments = bottomSheetFragments.values.filterNot(Fragment::isAdded)
-                if (notAddedFragments.isNotEmpty()) {
-                    notAddedFragments.forEach { fragment ->
-                        add(R.id.bottom_sheet_fragment_container_view, fragment)
-                        bottomSheetFragments.values.forEach(this::hide)
-                    }
-                }
-                binding.bottomSheetFragmentContainerView.visibility = View.VISIBLE
-            }
 
             viewModel
                 .placesBottomNavItemVisibilityUpdates

@@ -12,11 +12,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/bottom_sheet_fragment_container_view"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/bottom_sheet_view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
         app:behavior_hideable="true"
         app:behavior_skipCollapsed="true"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" />

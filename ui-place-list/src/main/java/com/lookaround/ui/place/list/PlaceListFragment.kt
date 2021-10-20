@@ -119,19 +119,13 @@ class PlaceListFragment :
                         .value
                 if (markers !is WithValue) return@LookARoundTheme
 
-                val orientation = LocalConfiguration.current.orientation
-                val lazyListState = rememberLazyListState()
-
-                binding.disallowInterceptTouchContainer.shouldRequestDisallowInterceptTouchEvent =
-                    (lazyListState.firstVisibleItemIndex != 0 ||
-                        lazyListState.firstVisibleItemScrollOffset != 0) &&
-                        bottomSheetState == BottomSheetBehavior.STATE_EXPANDED
                 binding.reloadMapsFab.visibility =
                     if (bottomSheetState == BottomSheetBehavior.STATE_EXPANDED) View.VISIBLE
                     else View.GONE
 
+                val orientation = LocalConfiguration.current.orientation
                 LazyColumn(
-                    state = lazyListState,
+                    state =  rememberLazyListState(),
                     modifier = Modifier.padding(horizontal = 10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
