@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
@@ -20,15 +19,12 @@ import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.Amenity
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainIntent
-import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.place.types.composable.PlaceTypeGroupItem
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @FlowPreview
@@ -48,18 +44,8 @@ class PlaceTypesFragment : Fragment() {
         ComposeView(requireContext()).apply {
             setContent {
                 LookARoundTheme {
-                    val bottomSheetSlideOffset =
-                        mainViewModel
-                            .signals
-                            .filterIsInstance<MainSignal.BottomSheetSlideChanged>()
-                            .map(MainSignal.BottomSheetSlideChanged::slideOffset::get)
-                            .collectAsState(initial = -1f)
-                            .value
                     LazyColumn {
-                        if (bottomSheetSlideOffset > 0f) {
-                            item { Spacer(Modifier.height((bottomSheetSlideOffset * 112f).dp)) }
-                        }
-
+                        item { Spacer(Modifier.height(112f.dp)) }
                         itemsIndexed(
                             listOf(
                                 PlaceTypeGroup(

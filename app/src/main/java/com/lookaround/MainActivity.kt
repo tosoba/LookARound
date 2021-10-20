@@ -249,9 +249,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                 object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) =
                         onBottomSheetStateChanged(newState)
-
-                    override fun onSlide(bottomSheet: View, slideOffset: Float) =
-                        onBottomSheetSlideChanged(slideOffset)
+                    override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
                 }
             )
 
@@ -307,21 +305,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                 viewModel.intent(MainIntent.LiveBottomSheetStateChanged(sheetState))
             }
         }
-        when (sheetState) {
-            BottomSheetBehavior.STATE_EXPANDED -> 1f
-            BottomSheetBehavior.STATE_COLLAPSED -> 0f
-            BottomSheetBehavior.STATE_HIDDEN -> -1f
-            else -> null
-        }?.let { slideOffset ->
-            lifecycleScope.launch {
-                viewModel.signal(MainSignal.BottomSheetSlideChanged(slideOffset))
-            }
-        }
         lifecycleScope.launch { viewModel.signal(MainSignal.BottomSheetStateChanged(sheetState)) }
-    }
-
-    private fun onBottomSheetSlideChanged(slideOffset: Float) {
-        lifecycleScope.launch { viewModel.signal(MainSignal.BottomSheetSlideChanged(slideOffset)) }
     }
 
     private fun changeSearchbarVisibility(targetVisibility: Int) {

@@ -13,5 +13,4 @@ sealed class MainSignal {
     data class BottomSheetStateChanged(
         @BottomSheetBehavior.State val state: Int,
     ) : MainSignal()
-    data class BottomSheetSlideChanged(val slideOffset: Float) : MainSignal()
 }

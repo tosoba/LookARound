@@ -119,14 +119,6 @@ class PlaceListFragment :
                         .value
                 if (markers !is WithValue) return@LookARoundTheme
 
-                val bottomSheetSlideOffset =
-                    mainViewModel
-                        .signals
-                        .filterIsInstance<MainSignal.BottomSheetSlideChanged>()
-                        .map(MainSignal.BottomSheetSlideChanged::slideOffset::get)
-                        .collectAsState(initial = -1f)
-                        .value
-
                 val orientation = LocalConfiguration.current.orientation
                 val lazyListState = rememberLazyListState()
 
@@ -143,10 +135,7 @@ class PlaceListFragment :
                     modifier = Modifier.padding(horizontal = 10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    if (bottomSheetSlideOffset > 0f) {
-                        item { Spacer(Modifier.height((bottomSheetSlideOffset * 112f).dp)) }
-                    }
-
+                    item { Spacer(Modifier.height(112f.dp)) }
                     items(
                         markers.value.chunked(
                             if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
