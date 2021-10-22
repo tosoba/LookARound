@@ -9,7 +9,6 @@ object Math3D {
     // http://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters
     private const val METERS_IN_A_DEGREE = 111111.0
     private const val QUADRANT = Math.PI / 2
-    private val viewPortPos = Vector2()
 
     /**
      * This method transforms the camera orientation angles into 3D space angles. It also calculates
@@ -102,9 +101,6 @@ object Math3D {
      * the space in order to set the camera to angles 0,0,0
      */
     fun getRelativeRotation(inRelativePos: Vector3, inCamTrig: Trig3, outRelativeRotPos: Vector3) {
-        // Check this article before trying to only understand a simple comma
-        // http://en.wikipedia.org/wiki/3D_projection#Perspective_projection
-        // In fact, I don't care too much about the formula. Just C&P it.
         outRelativeRotPos.x =
             (inCamTrig.yCos *
                 (inCamTrig.zSin * inRelativePos.y + inCamTrig.zCos * inRelativePos.x) -
@@ -139,8 +135,9 @@ object Math3D {
         inScreenRatio: Vector3,
         inScreenRotTrig: Trig1,
         outScreenPos: Vector2
-    ): Boolean =
-        if (inRelativePos.z > 0) {
+    ): Boolean {
+        val viewPortPos = Vector2()
+        return if (inRelativePos.z > 0) {
             viewPortPos.x = inRelativePos.x * inScreenRatio.x / (inScreenRatio.z * inRelativePos.z)
             viewPortPos.y = inRelativePos.y * inScreenRatio.y / (inScreenRatio.z * inRelativePos.z)
             outScreenPos.x =
@@ -154,4 +151,5 @@ object Math3D {
         } else {
             false
         }
+    }
 }

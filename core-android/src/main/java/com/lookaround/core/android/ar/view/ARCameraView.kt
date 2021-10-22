@@ -15,14 +15,9 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 class ARCameraView : ARView<CameraMarkerRenderer> {
-    private val camRot = Vector3()
     private val camTrig = Trig3()
     private val camPos = Vector3()
-    private val markerPos = Vector3()
-    private val relativePos = Vector3()
-    private val relativeRotPos = Vector3()
     private val screenRatio = Vector3()
-    private val screenPos = Vector2()
     private val screenSize = Vector2()
     private val screenRot = Vector1()
     private val screenRotTrig = Trig1()
@@ -61,20 +56,25 @@ class ARCameraView : ARView<CameraMarkerRenderer> {
         screenSize.x = width.toDouble()
         // Obtain the current camera rotation and related calculations based on phone orientation
         // and rotation
+        val camRot = Vector3()
         Math3D.getCamRotation(orientation, phoneRotation, camRot, camTrig, screenRot, screenRotTrig)
         // Transform current camera location into a position object;
         Math3D.convertLocationToPosition(location, camPos)
     }
 
     override fun calculateMarkerScreenPosition(marker: ARMarker, location: Location) {
+        val markerPos = Vector3()
         // Transform marker Location into a Position object
         Math3D.convertLocationToPosition(marker.wrapped.location, markerPos)
         // Calculate relative position to the camera. Transforms angles of latitude and longitude
         // into meters of distance.
+        val relativePos = Vector3()
         Math3D.getRelativeTranslationInMeters(markerPos, camPos, relativePos)
         // Rotates the marker around the camera in order to set the camera rotation to <0,0,0>
+        val relativeRotPos = Vector3()
         Math3D.getRelativeRotation(relativePos, camTrig, relativeRotPos)
         // Converts a 3d position into a 2d position on screen
+        val screenPos = Vector2()
         val drawn =
             Math3D.convert3dTo2d(relativeRotPos, screenSize, screenRatio, screenRotTrig, screenPos)
         // If drawn is false, the marker is behind us, so no need to paint

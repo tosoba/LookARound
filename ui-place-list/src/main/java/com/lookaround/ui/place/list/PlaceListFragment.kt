@@ -66,7 +66,6 @@ class PlaceListFragment :
     private val viewModel: MapSceneViewModel by assistedViewModel { viewModelFactory.create(it) }
 
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
-
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by
         lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
