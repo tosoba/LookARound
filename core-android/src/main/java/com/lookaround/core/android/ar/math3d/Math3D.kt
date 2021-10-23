@@ -147,7 +147,7 @@ object Math3D {
                 inScreenSize.y / 2 +
                     viewPortPos.y * inScreenRotTrig.cos +
                     viewPortPos.x * inScreenRotTrig.sin
-            return outScreenPos.x >= 0.0 && outScreenPos.x <= inScreenSize.x
+            return outScreenPos.x >= -inScreenSize.x && outScreenPos.x <= inScreenSize.x * 2
         } else {
             false
         }
