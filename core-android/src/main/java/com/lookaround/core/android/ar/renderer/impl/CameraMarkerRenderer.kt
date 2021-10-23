@@ -81,17 +81,9 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         }
 
     var povLocation: Location? = null
-        @MainThread
-        internal set(value) {
-            field = value
-            markerBearingsMap.clear()
-            markersMap.values.forEach { marker ->
-                calculateBearingBetween(requireNotNull(value), marker)
-            }
-        }
 
     private val markersMap: LinkedHashMap<UUID, CameraMarker> = LinkedHashMap()
-    private val markerBearingsMap: TreeMap<Float, CameraMarker> = TreeMap()
+    private val markerXsMap: TreeMap<Float, MutableSet<CameraMarker>> = TreeMap()
 
     private val titleTextPaint: TextPaint by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -117,26 +109,37 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             }
         }
 
-    override fun draw(marker: ARMarker, canvas: Canvas, orientation: Orientation): RectF? {
-        val wrapped = markersMap[marker.wrapped.id] ?: return null
-        marker.y = wrapped.pagedPosition?.y ?: calculatePagedPositionOf(wrapped).y
-        wrapped.pagedPosition?.page?.let { if (it > maxPage) maxPage = it }
-        if (wrapped.pagedPosition?.page != currentPage) return null
-
-        val markerRect =
-            RectF(
-                marker.x - markerWidthPx / 2,
-                marker.y - markerHeightPx / 2,
-                marker.x + markerWidthPx / 2,
-                marker.y + markerHeightPx / 2
-            )
-        val canvasRect = RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat())
-        if (!RectF.intersects(canvasRect, markerRect)) return null
-
-        canvas.drawTitleText(marker, markerRect)
-        canvas.drawDistanceText(marker, markerRect)
-        return markerRect
+    override fun draw(
+        markers: List<ARMarker>,
+        canvas: Canvas,
+        orientation: Orientation
+    ): List<RectF> {
+        markerXsMap.clear()
+        val drawnRects = mutableListOf<RectF>()
+        markers.forEach { marker ->
+            val wrapped = markersMap[marker.wrapped.id] ?: return@forEach
+            marker.y = calculatePagedPositionOf(wrapped).y
+            storeMarkerX(wrapped)
+            wrapped.pagedPosition?.page?.let { if (it > maxPage) maxPage = it }
+            if (wrapped.pagedPosition?.page != currentPage) return@forEach
+            val markerRect = marker.rectF
+            val canvasRect = RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat())
+            if (!RectF.intersects(canvasRect, markerRect)) return@forEach
+            canvas.drawTitleText(marker, markerRect)
+            canvas.drawDistanceText(marker, markerRect)
+            drawnRects.add(markerRect)
+        }
+        return drawnRects
     }
+
+    private val ARMarker.rectF: RectF
+        get() =
+            RectF(
+                x - markerWidthPx / 2,
+                y - markerHeightPx / 2,
+                x + markerWidthPx / 2,
+                y + markerHeightPx / 2
+            )
 
     private fun Canvas.drawTitleText(marker: ARMarker, rect: RectF) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -208,15 +211,14 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     private fun calculatePagedPositionOf(marker: CameraMarker): PagedPosition {
-        val bearingThis = marker.povLocationBearing ?: throw IllegalStateException()
         val takenPositions =
-            markerBearingsMap
+            markerXsMap
                 .subMap(
-                    bearingThis - TAKEN_BEARING_LIMIT_DEGREES,
-                    bearingThis + TAKEN_BEARING_LIMIT_DEGREES
+                    marker.wrapped.x - markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER,
+                    marker.wrapped.x + markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER
                 )
-                .map { (_, marker) -> marker.pagedPosition }
-                .filterNotNull()
+                .map { (_, markers) -> markers.mapNotNull(CameraMarker::pagedPosition::get) }
+                .flatten()
                 .toSet()
         val baseY = statusBarHeightPx + actionBarHeightPx
         val position = PagedPosition(baseY, 0)
@@ -231,50 +233,36 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         return position
     }
 
+    private fun storeMarkerX(marker: CameraMarker) {
+        val existingMarkerSet = markerXsMap[marker.wrapped.x]
+        existingMarkerSet?.add(marker)
+            ?: run { markerXsMap[marker.wrapped.x] = mutableSetOf(marker) }
+    }
+
     @MainThread
     operator fun plusAssign(marker: ARMarker) {
         if (markersMap.contains(marker.wrapped.id)) return
-        val cameraMarker = CameraMarker(marker)
-        calculateBearingBetweenLocationAnd(cameraMarker)
-        markersMap[marker.wrapped.id] = cameraMarker
+        markersMap[marker.wrapped.id] = CameraMarker(marker)
     }
 
     @MainThread
     operator fun plusAssign(markers: Collection<ARMarker>) {
         markers.forEach { marker ->
             if (markersMap.contains(marker.wrapped.id)) return@forEach
-            val cameraMarker = CameraMarker(marker)
-            calculateBearingBetweenLocationAnd(cameraMarker)
-            markersMap[marker.wrapped.id] = cameraMarker
+            markersMap[marker.wrapped.id] = CameraMarker(marker)
         }
-    }
-
-    private fun calculateBearingBetweenLocationAnd(marker: CameraMarker) {
-        povLocation?.let { calculateBearingBetween(it, marker) }
-    }
-
-    private fun calculateBearingBetween(userLocation: Location, marker: CameraMarker) {
-        val bearing = userLocation.bearingTo(marker.wrapped.wrapped.location)
-        marker.povLocationBearing = bearing
-        markerBearingsMap[bearing] = marker
     }
 
     @MainThread
     operator fun minusAssign(marker: ARMarker) {
-        markersMap.remove(marker.wrapped.id)?.let { removed ->
-            removed.povLocationBearing?.let(markerBearingsMap::remove)
-            resetPaging()
-        }
+        markersMap.remove(marker.wrapped.id)?.let { resetPaging() }
     }
 
     @MainThread
     operator fun minusAssign(markers: Collection<ARMarker>) {
         var removedAny = false
         markers.forEach { marker ->
-            markersMap.remove(marker.wrapped.id)?.let { removed ->
-                removed.povLocationBearing?.let(markerBearingsMap::remove)
-                removedAny = true
-            }
+            markersMap.remove(marker.wrapped.id)?.let { removedAny = true }
         }
         if (removedAny) resetPaging()
     }
@@ -289,7 +277,6 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private class CameraMarker(
         val wrapped: ARMarker,
         var pagedPosition: PagedPosition? = null,
-        var povLocationBearing: Float? = null
     ) {
         override fun equals(other: Any?): Boolean =
             this === other || (other is CameraMarker && other.wrapped == wrapped)
@@ -307,7 +294,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     companion object {
-        private const val TAKEN_BEARING_LIMIT_DEGREES = 45f
+        private const val MARKER_WIDTH_TAKEN_X_MULTIPLIER = 1.1f
         private const val MARKER_VERTICAL_SPACING_PX = 50f
         private const val NUMBER_OF_ROWS_PORTRAIT = 4
         private const val NUMBER_OF_ROWS_LANDSCAPE = 2

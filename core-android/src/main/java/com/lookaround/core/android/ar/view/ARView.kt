@@ -2,7 +2,6 @@ package com.lookaround.core.android.ar.view
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.RectF
 import android.location.Location
 import android.os.Bundle
 import android.os.Parcelable
@@ -61,22 +60,16 @@ abstract class ARView<R : MarkerRenderer> : View {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        val markerRenderer = this.markerRenderer ?: return
         val povLocation = this.povLocation ?: return
         preRender(canvas, povLocation)
-        val drawnRects = mutableListOf<RectF>()
-        markers.forEach { marker ->
-            calculateMarkerScreenPosition(marker, povLocation)
-            if (!shouldDraw(marker)) return@forEach
-            val drawnRect =
-                marker.renderer?.draw(marker, canvas, orientation)
-                    ?: markerRenderer?.draw(marker, canvas, orientation)
-            if (drawnRect != null) drawnRects.add(drawnRect)
-        }
-        markerRenderer?.postDrawAll(drawnRects)
+        markers.forEach { marker -> calculateMarkerScreenPosition(marker, povLocation) }
+        val drawnRects = markerRenderer.draw(markers.filter(this::willBeDrawn), canvas, orientation)
+        markerRenderer.postDrawAll(drawnRects)
         postRender(canvas, povLocation)
     }
 
-    protected open fun shouldDraw(marker: ARMarker): Boolean =
+    protected open fun willBeDrawn(marker: ARMarker): Boolean =
         marker.distance < maxRange && marker.isDrawn
 
     protected abstract fun preRender(canvas: Canvas, location: Location)

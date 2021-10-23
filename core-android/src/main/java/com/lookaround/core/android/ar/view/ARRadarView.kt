@@ -49,7 +49,7 @@ class ARRadarView : ARView<RadarMarkerRenderer> {
         compassAngle = orientation.y.toDouble()
     }
 
-    override fun shouldDraw(marker: ARMarker): Boolean = marker.distance < maxRange
+    override fun willBeDrawn(marker: ARMarker): Boolean = marker.distance < maxRange
 
     override fun postRender(canvas: Canvas, location: Location) {
         val markerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
