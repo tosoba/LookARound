@@ -37,15 +37,11 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         val displayMetrics = context.resources.displayMetrics
         val bottomNavigationViewHeight = context.bottomNavigationViewHeight
         cameraViewHeightPx = displayMetrics.heightPixels.toFloat() - bottomNavigationViewHeight
-
         val orientation = context.resources.configuration.orientation
 
         val numberOfRows =
-            if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                NUMBER_OF_ROWS_PORTRAIT
-            } else {
-                NUMBER_OF_ROWS_LANDSCAPE
-            }
+            if (orientation == Configuration.ORIENTATION_PORTRAIT) NUMBER_OF_ROWS_PORTRAIT
+            else NUMBER_OF_ROWS_LANDSCAPE
         val cameraViewHeight =
             displayMetrics.heightPixels -
                 statusBarHeightPx -
@@ -54,11 +50,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         markerHeightPx = cameraViewHeight / numberOfRows - MARKER_VERTICAL_SPACING_PX
 
         val markerWidthDivisor =
-            if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                MARKER_WIDTH_DIVISOR_PORTRAIT
-            } else {
-                MARKER_WIDTH_DIVISOR_LANDSCAPE
-            }
+            if (orientation == Configuration.ORIENTATION_PORTRAIT) MARKER_WIDTH_DIVISOR_PORTRAIT
+            else MARKER_WIDTH_DIVISOR_LANDSCAPE
         markerWidthPx = (displayMetrics.widthPixels / markerWidthDivisor).toFloat()
     }
 

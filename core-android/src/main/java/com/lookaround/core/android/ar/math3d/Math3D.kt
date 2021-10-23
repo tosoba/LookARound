@@ -39,18 +39,14 @@ object Math3D {
         outCamRot.z = 0.0
 
         // The value of the z angle (screen rotation)
-        if (inPhoneRotation == Surface.ROTATION_0) {
-            outScreenRot.v = -inOrientation.z.toDouble()
-        }
-        if (inPhoneRotation == Surface.ROTATION_180) {
-            outScreenRot.v = -inOrientation.z + Math.PI
-        }
-        if (inPhoneRotation == Surface.ROTATION_90) {
-            outScreenRot.v = -inOrientation.z - QUADRANT
-        }
-        if (inPhoneRotation == Surface.ROTATION_270) {
-            outScreenRot.v = -inOrientation.z + QUADRANT
-        }
+        outScreenRot.v =
+            when (inPhoneRotation) {
+                Surface.ROTATION_0 -> -inOrientation.z.toDouble()
+                Surface.ROTATION_180 -> -inOrientation.z + Math.PI
+                Surface.ROTATION_90 -> -inOrientation.z - QUADRANT
+                Surface.ROTATION_270 -> -inOrientation.z + QUADRANT
+                else -> throw IllegalStateException()
+            }
         outCamTrig.setVector3(outCamRot)
         outScreenRotTrig.setVector1(outScreenRot)
     }
