@@ -20,7 +20,7 @@ abstract class ARView<R : MarkerRenderer> : View {
         @MainThread
         set(value) {
             field = value
-            calculateDistancesTo(requireNotNull(value), markers)
+            calculateDistancesBetween(requireNotNull(value), markers)
         }
     var maxRange: Double = Range.DEFAULT_METERS
         @MainThread
@@ -32,7 +32,7 @@ abstract class ARView<R : MarkerRenderer> : View {
         @MainThread
         set(value) {
             field = value
-            povLocation?.let { calculateDistancesTo(it, value) }
+            povLocation?.let { calculateDistancesBetween(it, value) }
         }
     var markerRenderer: R? = null
         @MainThread set
@@ -50,6 +50,8 @@ abstract class ARView<R : MarkerRenderer> : View {
     protected val markerHeight: Float
         get() = markerRenderer?.markerHeightPx ?: MarkerRenderer.DEFAULT_MARKER_DIMENSION_PX
 
+    protected abstract val ARMarker.shouldBeDrawn: Boolean
+
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(
@@ -62,19 +64,17 @@ abstract class ARView<R : MarkerRenderer> : View {
         super.onDraw(canvas)
         val markerRenderer = this.markerRenderer ?: return
         val povLocation = this.povLocation ?: return
-        preRender(canvas, povLocation)
+        preDraw(canvas, povLocation)
         markers.forEach { marker -> calculateMarkerScreenPosition(marker, povLocation) }
-        val drawnRects = markerRenderer.draw(markers.filter(this::willBeDrawn), canvas, orientation)
-        markerRenderer.postDrawAll(drawnRects)
-        postRender(canvas, povLocation)
+        val drawnRects =
+            markerRenderer.draw(markers.filter { it.shouldBeDrawn }, canvas, orientation)
+        markerRenderer.postDraw(drawnRects)
+        postDraw(canvas, povLocation)
     }
 
-    protected open fun willBeDrawn(marker: ARMarker): Boolean =
-        marker.distance < maxRange && marker.isDrawn
-
-    protected abstract fun preRender(canvas: Canvas, location: Location)
+    protected abstract fun preDraw(canvas: Canvas, location: Location)
     protected abstract fun calculateMarkerScreenPosition(marker: ARMarker, location: Location)
-    protected abstract fun postRender(canvas: Canvas, location: Location)
+    protected abstract fun postDraw(canvas: Canvas, location: Location)
 
     protected fun getAngleBetween(marker: ARMarker, location: Location): Double =
         atan2(
@@ -82,7 +82,7 @@ abstract class ARView<R : MarkerRenderer> : View {
             marker.wrapped.location.longitude - location.longitude
         )
 
-    private fun calculateDistancesTo(location: Location, markers: List<ARMarker>) {
+    private fun calculateDistancesBetween(location: Location, markers: List<ARMarker>) {
         markers.forEach { marker -> marker.distance = marker.wrapped.location.distanceTo(location) }
     }
 

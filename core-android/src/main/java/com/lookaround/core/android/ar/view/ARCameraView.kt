@@ -35,6 +35,9 @@ class ARCameraView : ARView<CameraMarkerRenderer> {
     var onTouch: (() -> Unit)? = null
         @MainThread set
 
+    override val ARMarker.shouldBeDrawn: Boolean
+        get() = distance < maxRange && isDrawn
+
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(
@@ -47,7 +50,7 @@ class ARCameraView : ARView<CameraMarkerRenderer> {
         screenRatio.z = SCREEN_DEPTH.toDouble()
     }
 
-    override fun preRender(canvas: Canvas, location: Location) {
+    override fun preDraw(canvas: Canvas, location: Location) {
         // For the moment we set a square as ratio. Size is arithmetic mean of width and height
         screenRatio.y = ((width + height).toFloat() / 2).toDouble()
         screenRatio.x = ((width + height).toFloat() / 2).toDouble()
@@ -85,7 +88,7 @@ class ARCameraView : ARView<CameraMarkerRenderer> {
         marker.isDrawn = drawn
     }
 
-    override fun postRender(canvas: Canvas, location: Location) = Unit
+    override fun postDraw(canvas: Canvas, location: Location) = Unit
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {

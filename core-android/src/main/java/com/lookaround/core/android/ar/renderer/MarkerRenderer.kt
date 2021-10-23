@@ -13,7 +13,7 @@ interface MarkerRenderer {
         get() = DEFAULT_MARKER_DIMENSION_PX
 
     fun draw(markers: List<ARMarker>, canvas: Canvas, orientation: Orientation): List<RectF>
-    fun postDrawAll(drawnRects: List<RectF>) = Unit
+    fun postDraw(drawnRects: List<RectF>) = Unit
 
     fun onSaveInstanceState(): Bundle? = null
     fun onRestoreInstanceState(bundle: Bundle?) = Unit

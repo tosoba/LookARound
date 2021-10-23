@@ -19,6 +19,9 @@ class ARRadarView : ARView<RadarMarkerRenderer> {
     private var rotableBackgroundBitmap: Bitmap? = null
     private var compassAngle: Double = 0.0
 
+    override val ARMarker.shouldBeDrawn: Boolean
+        get() = distance < maxRange
+
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(
@@ -44,14 +47,12 @@ class ARRadarView : ARView<RadarMarkerRenderer> {
         marker.y = markerY.toFloat()
     }
 
-    override fun preRender(canvas: Canvas, location: Location) {
+    override fun preDraw(canvas: Canvas, location: Location) {
         drawBackground(canvas)
         compassAngle = orientation.y.toDouble()
     }
 
-    override fun willBeDrawn(marker: ARMarker): Boolean = marker.distance < maxRange
-
-    override fun postRender(canvas: Canvas, location: Location) {
+    override fun postDraw(canvas: Canvas, location: Location) {
         val markerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         markerPaint.color = -0xff5f2e
         canvas.drawCircle(center, center, 5f, markerPaint)
