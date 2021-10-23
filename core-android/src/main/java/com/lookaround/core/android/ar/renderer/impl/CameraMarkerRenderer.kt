@@ -82,8 +82,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     var povLocation: Location? = null
 
-    private val markersMap: LinkedHashMap<UUID, CameraMarker> = LinkedHashMap()
-    private val markerXsMap: TreeMap<Float, MutableSet<CameraMarker>> = TreeMap()
+    private val cameraMarkers: LinkedHashMap<UUID, CameraMarker> = LinkedHashMap()
+    private val cameraMarkerXsMap: TreeMap<Float, MutableSet<CameraMarker>> = TreeMap()
 
     private val titleTextPaint: TextPaint by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -114,14 +114,14 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         canvas: Canvas,
         orientation: Orientation
     ): List<RectF> {
-        markerXsMap.clear()
+        cameraMarkerXsMap.clear()
         val drawnRects = mutableListOf<RectF>()
         markers.forEach { marker ->
-            val wrapped = markersMap[marker.wrapped.id] ?: return@forEach
-            marker.y = calculatePagedPositionOf(wrapped).y
-            storeMarkerX(wrapped)
-            wrapped.pagedPosition?.page?.let { if (it > maxPage) maxPage = it }
-            if (wrapped.pagedPosition?.page != currentPage) return@forEach
+            val cameraMarker = cameraMarkers[marker.wrapped.id] ?: return@forEach
+            marker.y = pagedPositionOf(cameraMarker).y
+            storeMarkerX(cameraMarker)
+            cameraMarker.pagedPosition?.page?.let { if (it > maxPage) maxPage = it }
+            if (cameraMarker.pagedPosition?.page != currentPage) return@forEach
             val markerRect = marker.rectF
             val canvasRect = RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat())
             if (!RectF.intersects(canvasRect, markerRect)) return@forEach
@@ -210,16 +210,19 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         }
     }
 
-    private fun calculatePagedPositionOf(marker: CameraMarker): PagedPosition {
+    private fun pagedPositionOf(cameraMarker: CameraMarker): PagedPosition {
         val takenPositions =
-            markerXsMap
+            cameraMarkerXsMap
                 .subMap(
-                    marker.wrapped.x - markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER,
-                    marker.wrapped.x + markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER
+                    cameraMarker.wrapped.x - markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER,
+                    cameraMarker.wrapped.x + markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER
                 )
-                .map { (_, markers) -> markers.mapNotNull(CameraMarker::pagedPosition::get) }
+                .map { (_, cameraMarkers) ->
+                    cameraMarkers.mapNotNull(CameraMarker::pagedPosition::get)
+                }
                 .flatten()
                 .toSet()
+        cameraMarker.pagedPosition?.let { if (!takenPositions.contains(it)) return it }
         val baseY = statusBarHeightPx + actionBarHeightPx
         val position = PagedPosition(baseY, 0)
         while (takenPositions.contains(position)) {
@@ -229,50 +232,50 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 ++position.page
             }
         }
-        marker.pagedPosition = position
+        cameraMarker.pagedPosition = position
         return position
     }
 
     private fun storeMarkerX(marker: CameraMarker) {
-        val existingMarkerSet = markerXsMap[marker.wrapped.x]
+        val existingMarkerSet = cameraMarkerXsMap[marker.wrapped.x]
         existingMarkerSet?.add(marker)
-            ?: run { markerXsMap[marker.wrapped.x] = mutableSetOf(marker) }
+            ?: run { cameraMarkerXsMap[marker.wrapped.x] = mutableSetOf(marker) }
     }
 
     @MainThread
     operator fun plusAssign(marker: ARMarker) {
-        if (markersMap.contains(marker.wrapped.id)) return
-        markersMap[marker.wrapped.id] = CameraMarker(marker)
+        if (cameraMarkers.contains(marker.wrapped.id)) return
+        cameraMarkers[marker.wrapped.id] = CameraMarker(marker)
     }
 
     @MainThread
     operator fun plusAssign(markers: Collection<ARMarker>) {
         markers.forEach { marker ->
-            if (markersMap.contains(marker.wrapped.id)) return@forEach
-            markersMap[marker.wrapped.id] = CameraMarker(marker)
+            if (cameraMarkers.contains(marker.wrapped.id)) return@forEach
+            cameraMarkers[marker.wrapped.id] = CameraMarker(marker)
         }
     }
 
     @MainThread
     operator fun minusAssign(marker: ARMarker) {
-        markersMap.remove(marker.wrapped.id)?.let { resetPaging() }
+        cameraMarkers.remove(marker.wrapped.id)?.let { resetPaging() }
     }
 
     @MainThread
     operator fun minusAssign(markers: Collection<ARMarker>) {
         var removedAny = false
         markers.forEach { marker ->
-            markersMap.remove(marker.wrapped.id)?.let { removedAny = true }
+            cameraMarkers.remove(marker.wrapped.id)?.let { removedAny = true }
         }
         if (removedAny) resetPaging()
     }
 
     private fun resetPaging() {
-        markersMap.values.forEach { it.pagedPosition = null }
+        cameraMarkers.values.forEach { it.pagedPosition = null }
     }
 
     internal fun isOnCurrentPage(marker: ARMarker): Boolean =
-        markersMap[marker.wrapped.id]?.pagedPosition?.page == currentPage
+        cameraMarkers[marker.wrapped.id]?.pagedPosition?.page == currentPage
 
     private class CameraMarker(
         val wrapped: ARMarker,
