@@ -83,7 +83,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     var povLocation: Location? = null
 
     private val cameraMarkers: LinkedHashMap<UUID, CameraMarker> = LinkedHashMap()
-    private val cameraMarkerXsMap: TreeMap<Float, MutableSet<CameraMarker>> = TreeMap()
+    private val cameraMarkerPagedPositions: TreeMap<Float, MutableSet<PagedPosition>> = TreeMap()
 
     private val titleTextPaint: TextPaint by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -114,7 +114,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         canvas: Canvas,
         orientation: Orientation
     ): List<RectF> {
-        cameraMarkerXsMap.clear()
+        cameraMarkerPagedPositions.clear()
         val drawnRects = mutableListOf<RectF>()
         markers.forEach { marker ->
             val cameraMarker = cameraMarkers[marker.wrapped.id] ?: return@forEach
@@ -212,14 +212,12 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     private fun pagedPositionOf(cameraMarker: CameraMarker): PagedPosition {
         val takenPositions =
-            cameraMarkerXsMap
+            cameraMarkerPagedPositions
                 .subMap(
                     cameraMarker.wrapped.x - markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER,
                     cameraMarker.wrapped.x + markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER
                 )
-                .map { (_, cameraMarkers) ->
-                    cameraMarkers.mapNotNull(CameraMarker::pagedPosition::get)
-                }
+                .values
                 .flatten()
                 .toSet()
         cameraMarker.pagedPosition?.let { if (!takenPositions.contains(it)) return it }
@@ -237,9 +235,12 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     private fun storeMarkerX(marker: CameraMarker) {
-        val existingMarkerSet = cameraMarkerXsMap[marker.wrapped.x]
-        existingMarkerSet?.add(marker)
-            ?: run { cameraMarkerXsMap[marker.wrapped.x] = mutableSetOf(marker) }
+        val pagedPosition =
+            marker.pagedPosition
+                ?: throw IllegalArgumentException("Marker must have a PagedPosition.")
+        val existingMarkerSet = cameraMarkerPagedPositions[marker.wrapped.x]
+        existingMarkerSet?.add(pagedPosition)
+            ?: run { cameraMarkerPagedPositions[marker.wrapped.x] = mutableSetOf(pagedPosition) }
     }
 
     @MainThread
