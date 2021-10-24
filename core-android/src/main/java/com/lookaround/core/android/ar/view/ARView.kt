@@ -12,7 +12,6 @@ import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.model.Range
-import kotlin.math.atan2
 import kotlinx.parcelize.Parcelize
 
 abstract class ARView<R : MarkerRenderer> : View {
@@ -75,12 +74,6 @@ abstract class ARView<R : MarkerRenderer> : View {
     protected abstract fun preDraw(canvas: Canvas, location: Location)
     protected abstract fun calculateMarkerScreenPosition(marker: ARMarker, location: Location)
     protected abstract fun postDraw(canvas: Canvas, location: Location)
-
-    protected fun getAngleBetween(marker: ARMarker, location: Location): Double =
-        atan2(
-            marker.wrapped.location.latitude - location.latitude,
-            marker.wrapped.location.longitude - location.longitude
-        )
 
     private fun calculateDistancesBetween(location: Location, markers: List<ARMarker>) {
         markers.forEach { marker -> marker.distance = marker.wrapped.location.distanceTo(location) }

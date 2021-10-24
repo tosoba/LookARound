@@ -6,6 +6,7 @@ import android.location.Location
 import android.util.AttributeSet
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -57,6 +58,12 @@ class ARRadarView : ARView<RadarMarkerRenderer> {
         markerPaint.color = -0xff5f2e
         canvas.drawCircle(center, center, 5f, markerPaint)
     }
+
+    private fun getAngleBetween(marker: ARMarker, location: Location): Double =
+        atan2(
+            marker.wrapped.location.latitude - location.latitude,
+            marker.wrapped.location.longitude - location.longitude
+        )
 
     private fun drawBackground(canvas: Canvas) {
         rotableBackgroundBitmap?.let { bitmap ->
