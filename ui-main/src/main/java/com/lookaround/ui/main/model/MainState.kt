@@ -6,13 +6,13 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.model.Empty
 import com.lookaround.core.android.model.Loadable
 import com.lookaround.core.android.model.Marker
-import com.lookaround.core.android.model.ParcelableList
+import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.ui.main.R
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class MainState(
-    val markers: Loadable<ParcelableList<Marker>> = Empty,
+    val markers: Loadable<ParcelableSortedSet<Marker>> = Empty,
     val locationState: Loadable<Location> = Empty,
     val lastLiveBottomSheetState: Int = BottomSheetBehavior.STATE_HIDDEN,
     val searchQuery: String = "",

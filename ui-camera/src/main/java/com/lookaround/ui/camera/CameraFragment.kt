@@ -177,11 +177,22 @@ class CameraFragment :
         mainViewModel.markerUpdates.onEach(::updateMarkers).launchIn(lifecycleScope)
     }
 
-    private fun updateMarkers(markers: List<Marker>) {
-        val cameraARMarkers = markers.map(::SimpleARMarker)
-        cameraRenderer += cameraARMarkers
-        binding.arCameraView.markers = cameraARMarkers
-        binding.arRadarView.markers = markers.map(::SimpleARMarker)
+    private fun updateMarkers(markers: Loadable<ParcelableSortedSet<Marker>>) {
+        when (markers) {
+            is Empty -> return
+            is LoadingInProgress -> {
+                // TODO: show loading msg (like a snackbar or smth...)
+            }
+            is Failed -> {
+                // TODO: show an error snackbar
+            }
+            is WithValue -> {
+                val cameraARMarkers = markers.value.map(::SimpleARMarker)
+                cameraRenderer += cameraARMarkers
+                binding.arCameraView.markers = cameraARMarkers
+                binding.arRadarView.markers = markers.value.map(::SimpleARMarker)
+            }
+        }
     }
 
     private fun FragmentCameraBinding.initARCameraPageViews() {

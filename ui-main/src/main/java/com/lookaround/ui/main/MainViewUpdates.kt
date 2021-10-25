@@ -3,10 +3,7 @@ package com.lookaround.ui.main
 import android.location.Location
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.exception.LocationUpdateFailureException
-import com.lookaround.core.android.model.Failed
-import com.lookaround.core.android.model.Marker
-import com.lookaround.core.android.model.ParcelableList
-import com.lookaround.core.android.model.WithValue
+import com.lookaround.core.android.model.*
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import java.util.*
@@ -57,13 +54,19 @@ val MainViewModel.unableToLoadPlacesWithoutLocationSignals:
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-val MainViewModel.markerUpdates: Flow<List<Marker>>
+val MainViewModel.markerUpdates: Flow<Loadable<ParcelableSortedSet<Marker>>>
     get() =
         states
             .map(MainState::markers::get)
+            .withIndex()
+            .map { (index, markers) ->
+                when {
+                    index == 0 && markers is FailedNext -> Ready(markers.value)
+                    index == 0 && markers is FailedFirst -> Empty
+                    else -> markers
+                }
+            }
             .distinctUntilChanged()
-            .filterIsInstance<WithValue<ParcelableList<Marker>>>()
-            .map { it.value.items }
 
 @FlowPreview
 @ExperimentalCoroutinesApi
