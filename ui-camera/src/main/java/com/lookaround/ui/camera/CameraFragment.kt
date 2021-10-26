@@ -188,7 +188,7 @@ class CameraFragment :
             }
             is WithValue -> {
                 val cameraARMarkers = markers.value.map(::SimpleARMarker)
-                cameraRenderer += cameraARMarkers
+                cameraRenderer.setMarkers(cameraARMarkers)
                 binding.arCameraView.markers = cameraARMarkers
                 binding.arRadarView.markers = markers.value.map(::SimpleARMarker)
             }

@@ -18,6 +18,7 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.ext.*
 import java.util.*
+import kotlin.collections.HashMap
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -75,7 +76,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     var povLocation: Location? = null
 
-    private val cameraMarkers: LinkedHashMap<UUID, CameraMarker> = LinkedHashMap()
+    private val cameraMarkers: HashMap<UUID, CameraMarker> = HashMap()
     private val cameraMarkerPagedPositions: TreeMap<Float, MutableSet<PagedPosition>> = TreeMap()
 
     private val titleTextPaint: TextPaint by
@@ -237,35 +238,9 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     @MainThread
-    operator fun plusAssign(marker: ARMarker) {
-        if (cameraMarkers.contains(marker.wrapped.id)) return
-        cameraMarkers[marker.wrapped.id] = CameraMarker(marker)
-    }
-
-    @MainThread
-    operator fun plusAssign(markers: Collection<ARMarker>) {
-        markers.forEach { marker ->
-            if (cameraMarkers.contains(marker.wrapped.id)) return@forEach
-            cameraMarkers[marker.wrapped.id] = CameraMarker(marker)
-        }
-    }
-
-    @MainThread
-    operator fun minusAssign(marker: ARMarker) {
-        cameraMarkers.remove(marker.wrapped.id)?.let { resetPaging() }
-    }
-
-    @MainThread
-    operator fun minusAssign(markers: Collection<ARMarker>) {
-        var removedAny = false
-        markers.forEach { marker ->
-            cameraMarkers.remove(marker.wrapped.id)?.let { removedAny = true }
-        }
-        if (removedAny) resetPaging()
-    }
-
-    private fun resetPaging() {
-        cameraMarkers.values.forEach { it.pagedPosition = null }
+    fun setMarkers(markers: Collection<ARMarker>) {
+        cameraMarkers.clear()
+        markers.forEach { marker -> cameraMarkers[marker.wrapped.id] = CameraMarker(marker) }
     }
 
     internal fun isOnCurrentPage(marker: ARMarker): Boolean =
