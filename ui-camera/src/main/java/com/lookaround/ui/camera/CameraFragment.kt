@@ -127,7 +127,6 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.initARViews() {
         initARCameraPageViews()
-        initARCameraRangeViews()
 
         requireContext()
             .initCamera(
@@ -196,45 +195,8 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.initARCameraPageViews() {
-        arCameraPageSeekbar.setValueButtonsOnClickListeners(
-            upBtn = arCameraPageUpBtn,
-            downBtn = arCameraPageDownBtn
-        )
-        arCameraPageSeekbar.onValueChangeListener =
-            object : BoxedSeekbar.OnValueChangeListener {
-                override fun onValueChanged(seekbar: BoxedSeekbar, value: Int) {
-                    seekbar.updateValueButtonsEnabled(
-                        points = value,
-                        upBtn = arCameraPageUpBtn,
-                        downBtn = arCameraPageDownBtn,
-                    )
-                    cameraRenderer.currentPage = value
-                }
-            }
-    }
-
-    private fun FragmentCameraBinding.initARCameraRangeViews() {
-        arCameraRangeSeekbar.setValueButtonsOnClickListeners(
-            upBtn = arCameraRangeUpBtn,
-            downBtn = arCameraRangeDownBtn
-        )
-        arCameraRangeSeekbar.onValueChangeListener =
-            object : BoxedSeekbar.OnValueChangeListener {
-                override fun onValueChanged(seekbar: BoxedSeekbar, value: Int) {
-                    seekbar.updateValueButtonsEnabled(
-                        points = value,
-                        upBtn = arCameraRangeUpBtn,
-                        downBtn = arCameraRangeDownBtn,
-                    )
-                    val meters = Range.metersFrom(ordinal = value)
-                    arCameraView.maxRange = meters
-                    arRadarView.maxRange = meters
-                }
-            }
-        arCameraRangeSeekbar.valueToPointsText =
-            { value ->
-                Range.labelFrom(ordinal = value.coerceAtMost(Range.values().size - 1))
-            }
+        arCameraPageUpBtn.setOnClickListener {  }
+        arCameraPageDownBtn.setOnClickListener {  }
     }
 
     private fun FragmentCameraBinding.onLoadingStarted() {
@@ -268,15 +230,7 @@ class CameraFragment :
         maxPage: Int,
         setCurrentPage: Boolean
     ) {
-        if (maxPage > 0) arCameraRangeViewsGroup.visibility = View.VISIBLE
-        arCameraPageViewsGroup.visibility = if (maxPage > 0) View.VISIBLE else View.GONE
-        arCameraPageSeekbar.isEnabled = maxPage > 0
-        if (setCurrentPage) arCameraPageSeekbar.value = maxPage
-        if (maxPage > 0) arCameraPageSeekbar.max = maxPage
-        arCameraPageSeekbar.updateValueButtonsEnabled(
-            upBtn = arCameraPageUpBtn,
-            downBtn = arCameraPageDownBtn,
-        )
+
     }
 
     override fun onResume() {
@@ -358,21 +312,15 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.showARViews() {
         arViewsGroup.visibility = View.VISIBLE
-        arCameraRangeViewsGroup.visibility = View.VISIBLE
-        if (arCameraPageSeekbar.isEnabled) arCameraPageViewsGroup.visibility = View.VISIBLE
     }
 
     private fun FragmentCameraBinding.hideARViews() {
         arViewsGroup.visibility = View.GONE
         arCameraPageViewsGroup.visibility = View.GONE
-        arCameraRangeViewsGroup.visibility = View.GONE
     }
 
     private fun FragmentCameraBinding.onCameraTouch() {
-        val targetVisibility = arCameraRangeViewsGroup.toggleVisibility()
-        if (arCameraPageSeekbar.isEnabled) {
-            arCameraPageViewsGroup.visibility = targetVisibility
-        }
+        val targetVisibility = arCameraPageViewsGroup.toggleVisibility()
         changeRadarViewTopGuideline(targetVisibility)
         (activity as? AREventsListener)?.onCameraTouch(targetVisibility)
     }

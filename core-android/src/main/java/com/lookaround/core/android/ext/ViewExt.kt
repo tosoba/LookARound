@@ -6,7 +6,6 @@ import android.view.animation.TranslateAnimation
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.facebook.shimmer.ShimmerFrameLayout
-import com.lookaround.core.android.view.BoxedSeekbar
 
 fun ShimmerFrameLayout.showAndStart() {
     visibility = View.VISIBLE
@@ -21,16 +20,6 @@ fun ShimmerFrameLayout.stopAndHide() {
 fun View.toggleVisibility(): Int {
     visibility = if (visibility == View.GONE) View.VISIBLE else View.GONE
     return visibility
-}
-
-fun BoxedSeekbar.updateValueButtonsEnabled(points: Int = value, upBtn: View, downBtn: View) {
-    upBtn.isEnabled = points < max
-    downBtn.isEnabled = points > min
-}
-
-fun BoxedSeekbar.setValueButtonsOnClickListeners(upBtn: View, downBtn: View) {
-    upBtn.setOnClickListener { ++value }
-    downBtn.setOnClickListener { --value }
 }
 
 fun View.slideChangeVisibility(

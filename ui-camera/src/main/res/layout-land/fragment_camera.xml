@@ -43,122 +43,31 @@
         app:layout_constraintTop_toTopOf="@id/radar_view_top_guideline" />
 
     <androidx.constraintlayout.widget.Group
-        android:id="@+id/ar_camera_range_views_group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:constraint_referenced_ids="ar_camera_range_up_btn,ar_camera_range_seekbar,ar_camera_range_down_btn" />
-
-    <ImageButton
-        android:id="@+id/ar_camera_range_up_btn"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginVertical="10dp"
-        android:contentDescription="@string/range_up"
-        android:src="@drawable/plus"
-        app:layout_constraintBottom_toTopOf="@+id/ar_camera_range_seekbar"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintLeft_toLeftOf="@id/ar_camera_range_seekbar"
-        app:layout_constraintRight_toRightOf="@id/ar_camera_range_seekbar"
-        app:layout_constraintTop_toTopOf="@id/radar_view_top_guideline"
-        app:layout_constraintVertical_chainStyle="spread" />
-
-    <com.lookaround.core.android.view.BoxedSeekbar
-        android:id="@+id/ar_camera_range_seekbar"
-        android:layout_width="25dp"
-        android:layout_height="0dp"
-        android:layout_marginHorizontal="20dp"
-        android:orientation="vertical"
-        app:backgroundColor="@color/color_background"
-        app:cornerRadius="20dp"
-        app:currentValue="3"
-        app:defaultValue="3"
-        app:imageEnabled="false"
-        app:layout_constraintBottom_toTopOf="@+id/ar_camera_range_down_btn"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ar_camera_range_up_btn"
-        app:max="6"
-        app:progressColor="@color/design_default_color_on_primary"
-        app:step="1"
-        app:textBottomPadding="20"
-        app:textColor="@color/design_default_color_primary"
-        app:textEnabled="true"
-        app:textSize="16sp"
-        app:touchDisabled="true" />
-
-    <ImageButton
-        android:id="@+id/ar_camera_range_down_btn"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginVertical="10dp"
-        android:contentDescription="@string/range_down"
-        android:src="@drawable/minus"
-        app:layout_constraintBottom_toBottomOf="@id/bottom_sheet_collapsed_guideline"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintLeft_toLeftOf="@id/ar_camera_range_seekbar"
-        app:layout_constraintRight_toRightOf="@id/ar_camera_range_seekbar"
-        app:layout_constraintTop_toBottomOf="@+id/ar_camera_range_seekbar" />
-
-    <androidx.constraintlayout.widget.Group
         android:id="@+id/ar_camera_page_views_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        app:constraint_referenced_ids="ar_camera_page_up_btn,ar_camera_page_seekbar,ar_camera_page_down_btn" />
+        app:constraint_referenced_ids="ar_camera_page_up_btn,ar_camera_page_down_btn" />
 
     <ImageButton
         android:id="@+id/ar_camera_page_up_btn"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginVertical="10dp"
+        android:layout_marginHorizontal="15dp"
         android:contentDescription="@string/page_up"
         android:src="@drawable/plus"
-        app:layout_constraintBottom_toTopOf="@+id/ar_camera_page_seekbar"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintLeft_toLeftOf="@id/ar_camera_page_seekbar"
-        app:layout_constraintRight_toRightOf="@id/ar_camera_page_seekbar"
-        app:layout_constraintTop_toTopOf="@id/radar_view_top_guideline"
-        app:layout_constraintVertical_chainStyle="spread" />
-
-    <com.lookaround.core.android.view.BoxedSeekbar
-        android:id="@+id/ar_camera_page_seekbar"
-        android:layout_width="25dp"
-        android:layout_height="0dp"
-        android:layout_marginHorizontal="20dp"
-        android:orientation="vertical"
-        app:backgroundColor="@color/color_background"
-        app:cornerRadius="20dp"
-        app:defaultValue="0"
-        app:enabled="false"
-        app:imageEnabled="false"
-        app:layout_constraintBottom_toTopOf="@+id/ar_camera_page_down_btn"
-        app:layout_constraintLeft_toRightOf="@id/ar_camera_range_seekbar"
-        app:layout_constraintTop_toBottomOf="@+id/ar_camera_page_up_btn"
-        app:max="1"
-        app:progressColor="@color/design_default_color_on_primary"
-        app:step="1"
-        app:textBottomPadding="20"
-        app:textColor="@color/design_default_color_primary"
-        app:textEnabled="true"
-        app:textSize="16sp"
-        app:touchDisabled="true" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
 
     <ImageButton
         android:id="@+id/ar_camera_page_down_btn"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginVertical="10dp"
+        android:layout_marginHorizontal="15dp"
         android:contentDescription="@string/page_down"
         android:src="@drawable/minus"
-        app:layout_constraintBottom_toBottomOf="@id/bottom_sheet_collapsed_guideline"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintLeft_toLeftOf="@id/ar_camera_page_seekbar"
-        app:layout_constraintRight_toRightOf="@id/ar_camera_page_seekbar"
-        app:layout_constraintTop_toBottomOf="@+id/ar_camera_page_seekbar" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/ar_camera_page_up_btn" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/bottom_sheet_collapsed_guideline"
