@@ -20,4 +20,9 @@ sealed class CameraStateUpdate : StateUpdate<CameraState> {
         override fun invoke(state: CameraState): CameraState =
             state.copy(previewState = CameraPreviewState.PermissionDenied)
     }
+
+    data class CameraMarkersFirstIndexChanged(val difference: Int) : CameraStateUpdate() {
+        override fun invoke(state: CameraState): CameraState =
+            state.copy(firstMarkerIndex = state.firstMarkerIndex + difference)
+    }
 }

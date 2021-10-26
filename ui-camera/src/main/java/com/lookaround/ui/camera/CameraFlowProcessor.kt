@@ -5,13 +5,13 @@ import com.lookaround.ui.camera.model.CameraIntent
 import com.lookaround.ui.camera.model.CameraSignal
 import com.lookaround.ui.camera.model.CameraState
 import com.lookaround.ui.camera.model.CameraStateUpdate
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class CameraFlowProcessor @Inject constructor() :
@@ -34,5 +34,9 @@ class CameraFlowProcessor @Inject constructor() :
             intents.filterIsInstance<CameraIntent.CameraPermissionDenied>().map {
                 CameraStateUpdate.CameraPermissionDenied
             },
+            intents.filterIsInstance<CameraIntent.CameraMarkersFirstIndexChanged>().map {
+                (difference) ->
+                CameraStateUpdate.CameraMarkersFirstIndexChanged(difference)
+            }
         )
 }
