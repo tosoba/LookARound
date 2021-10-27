@@ -11,17 +11,12 @@ import androidx.annotation.MainThread
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
-import com.lookaround.core.android.model.Range
 import kotlinx.parcelize.Parcelize
 
 abstract class ARView<R : MarkerRenderer> : View {
     open var povLocation: Location? = null
-        @MainThread
-        set(value) {
-            field = value
-            calculateDistancesBetween(requireNotNull(value), markers)
-        }
-    var maxRange: Double = Range.DEFAULT_METERS
+        @MainThread set
+    protected var maxRange: Double = 1_000.0
         @MainThread
         set(value) {
             field = value
@@ -32,6 +27,9 @@ abstract class ARView<R : MarkerRenderer> : View {
         set(value) {
             field = value
             povLocation?.let { calculateDistancesBetween(it, value) }
+            maxRange =
+                value.lastOrNull()?.distance?.toDouble()
+                    ?: DEFAULT_MAX_RANGE_METERS + RANGE_MARGIN_METERS
         }
     var markerRenderer: R? = null
         @MainThread set
@@ -80,19 +78,22 @@ abstract class ARView<R : MarkerRenderer> : View {
     }
 
     override fun onSaveInstanceState(): Parcelable? =
-        SavedState(super.onSaveInstanceState(), markerRenderer?.onSaveInstanceState(), maxRange)
+        SavedState(super.onSaveInstanceState(), markerRenderer?.onSaveInstanceState())
 
     override fun onRestoreInstanceState(state: Parcelable?) {
         val savedState = state as? SavedState
         super.onRestoreInstanceState(savedState?.superSavedState ?: state)
         markerRenderer?.onRestoreInstanceState(savedState?.rendererBundle)
-        savedState?.maxRangeMeters?.let(::maxRange::set)
     }
 
     @Parcelize
     internal class SavedState(
         val superSavedState: Parcelable?,
         val rendererBundle: Bundle?,
-        val maxRangeMeters: Double,
     ) : BaseSavedState(superSavedState), Parcelable
+
+    companion object {
+        const val DEFAULT_MAX_RANGE_METERS = 1_000.0
+        const val RANGE_MARGIN_METERS = 100.0
+    }
 }

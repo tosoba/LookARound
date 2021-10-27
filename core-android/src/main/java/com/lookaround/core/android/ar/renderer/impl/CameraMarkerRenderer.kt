@@ -60,19 +60,21 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     val drawnRectsFlow: Flow<List<RectF>>
         get() = drawnRectsStateFlow
 
-    private val maxPageStateFlow: MutableStateFlow<MaxPageChanged> =
-        MutableStateFlow(MaxPageChanged(0, false))
-    val maxPageFlow: Flow<MaxPageChanged>
-        get() = maxPageStateFlow
-    var maxPage: Int = 0
-        private set
-
     var currentPage: Int = 0
         @MainThread
         set(value) {
             assert(value >= 0)
             field = value
         }
+    var maxPage: Int = 0
+        private set(value) {
+            assert(value >= 0)
+            field = value
+        }
+    private val markersDrawnStateFlow: MutableStateFlow<MarkersDrawn> =
+        MutableStateFlow(MarkersDrawn(currentPage, maxPage))
+    val markersDrawnFlow: Flow<MarkersDrawn>
+        get() = markersDrawnStateFlow
 
     var povLocation: Location? = null
 
@@ -110,11 +112,14 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     ): List<RectF> {
         cameraMarkerPagedPositions.clear()
         val drawnRects = mutableListOf<RectF>()
+        var maxPageThisFrame = 0
         markers.forEach { marker ->
             val cameraMarker = cameraMarkers[marker.wrapped.id] ?: return@forEach
             marker.y = pagedPositionOf(cameraMarker).y
             storeMarkerX(cameraMarker)
-            cameraMarker.pagedPosition?.page?.let { if (it > maxPage) maxPage = it }
+            cameraMarker.pagedPosition?.page?.let {
+                if (it > maxPageThisFrame) maxPageThisFrame = it
+            }
             if (cameraMarker.pagedPosition?.page != currentPage) return@forEach
             val markerRect = marker.rectF
             val canvasRect = RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat())
@@ -123,6 +128,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             canvas.drawDistanceText(marker, markerRect)
             drawnRects.add(markerRect)
         }
+        maxPage = maxPageThisFrame
         return drawnRects
     }
 
@@ -185,9 +191,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     override fun postDraw(drawnRects: List<RectF>) {
         val changeCurrent = currentPage > maxPage
-        maxPageStateFlow.value = MaxPageChanged(maxPage, changeCurrent)
         if (changeCurrent) currentPage = maxPage
-        maxPage = 0
+        markersDrawnStateFlow.value = MarkersDrawn(currentPage, maxPage)
         drawnRectsStateFlow.value = drawnRects
     }
 
@@ -258,7 +263,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     private data class PagedPosition(var y: Float, var page: Int)
 
-    data class MaxPageChanged(val maxPage: Int, val setCurrentPage: Boolean)
+    data class MarkersDrawn(val currentPage: Int, val maxPage: Int)
 
     private enum class SavedStateKeys {
         MAX_PAGE,

@@ -19,17 +19,18 @@ import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
 import com.lookaround.core.android.camera.OpenGLRenderer
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
-import com.lookaround.core.android.view.BoxedSeekbar
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import com.lookaround.ui.camera.model.*
+import com.lookaround.ui.camera.model.CameraState
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
-import com.lookaround.ui.main.markerUpdates
 import com.lookaround.ui.main.model.MainIntent
+import com.lookaround.ui.main.model.MainState
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
 import javax.inject.Inject
+import kotlin.math.min
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -139,13 +140,31 @@ class CameraFragment :
             .previewStreamStateLiveData
             .asFlow()
             .distinctUntilChanged()
+            // TODO: is there a need to strore streamState like that? Maybe replace it with
+            // observing it straight from openGLRenderer
             .onEach { cameraViewModel.intent(CameraIntent.CameraStreamStateChanged(it)) }
             .launchIn(lifecycleScope)
 
-        cameraRenderer
-            .maxPageFlow
-            .onEach { (maxPage, setCurrentPage) -> onCameraMaxPageChanged(maxPage, setCurrentPage) }
-            .onStart { onCameraMaxPageChanged(cameraRenderer.maxPage, false) }
+        combine(
+                cameraRenderer.markersDrawnFlow,
+                cameraViewModel.states.map(CameraState::firstMarkerIndex::get),
+                mainViewModel
+                    .states
+                    .map(MainState::markers::get)
+                    .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
+                    .map { it.value.size }
+            ) { markersDrawn, firstMarkerIndex, markersSize ->
+                Triple(markersDrawn, firstMarkerIndex, markersSize)
+            }
+            .onEach { (markersDrawn, firstMarkerIndex, markersSize) ->
+                val (currentPage, maxPage) = markersDrawn
+                onMarkersDrawn(
+                    firstMarkerIndex = firstMarkerIndex,
+                    markersSize = markersSize,
+                    currentPage = currentPage,
+                    maxPage = maxPage
+                )
+            }
             .launchIn(lifecycleScope)
 
         cameraRenderer
@@ -173,10 +192,15 @@ class CameraFragment :
         arRadarView.rotableBackground = R.drawable.radar_arrow
         arRadarView.markerRenderer = RadarMarkerRenderer()
 
-        mainViewModel.markerUpdates.onEach(::updateMarkers).launchIn(lifecycleScope)
+        getMarkerUpdates(mainViewModel, cameraViewModel)
+            .onEach { (markers, firstMarkerIndex) -> updateARMarkers(markers, firstMarkerIndex) }
+            .launchIn(lifecycleScope)
     }
 
-    private fun updateMarkers(markers: Loadable<ParcelableSortedSet<Marker>>) {
+    private fun updateARMarkers(
+        markers: Loadable<ParcelableSortedSet<Marker>>,
+        firstMarkerIndex: Int
+    ) {
         when (markers) {
             is Empty -> return
             is LoadingInProgress -> {
@@ -186,17 +210,52 @@ class CameraFragment :
                 // TODO: show an error snackbar
             }
             is WithValue -> {
-                val cameraARMarkers = markers.value.map(::SimpleARMarker)
-                cameraRenderer.setMarkers(cameraARMarkers)
-                binding.arCameraView.markers = cameraARMarkers
+                fun WithValue<ParcelableSortedSet<Marker>>.renderedWindow(): List<SimpleARMarker> =
+                    value
+                        .map(::SimpleARMarker)
+                        .subList(
+                            firstMarkerIndex,
+                            min(value.size, firstMarkerIndex + MARKERS_FIRST_INDEX_DIFF)
+                        )
+
+                val renderedMarkers = markers.renderedWindow()
+                cameraRenderer.setMarkers(renderedMarkers)
+                binding.arCameraView.markers = renderedMarkers
                 binding.arRadarView.markers = markers.value.map(::SimpleARMarker)
             }
         }
     }
 
     private fun FragmentCameraBinding.initARCameraPageViews() {
-        arCameraPageUpBtn.setOnClickListener {  }
-        arCameraPageDownBtn.setOnClickListener {  }
+        arCameraPageUpBtn.setOnClickListener {
+            if (cameraRenderer.currentPage < cameraRenderer.maxPage) {
+                ++cameraRenderer.currentPage
+                return@setOnClickListener
+            }
+
+            val markers = mainViewModel.state.markers
+            if (markers !is WithValue) return@setOnClickListener
+            if (cameraViewModel.state.firstMarkerIndex * MARKERS_FIRST_INDEX_DIFF +
+                    MARKERS_FIRST_INDEX_DIFF < markers.value.size
+            ) {
+                lifecycleScope.launch {
+                    cameraViewModel.intent(
+                        CameraIntent.CameraMarkersFirstIndexChanged(MARKERS_FIRST_INDEX_DIFF)
+                    )
+                }
+            }
+        }
+        arCameraPageDownBtn.setOnClickListener {
+            if (cameraRenderer.currentPage > 0) {
+                --cameraRenderer.currentPage
+            } else if (cameraViewModel.state.firstMarkerIndex > 0) {
+                lifecycleScope.launch {
+                    cameraViewModel.intent(
+                        CameraIntent.CameraMarkersFirstIndexChanged(-MARKERS_FIRST_INDEX_DIFF)
+                    )
+                }
+            }
+        }
     }
 
     private fun FragmentCameraBinding.onLoadingStarted() {
@@ -226,11 +285,16 @@ class CameraFragment :
         if (locationDisabled) locationDisabledTextView.visibility = View.VISIBLE
     }
 
-    private fun FragmentCameraBinding.onCameraMaxPageChanged(
+    private fun FragmentCameraBinding.onMarkersDrawn(
+        firstMarkerIndex: Int,
+        markersSize: Int,
+        currentPage: Int,
         maxPage: Int,
-        setCurrentPage: Boolean
     ) {
-
+        arCameraPageUpBtn.isEnabled =
+            firstMarkerIndex * MARKERS_FIRST_INDEX_DIFF + MARKERS_FIRST_INDEX_DIFF < markersSize ||
+                currentPage < maxPage
+        arCameraPageDownBtn.isEnabled = firstMarkerIndex > 0 || currentPage > 0
     }
 
     override fun onResume() {
@@ -323,5 +387,9 @@ class CameraFragment :
         val targetVisibility = arCameraPageViewsGroup.toggleVisibility()
         changeRadarViewTopGuideline(targetVisibility)
         (activity as? AREventsListener)?.onCameraTouch(targetVisibility)
+    }
+
+    companion object {
+        private const val MARKERS_FIRST_INDEX_DIFF = 100
     }
 }

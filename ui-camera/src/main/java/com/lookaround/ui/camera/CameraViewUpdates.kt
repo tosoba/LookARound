@@ -4,13 +4,13 @@ import androidx.camera.view.PreviewView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
-import com.lookaround.core.android.model.LoadingInProgress
-import com.lookaround.core.android.model.Ready
+import com.lookaround.core.android.model.*
 import com.lookaround.ui.camera.model.CameraPreviewState
 import com.lookaround.ui.camera.model.CameraSignal
 import com.lookaround.ui.camera.model.CameraState
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainSignal
+import com.lookaround.ui.main.model.MainState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -109,3 +109,34 @@ fun cameraTouchUpdates(mainViewModel: MainViewModel, cameraViewModel: CameraView
             mainViewModel.state.locationState is Ready && cameraViewModel.state.previewState.isLive
         }
         .map {}
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+fun getMarkerUpdates(
+    mainViewModel: MainViewModel,
+    cameraViewModel: CameraViewModel
+): Flow<Pair<Loadable<ParcelableSortedSet<Marker>>, Int>> =
+    mainViewModel
+        .states
+        .map(MainState::markers::get)
+        .drop(1)
+        .onStart {
+            emitAll(
+                mainViewModel
+                    .states
+                    .map(MainState::markers::get)
+                    .map { markers ->
+                        when {
+                            markers is FailedNext -> Ready(markers.value)
+                            markers is FailedFirst -> Empty
+                            else -> markers
+                        }
+                    }
+                    .take(1)
+            )
+        }
+        .combine(cameraViewModel.states.map(CameraState::firstMarkerIndex::get)) {
+            markers,
+            firstMarkerIndex ->
+            markers to firstMarkerIndex
+        }
