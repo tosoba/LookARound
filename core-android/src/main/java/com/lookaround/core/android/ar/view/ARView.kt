@@ -16,7 +16,7 @@ import kotlinx.parcelize.Parcelize
 abstract class ARView<R : MarkerRenderer> : View {
     open var povLocation: Location? = null
         @MainThread set
-    protected var maxRange: Double = 1_000.0
+    protected var maxRange: Double = DEFAULT_MAX_RANGE_METERS
         @MainThread
         set(value) {
             field = value
@@ -28,8 +28,8 @@ abstract class ARView<R : MarkerRenderer> : View {
             field = value
             povLocation?.let { calculateDistancesBetween(it, value) }
             maxRange =
-                value.lastOrNull()?.distance?.toDouble()
-                    ?: DEFAULT_MAX_RANGE_METERS + RANGE_MARGIN_METERS
+                value.map(ARMarker::distance::get).maxOrNull()?.toDouble()
+                    ?: DEFAULT_MAX_RANGE_METERS * RANGE_MARGIN_MULTIPLIER
         }
     var markerRenderer: R? = null
         @MainThread set
@@ -94,6 +94,6 @@ abstract class ARView<R : MarkerRenderer> : View {
 
     companion object {
         const val DEFAULT_MAX_RANGE_METERS = 1_000.0
-        const val RANGE_MARGIN_METERS = 100.0
+        const val RANGE_MARGIN_MULTIPLIER = 1.1
     }
 }

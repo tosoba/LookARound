@@ -140,3 +140,4 @@ fun getMarkerUpdates(
             firstMarkerIndex ->
             markers to firstMarkerIndex
         }
+        .distinctUntilChanged()

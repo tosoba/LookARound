@@ -221,7 +221,7 @@ class CameraFragment :
                 val renderedMarkers = markers.renderedWindow()
                 cameraRenderer.setMarkers(renderedMarkers)
                 binding.arCameraView.markers = renderedMarkers
-                binding.arRadarView.markers = markers.value.map(::SimpleARMarker)
+                binding.arRadarView.markers = markers.renderedWindow()
             }
         }
     }
