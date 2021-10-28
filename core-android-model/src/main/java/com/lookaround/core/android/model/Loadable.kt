@@ -15,8 +15,9 @@ sealed class Loadable<out T : Parcelable> : Parcelable {
     inline fun <reified E> isFailedWith(): Boolean = (this as? Failed)?.error is E
 }
 
-sealed class WithValue<out T : Parcelable> : Loadable<T>() {
+sealed class WithValue<T : Parcelable> : Loadable<T>() {
     abstract val value: T
+    abstract fun map(block: (T) -> T): WithValue<T>
 }
 
 sealed class WithoutValue : Loadable<Nothing>()
@@ -28,7 +29,7 @@ interface LoadingInProgress
 @Parcelize object LoadingFirst : WithoutValue(), LoadingInProgress
 
 @Parcelize
-data class LoadingNext<out T : Parcelable>(
+data class LoadingNext<T : Parcelable>(
     override val value: T,
 ) : WithValue<T>(), LoadingInProgress {
     override val copyWithLoadingInProgress: Loadable<T>
@@ -38,10 +39,12 @@ data class LoadingNext<out T : Parcelable>(
         get() = this
 
     override fun copyWithError(error: Throwable?): FailedNext<T> = FailedNext(value, error)
+
+    override fun map(block: (T) -> T): WithValue<T> = LoadingNext(block(value))
 }
 
 @Parcelize
-data class Ready<out T : Parcelable>(override val value: T) : WithValue<T>() {
+data class Ready<T : Parcelable>(override val value: T) : WithValue<T>() {
     override val copyWithLoadingInProgress: LoadingNext<T>
         get() = LoadingNext(value)
 
@@ -49,6 +52,8 @@ data class Ready<out T : Parcelable>(override val value: T) : WithValue<T>() {
         get() = this
 
     override fun copyWithError(error: Throwable?): FailedNext<T> = FailedNext(value, error)
+
+    override fun map(block: (T) -> T): WithValue<T> = Ready(block(value))
 }
 
 interface Failed {
@@ -56,7 +61,7 @@ interface Failed {
 }
 
 @Parcelize
-data class FailedNext<out T : Parcelable>(
+data class FailedNext<T : Parcelable>(
     override val value: T,
     override val error: Throwable?,
 ) : WithValue<T>(), Failed {
@@ -67,6 +72,8 @@ data class FailedNext<out T : Parcelable>(
         get() = LoadingNext(value)
 
     override fun copyWithError(error: Throwable?): FailedNext<T> = FailedNext(value, error)
+
+    override fun map(block: (T) -> T): WithValue<T> = FailedNext(block(value), error)
 }
 
 @Parcelize

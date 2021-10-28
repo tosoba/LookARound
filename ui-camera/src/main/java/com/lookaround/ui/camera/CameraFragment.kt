@@ -197,6 +197,7 @@ class CameraFragment :
             .launchIn(lifecycleScope)
     }
 
+    //TODO: use signals for loading - here only update markers
     private fun updateARMarkers(
         markers: Loadable<ParcelableSortedSet<Marker>>,
         firstMarkerIndex: Int
