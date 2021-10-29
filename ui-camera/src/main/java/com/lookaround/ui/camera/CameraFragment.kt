@@ -244,8 +244,10 @@ class CameraFragment :
                         CameraIntent.CameraMarkersFirstIndexChanged(MARKERS_FIRST_INDEX_DIFF)
                     )
                 }
+                cameraRenderer.currentPage = 0
             }
         }
+
         arCameraPageDownBtn.setOnClickListener {
             if (cameraRenderer.currentPage > 0) {
                 --cameraRenderer.currentPage
