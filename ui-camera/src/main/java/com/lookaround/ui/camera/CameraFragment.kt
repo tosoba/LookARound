@@ -197,7 +197,7 @@ class CameraFragment :
             .launchIn(lifecycleScope)
     }
 
-    //TODO: use signals for loading - here only update markers
+    // TODO: use signals for loading - here only update markers
     private fun updateARMarkers(
         markers: Loadable<ParcelableSortedSet<Marker>>,
         firstMarkerIndex: Int
@@ -255,6 +255,7 @@ class CameraFragment :
                         CameraIntent.CameraMarkersFirstIndexChanged(-MARKERS_FIRST_INDEX_DIFF)
                     )
                 }
+                cameraRenderer.currentPage = Int.MAX_VALUE
             }
         }
     }

@@ -190,8 +190,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     override fun postDraw(drawnRects: List<RectF>) {
-        val changeCurrent = currentPage > maxPage
-        if (changeCurrent) currentPage = maxPage
+        if (currentPage > maxPage) currentPage = maxPage
         markersDrawnStateFlow.value = MarkersDrawn(currentPage, maxPage)
         drawnRectsStateFlow.value = drawnRects
     }
