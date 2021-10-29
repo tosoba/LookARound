@@ -11,6 +11,7 @@ import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.Ready
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.model.NodeDTO
+import java.util.*
 
 sealed class MainStateUpdate : StateUpdate<MainState> {
     object LoadingPlaces : MainStateUpdate() {
@@ -52,7 +53,15 @@ sealed class MainStateUpdate : StateUpdate<MainState> {
 
     data class LocationLoaded(val location: Location) : MainStateUpdate() {
         override fun invoke(state: MainState): MainState =
-            state.copy(locationState = Ready(location))
+            state.copy(
+                locationState = Ready(location),
+                markers =
+                    if (state.markers is WithValue) {
+                        state.markers.map { ParcelableSortedSet(TreeSet(it.items)) }
+                    } else {
+                        state.markers
+                    }
+            )
     }
 
     object LoadingLocation : MainStateUpdate() {
