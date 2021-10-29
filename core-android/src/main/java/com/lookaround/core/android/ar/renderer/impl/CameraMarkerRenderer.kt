@@ -18,7 +18,7 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.ext.*
 import java.util.*
-import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashMap
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -78,7 +78,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     var povLocation: Location? = null
 
-    private val cameraMarkers: HashMap<UUID, CameraMarker> = HashMap()
+    private val cameraMarkers: LinkedHashMap<UUID, CameraMarker> = LinkedHashMap()
     private val cameraMarkerPagedPositions: TreeMap<Float, MutableSet<PagedPosition>> = TreeMap()
 
     private val titleTextPaint: TextPaint by
@@ -105,11 +105,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             }
         }
 
-    override fun draw(
-        markers: List<ARMarker>,
-        canvas: Canvas,
-        orientation: Orientation
-    ): List<RectF> {
+    override fun draw(markers: List<ARMarker>, canvas: Canvas, orientation: Orientation) {
         cameraMarkerPagedPositions.clear()
         val drawnRects = mutableListOf<RectF>()
         var maxPageThisFrame = 0
@@ -128,8 +124,12 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             canvas.drawDistanceText(marker, markerRect)
             drawnRects.add(markerRect)
         }
+
         maxPage = maxPageThisFrame
-        return drawnRects
+        if (currentPage > maxPage) currentPage = maxPage
+
+        markersDrawnStateFlow.value = MarkersDrawn(currentPage, maxPage)
+        drawnRectsStateFlow.value = drawnRects
     }
 
     private val ARMarker.rectF: RectF
@@ -187,12 +187,6 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             marker.y + markerHeightPx / 2 - markerPaddingPx,
             distanceTextPaint
         )
-    }
-
-    override fun postDraw(drawnRects: List<RectF>) {
-        if (currentPage > maxPage) currentPage = maxPage
-        markersDrawnStateFlow.value = MarkersDrawn(currentPage, maxPage)
-        drawnRectsStateFlow.value = drawnRects
     }
 
     override fun onSaveInstanceState(): Bundle =

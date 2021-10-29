@@ -12,8 +12,7 @@ interface MarkerRenderer {
     val markerHeightPx: Float
         get() = DEFAULT_MARKER_DIMENSION_PX
 
-    fun draw(markers: List<ARMarker>, canvas: Canvas, orientation: Orientation): List<RectF>
-    fun postDraw(drawnRects: List<RectF>) = Unit
+    fun draw(markers: List<ARMarker>, canvas: Canvas, orientation: Orientation)
 
     fun onSaveInstanceState(): Bundle? = null
     fun onRestoreInstanceState(bundle: Bundle?) = Unit
