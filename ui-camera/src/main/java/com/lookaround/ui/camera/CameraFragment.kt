@@ -101,6 +101,14 @@ class CameraFragment :
     internal fun initAR() {
         lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionGranted) }
 
+        mainViewModel
+            .locationReadyUpdates
+            .onEach {
+                binding.arCameraView.povLocation = it
+                binding.arRadarView.povLocation = it
+            }
+            .launchIn(lifecycleScope)
+
         loadingStartedUpdates(mainViewModel, cameraViewModel)
             .onEach {
                 (activity as? AREventsListener)?.onARLoading()
@@ -114,14 +122,6 @@ class CameraFragment :
             .onEach {
                 (activity as? AREventsListener)?.onAREnabled()
                 binding.onAREnabled()
-            }
-            .launchIn(lifecycleScope)
-
-        mainViewModel
-            .locationReadyUpdates
-            .onEach {
-                binding.arCameraView.povLocation = it
-                binding.arRadarView.povLocation = it
             }
             .launchIn(lifecycleScope)
     }
