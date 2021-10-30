@@ -42,14 +42,19 @@ private val CameraPreviewState.isLive: Boolean
 internal fun loadingStartedUpdates(
     mainViewModel: MainViewModel,
     cameraViewModel: CameraViewModel
-): Flow<Pair<Boolean, Boolean>> =
+): Flow<Unit> =
     mainViewModel
         .states
         .combine(cameraViewModel.states) { mainState, cameraState ->
-            (mainState.locationState is LoadingInProgress) to cameraState.previewState.isLoading
+            mainState.locationState to cameraState.previewState
         }
         .distinctUntilChanged()
-        .filter { (loadingLocation, loadingCamera) -> loadingLocation || loadingCamera }
+        .filter { (locationState, previewState) ->
+            !locationState.isFailedWith<LocationPermissionDeniedException>() &&
+                !locationState.isFailedWith<LocationDisabledException>() &&
+                (locationState is LoadingInProgress || previewState.isLoading)
+        }
+        .map {}
 
 @FlowPreview
 @ExperimentalCoroutinesApi
