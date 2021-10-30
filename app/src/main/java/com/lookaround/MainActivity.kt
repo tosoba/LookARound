@@ -290,9 +290,9 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         binding.searchBarView.apply {
             val delta = -250f
             if (targetVisibility == View.GONE) {
-                slideChangeVisibility(targetVisibility, toYDelta = delta)
+                slideChangeVisibility(targetVisibility, toYDelta = delta, duration = 100L)
             } else {
-                slideChangeVisibility(targetVisibility, fromYDelta = delta)
+                slideChangeVisibility(targetVisibility, fromYDelta = delta, duration = 100L)
             }
         }
     }

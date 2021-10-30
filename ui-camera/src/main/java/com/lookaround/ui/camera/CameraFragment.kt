@@ -196,12 +196,15 @@ class CameraFragment :
     }
 
     // TODO: use signals for loading - here only update markers
-    private fun updateARMarkers(
+    private fun FragmentCameraBinding.updateARMarkers(
         markers: Loadable<ParcelableSortedSet<Marker>>,
         firstMarkerIndex: Int
     ) {
         when (markers) {
-            is Empty -> return
+            is Empty -> {
+                arCameraPageUpBtn.visibility = View.GONE
+                arCameraPageDownBtn.visibility = View.GONE
+            }
             is LoadingInProgress -> {
                 // TODO: show loading msg (like a snackbar or smth...)
             }
@@ -214,13 +217,13 @@ class CameraFragment :
                         .map(::SimpleARMarker)
                         .subList(
                             firstMarkerIndex,
-                            min(value.size, firstMarkerIndex + MARKERS_FIRST_INDEX_DIFF)
+                            min(value.size, firstMarkerIndex + FIRST_MARKER_INDEX_DIFF)
                         )
 
                 val renderedMarkers = markers.renderedWindow()
                 cameraRenderer.setMarkers(renderedMarkers)
-                binding.arCameraView.markers = renderedMarkers
-                binding.arRadarView.markers = markers.renderedWindow()
+                arCameraView.markers = renderedMarkers
+                arRadarView.markers = markers.renderedWindow()
             }
         }
     }
@@ -234,12 +237,12 @@ class CameraFragment :
 
             val markers = mainViewModel.state.markers
             if (markers !is WithValue) return@setOnClickListener
-            if (cameraViewModel.state.firstMarkerIndex * MARKERS_FIRST_INDEX_DIFF +
-                    MARKERS_FIRST_INDEX_DIFF < markers.value.size
+            if (cameraViewModel.state.firstMarkerIndex * FIRST_MARKER_INDEX_DIFF +
+                    FIRST_MARKER_INDEX_DIFF < markers.value.size
             ) {
                 lifecycleScope.launch {
                     cameraViewModel.intent(
-                        CameraIntent.CameraMarkersFirstIndexChanged(MARKERS_FIRST_INDEX_DIFF)
+                        CameraIntent.CameraMarkersFirstIndexChanged(FIRST_MARKER_INDEX_DIFF)
                     )
                 }
                 cameraRenderer.currentPage = 0
@@ -252,7 +255,7 @@ class CameraFragment :
             } else if (cameraViewModel.state.firstMarkerIndex > 0) {
                 lifecycleScope.launch {
                     cameraViewModel.intent(
-                        CameraIntent.CameraMarkersFirstIndexChanged(-MARKERS_FIRST_INDEX_DIFF)
+                        CameraIntent.CameraMarkersFirstIndexChanged(-FIRST_MARKER_INDEX_DIFF)
                     )
                 }
                 cameraRenderer.currentPage = Int.MAX_VALUE
@@ -293,8 +296,15 @@ class CameraFragment :
         currentPage: Int,
         maxPage: Int,
     ) {
+        if (markersSize == 0) {
+            arCameraPageUpBtn.visibility = View.GONE
+            arCameraPageDownBtn.visibility = View.GONE
+        } else {
+            arCameraPageUpBtn.visibility = View.VISIBLE
+            arCameraPageDownBtn.visibility = View.VISIBLE
+        }
         arCameraPageUpBtn.isEnabled =
-            firstMarkerIndex * MARKERS_FIRST_INDEX_DIFF + MARKERS_FIRST_INDEX_DIFF < markersSize ||
+            firstMarkerIndex * FIRST_MARKER_INDEX_DIFF + FIRST_MARKER_INDEX_DIFF < markersSize ||
                 currentPage < maxPage
         arCameraPageDownBtn.isEnabled = firstMarkerIndex > 0 || currentPage > 0
     }
@@ -386,12 +396,12 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.onCameraTouch() {
-        val targetVisibility = arCameraPageViewsGroup.toggleVisibility()
+        val targetVisibility = visibilityToggleView.toggleVisibility()
         changeRadarViewTopGuideline(targetVisibility)
         (activity as? AREventsListener)?.onCameraTouch(targetVisibility)
     }
 
     companion object {
-        private const val MARKERS_FIRST_INDEX_DIFF = 100
+        private const val FIRST_MARKER_INDEX_DIFF = 100
     }
 }
