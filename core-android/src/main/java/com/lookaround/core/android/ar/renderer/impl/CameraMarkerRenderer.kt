@@ -23,36 +23,33 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class CameraMarkerRenderer(context: Context) : MarkerRenderer {
-    override val markerHeightPx: Float
-    override val markerWidthPx: Float
-
-    private val statusBarHeightPx: Float = context.statusBarHeight.toFloat()
-    private val actionBarHeightPx: Float = context.actionBarHeight
-    private val cameraViewHeightPx: Float
+    private val screenOrientation: Int = context.resources.configuration.orientation
 
     private val markerPaddingPx: Float = context.dpToPx(MARKER_PADDING_DP)
     private val markerTitleTextSizePx: Float = context.spToPx(MARKER_TITLE_TEXT_SIZE_SP)
     private val markerDistanceTextSizePx: Float = context.spToPx(MARKER_DISTANCE_TEXT_SIZE_SP)
 
+    override val markerHeightPx: Float
+    override val markerWidthPx: Float
+
+    private val statusBarHeightPx: Float = context.statusBarHeight.toFloat()
+    private val actionBarHeightPx: Float = context.actionBarHeight
+
     init {
         val displayMetrics = context.resources.displayMetrics
         val bottomNavigationViewHeight = context.bottomNavigationViewHeight
-        cameraViewHeightPx = displayMetrics.heightPixels.toFloat() - bottomNavigationViewHeight
-        val orientation = context.resources.configuration.orientation
-
-        val numberOfRows =
-            if (orientation == Configuration.ORIENTATION_PORTRAIT) NUMBER_OF_ROWS_PORTRAIT
-            else NUMBER_OF_ROWS_LANDSCAPE
         val cameraViewHeight =
             displayMetrics.heightPixels -
                 statusBarHeightPx -
                 actionBarHeightPx -
                 bottomNavigationViewHeight
         markerHeightPx = cameraViewHeight / numberOfRows - MARKER_VERTICAL_SPACING_PX
-
         val markerWidthDivisor =
-            if (orientation == Configuration.ORIENTATION_PORTRAIT) MARKER_WIDTH_DIVISOR_PORTRAIT
-            else MARKER_WIDTH_DIVISOR_LANDSCAPE
+            if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
+                MARKER_WIDTH_DIVISOR_PORTRAIT
+            } else {
+                MARKER_WIDTH_DIVISOR_LANDSCAPE
+            }
         markerWidthPx = (displayMetrics.widthPixels / markerWidthDivisor).toFloat()
     }
 
@@ -83,6 +80,11 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     private val cameraMarkers = LinkedHashMap<UUID, CameraMarker>()
     private val cameraMarkerPagedPositions = TreeMap<Float, MutableSet<PagedPosition>>()
+
+    private val numberOfRows: Int
+        get() =
+            if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) NUMBER_OF_ROWS_PORTRAIT
+            else NUMBER_OF_ROWS_LANDSCAPE
 
     private val titleTextPaint: TextPaint by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -164,8 +166,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     override fun onSaveInstanceState(): Bundle =
         bundleOf(SavedStateKeys.LAST_DRAWN_MARKER_IDS.name to lastDrawnMarkerIds)
 
-    @SuppressWarnings("UNCHECKED_CAST")
     override fun onRestoreInstanceState(bundle: Bundle?) {
+        @Suppress("UNCHECKED_CAST")
         lastDrawnMarkerIds =
             bundle?.getSerializable(SavedStateKeys.LAST_DRAWN_MARKER_IDS.name) as? ArrayList<UUID>
                 ?: return
@@ -194,9 +196,12 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
         val baseY = statusBarHeightPx + actionBarHeightPx
         val position = PagedPosition(baseY, 0)
+        var row = 0
         while (takenPositions.contains(position)) {
             position.y += markerHeightPx + MARKER_VERTICAL_SPACING_PX
-            if (position.y >= cameraViewHeightPx) {
+            ++row
+            if (row >= numberOfRows) {
+                row = 0
                 position.y = baseY
                 ++position.page
             }
