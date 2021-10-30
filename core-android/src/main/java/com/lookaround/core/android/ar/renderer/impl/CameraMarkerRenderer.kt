@@ -56,10 +56,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         markerWidthPx = (displayMetrics.widthPixels / markerWidthDivisor).toFloat()
     }
 
-    private val drawnRectsStateFlow: MutableStateFlow<List<RectF>> = MutableStateFlow(emptyList())
-    val drawnRectsFlow: Flow<List<RectF>>
-        get() = drawnRectsStateFlow
-
+    var povLocation: Location? = null
+        @MainThread set
     var currentPage: Int = 0
         @MainThread
         set(value) {
@@ -71,15 +69,20 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             assert(value >= 0)
             field = value
         }
-    private val markersDrawnStateFlow: MutableStateFlow<MarkersDrawn> =
-        MutableStateFlow(MarkersDrawn(currentPage, maxPage))
+
+    private var firstFrame: Boolean = true
+    private var lastDrawnMarkerIds = ArrayList<UUID>()
+
+    private val markersDrawnStateFlow = MutableStateFlow(MarkersDrawn(currentPage, maxPage))
     val markersDrawnFlow: Flow<MarkersDrawn>
         get() = markersDrawnStateFlow
 
-    var povLocation: Location? = null
+    private val drawnRectsStateFlow = MutableStateFlow<List<RectF>>(emptyList())
+    val drawnRectsFlow: Flow<List<RectF>>
+        get() = drawnRectsStateFlow
 
-    private val cameraMarkers: LinkedHashMap<UUID, CameraMarker> = LinkedHashMap()
-    private val cameraMarkerPagedPositions: TreeMap<Float, MutableSet<PagedPosition>> = TreeMap()
+    private val cameraMarkers = LinkedHashMap<UUID, CameraMarker>()
+    private val cameraMarkerPagedPositions = TreeMap<Float, MutableSet<PagedPosition>>()
 
     private val titleTextPaint: TextPaint by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -117,41 +120,55 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     override fun draw(markers: List<ARMarker>, canvas: Canvas, orientation: Orientation) {
         cameraMarkerPagedPositions.clear()
         val drawnRects = mutableListOf<RectF>()
+        val drawnMarkerIds = ArrayList<UUID>()
         var maxPageThisFrame = 0
+        var currentPageAfterScreenRotation = Int.MAX_VALUE
         markers.forEach { marker ->
             val cameraMarker = cameraMarkers[marker.wrapped.id] ?: return@forEach
-            marker.y = pagedPositionOf(cameraMarker).y
+
+            val pagedPosition = pagedPositionOf(cameraMarker)
+            marker.y = pagedPosition.y
             storeMarkerX(cameraMarker)
             cameraMarker.pagedPosition?.page?.let {
                 if (it > maxPageThisFrame) maxPageThisFrame = it
             }
+            if (firstFrame &&
+                    lastDrawnMarkerIds.contains(marker.wrapped.id) &&
+                    pagedPosition.page < currentPageAfterScreenRotation
+            ) {
+                currentPageAfterScreenRotation = pagedPosition.page
+            }
             if (cameraMarker.pagedPosition?.page != currentPage) return@forEach
+
             val markerRect = marker.rectF
             val canvasRect = RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat())
             if (!RectF.intersects(canvasRect, markerRect)) return@forEach
+
             canvas.drawTitleText(marker, markerRect)
             canvas.drawDistanceText(marker, markerRect)
+
             drawnRects.add(markerRect)
+            drawnMarkerIds.add(marker.wrapped.id)
         }
 
         maxPage = maxPageThisFrame
+        if (firstFrame) currentPage = currentPageAfterScreenRotation
         if (currentPage > maxPage) currentPage = maxPage
 
+        lastDrawnMarkerIds = drawnMarkerIds
         markersDrawnStateFlow.value = MarkersDrawn(currentPage, maxPage)
         drawnRectsStateFlow.value = drawnRects
+        firstFrame = false
     }
 
     override fun onSaveInstanceState(): Bundle =
-        bundleOf(
-            SavedStateKeys.CURRENT_PAGE.name to currentPage,
-            SavedStateKeys.MAX_PAGE.name to maxPage
-        )
+        bundleOf(SavedStateKeys.LAST_DRAWN_MARKER_IDS.name to lastDrawnMarkerIds)
 
+    @SuppressWarnings("UNCHECKED_CAST")
     override fun onRestoreInstanceState(bundle: Bundle?) {
-        bundle?.let {
-            currentPage = it.getInt(SavedStateKeys.CURRENT_PAGE.name)
-            maxPage = it.getInt(SavedStateKeys.MAX_PAGE.name)
-        }
+        lastDrawnMarkerIds =
+            bundle?.getSerializable(SavedStateKeys.LAST_DRAWN_MARKER_IDS.name) as? ArrayList<UUID>
+                ?: return
     }
 
     @MainThread
@@ -174,6 +191,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 .flatten()
                 .toSet()
         cameraMarker.pagedPosition?.let { if (!takenPositions.contains(it)) return it }
+
         val baseY = statusBarHeightPx + actionBarHeightPx
         val position = PagedPosition(baseY, 0)
         while (takenPositions.contains(position)) {
@@ -259,8 +277,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     data class MarkersDrawn(val currentPage: Int, val maxPage: Int)
 
     private enum class SavedStateKeys {
-        MAX_PAGE,
-        CURRENT_PAGE
+        LAST_DRAWN_MARKER_IDS,
     }
 
     companion object {
