@@ -50,8 +50,7 @@ internal fun loadingStartedUpdates(
         }
         .distinctUntilChanged()
         .filter { (locationState, previewState) ->
-            !locationState.isFailedWith<LocationPermissionDeniedException>() &&
-                !locationState.isFailedWith<LocationDisabledException>() &&
+            locationState !is Failed &&
                 (locationState is LoadingInProgress || previewState.isLoading)
         }
         .map {}
