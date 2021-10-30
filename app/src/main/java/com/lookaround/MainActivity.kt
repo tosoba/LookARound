@@ -135,7 +135,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
-    override fun onARDisabled(anyPermissionDenied: Boolean, locationDisabled: Boolean) {
+    override fun onARDisabled() {
         if (latestARState == ARState.ENABLED) {
             lifecycleScope.launch {
                 viewModel.intent(MainIntent.LiveBottomSheetStateChanged(bottomSheetBehavior.state))

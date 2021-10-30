@@ -5,6 +5,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.model.*
+import com.lookaround.ui.camera.model.CameraARDisabledViewUpdate
 import com.lookaround.ui.camera.model.CameraPreviewState
 import com.lookaround.ui.camera.model.CameraSignal
 import com.lookaround.ui.camera.model.CameraState
@@ -20,14 +21,17 @@ import kotlinx.coroutines.flow.*
 internal fun arEnabledUpdates(
     mainViewModel: MainViewModel,
     cameraViewModel: CameraViewModel
-): Flow<Pair<Boolean, Boolean>> =
-    mainViewModel
-        .states
-        .combine(cameraViewModel.states) { mainState, cameraState ->
-            (mainState.locationState is Ready) to cameraState.previewState.isLive
-        }
+): Flow<Unit> =
+    combine(
+        mainViewModel.states.map(MainState::locationState::get),
+        cameraViewModel.states.map(CameraState::previewState::get),
+        cameraViewModel.signals.filterIsInstance<CameraSignal.PitchChanged>()
+    ) { locationState, previewState, (pitchWithinLimit) ->
+        (locationState is Ready) && previewState.isLive && pitchWithinLimit
+    }
         .distinctUntilChanged()
-        .filter { (locationReady, cameraStreaming) -> locationReady && cameraStreaming }
+        .filter { it }
+        .map {}
 
 private val CameraPreviewState.isLoading: Boolean
     get() =
@@ -60,19 +64,23 @@ internal fun loadingStartedUpdates(
 internal fun arDisabledUpdates(
     mainViewModel: MainViewModel,
     cameraViewModel: CameraViewModel
-): Flow<Pair<Boolean, Boolean>> =
-    mainViewModel
-        .states
-        .combine(cameraViewModel.states) { mainState, cameraState ->
-            Pair(
-                mainState.locationState.isFailedWith<LocationPermissionDeniedException>() ||
-                    cameraState.previewState is CameraPreviewState.PermissionDenied,
-                mainState.locationState.isFailedWith<LocationDisabledException>()
-            )
-        }
+): Flow<CameraARDisabledViewUpdate> =
+    combine(
+        mainViewModel.states.map(MainState::locationState::get),
+        cameraViewModel.states.map(CameraState::previewState::get),
+        cameraViewModel.signals.filterIsInstance<CameraSignal.PitchChanged>()
+    ) { locationState, previewState, (pitchWithinLimit) ->
+        CameraARDisabledViewUpdate(
+            anyPermissionDenied =
+                locationState.isFailedWith<LocationPermissionDeniedException>() ||
+                    previewState is CameraPreviewState.PermissionDenied,
+            locationDisabled = locationState.isFailedWith<LocationDisabledException>(),
+            pitchOutsideLimit = !pitchWithinLimit
+        )
+    }
         .distinctUntilChanged()
-        .filter { (anyPermissionDenied, locationDisabled) ->
-            anyPermissionDenied || locationDisabled
+        .filter { (anyPermissionDenied, locationDisabled, pitchOutsideLimit) ->
+            anyPermissionDenied || locationDisabled || pitchOutsideLimit
         }
 
 @FlowPreview

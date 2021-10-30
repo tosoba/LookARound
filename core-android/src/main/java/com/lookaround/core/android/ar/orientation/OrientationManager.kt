@@ -20,7 +20,7 @@ class OrientationManager : SensorEventListener {
     private val remappedRotationM = FloatArray(9)
 
     private var sensorManager: SensorManager? = null
-    var orientation: Orientation = Orientation()
+    private var orientation = Orientation()
     private var oldOrientation: Orientation? = null
     private var sensorRunning: Boolean = false
 
@@ -101,19 +101,19 @@ class OrientationManager : SensorEventListener {
         if (failed) failed = false
 
         // Convert the azimuth to degrees in 0.5 degree resolution.
-        val x = orientationArray[1]
-        val y = orientationArray[0]
-        val z = orientationArray[2]
+        val pitch = orientationArray[1]
+        val azimuth = orientationArray[0]
+        val roll = orientationArray[2]
 
         oldOrientation?.let {
-            orientation.x = lowPass(x, it.x)
-            orientation.y = lowPass(y, it.y)
-            orientation.z = lowPass(z, it.z)
+            orientation.pitch = lowPass(pitch, it.pitch)
+            orientation.azimuth = lowPass(azimuth, it.azimuth)
+            orientation.roll = lowPass(roll, it.roll)
         }
             ?: run {
-                orientation.x = x
-                orientation.y = y
-                orientation.z = z
+                orientation.pitch = pitch
+                orientation.azimuth = azimuth
+                orientation.roll = roll
             }
 
         oldOrientation = orientation
@@ -121,29 +121,29 @@ class OrientationManager : SensorEventListener {
     }
 
     /**
-     * Applies a lowpass filter to the change in the lecture of the sensor
+     * Applies a low pass filter to the change in the lecture of the sensor
      *
      * @param newValue the new sensor value
-     * @param lowValue the old sensor value
+     * @param oldValue the old sensor value
      * @return and intermediate value
      */
-    private fun lowPass(newValue: Float, lowValue: Float): Float =
-        if (abs(newValue - lowValue) < CIRCLE / 2) {
-            if (abs(newValue - lowValue) > SMOOTH_THRESHOLD) {
+    private fun lowPass(newValue: Float, oldValue: Float): Float =
+        if (abs(newValue - oldValue) < CIRCLE / 2) {
+            if (abs(newValue - oldValue) > SMOOTH_THRESHOLD) {
                 newValue
             } else {
-                lowValue + SMOOTH_FACTOR * (newValue - lowValue)
+                oldValue + SMOOTH_FACTOR * (newValue - oldValue)
             }
         } else {
-            if (CIRCLE - abs(newValue - lowValue) > SMOOTH_THRESHOLD) {
+            if (CIRCLE - abs(newValue - oldValue) > SMOOTH_THRESHOLD) {
                 newValue
             } else {
-                if (lowValue > newValue) {
-                    ((lowValue +
-                        (SMOOTH_FACTOR * ((CIRCLE + newValue - lowValue) % CIRCLE)) +
+                if (oldValue > newValue) {
+                    ((oldValue +
+                        (SMOOTH_FACTOR * ((CIRCLE + newValue - oldValue) % CIRCLE)) +
                         CIRCLE) % CIRCLE)
                 } else {
-                    ((lowValue - SMOOTH_FACTOR * ((CIRCLE - newValue + lowValue) % CIRCLE) +
+                    ((oldValue - SMOOTH_FACTOR * ((CIRCLE - newValue + oldValue) % CIRCLE) +
                         CIRCLE) % CIRCLE)
                 }
             }

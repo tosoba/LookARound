@@ -78,9 +78,13 @@ class CameraFragment :
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
 
         arDisabledUpdates(mainViewModel, cameraViewModel)
-            .onEach { (anyPermissionDenied, locationDisabled) ->
-                (activity as? AREventsListener)?.onARDisabled(anyPermissionDenied, locationDisabled)
-                binding.onARDisabled(anyPermissionDenied, locationDisabled)
+            .onEach { (anyPermissionDenied, locationDisabled, pitchOutsideLimit) ->
+                (activity as? AREventsListener)?.onARDisabled()
+                binding.onARDisabled(
+                    anyPermissionDenied = anyPermissionDenied,
+                    locationDisabled = locationDisabled,
+                    pitchOutsideLimit = pitchOutsideLimit
+                )
             }
             .launchIn(lifecycleScope)
 
@@ -281,13 +285,17 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.onARDisabled(
         anyPermissionDenied: Boolean,
-        locationDisabled: Boolean
+        locationDisabled: Boolean,
+        pitchOutsideLimit: Boolean
     ) {
         hideARViews()
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.VISIBLE
         if (anyPermissionDenied) permissionsViewsGroup.visibility = View.VISIBLE
         if (locationDisabled) locationDisabledTextView.visibility = View.VISIBLE
+        if (pitchOutsideLimit) {
+            // TODO: show a text/picture/animation to tell the user to lift his phone
+        }
     }
 
     private fun FragmentCameraBinding.onMarkersDrawn(
@@ -364,10 +372,26 @@ class CameraFragment :
     }
 
     override fun onOrientationChanged(orientation: Orientation) {
-        binding.arCameraView.orientation = orientation
-        binding.arCameraView.phoneRotation = requireContext().phoneRotation
-        binding.arRadarView.orientation = orientation
+        if (orientation.pitchWithinLimit) {
+            signalPitchChanged(true)
+        } else {
+            signalPitchChanged(false)
+            return
+        }
+
+        with(binding) {
+            arCameraView.orientation = orientation
+            arCameraView.phoneRotation = requireContext().phoneRotation
+            arRadarView.orientation = orientation
+        }
     }
+
+    private fun signalPitchChanged(withinLimit: Boolean) {
+        lifecycleScope.launch { cameraViewModel.signal(CameraSignal.PitchChanged(withinLimit)) }
+    }
+
+    private val Orientation.pitchWithinLimit: Boolean
+        get() = pitch >= -PITCH_LIMIT_RADIANS && pitch <= PITCH_LIMIT_RADIANS
 
     private fun signalCameraTouch() {
         lifecycleScope.launch { cameraViewModel.signal(CameraSignal.CameraTouch) }
@@ -403,5 +427,6 @@ class CameraFragment :
 
     companion object {
         private const val FIRST_MARKER_INDEX_DIFF = 100
+        private const val PITCH_LIMIT_RADIANS = Math.PI / 4
     }
 }

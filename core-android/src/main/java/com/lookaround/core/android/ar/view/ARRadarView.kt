@@ -50,7 +50,7 @@ class ARRadarView : ARView<RadarMarkerRenderer> {
 
     override fun preDraw(canvas: Canvas, location: Location) {
         drawBackground(canvas)
-        compassAngle = orientation.y.toDouble()
+        compassAngle = orientation.azimuth.toDouble()
     }
 
     override fun postDraw(canvas: Canvas, location: Location) {

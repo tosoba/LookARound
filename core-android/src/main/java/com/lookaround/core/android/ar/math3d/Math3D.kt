@@ -32,19 +32,19 @@ object Math3D {
         outScreenRotTrig: Trig1
     ) {
         // X goes the other way
-        outCamRot.x = -inOrientation.x.toDouble()
+        outCamRot.x = -inOrientation.pitch.toDouble()
         // 0 value is south, so turn around
-        outCamRot.y = inOrientation.y + Math.PI
+        outCamRot.y = inOrientation.azimuth + Math.PI
         // The universal rotation angle for Z is always 0
         outCamRot.z = 0.0
 
         // The value of the z angle (screen rotation)
         outScreenRot.v =
             when (inPhoneRotation) {
-                Surface.ROTATION_0 -> -inOrientation.z.toDouble()
-                Surface.ROTATION_180 -> -inOrientation.z + Math.PI
-                Surface.ROTATION_90 -> -inOrientation.z - QUADRANT
-                Surface.ROTATION_270 -> -inOrientation.z + QUADRANT
+                Surface.ROTATION_0 -> -inOrientation.roll.toDouble()
+                Surface.ROTATION_180 -> -inOrientation.roll + Math.PI
+                Surface.ROTATION_90 -> -inOrientation.roll - QUADRANT
+                Surface.ROTATION_270 -> -inOrientation.roll + QUADRANT
                 else -> throw IllegalStateException()
             }
         outCamTrig.setVector3(outCamRot)

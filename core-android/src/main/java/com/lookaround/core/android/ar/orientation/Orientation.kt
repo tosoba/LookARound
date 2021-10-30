@@ -1,7 +1,7 @@
 package com.lookaround.core.android.ar.orientation
 
 class Orientation {
-    var x = 0f
-    var z = 0f
-    var y = 0f
+    var pitch = 0f
+    var roll = 0f
+    var azimuth = 0f
 }
