@@ -49,14 +49,15 @@ internal fun loadingStartedUpdates(
 ): Flow<Unit> =
     mainViewModel
         .states
-        .combine(cameraViewModel.states) { mainState, cameraState ->
-            mainState.locationState to cameraState.previewState
-        }
-        .distinctUntilChanged()
-        .filter { (locationState, previewState) ->
+        .map(MainState::locationState::get)
+        .combine(cameraViewModel.states.map(CameraState::previewState::get)) {
+            locationState,
+            previewState ->
             locationState !is Failed &&
                 (locationState is LoadingInProgress || previewState.isLoading)
         }
+        .distinctUntilChanged()
+        .filter { it }
         .map {}
 
 @FlowPreview
