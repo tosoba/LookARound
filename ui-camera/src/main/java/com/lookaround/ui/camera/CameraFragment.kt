@@ -140,8 +140,6 @@ class CameraFragment :
             .previewStreamStateLiveData
             .asFlow()
             .distinctUntilChanged()
-            // TODO: is there a need to strore streamState like that? Maybe replace it with
-            // observing it straight from openGLRenderer
             .onEach { cameraViewModel.intent(CameraIntent.CameraStreamStateChanged(it)) }
             .launchIn(lifecycleScope)
 

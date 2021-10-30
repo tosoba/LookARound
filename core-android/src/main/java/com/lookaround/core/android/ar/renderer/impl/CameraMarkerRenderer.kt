@@ -105,6 +105,15 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             }
         }
 
+    private val ARMarker.rectF: RectF
+        get() =
+            RectF(
+                x - markerWidthPx / 2,
+                y - markerHeightPx / 2,
+                x + markerWidthPx / 2,
+                y + markerHeightPx / 2
+            )
+
     override fun draw(markers: List<ARMarker>, canvas: Canvas, orientation: Orientation) {
         cameraMarkerPagedPositions.clear()
         val drawnRects = mutableListOf<RectF>()
@@ -132,14 +141,60 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         drawnRectsStateFlow.value = drawnRects
     }
 
-    private val ARMarker.rectF: RectF
-        get() =
-            RectF(
-                x - markerWidthPx / 2,
-                y - markerHeightPx / 2,
-                x + markerWidthPx / 2,
-                y + markerHeightPx / 2
-            )
+    override fun onSaveInstanceState(): Bundle =
+        bundleOf(
+            SavedStateKeys.CURRENT_PAGE.name to currentPage,
+            SavedStateKeys.MAX_PAGE.name to maxPage
+        )
+
+    override fun onRestoreInstanceState(bundle: Bundle?) {
+        bundle?.let {
+            currentPage = it.getInt(SavedStateKeys.CURRENT_PAGE.name)
+            maxPage = it.getInt(SavedStateKeys.MAX_PAGE.name)
+        }
+    }
+
+    @MainThread
+    fun setMarkers(markers: Collection<ARMarker>) {
+        cameraMarkers.clear()
+        markers.forEach { marker -> cameraMarkers[marker.wrapped.id] = CameraMarker(marker) }
+    }
+
+    internal fun isOnCurrentPage(marker: ARMarker): Boolean =
+        cameraMarkers[marker.wrapped.id]?.pagedPosition?.page == currentPage
+
+    private fun pagedPositionOf(cameraMarker: CameraMarker): PagedPosition {
+        val takenPositions =
+            cameraMarkerPagedPositions
+                .subMap(
+                    cameraMarker.wrapped.x - markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER,
+                    cameraMarker.wrapped.x + markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER
+                )
+                .values
+                .flatten()
+                .toSet()
+        cameraMarker.pagedPosition?.let { if (!takenPositions.contains(it)) return it }
+        val baseY = statusBarHeightPx + actionBarHeightPx
+        val position = PagedPosition(baseY, 0)
+        while (takenPositions.contains(position)) {
+            position.y += markerHeightPx + MARKER_VERTICAL_SPACING_PX
+            if (position.y >= cameraViewHeightPx) {
+                position.y = baseY
+                ++position.page
+            }
+        }
+        cameraMarker.pagedPosition = position
+        return position
+    }
+
+    private fun storeMarkerX(marker: CameraMarker) {
+        val pagedPosition =
+            marker.pagedPosition
+                ?: throw IllegalArgumentException("Marker must have a PagedPosition.")
+        val existingMarkerSet = cameraMarkerPagedPositions[marker.wrapped.x]
+        existingMarkerSet?.add(pagedPosition)
+            ?: run { cameraMarkerPagedPositions[marker.wrapped.x] = mutableSetOf(pagedPosition) }
+    }
 
     private fun Canvas.drawTitleText(marker: ARMarker, rect: RectF) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -188,61 +243,6 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             distanceTextPaint
         )
     }
-
-    override fun onSaveInstanceState(): Bundle =
-        bundleOf(
-            SavedStateKeys.CURRENT_PAGE.name to currentPage,
-            SavedStateKeys.MAX_PAGE.name to maxPage
-        )
-
-    override fun onRestoreInstanceState(bundle: Bundle?) {
-        bundle?.let {
-            currentPage = it.getInt(SavedStateKeys.CURRENT_PAGE.name)
-            maxPage = it.getInt(SavedStateKeys.MAX_PAGE.name)
-        }
-    }
-
-    private fun pagedPositionOf(cameraMarker: CameraMarker): PagedPosition {
-        val takenPositions =
-            cameraMarkerPagedPositions
-                .subMap(
-                    cameraMarker.wrapped.x - markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER,
-                    cameraMarker.wrapped.x + markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER
-                )
-                .values
-                .flatten()
-                .toSet()
-        cameraMarker.pagedPosition?.let { if (!takenPositions.contains(it)) return it }
-        val baseY = statusBarHeightPx + actionBarHeightPx
-        val position = PagedPosition(baseY, 0)
-        while (takenPositions.contains(position)) {
-            position.y += markerHeightPx + MARKER_VERTICAL_SPACING_PX
-            if (position.y >= cameraViewHeightPx) {
-                position.y = baseY
-                ++position.page
-            }
-        }
-        cameraMarker.pagedPosition = position
-        return position
-    }
-
-    private fun storeMarkerX(marker: CameraMarker) {
-        val pagedPosition =
-            marker.pagedPosition
-                ?: throw IllegalArgumentException("Marker must have a PagedPosition.")
-        val existingMarkerSet = cameraMarkerPagedPositions[marker.wrapped.x]
-        existingMarkerSet?.add(pagedPosition)
-            ?: run { cameraMarkerPagedPositions[marker.wrapped.x] = mutableSetOf(pagedPosition) }
-    }
-
-    @MainThread
-    fun setMarkers(markers: Collection<ARMarker>) {
-        cameraMarkers.clear()
-        markers.forEach { marker -> cameraMarkers[marker.wrapped.id] = CameraMarker(marker) }
-    }
-
-    internal fun isOnCurrentPage(marker: ARMarker): Boolean =
-        cameraMarkers[marker.wrapped.id]?.pagedPosition?.page == currentPage
 
     private class CameraMarker(
         val wrapped: ARMarker,
