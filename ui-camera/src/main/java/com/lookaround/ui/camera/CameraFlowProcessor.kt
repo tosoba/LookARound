@@ -37,6 +37,9 @@ class CameraFlowProcessor @Inject constructor() :
             intents.filterIsInstance<CameraIntent.CameraMarkersFirstIndexChanged>().map {
                 (difference) ->
                 CameraStateUpdate.CameraMarkersFirstIndexChanged(difference)
+            },
+            intents.filterIsInstance<CameraIntent.ToggleRadarEnlarged>().map {
+                CameraStateUpdate.ToggleRadarEnlarged
             }
         )
 }

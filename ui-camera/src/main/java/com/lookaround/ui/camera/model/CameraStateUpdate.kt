@@ -25,4 +25,9 @@ sealed class CameraStateUpdate : StateUpdate<CameraState> {
         override fun invoke(state: CameraState): CameraState =
             state.copy(firstMarkerIndex = state.firstMarkerIndex + difference)
     }
+
+    object ToggleRadarEnlarged : CameraStateUpdate() {
+        override fun invoke(state: CameraState): CameraState =
+            state.copy(radarEnlarged = !state.radarEnlarged)
+    }
 }

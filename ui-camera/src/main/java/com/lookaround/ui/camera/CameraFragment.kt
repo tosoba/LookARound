@@ -1,6 +1,7 @@
 package com.lookaround.ui.camera
 
 import android.Manifest
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.camera.core.*
@@ -8,6 +9,9 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
+import androidx.transition.AutoTransition
+import androidx.transition.Transition
+import androidx.transition.TransitionManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ar.marker.ARMarker
@@ -60,8 +64,10 @@ class CameraFragment :
         mainViewModelFactory.create(it)
     }
 
-    private val cameraRenderer: CameraMarkerRenderer by
+    private val cameraMarkerRenderer: CameraMarkerRenderer by
         lazy(LazyThreadSafetyMode.NONE) { CameraMarkerRenderer(requireContext()) }
+    private val radarMarkerRenderer: RadarMarkerRenderer by
+        lazy(LazyThreadSafetyMode.NONE) { RadarMarkerRenderer() }
 
     private val orientationManager: OrientationManager by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -148,7 +154,7 @@ class CameraFragment :
             .launchIn(lifecycleScope)
 
         combine(
-                cameraRenderer.markersDrawnFlow,
+                cameraMarkerRenderer.markersDrawnFlow,
                 cameraViewModel.states.map(CameraState::firstMarkerIndex::get),
                 mainViewModel
                     .states
@@ -169,7 +175,7 @@ class CameraFragment :
             }
             .launchIn(lifecycleScope)
 
-        cameraRenderer
+        cameraMarkerRenderer
             .drawnRectsFlow
             .onEach(openGLRenderer::drawnRects::set)
             .launchIn(lifecycleScope)
@@ -189,14 +195,56 @@ class CameraFragment :
 
         arCameraView.onMarkerPressed = ::onMarkerPressed
         arCameraView.onTouch = ::signalCameraTouch
-        arCameraView.markerRenderer = cameraRenderer
+        arCameraView.markerRenderer = cameraMarkerRenderer
 
         arRadarView.rotableBackground = R.drawable.radar_arrow
-        arRadarView.markerRenderer = RadarMarkerRenderer()
+        arRadarView.markerRenderer = radarMarkerRenderer
+        arRadarView.setOnClickListener {
+            lifecycleScope.launch { cameraViewModel.intent(CameraIntent.ToggleRadarEnlarged) }
+        }
+        cameraViewModel
+            .radarEnlargedUpdates
+            .onEach { enlarged -> toggleRadarEnlarged(enlarged) }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         getMarkerUpdates(mainViewModel, cameraViewModel)
             .onEach { (markers, firstMarkerIndex) -> updateARMarkers(markers, firstMarkerIndex) }
             .launchIn(lifecycleScope)
+    }
+
+    private fun FragmentCameraBinding.initARCameraPageViews() {
+        arCameraPageUpBtn.setOnClickListener {
+            if (cameraMarkerRenderer.currentPage < cameraMarkerRenderer.maxPage) {
+                ++cameraMarkerRenderer.currentPage
+                return@setOnClickListener
+            }
+
+            val markers = mainViewModel.state.markers
+            if (markers !is WithValue) return@setOnClickListener
+            if (cameraViewModel.state.firstMarkerIndex * FIRST_MARKER_INDEX_DIFF +
+                    FIRST_MARKER_INDEX_DIFF < markers.value.size
+            ) {
+                lifecycleScope.launch {
+                    cameraViewModel.intent(
+                        CameraIntent.CameraMarkersFirstIndexChanged(FIRST_MARKER_INDEX_DIFF)
+                    )
+                }
+                cameraMarkerRenderer.currentPage = 0
+            }
+        }
+
+        arCameraPageDownBtn.setOnClickListener {
+            if (cameraMarkerRenderer.currentPage > 0) {
+                --cameraMarkerRenderer.currentPage
+            } else if (cameraViewModel.state.firstMarkerIndex > 0) {
+                lifecycleScope.launch {
+                    cameraViewModel.intent(
+                        CameraIntent.CameraMarkersFirstIndexChanged(-FIRST_MARKER_INDEX_DIFF)
+                    )
+                }
+                cameraMarkerRenderer.currentPage = Int.MAX_VALUE
+            }
+        }
     }
 
     // TODO: use signals for loading - here only update markers
@@ -223,7 +271,7 @@ class CameraFragment :
                         .value
                         .map(::SimpleARMarker)
                         .subList(firstMarkerIndex, lastMarkerIndexExclusive)
-                cameraRenderer.setMarkers(arMarkers)
+                cameraMarkerRenderer.setMarkers(arMarkers)
                 arCameraView.markers = arMarkers
                 arRadarView.markers =
                     markers.value.map(::SimpleARMarker).take(lastMarkerIndexExclusive)
@@ -231,39 +279,49 @@ class CameraFragment :
         }
     }
 
-    private fun FragmentCameraBinding.initARCameraPageViews() {
-        arCameraPageUpBtn.setOnClickListener {
-            if (cameraRenderer.currentPage < cameraRenderer.maxPage) {
-                ++cameraRenderer.currentPage
-                return@setOnClickListener
+    private fun FragmentCameraBinding.toggleRadarEnlarged(enlarged: Boolean) {
+        val radarViewLayoutParams = arRadarView.layoutParams as ConstraintLayout.LayoutParams
+        if (requireContext().resources.configuration.orientation ==
+                Configuration.ORIENTATION_PORTRAIT
+        ) {
+            if (enlarged) {
+                radarViewLayoutParams.width = 0
+                radarViewLayoutParams.leftToLeft = binding.radarViewEnlargedLeftGuideline!!.id
+            } else {
+                radarViewLayoutParams.width =
+                    requireContext().dpToPx(RADAR_VIEW_DIMENSION_DP).toInt()
+                radarViewLayoutParams.leftToLeft = -1
             }
-
-            val markers = mainViewModel.state.markers
-            if (markers !is WithValue) return@setOnClickListener
-            if (cameraViewModel.state.firstMarkerIndex * FIRST_MARKER_INDEX_DIFF +
-                    FIRST_MARKER_INDEX_DIFF < markers.value.size
-            ) {
-                lifecycleScope.launch {
-                    cameraViewModel.intent(
-                        CameraIntent.CameraMarkersFirstIndexChanged(FIRST_MARKER_INDEX_DIFF)
-                    )
-                }
-                cameraRenderer.currentPage = 0
-            }
-        }
-
-        arCameraPageDownBtn.setOnClickListener {
-            if (cameraRenderer.currentPage > 0) {
-                --cameraRenderer.currentPage
-            } else if (cameraViewModel.state.firstMarkerIndex > 0) {
-                lifecycleScope.launch {
-                    cameraViewModel.intent(
-                        CameraIntent.CameraMarkersFirstIndexChanged(-FIRST_MARKER_INDEX_DIFF)
-                    )
-                }
-                cameraRenderer.currentPage = Int.MAX_VALUE
+        } else {
+            if (enlarged) {
+                radarViewLayoutParams.height = 0
+                radarViewLayoutParams.bottomToBottom = binding.radarViewEnlargedBottomGuideline!!.id
+            } else {
+                radarViewLayoutParams.height =
+                    requireContext().dpToPx(RADAR_VIEW_DIMENSION_DP).toInt()
+                radarViewLayoutParams.bottomToBottom = -1
             }
         }
+
+        arRadarView.markerRenderer = null
+        TransitionManager.beginDelayedTransition(
+            cameraLayout,
+            AutoTransition().apply {
+                duration = 200L
+                addListener(
+                    object : Transition.TransitionListener {
+                        override fun onTransitionStart(transition: Transition) = Unit
+                        override fun onTransitionCancel(transition: Transition) = Unit
+                        override fun onTransitionPause(transition: Transition) = Unit
+                        override fun onTransitionResume(transition: Transition) = Unit
+                        override fun onTransitionEnd(transition: Transition) {
+                            arRadarView.markerRenderer = radarMarkerRenderer
+                        }
+                    }
+                )
+            }
+        )
+        arRadarView.layoutParams = radarViewLayoutParams
     }
 
     private fun FragmentCameraBinding.onLoadingStarted() {
@@ -427,5 +485,6 @@ class CameraFragment :
     companion object {
         private const val FIRST_MARKER_INDEX_DIFF = 100
         private const val PITCH_LIMIT_RADIANS = Math.PI / 4
+        private const val RADAR_VIEW_DIMENSION_DP = 96f
     }
 }

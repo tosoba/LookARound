@@ -59,9 +59,9 @@ abstract class ARView<R : MarkerRenderer> : View {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val markerRenderer = this.markerRenderer ?: return
         val povLocation = this.povLocation ?: return
         preDraw(canvas, povLocation)
+        val markerRenderer = this.markerRenderer ?: return
         markers.forEach { marker -> calculateMarkerScreenPosition(marker, povLocation) }
         markerRenderer.draw(markers.filter { it.shouldBeDrawn }, canvas, orientation)
         postDraw(canvas, povLocation)

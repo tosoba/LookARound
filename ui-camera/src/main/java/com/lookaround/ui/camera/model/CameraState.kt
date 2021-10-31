@@ -7,4 +7,5 @@ import kotlinx.parcelize.Parcelize
 data class CameraState(
     val previewState: CameraPreviewState = CameraPreviewState.Initial,
     val firstMarkerIndex: Int = 0,
+    val radarEnlarged: Boolean = false,
 ) : Parcelable

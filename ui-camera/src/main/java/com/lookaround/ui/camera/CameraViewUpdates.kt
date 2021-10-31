@@ -122,6 +122,7 @@ fun cameraTouchUpdates(mainViewModel: MainViewModel, cameraViewModel: CameraView
             mainViewModel.state.locationState is Ready && cameraViewModel.state.previewState.isLive
         }
         .map {}
+        .debounce(250L)
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -154,3 +155,8 @@ fun getMarkerUpdates(
             markers to firstMarkerIndex
         }
         .distinctUntilChanged()
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+val CameraViewModel.radarEnlargedUpdates: Flow<Boolean>
+    get() = states.map(CameraState::radarEnlarged::get).distinctUntilChanged().debounce(250L)

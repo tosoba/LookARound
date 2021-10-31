@@ -7,4 +7,5 @@ sealed class CameraIntent {
     data class CameraStreamStateChanged(val streamState: PreviewView.StreamState) : CameraIntent()
     object CameraPermissionDenied : CameraIntent()
     data class CameraMarkersFirstIndexChanged(val difference: Int) : CameraIntent()
+    object ToggleRadarEnlarged : CameraIntent()
 }
