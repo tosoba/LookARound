@@ -35,6 +35,7 @@ import dagger.hilt.android.WithFragmentBindings
 import java.util.*
 import javax.inject.Inject
 import kotlin.math.min
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -45,11 +46,12 @@ import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
 
-@FlowPreview
-@ExperimentalCoroutinesApi
-@RuntimePermissions
 @AndroidEntryPoint
 @WithFragmentBindings
+@FlowPreview
+@ExperimentalCoroutinesApi
+@ExperimentalTime
+@RuntimePermissions
 class CameraFragment :
     Fragment(R.layout.fragment_camera), OrientationManager.OnOrientationChangedListener {
     private val binding: FragmentCameraBinding by viewBinding(FragmentCameraBinding::bind)
@@ -207,7 +209,7 @@ class CameraFragment :
             .onEach { enlarged -> toggleRadarEnlarged(enlarged) }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
-        getMarkerUpdates(mainViewModel, cameraViewModel)
+        markerUpdates(mainViewModel, cameraViewModel)
             .onEach { (markers, firstMarkerIndex) -> updateARMarkers(markers, firstMarkerIndex) }
             .launchIn(lifecycleScope)
     }
@@ -247,7 +249,6 @@ class CameraFragment :
         }
     }
 
-    // TODO: use signals for loading - here only update markers
     private fun FragmentCameraBinding.updateARMarkers(
         markers: Loadable<ParcelableSortedSet<Marker>>,
         firstMarkerIndex: Int
@@ -256,12 +257,6 @@ class CameraFragment :
             is Empty -> {
                 arCameraPageUpBtn.visibility = View.GONE
                 arCameraPageDownBtn.visibility = View.GONE
-            }
-            is LoadingInProgress -> {
-                // TODO: show loading msg (like a snackbar or smth...)
-            }
-            is Failed -> {
-                // TODO: show an error snackbar
             }
             is WithValue -> {
                 val lastMarkerIndexExclusive =

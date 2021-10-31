@@ -11,10 +11,12 @@ import com.lookaround.ui.main.model.MainStateUpdate
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 
 @ExperimentalCoroutinesApi
+@ExperimentalTime
 @FlowPreview
 class MainViewModel
 @AssistedInject

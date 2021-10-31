@@ -41,6 +41,7 @@ import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
@@ -48,11 +49,12 @@ import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import uk.co.senab.bitmapcache.CacheableBitmapDrawable
 
-@ExperimentalFoundationApi
-@ExperimentalCoroutinesApi
-@FlowPreview
 @AndroidEntryPoint
 @WithFragmentBindings
+@ExperimentalCoroutinesApi
+@ExperimentalFoundationApi
+@ExperimentalTime
+@FlowPreview
 class PlaceListFragment :
     Fragment(R.layout.fragment_place_list), MapController.SceneLoadListener, MapChangeListener {
     private val binding: FragmentPlaceListBinding by viewBinding(FragmentPlaceListBinding::bind)
@@ -124,7 +126,7 @@ class PlaceListFragment :
 
                 val orientation = LocalConfiguration.current.orientation
                 LazyColumn(
-                    state =  rememberLazyListState(),
+                    state = rememberLazyListState(),
                     modifier = Modifier.padding(horizontal = 10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {

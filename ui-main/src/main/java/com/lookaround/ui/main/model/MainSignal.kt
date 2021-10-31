@@ -10,7 +10,7 @@ sealed class MainSignal {
         val onResume: Boolean,
     ) : MainSignal()
 
-    data class BottomSheetStateChanged(
-        @BottomSheetBehavior.State val state: Int,
-    ) : MainSignal()
+    data class BottomSheetStateChanged(@BottomSheetBehavior.State val state: Int) : MainSignal()
+
+    data class PlacesLoadingFailed(val throwable: Throwable) : MainSignal()
 }

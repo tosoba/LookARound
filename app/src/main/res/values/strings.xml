@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">LookARound</string>
+    <string name="loading_places_in_progress">Loading places in progress...</string>
+    <string name="loading_places_failed">Loading places failed.</string>
 </resources>

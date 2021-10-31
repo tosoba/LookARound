@@ -13,11 +13,15 @@ import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.main.model.MainStateUpdate
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withTimeout
 
+@ExperimentalTime
 @ExperimentalCoroutinesApi
 class MainFlowProcessor
 @Inject
@@ -80,18 +84,19 @@ constructor(
 
             emit(MainStateUpdate.LoadingPlaces)
             try {
-                emit(
-                    MainStateUpdate.PlacesLoaded(
+                val places =
+                    withTimeout(10.seconds) {
                         getPlacesOfType(
-                            type,
-                            currentLocation.value.latitude,
-                            currentLocation.value.longitude,
-                            10_000f
+                            placeType = type,
+                            lat = currentLocation.value.latitude,
+                            lng = currentLocation.value.longitude,
+                            radiusInMeters = PLACES_LOADING_RADIUS_METERS
                         )
-                    )
-                )
+                    }
+                emit(MainStateUpdate.PlacesLoaded(places))
             } catch (throwable: Throwable) {
                 emit(MainStateUpdate.PlacesError(throwable))
+                signal(MainSignal.PlacesLoadingFailed(throwable))
             }
         }
 
@@ -127,5 +132,6 @@ constructor(
 
     companion object {
         private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L
+        private const val PLACES_LOADING_RADIUS_METERS = 5_000f
     }
 }

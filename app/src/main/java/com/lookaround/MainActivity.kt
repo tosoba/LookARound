@@ -12,9 +12,11 @@ import androidx.viewpager2.widget.ViewPager2
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
 import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ext.*
-import com.lookaround.core.android.model.Marker
+import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.camera.CameraFragment
@@ -31,19 +33,19 @@ import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+@AndroidEntryPoint
+@ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
 @ExperimentalStdlibApi
+@ExperimentalTime
 @FlowPreview
-@ExperimentalCoroutinesApi
-@AndroidEntryPoint
 class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionController {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
@@ -54,6 +56,8 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
     private val bottomSheetBehavior by
         lazy(LazyThreadSafetyMode.NONE) { BottomSheetBehavior.from(binding.bottomSheetViewPager) }
+
+    private var placesStatusLoadingSnackbar: Snackbar? = null
 
     private val onBottomNavItemSelectedListener by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -105,6 +109,8 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             .unableToLoadPlacesWithoutLocationSignals
             .onEach { Timber.tag("PLACES").e("Failed to load places without location.") }
             .launchIn(lifecycleScope)
+
+        launchPlacesLoadingSnackbarUpdates()
     }
 
     override fun onResume() {
@@ -296,6 +302,43 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             }
         }
     }
+
+    private fun launchPlacesLoadingSnackbarUpdates() {
+        viewModel
+            .signals
+            .filterIsInstance<MainSignal.PlacesLoadingFailed>()
+            .onEach {
+                placesStatusLoadingSnackbar?.dismiss()
+                placesStatusLoadingSnackbar =
+                    showPlacesLoadingStatusSnackbar(
+                        getString(R.string.loading_places_failed),
+                        Snackbar.LENGTH_SHORT
+                    )
+            }
+            .launchIn(lifecycleScope)
+
+        viewModel
+            .markerUpdates
+            .onEach { markers ->
+                placesStatusLoadingSnackbar?.dismiss()
+                if (markers is LoadingInProgress) {
+                    placesStatusLoadingSnackbar =
+                        showPlacesLoadingStatusSnackbar(
+                            getString(R.string.loading_places_in_progress),
+                            Snackbar.LENGTH_INDEFINITE
+                        )
+                }
+            }
+            .launchIn(lifecycleScope)
+    }
+
+    private fun showPlacesLoadingStatusSnackbar(
+        message: String,
+        @BaseTransientBottomBar.Duration length: Int
+    ): Snackbar =
+        Snackbar.make(binding.mainLayout, message, length)
+            .setAnchorView(binding.bottomNavigationView)
+            .apply(Snackbar::show)
 
     private enum class ARState {
         INITIAL,
