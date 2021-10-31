@@ -216,18 +216,17 @@ class CameraFragment :
                 // TODO: show an error snackbar
             }
             is WithValue -> {
-                fun WithValue<ParcelableSortedSet<Marker>>.renderedWindow(): List<SimpleARMarker> =
-                    value
+                val lastMarkerIndexExclusive =
+                    min(markers.value.size, firstMarkerIndex + FIRST_MARKER_INDEX_DIFF)
+                val arMarkers =
+                    markers
+                        .value
                         .map(::SimpleARMarker)
-                        .subList(
-                            firstMarkerIndex,
-                            min(value.size, firstMarkerIndex + FIRST_MARKER_INDEX_DIFF)
-                        )
-
-                val renderedMarkers = markers.renderedWindow()
-                cameraRenderer.setMarkers(renderedMarkers)
-                arCameraView.markers = renderedMarkers
-                arRadarView.markers = markers.renderedWindow()
+                        .subList(firstMarkerIndex, lastMarkerIndexExclusive)
+                cameraRenderer.setMarkers(arMarkers)
+                arCameraView.markers = arMarkers
+                arRadarView.markers =
+                    markers.value.map(::SimpleARMarker).take(lastMarkerIndexExclusive)
             }
         }
     }

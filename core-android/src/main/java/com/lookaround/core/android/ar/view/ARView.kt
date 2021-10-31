@@ -28,8 +28,8 @@ abstract class ARView<R : MarkerRenderer> : View {
             field = value
             povLocation?.let { calculateDistancesBetween(it, value) }
             maxRange =
-                value.map(ARMarker::distance::get).maxOrNull()?.toDouble()
-                    ?: DEFAULT_MAX_RANGE_METERS * RANGE_MARGIN_MULTIPLIER
+                (value.map(ARMarker::distance::get).maxOrNull()?.toDouble()
+                    ?: DEFAULT_MAX_RANGE_METERS) * RANGE_MARGIN_MULTIPLIER
         }
     var markerRenderer: R? = null
         @MainThread set
