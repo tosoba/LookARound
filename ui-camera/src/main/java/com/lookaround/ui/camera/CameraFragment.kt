@@ -479,7 +479,7 @@ class CameraFragment :
 
     companion object {
         private const val FIRST_MARKER_INDEX_DIFF = 100
-        private const val PITCH_LIMIT_RADIANS = Math.PI / 4
+        private const val PITCH_LIMIT_RADIANS = Math.PI / 3
         private const val RADAR_VIEW_DIMENSION_DP = 96f
     }
 }

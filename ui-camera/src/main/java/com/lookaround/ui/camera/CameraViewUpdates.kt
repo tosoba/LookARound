@@ -27,9 +27,10 @@ internal fun arEnabledUpdates(
     combine(
         mainViewModel.states.map(MainState::locationState::get),
         cameraViewModel.states.map(CameraState::previewState::get),
-        cameraViewModel.signals.filterIsInstance<CameraSignal.PitchChanged>()
-    ) { locationState, previewState, (pitchWithinLimit) ->
-        (locationState is Ready) && previewState.isLive && pitchWithinLimit
+        cameraViewModel.signals.filterIsInstance<CameraSignal.PitchChanged>(),
+        mainViewModel.states.map { it.markers is WithValue }
+    ) { locationState, previewState, (pitchWithinLimit), showingAnyMarkers ->
+        (locationState is Ready) && previewState.isLive && (!showingAnyMarkers || pitchWithinLimit)
     }
         .distinctUntilChanged()
         .filter { it }
@@ -73,14 +74,16 @@ internal fun arDisabledUpdates(
     combine(
         mainViewModel.states.map(MainState::locationState::get),
         cameraViewModel.states.map(CameraState::previewState::get),
-        cameraViewModel.signals.filterIsInstance<CameraSignal.PitchChanged>()
-    ) { locationState, previewState, (pitchWithinLimit) ->
+        cameraViewModel.signals.filterIsInstance<CameraSignal.PitchChanged>(),
+        cameraViewObscuredUpdates(mainViewModel, cameraViewModel),
+        mainViewModel.states.map { it.markers is WithValue }
+    ) { locationState, previewState, (pitchWithinLimit), obscured, showingAnyMarkers ->
         CameraARDisabledViewUpdate(
             anyPermissionDenied =
                 locationState.isFailedWith<LocationPermissionDeniedException>() ||
                     previewState is CameraPreviewState.PermissionDenied,
             locationDisabled = locationState.isFailedWith<LocationDisabledException>(),
-            pitchOutsideLimit = !pitchWithinLimit
+            pitchOutsideRequiredLimit = !pitchWithinLimit && !obscured && showingAnyMarkers,
         )
     }
         .distinctUntilChanged()
