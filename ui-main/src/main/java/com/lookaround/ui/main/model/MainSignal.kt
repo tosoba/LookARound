@@ -5,6 +5,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 sealed class MainSignal {
     object UnableToLoadPlacesWithoutLocation : MainSignal()
 
+    object UnableToLoadPlacesWithoutConnection : MainSignal()
+
     data class TopFragmentChanged(
         val cameraObscured: Boolean,
         val onResume: Boolean,

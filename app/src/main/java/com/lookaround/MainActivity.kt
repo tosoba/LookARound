@@ -105,11 +105,6 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             .onEach { Timber.tag("LOCATION").e("Failed to update location.") }
             .launchIn(lifecycleScope)
 
-        viewModel
-            .unableToLoadPlacesWithoutLocationSignals
-            .onEach { Timber.tag("PLACES").e("Failed to load places without location.") }
-            .launchIn(lifecycleScope)
-
         launchPlacesLoadingSnackbarUpdates()
     }
 
@@ -142,7 +137,9 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     }
 
     override fun onARDisabled() {
-        if (latestARState == ARState.ENABLED) {
+        if (latestARState == ARState.ENABLED &&
+                bottomSheetBehavior.state != BottomSheetBehavior.STATE_SETTLING
+        ) {
             lifecycleScope.launch {
                 viewModel.intent(MainIntent.LiveBottomSheetStateChanged(bottomSheetBehavior.state))
             }
@@ -284,7 +281,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     }
 
     private fun onBottomSheetStateChanged(@BottomSheetBehavior.State sheetState: Int) {
-        if (latestARState == ARState.ENABLED) {
+        if (latestARState == ARState.ENABLED && sheetState != BottomSheetBehavior.STATE_SETTLING) {
             lifecycleScope.launch {
                 viewModel.intent(MainIntent.LiveBottomSheetStateChanged(sheetState))
             }
@@ -314,6 +311,30 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                         getString(R.string.loading_places_failed),
                         Snackbar.LENGTH_SHORT
                     )
+            }
+            .launchIn(lifecycleScope)
+
+        viewModel
+            .signals
+            .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutLocation>()
+            .onEach {
+                placesStatusLoadingSnackbar?.dismiss()
+                showPlacesLoadingStatusSnackbar(
+                    getString(R.string.location_unavailable),
+                    Snackbar.LENGTH_SHORT
+                )
+            }
+            .launchIn(lifecycleScope)
+
+        viewModel
+            .signals
+            .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutConnection>()
+            .onEach {
+                placesStatusLoadingSnackbar?.dismiss()
+                showPlacesLoadingStatusSnackbar(
+                    getString(R.string.no_internet_connection),
+                    Snackbar.LENGTH_SHORT
+                )
             }
             .launchIn(lifecycleScope)
 

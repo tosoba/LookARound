@@ -6,6 +6,7 @@ import com.lookaround.core.android.model.LocationFactory
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.model.LocationDataDTO
 import com.lookaround.core.usecase.GetPlacesOfType
+import com.lookaround.core.usecase.IsConnectedFlow
 import com.lookaround.core.usecase.IsLocationAvailable
 import com.lookaround.core.usecase.LocationDataFlow
 import com.lookaround.ui.main.model.MainIntent
@@ -28,7 +29,8 @@ class MainFlowProcessor
 constructor(
     private val getPlacesOfType: GetPlacesOfType,
     private val isLocationAvailable: IsLocationAvailable,
-    private val locationDataFlow: LocationDataFlow
+    private val locationDataFlow: LocationDataFlow,
+    private val isConnectedFlow: IsConnectedFlow
 ) : FlowProcessor<MainIntent, MainStateUpdate, MainState, MainSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
@@ -75,30 +77,38 @@ constructor(
         currentState: () -> MainState,
         signal: suspend (MainSignal) -> Unit
     ): Flow<MainStateUpdate> =
-        intents.filterIsInstance<MainIntent.LoadPlaces>().transformLatest { (type) ->
-            val currentLocation = currentState().locationState
-            if (currentLocation !is WithValue) {
-                signal(MainSignal.UnableToLoadPlacesWithoutLocation)
-                return@transformLatest
-            }
+        intents
+            .filterIsInstance<MainIntent.LoadPlaces>()
+            .zip(isConnectedFlow()) { (placeType), isConnected -> placeType to isConnected }
+            .transformLatest { (type, isConnected) ->
+                val currentLocation = currentState().locationState
+                if (currentLocation !is WithValue) {
+                    signal(MainSignal.UnableToLoadPlacesWithoutLocation)
+                    return@transformLatest
+                }
 
-            emit(MainStateUpdate.LoadingPlaces)
-            try {
-                val places =
-                    withTimeout(10.seconds) {
-                        getPlacesOfType(
-                            placeType = type,
-                            lat = currentLocation.value.latitude,
-                            lng = currentLocation.value.longitude,
-                            radiusInMeters = PLACES_LOADING_RADIUS_METERS
-                        )
-                    }
-                emit(MainStateUpdate.PlacesLoaded(places))
-            } catch (throwable: Throwable) {
-                emit(MainStateUpdate.PlacesError(throwable))
-                signal(MainSignal.PlacesLoadingFailed(throwable))
+                if (!isConnected) {
+                    signal(MainSignal.UnableToLoadPlacesWithoutConnection)
+                    return@transformLatest
+                }
+
+                emit(MainStateUpdate.LoadingPlaces)
+                try {
+                    val places =
+                        withTimeout(10.seconds) {
+                            getPlacesOfType(
+                                placeType = type,
+                                lat = currentLocation.value.latitude,
+                                lng = currentLocation.value.longitude,
+                                radiusInMeters = PLACES_LOADING_RADIUS_METERS
+                            )
+                        }
+                    emit(MainStateUpdate.PlacesLoaded(places))
+                } catch (throwable: Throwable) {
+                    emit(MainStateUpdate.PlacesError(throwable))
+                    signal(MainSignal.PlacesLoadingFailed(throwable))
+                }
             }
-        }
 
     private val locationStateUpdatesFlow: Flow<MainStateUpdate>
         get() =

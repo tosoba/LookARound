@@ -53,13 +53,6 @@ val MainViewModel.searchFragmentVisibilityUpdates: Flow<Boolean>
 @ExperimentalTime
 @FlowPreview
 @ExperimentalCoroutinesApi
-val MainViewModel.unableToLoadPlacesWithoutLocationSignals:
-    Flow<MainSignal.UnableToLoadPlacesWithoutLocation>
-    get() = signals.filterIsInstance()
-
-@ExperimentalTime
-@FlowPreview
-@ExperimentalCoroutinesApi
 val MainViewModel.placesBottomNavItemVisibilityUpdates: Flow<Boolean>
     get() = states.map { it.markers is WithValue }.distinctUntilChanged()
 
