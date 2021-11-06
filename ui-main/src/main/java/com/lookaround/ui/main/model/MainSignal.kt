@@ -15,4 +15,6 @@ sealed class MainSignal {
     data class BottomSheetStateChanged(@BottomSheetBehavior.State val state: Int) : MainSignal()
 
     data class PlacesLoadingFailed(val throwable: Throwable) : MainSignal()
+
+    data class SnackbarStatusChanged(val isShowing: Boolean) : MainSignal()
 }

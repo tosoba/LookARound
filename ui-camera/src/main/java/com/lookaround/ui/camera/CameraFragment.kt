@@ -29,13 +29,13 @@ import com.lookaround.ui.camera.model.CameraState
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainIntent
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
 import javax.inject.Inject
 import kotlin.math.min
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -50,7 +50,6 @@ import timber.log.Timber
 @WithFragmentBindings
 @FlowPreview
 @ExperimentalCoroutinesApi
-@ExperimentalTime
 @RuntimePermissions
 class CameraFragment :
     Fragment(R.layout.fragment_camera), OrientationManager.OnOrientationChangedListener {
@@ -247,6 +246,19 @@ class CameraFragment :
                 cameraMarkerRenderer.currentPage = Int.MAX_VALUE
             }
         }
+
+        mainViewModel
+            .signals
+            .filterIsInstance<MainSignal.SnackbarStatusChanged>()
+            .onEach { (isShowing) ->
+                val pageGroupGuidelineLayoutParams =
+                    arCameraViewsGroupBottomGuideline.layoutParams as ConstraintLayout.LayoutParams
+                pageGroupGuidelineLayoutParams.guideEnd =
+                    if (isShowing) requireContext().dpToPx(56f + 48f).toInt()
+                    else requireContext().dpToPx(56f).toInt()
+                arCameraViewsGroupBottomGuideline.layoutParams = pageGroupGuidelineLayoutParams
+            }
+            .launchIn(lifecycleScope)
     }
 
     private fun FragmentCameraBinding.updateARMarkers(

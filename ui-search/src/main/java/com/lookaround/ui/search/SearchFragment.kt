@@ -31,7 +31,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 import javax.inject.Inject
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.drop
@@ -41,7 +40,6 @@ import kotlinx.coroutines.flow.onEach
 @AndroidEntryPoint
 @WithFragmentBindings
 @ExperimentalCoroutinesApi
-@ExperimentalTime
 @FlowPreview
 class SearchFragment : Fragment() {
     @Inject internal lateinit var searchViewModelFactory: SearchViewModel.Factory

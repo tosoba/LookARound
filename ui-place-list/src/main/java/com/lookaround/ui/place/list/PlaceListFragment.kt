@@ -41,7 +41,6 @@ import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
@@ -53,7 +52,6 @@ import uk.co.senab.bitmapcache.CacheableBitmapDrawable
 @WithFragmentBindings
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
-@ExperimentalTime
 @FlowPreview
 class PlaceListFragment :
     Fragment(R.layout.fragment_place_list), MapController.SceneLoadListener, MapChangeListener {

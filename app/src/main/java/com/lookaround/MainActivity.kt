@@ -33,7 +33,6 @@ import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
 import javax.inject.Inject
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -44,7 +43,6 @@ import timber.log.Timber
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
 @ExperimentalStdlibApi
-@ExperimentalTime
 @FlowPreview
 class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionController {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
@@ -359,7 +357,27 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     ): Snackbar =
         Snackbar.make(binding.mainLayout, message, length)
             .setAnchorView(binding.bottomNavigationView)
-            .apply(Snackbar::show)
+            .apply {
+                fun signalSnackbarStatusChanged(isShowing: Boolean) {
+                    lifecycleScope.launch {
+                        viewModel.signal(MainSignal.SnackbarStatusChanged(isShowing))
+                    }
+                }
+
+                addCallback(
+                    object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                        override fun onShown(transientBottomBar: Snackbar?) {
+                            transientBottomBar?.let {
+                                signalSnackbarStatusChanged(isShowing = true)
+                            }
+                        }
+                        override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                            signalSnackbarStatusChanged(isShowing = false)
+                        }
+                    }
+                )
+                show()
+            }
 
     private enum class ARState {
         INITIAL,

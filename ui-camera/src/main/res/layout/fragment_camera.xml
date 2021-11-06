@@ -68,8 +68,7 @@
         android:id="@+id/ar_camera_page_up_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginRight="15dp"
-        android:layout_marginBottom="15dp"
+        android:layout_margin="15dp"
         android:contentDescription="@string/page_up"
         android:src="@drawable/plus"
         app:fabSize="mini"
@@ -80,13 +79,19 @@
         android:id="@+id/ar_camera_page_down_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginRight="15dp"
-        android:layout_marginBottom="71dp"
+        android:layout_margin="15dp"
         android:contentDescription="@string/page_down"
         android:src="@drawable/minus"
         app:fabSize="mini"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/ar_camera_views_group_bottom_guideline"
         app:layout_constraintRight_toRightOf="parent" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/ar_camera_views_group_bottom_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_end="56dp" />
 
     <View
         android:id="@+id/blur_background"

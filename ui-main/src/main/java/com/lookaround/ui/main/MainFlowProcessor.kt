@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.base.arch.FlowProcessor
 import com.lookaround.core.android.model.LocationFactory
 import com.lookaround.core.android.model.WithValue
+import com.lookaround.core.ext.withLatestFrom
 import com.lookaround.core.model.LocationDataDTO
 import com.lookaround.core.usecase.GetPlacesOfType
 import com.lookaround.core.usecase.IsConnectedFlow
@@ -13,16 +14,10 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.main.model.MainStateUpdate
-import javax.inject.Inject
-import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.withTimeout
+import javax.inject.Inject
 
-@ExperimentalTime
 @ExperimentalCoroutinesApi
 class MainFlowProcessor
 @Inject
@@ -79,7 +74,9 @@ constructor(
     ): Flow<MainStateUpdate> =
         intents
             .filterIsInstance<MainIntent.LoadPlaces>()
-            .zip(isConnectedFlow()) { (placeType), isConnected -> placeType to isConnected }
+            .withLatestFrom(isConnectedFlow()) { (placeType), isConnected ->
+                placeType to isConnected
+            }
             .transformLatest { (type, isConnected) ->
                 val currentLocation = currentState().locationState
                 if (currentLocation !is WithValue) {
@@ -95,7 +92,7 @@ constructor(
                 emit(MainStateUpdate.LoadingPlaces)
                 try {
                     val places =
-                        withTimeout(10.seconds) {
+                        withTimeout(10_000) {
                             getPlacesOfType(
                                 placeType = type,
                                 lat = currentLocation.value.latitude,

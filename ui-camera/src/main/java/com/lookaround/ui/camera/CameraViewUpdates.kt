@@ -12,12 +12,10 @@ import com.lookaround.ui.camera.model.CameraState
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 
-@ExperimentalTime
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal fun arEnabledUpdates(
@@ -44,7 +42,6 @@ private val CameraPreviewState.isLoading: Boolean
 private val CameraPreviewState.isLive: Boolean
     get() = this is CameraPreviewState.Active && streamState == PreviewView.StreamState.STREAMING
 
-@ExperimentalTime
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal fun loadingStartedUpdates(
@@ -64,7 +61,6 @@ internal fun loadingStartedUpdates(
         .filter { it }
         .map {}
 
-@ExperimentalTime
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal fun arDisabledUpdates(
@@ -91,7 +87,6 @@ internal fun arDisabledUpdates(
             anyPermissionDenied || locationDisabled || pitchOutsideLimit
         }
 
-@ExperimentalTime
 @FlowPreview
 @ExperimentalCoroutinesApi
 fun cameraViewObscuredUpdates(
@@ -120,7 +115,6 @@ fun cameraViewObscuredUpdates(
         .distinctUntilChanged()
         .debounce(500L)
 
-@ExperimentalTime
 @FlowPreview
 @ExperimentalCoroutinesApi
 fun cameraTouchUpdates(mainViewModel: MainViewModel, cameraViewModel: CameraViewModel): Flow<Unit> =
@@ -133,7 +127,6 @@ fun cameraTouchUpdates(mainViewModel: MainViewModel, cameraViewModel: CameraView
         .map {}
         .debounce(250L)
 
-@ExperimentalTime
 @FlowPreview
 @ExperimentalCoroutinesApi
 fun markerUpdates(
