@@ -997,24 +997,18 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     CHECK_GL(glClear(GL_STENCIL_BUFFER_BIT));
     CHECK_GL(glDisable(GL_STENCIL_TEST));
 
-    GLfloat *rectsCoordinates =
-            jrectsLength == 0
-            ? nullptr
-            : env->GetFloatArrayElements(jrectsCoordinates, nullptr);
     if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
         nativeContext->DrawBlur(vertTransformArray, texTransformArray, width, height);
-
-        if (rectsCoordinates != nullptr && !nativeContext->blurEnabled) {
-            nativeContext->DrawBlurredRects(vertTransformArray, texTransformArray,
-                                            rectsCoordinates, jrectsLength,
-                                            width, height);
-            env->ReleaseFloatArrayElements(jrectsCoordinates, rectsCoordinates,
-                                           JNI_ABORT);
-        }
     } else {
         nativeContext->DrawNoBlur(vertTransformArray, texTransformArray, width, height, 0, 0, .0f);
+    }
 
+    if (!nativeContext->blurEnabled || nativeContext->IsAnimating()) {
+        GLfloat *rectsCoordinates =
+                jrectsLength == 0
+                ? nullptr
+                : env->GetFloatArrayElements(jrectsCoordinates, nullptr);
         if (rectsCoordinates != nullptr) {
             nativeContext->DrawBlurredRects(vertTransformArray, texTransformArray,
                                             rectsCoordinates, jrectsLength,
