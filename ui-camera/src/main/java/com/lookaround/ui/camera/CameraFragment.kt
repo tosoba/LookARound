@@ -178,7 +178,7 @@ class CameraFragment :
 
         cameraMarkerRenderer
             .drawnRectsFlow
-            .onEach(openGLRenderer::drawnRects::set)
+            .onEach(openGLRenderer::setMarkerRects)
             .launchIn(lifecycleScope)
 
         cameraViewObscuredUpdates(mainViewModel, cameraViewModel)

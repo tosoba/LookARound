@@ -177,7 +177,7 @@ uniform float width;
 uniform float height;
 uniform int x;
 uniform int y;
-uniform bool roundCorners;
+uniform float cornerRadius;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -187,16 +187,15 @@ float udRoundBox(vec2 p, vec2 b, float r) {
 }
 
 float computeBox() {
-    float radius = 100.;
     vec2 res = vec2(width, height);
     vec2 coord = vec2(gl_FragCoord.x - float(x), gl_FragCoord.y - float(y));
-    return udRoundBox(2. * coord - res, res, radius);
+    return udRoundBox(2. * coord - res, res, cornerRadius);
 }
 
 void main() {
     vec2 transTexCoord = (texTransform * vec4(texCoord, 0., 1.)).xy;
     vec4 texColor = texture(sampler, transTexCoord);
-    if (roundCorners) {
+    if (cornerRadius > 0.) {
         float box = computeBox();
         vec3 color = mix(texColor.rgb, vec3(0.), smoothstep(0., 1., box));
         if (box > 1.) {
@@ -340,7 +339,7 @@ void main() {
         GLint heightHandleNoBlur = -1;
         GLint xHandleNoBlur = -1;
         GLint yHandleNoBlur = -1;
-        GLint roundCornersHandleNoBlur = -1;
+        GLint cornerRadiusHandleNoBlur = -1;
 
         GLuint programVOES = -1;
         GLint positionHandleVOES = -1;
@@ -434,7 +433,7 @@ void main() {
                                GLfloat height,
                                GLint x,
                                GLint y,
-                               GLboolean roundCorners) const {
+                               GLfloat cornerRadius) const {
             CHECK_GL(glVertexAttribPointer(positionHandleNoBlur,
                                            vertexComponents, vertexType, normalized,
                                            vertexStride, VERTICES));
@@ -449,7 +448,7 @@ void main() {
             CHECK_GL(glUniform1f(heightHandleNoBlur, height));
             CHECK_GL(glUniform1i(xHandleNoBlur, x));
             CHECK_GL(glUniform1i(yHandleNoBlur, y));
-            CHECK_GL(glUniform1i(roundCornersHandleNoBlur, roundCorners));
+            CHECK_GL(glUniform1f(cornerRadiusHandleNoBlur, cornerRadius));
             CHECK_GL(glBindTexture(GL_TEXTURE_EXTERNAL_OES, inputTextureId));
         }
 
@@ -521,25 +520,27 @@ void main() {
 
         void DrawScissoredRectsInStencil(const GLfloat *vertTransformArray,
                                          const GLfloat *texTransformArray,
-                                         GLfloat *drawnRectsCoordinates,
-                                         jint jdrawnRectsLength,
+                                         GLfloat *rectsCoordinates,
+                                         jint jrectsLength,
                                          int32_t width,
                                          int32_t height) const {
-            GLfloat *drawnRectCoordinate = drawnRectsCoordinates;
-            for (uint i = 0; i < jdrawnRectsLength; ++i) {
-                auto rectLeftX = *drawnRectCoordinate;
-                ++drawnRectCoordinate;
-                auto rectBottomY = height - *drawnRectCoordinate;
-                ++drawnRectCoordinate;
-                auto rectWidth = *drawnRectCoordinate;
-                ++drawnRectCoordinate;
-                auto rectHeight = *drawnRectCoordinate;
-                ++drawnRectCoordinate;
+            GLfloat *rectCoordinate = rectsCoordinates;
+            for (uint i = 0; i < jrectsLength; ++i) {
+                auto rectLeftX = *rectCoordinate;
+                ++rectCoordinate;
+                auto rectBottomY = height - *rectCoordinate;
+                ++rectCoordinate;
+                auto rectWidth = *rectCoordinate;
+                ++rectCoordinate;
+                auto rectHeight = *rectCoordinate;
+                ++rectCoordinate;
+                auto cornerRadius = *rectCoordinate;
+                ++rectCoordinate;
                 CHECK_GL(glScissor(rectLeftX, rectBottomY, rectWidth, rectHeight));
                 DrawNoBlur(vertTransformArray, texTransformArray,
                            rectWidth, rectHeight,
                            rectLeftX, rectBottomY,
-                           GL_TRUE);
+                           cornerRadius);
             }
         }
 
@@ -565,9 +566,11 @@ void main() {
                         GLfloat height,
                         GLint x,
                         GLint y,
-                        GLboolean roundCorners = GL_FALSE) const {
-            PrepareDrawNoBlur(vertTransformArray, texTransformArray, width, height, x, y,
-                              roundCorners);
+                        GLfloat cornerRadius) const {
+            PrepareDrawNoBlur(vertTransformArray, texTransformArray,
+                              width, height,
+                              x, y,
+                              cornerRadius);
             CHECK_GL(glViewport(x, y, width, height));
             CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, 3));
         }
@@ -606,22 +609,17 @@ void main() {
             BindAndDraw(0, pass7TextureId);
         }
 
-        void DrawBlurredRects(JNIEnv *env,
-                              const GLfloat *vertTransformArray,
+        void DrawBlurredRects(const GLfloat *vertTransformArray,
                               const GLfloat *texTransformArray,
-                              jfloatArray jdrawnRectsCoordinates,
-                              jint jdrawnRectsLength,
+                              GLfloat *rectsCoordinates,
+                              jint jrectsLength,
                               int32_t width,
                               int32_t height) {
             PrepareStencilForDrawingRects();
-            GLfloat *drawnRectsCoordinates = env->GetFloatArrayElements(jdrawnRectsCoordinates,
-                                                                        nullptr);
             DrawScissoredRectsInStencil(vertTransformArray, texTransformArray,
-                                        drawnRectsCoordinates, jdrawnRectsLength,
+                                        rectsCoordinates, jrectsLength,
                                         width, height);
             DrawBlurredRects(vertTransformArray, texTransformArray, width, height);
-            env->ReleaseFloatArrayElements(jdrawnRectsCoordinates, drawnRectsCoordinates,
-                                           JNI_ABORT);
         }
     };
 
@@ -834,9 +832,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->yHandleNoBlur =
             CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "y"));
     assert(nativeContext->yHandleNoBlur != -1);
-    nativeContext->roundCornersHandleNoBlur =
-            CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "roundCorners"));
-    assert(nativeContext->roundCornersHandleNoBlur != -1);
+    nativeContext->cornerRadiusHandleNoBlur =
+            CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "cornerRadius"));
+    assert(nativeContext->cornerRadiusHandleNoBlur != -1);
 
     nativeContext->programVOES = CreateGlProgram(VERTEX_SHADER_SRC_TRANSFORM,
                                                  FRAGMENT_SHADER_SRC_V_OES);
@@ -984,7 +982,7 @@ JNIEXPORT jboolean JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
         JNIEnv *env, jobject clazz, jlong context, jlong timestampNs,
         jfloatArray jvertTransformArray, jfloatArray jtexTransformArray,
-        jfloatArray jdrawnRectsCoordinates, jint jdrawnRectsLength) {
+        jfloatArray jrectsCoordinates, jint jrectsLength) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
     auto nativeWindow = nativeContext->windowSurface.first;
 
@@ -999,22 +997,30 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     CHECK_GL(glClear(GL_STENCIL_BUFFER_BIT));
     CHECK_GL(glDisable(GL_STENCIL_TEST));
 
+    GLfloat *rectsCoordinates =
+            jrectsLength == 0
+            ? nullptr
+            : env->GetFloatArrayElements(jrectsCoordinates, nullptr);
     if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
         if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
         nativeContext->DrawBlur(vertTransformArray, texTransformArray, width, height);
 
-        if (jdrawnRectsLength > 0 && !nativeContext->blurEnabled) {
-            nativeContext->DrawBlurredRects(env, vertTransformArray, texTransformArray,
-                                            jdrawnRectsCoordinates, jdrawnRectsLength,
+        if (rectsCoordinates != nullptr && !nativeContext->blurEnabled) {
+            nativeContext->DrawBlurredRects(vertTransformArray, texTransformArray,
+                                            rectsCoordinates, jrectsLength,
                                             width, height);
+            env->ReleaseFloatArrayElements(jrectsCoordinates, rectsCoordinates,
+                                           JNI_ABORT);
         }
     } else {
-        nativeContext->DrawNoBlur(vertTransformArray, texTransformArray, width, height, 0, 0);
+        nativeContext->DrawNoBlur(vertTransformArray, texTransformArray, width, height, 0, 0, .0f);
 
-        if (jdrawnRectsLength > 0) {
-            nativeContext->DrawBlurredRects(env, vertTransformArray, texTransformArray,
-                                            jdrawnRectsCoordinates, jdrawnRectsLength,
+        if (rectsCoordinates != nullptr) {
+            nativeContext->DrawBlurredRects(vertTransformArray, texTransformArray,
+                                            rectsCoordinates, jrectsLength,
                                             width, height);
+            env->ReleaseFloatArrayElements(jrectsCoordinates, rectsCoordinates,
+                                           JNI_ABORT);
         }
     }
 

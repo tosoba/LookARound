@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import com.google.common.util.concurrent.ListenableFuture
 import com.lookaround.core.android.ext.shouldUseTextureView
+import com.lookaround.core.android.model.RoundedRectF
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.RejectedExecutionException
@@ -33,7 +34,10 @@ class OpenGLRenderer {
         }
 
         private val RENDERER_COUNT = AtomicInteger(0)
-        private const val DRAWN_RECTS_MAX_SIZE = 12
+
+        private const val MARKER_RECTS_MAX_SIZE = 24
+        private const val MARKER_RECT_CORNER_RADIUS = 100f
+        private const val COORDINATES_PER_RECT = 5
     }
 
     private val executor =
@@ -61,23 +65,37 @@ class OpenGLRenderer {
     private val activeStreamStateObserver = AtomicReference<PreviewStreamStateObserver?>()
     val previewStreamStateLiveData = MutableLiveData(StreamState.IDLE)
 
-    var drawnRects: List<RectF> = emptyList()
+    private var markerRects: List<RoundedRectF> = emptyList()
         set(value) {
-            field = value.take(DRAWN_RECTS_MAX_SIZE)
+            field = value.take(MARKER_RECTS_MAX_SIZE)
+        }
+    var otherRects: List<RoundedRectF> = emptyList()
+
+    private val rectsCoordinates: FloatArray
+        get() {
+            val coordinates =
+                FloatArray((MARKER_RECTS_MAX_SIZE + otherRects.size) * COORDINATES_PER_RECT)
+            var index = 0
+
+            fun fillCoordinatesOf(rects: Collection<RoundedRectF>) {
+                for (roundedRect in rects) {
+                    val (rect, cornerRadius) = roundedRect
+                    coordinates[index++] = rect.left
+                    coordinates[index++] = rect.bottom
+                    coordinates[index++] = rect.width()
+                    coordinates[index++] = rect.height()
+                    coordinates[index++] = cornerRadius
+                }
+            }
+
+            fillCoordinatesOf(markerRects)
+            fillCoordinatesOf(otherRects)
+            return coordinates
         }
 
-    private val drawnRectsCoordinates: FloatArray
-        get() {
-            val drawnRectsCoordinates = FloatArray(DRAWN_RECTS_MAX_SIZE * 4)
-            var coordinateIndex = 0
-            for (rect in drawnRects) {
-                drawnRectsCoordinates[coordinateIndex++] = rect.left
-                drawnRectsCoordinates[coordinateIndex++] = rect.bottom
-                drawnRectsCoordinates[coordinateIndex++] = rect.width()
-                drawnRectsCoordinates[coordinateIndex++] = rect.height()
-            }
-            return drawnRectsCoordinates
-        }
+    fun setMarkerRects(rects: Iterable<RectF>) {
+        markerRects = rects.map { RoundedRectF(it, MARKER_RECT_CORNER_RADIUS) }
+    }
 
     @MainThread
     fun setBlurEnabled(enabled: Boolean, animated: Boolean) {
@@ -260,14 +278,15 @@ class OpenGLRenderer {
         if (surfaceSize == null) return
 
         calculateSurfaceTransform()
+        val coordinates = rectsCoordinates
         val success =
             renderTexture(
                 nativeContext,
                 timestampNs,
                 surfaceTransform,
                 previewTransform,
-                drawnRectsCoordinates,
-                drawnRects.size
+                coordinates,
+                coordinates.size / COORDINATES_PER_RECT
             )
         if (!success) return
 
@@ -481,8 +500,8 @@ class OpenGLRenderer {
         timestampNs: Long,
         vertexTransform: FloatArray,
         textureTransform: FloatArray,
-        drawnRectsCoordinates: FloatArray,
-        drawnRectsLength: Int
+        rectsCoordinates: FloatArray,
+        rectsLength: Int
     ): Boolean
 
     @WorkerThread private external fun closeContext(nativeContext: Long)
