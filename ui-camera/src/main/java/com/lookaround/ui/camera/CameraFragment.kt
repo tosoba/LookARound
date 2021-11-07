@@ -180,6 +180,8 @@ class CameraFragment :
             .drawnRectsFlow
             .onEach(openGLRenderer::setMarkerRects)
             .launchIn(lifecycleScope)
+        openGLRenderer.otherRects =
+            listOf(RoundedRectF(requireContext().bottomNavigationViewRectF, 0f))
 
         cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
             .onEach { obscured ->

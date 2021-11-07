@@ -1,9 +1,12 @@
 package com.lookaround.core.android.ext
 
 import android.content.Context
+import android.graphics.RectF
 import android.os.Build
+import android.util.Size
 import android.util.TypedValue
 import android.view.Surface
+import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -20,7 +23,7 @@ val Context.phoneRotation: Int
         }
             ?: Surface.ROTATION_0
 
-val Context.statusBarHeight: Int
+val Context.statusBarHeightPx: Int
     get() {
         val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
         return if (resourceId > 0) {
@@ -31,7 +34,7 @@ val Context.statusBarHeight: Int
         }
     }
 
-val Context.actionBarHeight: Float
+val Context.actionBarHeightPx: Float
     get() {
         val actionBarStyledAttributes =
             theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
@@ -40,7 +43,7 @@ val Context.actionBarHeight: Float
         return actionBarHeight
     }
 
-val Context.bottomNavigationViewHeight: Int
+val Context.bottomNavigationViewHeightPx: Int
     get() {
         val resourceId: Int = resources.getIdentifier("navigation_bar_height", "dimen", "android")
         return if (resourceId > 0) {
@@ -77,11 +80,46 @@ inline fun <reified T : RoomDatabase> Context.buildRoom(
     noinline configure: (RoomDatabase.Builder<T>.() -> RoomDatabase.Builder<T>)? = null
 ): T {
     val builder =
-        if (inMemory) {
-            Room.inMemoryDatabaseBuilder(this, T::class.java)
-        } else {
-            Room.databaseBuilder(this, T::class.java, name)
-        }
+        if (inMemory) Room.inMemoryDatabaseBuilder(this, T::class.java)
+        else Room.databaseBuilder(this, T::class.java, name)
     if (configure != null) builder.configure()
     return builder.build()
 }
+
+val Context.bottomNavigationViewRectF: RectF
+    get() {
+        val screenSize = getScreenSize(includeTopInset = true)
+        val bottomNavigationViewHeight = dpToPx(56f)
+        return RectF(
+            0f,
+            screenSize.height - bottomNavigationViewHeight,
+            screenSize.width.toFloat(),
+            screenSize.height.toFloat()
+        )
+    }
+
+fun Context.getScreenSize(
+    includeLeftInset: Boolean = false,
+    includeTopInset: Boolean = false,
+    includeRightInset: Boolean = false,
+    includeBottomInset: Boolean = false
+): Size =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        val metrics =
+            (getSystemService(Context.WINDOW_SERVICE) as WindowManager).currentWindowMetrics
+        val insets =
+            metrics.windowInsets.getInsetsIgnoringVisibility(
+                WindowInsets.Type.navigationBars() or WindowInsets.Type.displayCutout()
+            )
+        val bounds = metrics.bounds
+        var width = bounds.width()
+        if (!includeRightInset) width -= insets.right
+        if (!includeLeftInset) width -= insets.left
+        var height = bounds.height()
+        if (!includeTopInset) height -= insets.top
+        if (!includeBottomInset) height -= insets.bottom
+        Size(width, height)
+    } else {
+        val displayMetrics = resources.displayMetrics
+        Size(displayMetrics.widthPixels, displayMetrics.heightPixels)
+    }

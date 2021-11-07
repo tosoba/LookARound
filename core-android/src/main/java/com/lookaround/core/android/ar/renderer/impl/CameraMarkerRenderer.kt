@@ -32,17 +32,16 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     override val markerHeightPx: Float
     override val markerWidthPx: Float
 
-    private val statusBarHeightPx: Float = context.statusBarHeight.toFloat()
-    private val actionBarHeightPx: Float = context.actionBarHeight
+    private val statusBarHeightPx: Float = context.statusBarHeightPx.toFloat()
+    private val actionBarHeightPx: Float = context.actionBarHeightPx
 
     init {
         val displayMetrics = context.resources.displayMetrics
-        val bottomNavigationViewHeight = context.bottomNavigationViewHeight
         val cameraViewHeight =
             displayMetrics.heightPixels -
                 statusBarHeightPx -
                 actionBarHeightPx -
-                bottomNavigationViewHeight
+                context.bottomNavigationViewHeightPx
         markerHeightPx = cameraViewHeight / numberOfRows - MARKER_VERTICAL_SPACING_PX
         val markerWidthDivisor =
             if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
