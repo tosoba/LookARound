@@ -242,7 +242,8 @@ vec4 gaussBlur( samplerExternalOES tex, vec2 uv, vec2 d, float l )
 void main() {
     vec2 transTexCoord = (texTransform * vec4(texCoord, 0., 1.)).xy;
     if (lod > minLod) {
-        fragColor = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), lod);
+        vec4 blurred = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), lod);
+        fragColor = vec4(vec3(blurred.rgb) / 1.05, blurred.a);
     } else {
         fragColor = texture(sampler, transTexCoord);
     }
@@ -279,7 +280,8 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float l )
 
 void main() {
     if (lod > minLod) {
-        fragColor = gaussBlur(sampler, texCoord, vec2(0., exp2(lod) / height), lod);
+        vec4 blurred = gaussBlur(sampler, texCoord, vec2(0., exp2(lod) / height), lod);
+        fragColor = vec4(vec3(blurred.rgb) / 1.05, blurred.a);
     } else {
         fragColor = texture(sampler, texCoord);
     }
@@ -316,7 +318,8 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float l )
 
 void main() {
     if (lod > minLod) {
-        fragColor = gaussBlur(sampler, texCoord, vec2(exp2(lod) / width, 0.), lod);
+        vec4 blurred = gaussBlur(sampler, texCoord, vec2(exp2(lod) / width, 0.), lod);
+        fragColor = vec4(vec3(blurred.rgb) / 1.05, blurred.a);
     } else {
         fragColor = texture(sampler, texCoord);
     }
