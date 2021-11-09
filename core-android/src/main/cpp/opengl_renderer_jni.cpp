@@ -219,6 +219,7 @@ uniform mat4 texTransform;
 uniform float height;
 uniform float lod;
 uniform float minLod;
+uniform float lightIntensityMultiplier;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -243,7 +244,7 @@ void main() {
     vec2 transTexCoord = (texTransform * vec4(texCoord, 0., 1.)).xy;
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), lod);
-        fragColor = vec4(vec3(blurred.rgb) / 1.05, blurred.a);
+        fragColor = vec4(vec3(blurred.rgb) * lightIntensityMultiplier, blurred.a);
     } else {
         fragColor = texture(sampler, transTexCoord);
     }
@@ -258,6 +259,7 @@ uniform sampler2D sampler;
 uniform float height;
 uniform float lod;
 uniform float minLod;
+uniform float lightIntensityMultiplier;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -281,7 +283,7 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float l )
 void main() {
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, texCoord, vec2(0., exp2(lod) / height), lod);
-        fragColor = vec4(vec3(blurred.rgb) / 1.05, blurred.a);
+        fragColor = vec4(vec3(blurred.rgb) * lightIntensityMultiplier, blurred.a);
     } else {
         fragColor = texture(sampler, texCoord);
     }
@@ -296,6 +298,7 @@ uniform sampler2D sampler;
 uniform float width;
 uniform float lod;
 uniform float minLod;
+uniform float lightIntensityMultiplier;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -319,7 +322,7 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float l )
 void main() {
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, texCoord, vec2(exp2(lod) / width, 0.), lod);
-        fragColor = vec4(vec3(blurred.rgb) / 1.05, blurred.a);
+        fragColor = vec4(vec3(blurred.rgb) * lightIntensityMultiplier, blurred.a);
     } else {
         fragColor = texture(sampler, texCoord);
     }
@@ -352,6 +355,7 @@ void main() {
         GLint heightHandleVOES = -1;
         GLint lodHandleVOES = -1;
         GLint minLodHandleVOES = -1;
+        GLint lightIntensityMultiplierHandleVOES = -1;
 
         GLuint programH = -1;
         GLint positionHandleH = -1;
@@ -359,6 +363,7 @@ void main() {
         GLint widthHandleH = -1;
         GLint lodHandleH = -1;
         GLint minLodHandleH = -1;
+        GLint lightIntensityMultiplierHandleH = -1;
 
         GLuint programV2D = -1;
         GLint positionHandleV2D = -1;
@@ -366,6 +371,7 @@ void main() {
         GLint heightHandleV2D = -1;
         GLint lodHandleV2D = -1;
         GLint minLodHandleV2D = -1;
+        GLint lightIntensityMultiplierHandleV2D = -1;
 
         GLuint inputTextureId = -1;
         GLuint pass1TextureId = -1;
@@ -385,6 +391,8 @@ void main() {
 
         GLboolean blurEnabled = GL_FALSE;
         GLfloat lod = MIN_LOD;
+        GLfloat lightIntensityMultiplier = 1.f;
+        GLfloat rectsLightIntensityMultiplier = 1.f;
         GLint currentAnimationFrame = -1;
 
         GLint vertexComponents = 2;
@@ -416,6 +424,8 @@ void main() {
         static constexpr GLint LOD_ANIMATION_FRAMES = 18;
         static constexpr GLfloat LOD_INCREMENT = (NativeContext::MAX_LOD - NativeContext::MIN_LOD) /
                                                  (GLfloat) NativeContext::LOD_ANIMATION_FRAMES;
+        static constexpr GLfloat LIGHT_INTENSITY_MULTIPLIER_INCREMENT = 0.05f /
+                                                                        (GLfloat) NativeContext::LOD_ANIMATION_FRAMES;
 
         NativeContext(EGLDisplay display,
                       EGLConfig config,
@@ -473,6 +483,8 @@ void main() {
             CHECK_GL(glUniform1f(heightHandleVOES, height));
             CHECK_GL(glUniform1f(lodHandleVOES, withMaxLod ? NativeContext::MAX_LOD : lod));
             CHECK_GL(glUniform1f(minLodHandleVOES, NativeContext::MIN_LOD));
+            CHECK_GL(glUniform1f(lightIntensityMultiplierHandleVOES,
+                                 lightIntensityMultiplier));
         }
 
         void PrepareDrawV2D(GLfloat height, bool withMaxLod) const {
@@ -485,6 +497,8 @@ void main() {
             CHECK_GL(glUniform1f(heightHandleV2D, height));
             CHECK_GL(glUniform1f(lodHandleV2D, withMaxLod ? NativeContext::MAX_LOD : lod));
             CHECK_GL(glUniform1f(minLodHandleV2D, NativeContext::MIN_LOD));
+            CHECK_GL(glUniform1f(lightIntensityMultiplierHandleV2D,
+                                 lightIntensityMultiplier));
         }
 
         void PrepareDrawH(GLfloat width, bool withMaxLod) const {
@@ -497,6 +511,8 @@ void main() {
             CHECK_GL(glUniform1f(widthHandleH, width));
             CHECK_GL(glUniform1f(lodHandleH, withMaxLod ? NativeContext::MAX_LOD : lod));
             CHECK_GL(glUniform1f(minLodHandleH, NativeContext::MIN_LOD));
+            CHECK_GL(glUniform1f(lightIntensityMultiplierHandleH,
+                                 lightIntensityMultiplier));
         }
 
         static void BindAndDraw(GLuint fboId, GLuint textureId, GLenum texTarget = GL_TEXTURE_2D) {
@@ -518,7 +534,7 @@ void main() {
                               int32_t height) const {
             CHECK_GL(glStencilFunc(GL_EQUAL, 1, 0xFF));
             CHECK_GL(glScissor(0, 0, width, height));
-            DrawBlur(vertTransformArray, texTransformArray, width, height, true);
+            DrawBlur(vertTransformArray, texTransformArray, width, height, true, true);
         }
 
         void DrawScissoredRectsInStencil(const GLfloat *vertTransformArray,
@@ -553,12 +569,28 @@ void main() {
                    currentAnimationFrame < NativeContext::LOD_ANIMATION_FRAMES;
         }
 
-        void AnimateLod() {
+        void AnimateValues() {
             if (blurEnabled) {
-                lod += NativeContext::LOD_INCREMENT;
+                if (lod < NativeContext::MAX_LOD) lod += NativeContext::LOD_INCREMENT;
+
+                const GLfloat lightIntensityMultiplierTarget = 1.f;
+                if (lightIntensityMultiplierTarget > lightIntensityMultiplier) {
+                    lightIntensityMultiplier += NativeContext::LIGHT_INTENSITY_MULTIPLIER_INCREMENT;
+                } else if (lightIntensityMultiplierTarget < lightIntensityMultiplier) {
+                    lightIntensityMultiplier -= NativeContext::LIGHT_INTENSITY_MULTIPLIER_INCREMENT;
+                }
+
                 ++currentAnimationFrame;
             } else {
-                lod -= NativeContext::LOD_INCREMENT;
+                if (lod > NativeContext::MIN_LOD) lod -= NativeContext::LOD_INCREMENT;
+
+                const GLfloat lightIntensityMultiplierTarget = rectsLightIntensityMultiplier;
+                if (lightIntensityMultiplierTarget > lightIntensityMultiplier) {
+                    lightIntensityMultiplier += NativeContext::LIGHT_INTENSITY_MULTIPLIER_INCREMENT;
+                } else if (lightIntensityMultiplierTarget < lightIntensityMultiplier) {
+                    lightIntensityMultiplier -= NativeContext::LIGHT_INTENSITY_MULTIPLIER_INCREMENT;
+                }
+
                 --currentAnimationFrame;
             }
         }
@@ -582,8 +614,10 @@ void main() {
                       const GLfloat *texTransformArray,
                       GLfloat width,
                       GLfloat height,
-                      bool withMaxLod = false) const {
-            PrepareDrawVOES(vertTransformArray, texTransformArray, height / 2.f, withMaxLod);
+                      bool withMaxLod = false,
+                      bool withLightIntensityMultiplier = false) const {
+            PrepareDrawVOES(vertTransformArray, texTransformArray, height / 2.f,
+                            withMaxLod);
             CHECK_GL(glViewport(0, 0, width / 2.f, height / 2.f));
             BindAndDraw(fbo1Id, inputTextureId, GL_TEXTURE_EXTERNAL_OES);
 
@@ -860,6 +894,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->minLodHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "minLod"));
     assert(nativeContext->minLodHandleVOES != -1);
+    nativeContext->lightIntensityMultiplierHandleVOES =
+            CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "lightIntensityMultiplier"));
+    assert(nativeContext->lightIntensityMultiplierHandleVOES != -1);
     nativeContext->texTransformHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "texTransform"));
     assert(nativeContext->texTransformHandleVOES != -1);
@@ -882,6 +919,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->minLodHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "minLod"));
     assert(nativeContext->minLodHandleH != -1);
+    nativeContext->lightIntensityMultiplierHandleH =
+            CHECK_GL(glGetUniformLocation(nativeContext->programH, "lightIntensityMultiplier"));
+    assert(nativeContext->lightIntensityMultiplierHandleH != -1);
 
     nativeContext->programV2D = CreateGlProgram(VERTEX_SHADER_SRC_NO_TRANSFORM,
                                                 FRAGMENT_SHADER_SRC_V_2D);
@@ -901,6 +941,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->minLodHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "minLod"));
     assert(nativeContext->minLodHandleV2D != -1);
+    nativeContext->lightIntensityMultiplierHandleV2D =
+            CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "lightIntensityMultiplier"));
+    assert(nativeContext->lightIntensityMultiplierHandleV2D != -1);
 
     CHECK_GL(glGenTextures(1, &(nativeContext->inputTextureId)));
 
@@ -1001,7 +1044,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     CHECK_GL(glDisable(GL_STENCIL_TEST));
 
     if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
-        if (nativeContext->IsAnimating()) nativeContext->AnimateLod();
+        if (nativeContext->IsAnimating()) nativeContext->AnimateValues();
         nativeContext->DrawBlur(vertTransformArray, texTransformArray, width, height);
     } else {
         nativeContext->DrawNoBlur(vertTransformArray, texTransformArray, width, height, 0, 0, .0f);
@@ -1073,6 +1116,13 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setBlurEnabled(
             nativeContext->lod = NativeContext::MIN_LOD;
         }
     }
+}
+
+JNIEXPORT void JNICALL
+Java_com_lookaround_core_android_camera_OpenGLRenderer_setLightIntensityMultiplier(
+        JNIEnv *env, jobject clazz, jlong context, jfloat lightIntensityMultiplier) {
+    auto *nativeContext = reinterpret_cast<NativeContext *>(context);
+    nativeContext->rectsLightIntensityMultiplier = lightIntensityMultiplier;
 }
 
 JNIEXPORT void JNICALL

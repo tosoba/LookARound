@@ -1,7 +1,12 @@
 package com.lookaround.ui.camera
 
 import android.Manifest
+import android.content.Context
 import android.content.res.Configuration
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.view.View
 import androidx.camera.core.*
@@ -80,6 +85,18 @@ class CameraFragment :
 
     private val openGLRenderer: OpenGLRenderer by
         lazy(LazyThreadSafetyMode.NONE) { OpenGLRenderer() }
+
+    private val lightSensorListener: SensorEventListener by
+        lazy(LazyThreadSafetyMode.NONE) {
+            object : SensorEventListener {
+                override fun onSensorChanged(event: SensorEvent?) {
+                    if (event == null || event.values.isEmpty()) return
+                    openGLRenderer.setLightIntensity(intensity = event.values.first())
+                }
+
+                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+            }
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
@@ -386,11 +403,22 @@ class CameraFragment :
     override fun onResume() {
         super.onResume()
         orientationManager.startSensor(requireContext())
+        val sensorManager =
+            requireContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
+        sensorManager.registerListener(
+            lightSensorListener,
+            lightSensor,
+            SensorManager.SENSOR_DELAY_UI
+        )
     }
 
     override fun onPause() {
         binding.hideARViews()
         orientationManager.stopSensor()
+        val sensorManager =
+            requireContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        sensorManager.unregisterListener(lightSensorListener)
         super.onPause()
     }
 

@@ -99,10 +99,28 @@ class OpenGLRenderer {
 
     @MainThread
     fun setBlurEnabled(enabled: Boolean, animated: Boolean) {
+        if (isShutdown || nativeContext == 0L) return
+        try {
+            executor.execute { setBlurEnabled(nativeContext, enabled, animated) }
+        } catch (e: RejectedExecutionException) {
+            Timber.tag("OGL").i("Renderer already shutting down. Ignore.")
+        }
+    }
+
+    @MainThread
+    fun setLightIntensity(intensity: Float) {
+        if (isShutdown || nativeContext == 0L) return
         try {
             executor.execute {
-                if (isShutdown || nativeContext == 0L) return@execute
-                setBlurEnabled(nativeContext, enabled, animated)
+                setLightIntensityMultiplier(
+                    nativeContext,
+                    lightIntensityMultiplier =
+                        when {
+                            intensity < 25f -> 1.05f
+                            intensity > 50f -> 0.95f
+                            else -> 1f
+                        }
+                )
             }
         } catch (e: RejectedExecutionException) {
             Timber.tag("OGL").i("Renderer already shutting down. Ignore.")
@@ -155,9 +173,9 @@ class OpenGLRenderer {
     }
 
     fun attachOutputSurface(surface: Surface, surfaceSize: Size, surfaceRotationDegrees: Int) {
+        if (isShutdown) return
         try {
             executor.execute {
-                if (isShutdown) return@execute
                 if (nativeContext == 0L) nativeContext = initContext()
 
                 if (setWindowSurface(nativeContext, surface)) {
@@ -508,4 +526,10 @@ class OpenGLRenderer {
 
     @WorkerThread
     private external fun setBlurEnabled(nativeContext: Long, enabled: Boolean, animated: Boolean)
+
+    @WorkerThread
+    private external fun setLightIntensityMultiplier(
+        nativeContext: Long,
+        lightIntensityMultiplier: Float
+    )
 }

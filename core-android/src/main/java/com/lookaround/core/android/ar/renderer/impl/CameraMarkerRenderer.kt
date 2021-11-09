@@ -94,6 +94,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 textSize = markerTitleTextSizePx
                 textAlign = Paint.Align.LEFT
                 isLinearText = true
+                setShadowLayer(2.0f, 3.0f, 3.0f, Color.GRAY)
             }
         }
 
@@ -106,6 +107,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 textSize = markerDistanceTextSizePx
                 textAlign = Paint.Align.LEFT
                 isLinearText = true
+                setShadowLayer(2.0f, 3.0f, 3.0f, Color.GRAY)
             }
         }
 
