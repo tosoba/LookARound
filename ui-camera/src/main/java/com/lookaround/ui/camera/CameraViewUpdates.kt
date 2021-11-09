@@ -26,9 +26,13 @@ internal fun arEnabledUpdates(
         mainViewModel.states.map(MainState::locationState::get),
         cameraViewModel.states.map(CameraState::previewState::get),
         cameraViewModel.signals.filterIsInstance<CameraSignal.PitchChanged>(),
+        cameraViewObscuredUpdates(mainViewModel, cameraViewModel),
         mainViewModel.states.map { it.markers is WithValue }
-    ) { locationState, previewState, (pitchWithinLimit), showingAnyMarkers ->
-        (locationState is Ready) && previewState.isLive && (!showingAnyMarkers || pitchWithinLimit)
+    ) { locationState, previewState, (pitchWithinLimit), obscured, showingAnyMarkers ->
+        (locationState is Ready) &&
+            previewState.isLive &&
+            (!showingAnyMarkers || pitchWithinLimit) &&
+            !obscured
     }
         .distinctUntilChanged()
         .filter { it }
@@ -113,6 +117,7 @@ fun cameraViewObscuredUpdates(
                 sheetState == BottomSheetBehavior.STATE_SETTLING
         }
         .distinctUntilChanged()
+        .onStart { emit(false) }
         .debounce(500L)
 
 @FlowPreview
