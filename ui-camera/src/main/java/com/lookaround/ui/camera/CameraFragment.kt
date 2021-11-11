@@ -158,14 +158,23 @@ class CameraFragment :
         initARCameraPageViews()
 
         val screenSize = requireContext().getScreenSize()
-        requireContext()
-            .initCamera(
-                lifecycleOwner = this@CameraFragment,
-                openGLRenderer = openGLRenderer,
-                cameraPreviewStub = binding.cameraPreview,
-                widthPx = screenSize.width,
-                heightPx = screenSize.height
-            )
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val preview =
+                    requireContext()
+                        .initCamera(
+                            lifecycleOwner = this@CameraFragment,
+                            rotation = rotation,
+                            widthPx = screenSize.width,
+                            heightPx = screenSize.height
+                        )
+                openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
+            } catch (ex: Exception) {
+                Timber.e(ex)
+                // TODO: signal unable to init camera and show info to user (like when permissions
+                // are missing)
+            }
+        }
 
         openGLRenderer
             .previewStreamStateLiveData

@@ -1,37 +1,42 @@
 package com.lookaround.core.android.ext
 
 import android.content.Context
-import android.view.ViewStub
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
+import androidx.camera.core.impl.ImageOutputConfig.RotationValue
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import com.lookaround.core.android.camera.OpenGLRenderer
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-fun Context.initCamera(
+suspend fun Context.initCamera(
     lifecycleOwner: LifecycleOwner,
-    openGLRenderer: OpenGLRenderer,
-    cameraPreviewStub: ViewStub,
+    @RotationValue rotation: Int,
     widthPx: Int,
     heightPx: Int
-) {
+): Preview = suspendCoroutine { continuation ->
     val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
     cameraProviderFuture.addListener(
         {
             val preview =
                 Preview.Builder()
                     .setTargetAspectRatio(aspectRatio(widthPx, heightPx))
-                    .setTargetRotation(cameraPreviewStub.display.rotation)
+                    .setTargetRotation(rotation)
                     .build()
-            openGLRenderer.attachInputPreview(preview, cameraPreviewStub)
-            cameraProviderFuture
-                .get()
-                .bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview)
+            try {
+                cameraProviderFuture
+                    .get()
+                    .bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview)
+                continuation.resume(preview)
+            } catch (ex: Exception) {
+                continuation.resumeWithException(ex)
+            }
         },
         ContextCompat.getMainExecutor(this)
     )
