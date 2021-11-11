@@ -157,16 +157,14 @@ class CameraFragment :
     private fun FragmentCameraBinding.initARViews() {
         initARCameraPageViews()
 
-        val screenSize = requireContext().getScreenSize()
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val preview =
+                val (preview, _, imageFlow) =
                     requireContext()
                         .initCamera(
                             lifecycleOwner = this@CameraFragment,
                             rotation = rotation,
-                            widthPx = screenSize.width,
-                            heightPx = screenSize.height
+                            screenSize = requireContext().getScreenSize()
                         )
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
             } catch (ex: Exception) {

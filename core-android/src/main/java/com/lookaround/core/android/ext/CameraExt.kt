@@ -1,39 +1,74 @@
 package com.lookaround.core.android.ext
 
+import android.annotation.SuppressLint
 import android.content.Context
-import androidx.camera.core.AspectRatio
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
+import android.media.Image
+import android.util.Size
+import androidx.camera.core.*
 import androidx.camera.core.impl.ImageOutputConfig.RotationValue
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import timber.log.Timber
 
+@SuppressLint("UnsafeOptInUsageError")
 suspend fun Context.initCamera(
     lifecycleOwner: LifecycleOwner,
     @RotationValue rotation: Int,
-    widthPx: Int,
-    heightPx: Int
-): Preview = suspendCoroutine { continuation ->
+    screenSize: Size,
+): CameraInitializationResult = suspendCoroutine { continuation ->
     val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
     cameraProviderFuture.addListener(
         {
             val preview =
                 Preview.Builder()
-                    .setTargetAspectRatio(aspectRatio(widthPx, heightPx))
+                    .setTargetAspectRatio(aspectRatio(screenSize.width, screenSize.height))
                     .setTargetRotation(rotation)
                     .build()
+            val imageAnalysis =
+                ImageAnalysis.Builder()
+                    .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                    .setTargetResolution(screenSize / 10)
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+            val imageFlow = MutableSharedFlow<Image>()
+            imageAnalysis.setAnalyzer(
+                Dispatchers.IO.asExecutor(),
+                { imageProxy ->
+                    imageProxy.use {
+                        val image = imageProxy.image
+                        if (image != null) {
+                            lifecycleOwner.lifecycleScope.launchWhenResumed {
+                                imageFlow.emit(image)
+                            }
+                        } else {
+                            Timber.d("Analyzed image is null")
+                        }
+                    }
+                }
+            )
             try {
-                cameraProviderFuture
-                    .get()
-                    .bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview)
-                continuation.resume(preview)
+                val camera =
+                    cameraProviderFuture
+                        .get()
+                        .bindToLifecycle(
+                            lifecycleOwner,
+                            CameraSelector.DEFAULT_BACK_CAMERA,
+                            imageAnalysis,
+                            preview
+                        )
+                continuation.resume(CameraInitializationResult(preview, camera, imageFlow))
             } catch (ex: Exception) {
                 continuation.resumeWithException(ex)
             }
@@ -41,6 +76,12 @@ suspend fun Context.initCamera(
         ContextCompat.getMainExecutor(this)
     )
 }
+
+data class CameraInitializationResult(
+    val preview: Preview,
+    val camera: Camera,
+    val imageFlow: Flow<Image>
+)
 
 private fun aspectRatio(width: Int, height: Int): Int {
     val previewRatio = max(width, height).toDouble() / min(width, height)
