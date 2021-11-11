@@ -68,9 +68,7 @@ class PlaceListFragment :
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by
-        viewLifecycleOwner.lifecycleScope.lazyAsync {
-            binding.map.init(mapTilesHttpHandler, glViewHolderFactory)
-        }
+        lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
 
     @Inject internal lateinit var mapCaptureCache: MapCaptureCache
     private val getLocationBitmapChannel =

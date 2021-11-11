@@ -9,13 +9,12 @@ plugins {
 }
 
 android {
-    compileSdk = 30
-    buildToolsVersion = "30.0.3"
+    compileSdk = 31
 
     defaultConfig {
         applicationId = "com.lookaround"
         minSdk = 21
-        targetSdk = 30
+        targetSdk = 31
         version = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -35,7 +34,7 @@ android {
 
     buildFeatures { compose = true }
 
-    composeOptions { kotlinCompilerExtensionVersion = "1.0.0-beta03" }
+    composeOptions { kotlinCompilerExtensionVersion = "1.1.0-beta02" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -44,7 +43,6 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
-        useIR = true
     }
 
     buildFeatures { viewBinding = true }
@@ -70,31 +68,31 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
-    implementation("androidx.appcompat:appcompat:1.3.0-rc01")
-    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
-    implementation("com.google.android.material:material:1.3.0")
+    implementation("androidx.appcompat:appcompat:1.4.0-rc01")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
+    implementation("com.google.android.material:material:1.4.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
-    implementation("dev.chrisbanes.accompanist:accompanist-insets:0.6.0")
-    implementation("dev.chrisbanes.accompanist:accompanist-coil:0.6.0")
+    implementation("com.google.accompanist:accompanist-insets:0.20.1")
+    implementation("com.google.accompanist:accompanist-coil:0.15.0")
     implementation("biz.laenger.android:vpbs:0.0.6")
 
-    implementation("androidx.compose.runtime:runtime:1.0.0-beta03")
-    implementation("androidx.compose.compiler:compiler:1.0.0-beta03")
-    implementation("androidx.compose.ui:ui:1.0.0-beta03")
-    implementation("androidx.compose.ui:ui-tooling:1.0.0-beta03")
-    implementation("androidx.compose.foundation:foundation:1.0.0-beta03")
-    implementation("androidx.compose.material:material:1.0.0-beta03")
-    implementation("androidx.compose.material:material-icons-core:1.0.0-beta03")
-    implementation("androidx.compose.material:material-icons-extended:1.0.0-beta03")
+    implementation("androidx.compose.runtime:runtime:1.1.0-beta02")
+    implementation("androidx.compose.compiler:compiler:1.1.0-beta02")
+    implementation("androidx.compose.ui:ui:1.1.0-beta02")
+    implementation("androidx.compose.ui:ui-tooling:1.1.0-beta02")
+    implementation("androidx.compose.foundation:foundation:1.1.0-beta02")
+    implementation("androidx.compose.material:material:1.1.0-beta02")
+    implementation("androidx.compose.material:material-icons-core:1.1.0-beta02")
+    implementation("androidx.compose.material:material-icons-extended:1.1.0-beta02")
 
-    implementation("androidx.core:core-ktx:1.3.2")
-    implementation("androidx.fragment:fragment-ktx:1.3.3")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+    implementation("androidx.core:core-ktx:1.7.0")
+    implementation("androidx.fragment:fragment-ktx:1.3.6")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
 
-    implementation("com.google.dagger:hilt-android:2.35")
-    kapt("com.google.dagger:hilt-android-compiler:2.35")
+    implementation("com.google.dagger:hilt-android:2.40")
+    kapt("com.google.dagger:hilt-android-compiler:2.40")
     kapt("androidx.hilt:hilt-compiler:1.0.0")
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
 
@@ -110,7 +108,7 @@ dependencies {
 
     implementation("com.jakewharton.timber:timber:4.7.1")
 
-    implementation("com.dropbox.mobile.store:store4:4.0.1")
+    implementation("com.dropbox.mobile.store:store4:4.0.2-KT15")
     implementation("com.google.code.gson:gson:2.8.6")
     implementation("androidx.room:room-runtime:2.3.0")
     kapt("androidx.room:room-compiler:2.3.0")
@@ -121,9 +119,9 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
     implementation("com.squareup.retrofit2:converter-moshi:2.6.2")
     implementation("com.squareup.retrofit2:converter-gson:2.7.1")
-    implementation("com.squareup.retrofit2:retrofit:2.7.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
 
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.2")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.3.0")
+    androidTestImplementation("androidx.test.ext:junit:1.1.3")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 }

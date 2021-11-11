@@ -43,9 +43,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by
-        viewLifecycleOwner.lifecycleScope.lazyAsync {
-            binding.map.init(mapTilesHttpHandler, glViewHolderFactory)
-        }
+        lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
 
     private val markerArgument: Marker? by nullableArgument(Arguments.MARKER.name)
     private var currentMarker: Marker? = null

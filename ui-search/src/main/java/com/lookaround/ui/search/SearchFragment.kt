@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.accompanist.insets.ProvideWindowInsets
 import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.model.*
@@ -29,13 +30,12 @@ import com.lookaround.ui.search.exception.QueryTooShortExcecption
 import com.lookaround.ui.search.model.SearchIntent
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import dev.chrisbanes.accompanist.insets.ProvideWindowInsets
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import javax.inject.Inject
 
 @AndroidEntryPoint
 @WithFragmentBindings

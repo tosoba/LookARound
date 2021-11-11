@@ -1,5 +1,6 @@
 package com.lookaround.ui.place.types.composable
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberImagePainter
 import com.lookaround.core.android.view.composable.LookARoundCard
 import com.lookaround.core.android.view.composable.LookARoundSurface
 import com.lookaround.core.android.view.composable.VerticalGrid
@@ -27,7 +29,6 @@ import com.lookaround.core.model.Amenity
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
-import dev.chrisbanes.accompanist.coil.CoilImage
 import kotlin.math.max
 
 @Composable
@@ -71,8 +72,8 @@ private fun PlaceTypeImage(
         shape = CircleShape,
         modifier = modifier
     ) {
-        CoilImage(
-            data = imageUrl,
+        Image(
+            painter = rememberImagePainter(imageUrl),
             contentDescription = contentDescription,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()

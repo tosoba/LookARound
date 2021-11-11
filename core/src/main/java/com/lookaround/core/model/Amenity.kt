@@ -298,11 +298,13 @@ enum class Amenity(override val description: String, override val count: Int) : 
 
     override val label: String
         get() =
-            name.replace("_", " ").toLowerCase(Locale.getDefault()).capitalize(Locale.getDefault())
+            name.replace("_", " ").lowercase(Locale.getDefault()).replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+            }
 
     override val typeKey: String
         get() = "amenity"
 
     override val typeValue: String
-        get() = name.toLowerCase(Locale.getDefault())
+        get() = name.lowercase(Locale.getDefault())
 }
