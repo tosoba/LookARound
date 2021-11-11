@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.lookaround.core.android.BuildConfig
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
@@ -18,13 +16,13 @@ abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : 
     processor: FlowProcessor<Intent, Update, State, Signal>,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val signalsChannel: BroadcastChannel<Signal> = BroadcastChannel(Channel.BUFFERED)
+    private val mutableSignals: MutableSharedFlow<Signal> = MutableSharedFlow()
     val signals: Flow<Signal>
-        get() = signalsChannel.asFlow()
-    suspend fun signal(signal: Signal) = signalsChannel.send(signal)
+        get() = mutableSignals
+    suspend fun signal(signal: Signal) = mutableSignals.emit(signal)
 
-    private val intentsChannel: BroadcastChannel<Intent> = BroadcastChannel(Channel.BUFFERED)
-    suspend fun intent(intent: Intent) = intentsChannel.send(intent)
+    private val mutableIntents: MutableSharedFlow<Intent> = MutableSharedFlow()
+    suspend fun intent(intent: Intent) = mutableIntents.emit(intent)
 
     private val mutableStates: MutableStateFlow<State> = MutableStateFlow(initialState)
     val states: StateFlow<State>
@@ -37,7 +35,7 @@ abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : 
         processor
             .updates(
                 coroutineScope = viewModelScope,
-                intents = intentsChannel.asFlow(),
+                intents = mutableIntents,
                 currentState = states::value,
                 states = states,
                 intent = ::intent,
@@ -71,11 +69,5 @@ abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : 
             states = states,
             signal = ::signal
         )
-    }
-
-    override fun onCleared() {
-        intentsChannel.close()
-        signalsChannel.close()
-        super.onCleared()
     }
 }

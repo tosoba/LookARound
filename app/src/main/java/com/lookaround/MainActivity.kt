@@ -11,8 +11,8 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.lookaround.core.android.ar.listener.AREventsListener
@@ -59,13 +59,11 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
     private val onBottomNavItemSelectedListener by
         lazy(LazyThreadSafetyMode.NONE) {
-            BottomNavigationView.OnNavigationItemSelectedListener { menuItem ->
+            NavigationBarView.OnItemSelectedListener { menuItem ->
                 lifecycleScope.launch {
                     viewModel.intent(MainIntent.BottomNavigationViewItemSelected(menuItem.itemId))
                 }
-                if (menuItem.itemId == R.id.action_unchecked) {
-                    return@OnNavigationItemSelectedListener true
-                }
+                if (menuItem.itemId == R.id.action_unchecked) return@OnItemSelectedListener true
 
                 binding.bottomSheetViewPager.currentItem =
                     when (menuItem.itemId) {
@@ -258,7 +256,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     private fun initBottomNavigationView() {
         with(binding.bottomNavigationView) {
             selectedItemId = viewModel.state.selectedBottomNavigationViewItemId
-            setOnNavigationItemSelectedListener(onBottomNavItemSelectedListener)
+            setOnItemSelectedListener(onBottomNavItemSelectedListener)
 
             viewModel
                 .placesBottomNavItemVisibilityUpdates

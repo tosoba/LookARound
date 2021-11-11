@@ -42,7 +42,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -72,7 +71,7 @@ class PlaceListFragment :
 
     @Inject internal lateinit var mapCaptureCache: MapCaptureCache
     private val getLocationBitmapChannel =
-        BroadcastChannel<Pair<Location, CompletableDeferred<Bitmap>>>(Channel.BUFFERED)
+        MutableSharedFlow<Pair<Location, CompletableDeferred<Bitmap>>>()
     private val mapReady = CompletableDeferred<Unit>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -99,23 +98,23 @@ class PlaceListFragment :
             }
         }
 
+        val markersFlow = mainViewModel.states.map(MainState::markers::get)
+        val bottomSheetSignalsFlow =
+            mainViewModel
+                .signals
+                .filterIsInstance<MainSignal.BottomSheetStateChanged>()
+                .map(MainSignal.BottomSheetStateChanged::state::get)
+
         binding.placeMapRecyclerView.setContent {
             LookARoundTheme {
                 val bottomSheetState =
-                    mainViewModel
-                        .signals
-                        .filterIsInstance<MainSignal.BottomSheetStateChanged>()
-                        .map(MainSignal.BottomSheetStateChanged::state::get)
-                        .collectAsState(initial = BottomSheetBehavior.STATE_HIDDEN)
+                    bottomSheetSignalsFlow.collectAsState(
+                            initial = BottomSheetBehavior.STATE_HIDDEN
+                        )
                         .value
                 if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN) return@LookARoundTheme
 
-                val markers =
-                    mainViewModel
-                        .states
-                        .map(MainState::markers::get)
-                        .collectAsState(initial = Empty)
-                        .value
+                val markers = markersFlow.collectAsState(initial = Empty).value
                 if (markers !is WithValue) return@LookARoundTheme
 
                 binding.reloadMapsFab.visibility =
@@ -163,7 +162,6 @@ class PlaceListFragment :
     }
 
     override fun onDestroyView() {
-        getLocationBitmapChannel.close()
         binding.map.onDestroy()
         super.onDestroyView()
     }
@@ -201,7 +199,6 @@ class PlaceListFragment :
         }
 
         getLocationBitmapChannel
-            .asFlow()
             .onEach { (location, deferred) ->
                 val bitmap = captureBitmapAndCacheBitmap(location)
                 deferred.complete(bitmap)
@@ -230,7 +227,7 @@ class PlaceListFragment :
 
         mapReady.await()
         val deferredBitmap = CompletableDeferred<Bitmap>()
-        getLocationBitmapChannel.send(location to deferredBitmap)
+        getLocationBitmapChannel.emit(location to deferredBitmap)
         return deferredBitmap.await()
     }
 
