@@ -129,7 +129,7 @@ class OpenGLRenderer {
 
     @SuppressLint("RestrictedApi")
     @MainThread
-    fun attachInputPreview(preview: Preview, viewFinderStub: ViewStub) {
+    fun attachInputPreview(preview: Preview, previewStub: ViewStub) {
         preview.setSurfaceProvider(executor) { surfaceRequest: SurfaceRequest ->
             if (isShutdown) {
                 surfaceRequest.willNotProvideSurface()
@@ -140,7 +140,7 @@ class OpenGLRenderer {
             val renderSurface =
                 if (surfaceRequest.shouldUseTextureView()) TextureViewRenderSurface()
                 else SurfaceViewRenderSurface()
-            viewFinderStub.post { renderSurface.inflateWith(viewFinderStub, this) }
+            previewStub.post { renderSurface.inflateWith(previewStub, this) }
             val streamStateObserver =
                 PreviewStreamStateObserver(
                     camera.cameraInfoInternal,
@@ -148,7 +148,7 @@ class OpenGLRenderer {
                     renderSurface
                 )
             camera.cameraState.addObserver(
-                ContextCompat.getMainExecutor(viewFinderStub.context),
+                ContextCompat.getMainExecutor(previewStub.context),
                 streamStateObserver
             )
             activeStreamStateObserver.set(streamStateObserver)

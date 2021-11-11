@@ -1,7 +1,6 @@
 package com.lookaround.core.android.ext
 
 import android.content.Context
-import android.util.DisplayMetrics
 import android.view.ViewStub
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -17,15 +16,16 @@ import kotlin.math.min
 fun Context.initCamera(
     lifecycleOwner: LifecycleOwner,
     openGLRenderer: OpenGLRenderer,
-    cameraPreviewStub: ViewStub
+    cameraPreviewStub: ViewStub,
+    widthPx: Int,
+    heightPx: Int
 ) {
     val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
     cameraProviderFuture.addListener(
         {
-            val metrics = DisplayMetrics().also(cameraPreviewStub.display::getRealMetrics)
             val preview =
                 Preview.Builder()
-                    .setTargetAspectRatio(aspectRatio(metrics.widthPixels, metrics.heightPixels))
+                    .setTargetAspectRatio(aspectRatio(widthPx, heightPx))
                     .setTargetRotation(cameraPreviewStub.display.rotation)
                     .build()
             openGLRenderer.attachInputPreview(preview, cameraPreviewStub)
