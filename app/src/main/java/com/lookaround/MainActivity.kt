@@ -179,17 +179,15 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     }
 
     private fun initSearch() {
-        viewModel
-            .searchFragmentVisibilityUpdates
-            .filter { lifecycle.isResumed }
-            .onEach {
+        lifecycleScope.launchWhenResumed {
+            viewModel.searchFragmentVisibilityUpdates.collect {
                 if (it && currentTopFragment !is SearchFragment) {
                     showSearchFragment()
                 } else if (!it && currentTopFragment is SearchFragment) {
                     supportFragmentManager.popBackStack()
                 }
             }
-            .launchIn(lifecycleScope)
+        }
 
         binding.searchBarView.setContent {
             ProvideWindowInsets {
@@ -198,12 +196,12 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                     SearchBar(
                         state = rememberSearchBarState(searchQuery, searchFocused),
                         onSearchFocusChange = { focused ->
-                            lifecycleScope.launchWhenResumed {
+                            lifecycleScope.launch {
                                 viewModel.intent(MainIntent.SearchFocusChanged(focused))
                             }
                         }
                     ) { textValue ->
-                        lifecycleScope.launchWhenResumed {
+                        lifecycleScope.launch {
                             viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
                         }
                     }

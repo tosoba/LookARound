@@ -110,11 +110,11 @@ class CameraFragment :
                     pitchOutsideLimit = pitchOutsideLimit
                 )
             }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         cameraTouchUpdates(mainViewModel, cameraViewModel)
             .onEach { binding.onCameraTouch() }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         initARWithPermissionCheck()
 
@@ -135,14 +135,14 @@ class CameraFragment :
                 binding.arCameraView.povLocation = it
                 binding.arRadarView.povLocation = it
             }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         loadingStartedUpdates(mainViewModel, cameraViewModel)
             .onEach {
                 (activity as? AREventsListener)?.onARLoading()
                 binding.onLoadingStarted()
             }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         binding.initARViews()
 
@@ -151,7 +151,7 @@ class CameraFragment :
                 (activity as? AREventsListener)?.onAREnabled()
                 binding.onAREnabled()
             }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun FragmentCameraBinding.initARViews() {
@@ -191,7 +191,7 @@ class CameraFragment :
                     maxPage = maxPage
                 )
             }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         cameraMarkerRenderer
             .drawnRectsFlow
@@ -211,7 +211,7 @@ class CameraFragment :
                     showARViews()
                 }
             }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         arCameraView.onMarkerPressed = ::onMarkerPressed
         arCameraView.onTouch = ::signalCameraTouch
@@ -220,7 +220,9 @@ class CameraFragment :
         arRadarView.rotableBackground = R.drawable.radar_arrow
         arRadarView.markerRenderer = radarMarkerRenderer
         arRadarView.setOnClickListener {
-            lifecycleScope.launch { cameraViewModel.intent(CameraIntent.ToggleRadarEnlarged) }
+            viewLifecycleOwner.lifecycleScope.launch {
+                cameraViewModel.intent(CameraIntent.ToggleRadarEnlarged)
+            }
         }
         cameraViewModel
             .radarEnlargedUpdates
@@ -229,7 +231,7 @@ class CameraFragment :
 
         markerUpdates(mainViewModel, cameraViewModel)
             .onEach { (markers, firstMarkerIndex) -> updateARMarkers(markers, firstMarkerIndex) }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun FragmentCameraBinding.initARCameraPageViews() {
@@ -277,7 +279,7 @@ class CameraFragment :
                     else requireContext().dpToPx(56f).toInt()
                 arCameraViewsGroupBottomGuideline.layoutParams = pageGroupGuidelineLayoutParams
             }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun FragmentCameraBinding.updateARMarkers(
@@ -481,14 +483,18 @@ class CameraFragment :
     }
 
     private fun signalPitchChanged(withinLimit: Boolean) {
-        lifecycleScope.launch { cameraViewModel.signal(CameraSignal.PitchChanged(withinLimit)) }
+        viewLifecycleOwner.lifecycleScope.launch {
+            cameraViewModel.signal(CameraSignal.PitchChanged(withinLimit))
+        }
     }
 
     private val Orientation.pitchWithinLimit: Boolean
         get() = pitch >= -PITCH_LIMIT_RADIANS && pitch <= PITCH_LIMIT_RADIANS
 
     private fun signalCameraTouch() {
-        lifecycleScope.launch { cameraViewModel.signal(CameraSignal.CameraTouch) }
+        viewLifecycleOwner.lifecycleScope.launch {
+            cameraViewModel.signal(CameraSignal.CameraTouch)
+        }
     }
 
     private fun onMarkerPressed(marker: ARMarker) {

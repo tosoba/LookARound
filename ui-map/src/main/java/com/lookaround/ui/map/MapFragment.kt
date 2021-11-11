@@ -43,7 +43,9 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by
-        lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
+        viewLifecycleOwner.lifecycleScope.lazyAsync {
+            binding.map.init(mapTilesHttpHandler, glViewHolderFactory)
+        }
 
     private val markerArgument: Marker? by nullableArgument(Arguments.MARKER.name)
     private var currentMarker: Marker? = null
@@ -67,7 +69,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
             .signals
             .filterIsInstance<MapSceneSignal.RetryLoadScene>()
             .onEach { (scene) -> mapController.await().loadScene(scene) }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     override fun onDestroyView() {
@@ -97,7 +99,9 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
 
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
         if (sceneError == null) {
-            lifecycleScope.launch { viewModel.intent(MapSceneIntent.SceneLoaded) }
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.intent(MapSceneIntent.SceneLoaded)
+            }
 
             binding.shimmerLayout.stopAndHide()
             binding.blurBackground.visibility = View.GONE
@@ -148,7 +152,9 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
-        lifecycleScope.launch(Dispatchers.Main.immediate) { this@launch.await().block() }
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main.immediate) {
+            this@launch.await().block()
+        }
     }
 
     companion object {

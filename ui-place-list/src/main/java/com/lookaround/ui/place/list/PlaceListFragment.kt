@@ -68,7 +68,9 @@ class PlaceListFragment :
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by
-        lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
+        viewLifecycleOwner.lifecycleScope.lazyAsync {
+            binding.map.init(mapTilesHttpHandler, glViewHolderFactory)
+        }
 
     @Inject internal lateinit var mapCaptureCache: MapCaptureCache
     private val getLocationBitmapChannel =
@@ -86,14 +88,14 @@ class PlaceListFragment :
             .signals
             .filterIsInstance<MapSceneSignal.RetryLoadScene>()
             .onEach { (scene) -> mapController.await().loadScene(scene) }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         val mapLayoutParams = getMapLayoutParams()
         binding.map.layoutParams = mapLayoutParams
 
         val reloadBitmapTrigger = Channel<Unit>()
         binding.reloadMapsFab.setOnClickListener {
-            lifecycleScope.launch {
+            viewLifecycleOwner.lifecycleScope.launch {
                 withContext(Dispatchers.IO) { mapCaptureCache.clear() }
                 reloadBitmapTrigger.send(Unit)
             }
@@ -185,7 +187,9 @@ class PlaceListFragment :
 
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
         if (sceneError == null) {
-            lifecycleScope.launch { viewModel.intent(MapSceneIntent.SceneLoaded) }
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.intent(MapSceneIntent.SceneLoaded)
+            }
         } else {
             Timber.e("Failed to load scene: $sceneId. Scene error: $sceneError")
         }
@@ -204,7 +208,7 @@ class PlaceListFragment :
                 val bitmap = captureBitmapAndCacheBitmap(location)
                 deferred.complete(bitmap)
             }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
         mapReady.complete(Unit)
     }
 
@@ -234,7 +238,7 @@ class PlaceListFragment :
 
     private suspend fun captureBitmapAndCacheBitmap(location: Location): Bitmap {
         val bitmap = captureBitmap(location)
-        lifecycleScope.launch { cacheBitmap(location, bitmap) }
+        viewLifecycleOwner.lifecycleScope.launch { cacheBitmap(location, bitmap) }
         return bitmap
     }
 
@@ -267,7 +271,9 @@ class PlaceListFragment :
     }
 
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
-        lifecycleScope.launch(Dispatchers.Main.immediate) { this@launch.await().block() }
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main.immediate) {
+            this@launch.await().block()
+        }
     }
 
     override fun onRegionWillChange(animated: Boolean) = Unit

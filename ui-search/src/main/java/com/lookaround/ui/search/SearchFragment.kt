@@ -67,7 +67,7 @@ class SearchFragment : Fragment() {
                     )
                 )
             }
-            .launchIn(lifecycleScope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     override fun onCreateView(
