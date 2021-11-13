@@ -44,7 +44,7 @@ suspend fun Context.initCamera(
                     .build()
             val imageFlow = MutableSharedFlow<Image>()
             imageAnalysis.setAnalyzer(
-                Dispatchers.IO.asExecutor(),
+                Dispatchers.Default.asExecutor(),
                 { imageProxy ->
                     imageProxy.use {
                         val image = imageProxy.image
@@ -65,8 +65,8 @@ suspend fun Context.initCamera(
                         .bindToLifecycle(
                             lifecycleOwner,
                             CameraSelector.DEFAULT_BACK_CAMERA,
-                            imageAnalysis,
-                            preview
+                            preview,
+                            imageAnalysis
                         )
                 continuation.resume(CameraInitializationResult(preview, camera, imageFlow))
             } catch (ex: Exception) {
