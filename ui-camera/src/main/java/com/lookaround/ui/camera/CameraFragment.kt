@@ -1,6 +1,7 @@
 package com.lookaround.ui.camera
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.hardware.Sensor
@@ -14,6 +15,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
+import androidx.palette.graphics.Palette
 import androidx.transition.AutoTransition
 import androidx.transition.Transition
 import androidx.transition.TransitionManager
@@ -41,6 +43,7 @@ import dagger.hilt.android.WithFragmentBindings
 import java.util.*
 import javax.inject.Inject
 import kotlin.math.min
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -157,22 +160,7 @@ class CameraFragment :
     private fun FragmentCameraBinding.initARViews() {
         initARCameraPageViews()
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val (preview, _, imageFlow) =
-                    requireContext()
-                        .initCamera(
-                            lifecycleOwner = this@CameraFragment,
-                            rotation = rotation,
-                            screenSize = requireContext().getScreenSize()
-                        )
-                openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
-            } catch (ex: Exception) {
-                Timber.e(ex)
-                // TODO: signal unable to init camera and show info to user (like when permissions
-                // are missing)
-            }
-        }
+        initCamera()
 
         openGLRenderer
             .previewStreamStateLiveData
@@ -242,6 +230,34 @@ class CameraFragment :
         markerUpdates(mainViewModel, cameraViewModel)
             .onEach { (markers, firstMarkerIndex) -> updateARMarkers(markers, firstMarkerIndex) }
             .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    @SuppressLint("UnsafeOptInUsageError")
+    private fun initCamera() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val (preview, _, imageFlow) =
+                    requireContext()
+                        .initCamera(
+                            lifecycleOwner = this@CameraFragment,
+                            rotation = rotation,
+                            screenSize = requireContext().getScreenSize()
+                        )
+                openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
+                imageFlow
+                    .flowOn(Dispatchers.Default)
+                    .debounce(1_000)
+                    .map(ImageProxy::bitmap::get)
+                    .filterNotNull()
+                    .map { bitmap -> Palette.from(bitmap).generate().dominantSwatch }
+                    .filterNotNull()
+                    .collect { Timber.tag("RGB").d("${it.rgb}") }
+            } catch (ex: Exception) {
+                Timber.e(ex)
+                // TODO: signal unable to init camera and show info to user (like when permissions
+                // are missing)
+            }
+        }
     }
 
     private fun FragmentCameraBinding.initARCameraPageViews() {

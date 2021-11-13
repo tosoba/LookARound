@@ -2,7 +2,6 @@ package com.lookaround.core.android.ext
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.media.Image
 import android.util.Size
 import androidx.camera.core.*
 import androidx.camera.core.impl.ImageOutputConfig.RotationValue
@@ -20,7 +19,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import timber.log.Timber
 
 @SuppressLint("UnsafeOptInUsageError")
 suspend fun Context.initCamera(
@@ -38,24 +36,14 @@ suspend fun Context.initCamera(
                     .build()
             val imageAnalysis =
                 ImageAnalysis.Builder()
-                    .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                     .setTargetResolution(screenSize / 10)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
-            val imageFlow = MutableSharedFlow<Image>()
+            val imageFlow = MutableSharedFlow<ImageProxy>()
             imageAnalysis.setAnalyzer(
                 Dispatchers.Default.asExecutor(),
                 { imageProxy ->
-                    imageProxy.use {
-                        val image = imageProxy.image
-                        if (image != null) {
-                            lifecycleOwner.lifecycleScope.launchWhenResumed {
-                                imageFlow.emit(image)
-                            }
-                        } else {
-                            Timber.d("Analyzed image is null")
-                        }
-                    }
+                    lifecycleOwner.lifecycleScope.launchWhenResumed { imageFlow.emit(imageProxy) }
                 }
             )
             try {
@@ -80,7 +68,7 @@ suspend fun Context.initCamera(
 data class CameraInitializationResult(
     val preview: Preview,
     val camera: Camera,
-    val imageFlow: Flow<Image>
+    val imageFlow: Flow<ImageProxy>
 )
 
 private fun aspectRatio(width: Int, height: Int): Int {
