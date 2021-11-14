@@ -89,12 +89,14 @@ class CameraFragment :
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
 
         arDisabledUpdates(mainViewModel, cameraViewModel)
-            .onEach { (anyPermissionDenied, locationDisabled, pitchOutsideLimit) ->
+            .onEach {
+                (anyPermissionDenied, locationDisabled, pitchOutsideLimit, initializationFailure) ->
                 (activity as? AREventsListener)?.onARDisabled()
                 binding.onARDisabled(
                     anyPermissionDenied = anyPermissionDenied,
                     locationDisabled = locationDisabled,
-                    pitchOutsideLimit = pitchOutsideLimit
+                    pitchOutsideLimit = pitchOutsideLimit,
+                    initializationFailure = initializationFailure
                 )
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -244,9 +246,8 @@ class CameraFragment :
                         )
                     }
             } catch (ex: Exception) {
-                Timber.e(ex)
-                // TODO: signal unable to init camera and show info to user (like when permissions
-                // are missing)
+                Timber.tag("CAMERA_INIT").e(ex)
+                cameraViewModel.intent(CameraIntent.CameraInitializationFailed)
             }
         }
     }
@@ -371,6 +372,7 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.onLoadingStarted() {
         hideARViews()
+        cameraInitializationFailureTextView.visibility = View.GONE
         pitchOutsideLimitTextView.visibility = View.GONE
         locationDisabledTextView.visibility = View.GONE
         permissionsViewsGroup.visibility = View.GONE
@@ -379,6 +381,7 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.onAREnabled() {
+        cameraInitializationFailureTextView.visibility = View.GONE
         pitchOutsideLimitTextView.visibility = View.GONE
         locationDisabledTextView.visibility = View.GONE
         permissionsViewsGroup.visibility = View.GONE
@@ -390,11 +393,19 @@ class CameraFragment :
     private fun FragmentCameraBinding.onARDisabled(
         anyPermissionDenied: Boolean,
         locationDisabled: Boolean,
-        pitchOutsideLimit: Boolean
+        pitchOutsideLimit: Boolean,
+        initializationFailure: Boolean
     ) {
         hideARViews()
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.VISIBLE
+        if (initializationFailure) {
+            permissionsViewsGroup.visibility = View.GONE
+            locationDisabledTextView.visibility = View.GONE
+            pitchOutsideLimitTextView.visibility = View.GONE
+            cameraInitializationFailureTextView.visibility = View.VISIBLE
+            return
+        }
         if (anyPermissionDenied) permissionsViewsGroup.visibility = View.VISIBLE
         if (locationDisabled) locationDisabledTextView.visibility = View.VISIBLE
         pitchOutsideLimitTextView.visibility =

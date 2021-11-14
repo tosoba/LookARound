@@ -4,4 +4,5 @@ internal data class CameraARDisabledViewUpdate(
     val anyPermissionDenied: Boolean,
     val locationDisabled: Boolean,
     val pitchOutsideRequiredLimit: Boolean,
+    val cameraInitializationFailure: Boolean,
 )

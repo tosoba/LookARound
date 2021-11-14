@@ -8,4 +8,5 @@
     <string name="range_up">Range up</string>
     <string name="range_down">Range down</string>
     <string name="hold_the_phone_higher">Hold the phone higher</string>
+    <string name="failed_to_initialize_camera">Failed to initialize camera. Application is incompatible with your device.</string>
 </resources>

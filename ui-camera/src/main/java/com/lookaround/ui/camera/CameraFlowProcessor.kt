@@ -1,10 +1,7 @@
 package com.lookaround.ui.camera
 
 import com.lookaround.core.android.base.arch.FlowProcessor
-import com.lookaround.ui.camera.model.CameraIntent
-import com.lookaround.ui.camera.model.CameraSignal
-import com.lookaround.ui.camera.model.CameraState
-import com.lookaround.ui.camera.model.CameraStateUpdate
+import com.lookaround.ui.camera.model.*
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,13 +23,16 @@ class CameraFlowProcessor @Inject constructor() :
     ): Flow<CameraStateUpdate> =
         merge(
             intents.filterIsInstance<CameraIntent.CameraViewCreated>().map {
-                CameraStateUpdate.CameraViewCreated
+                CameraStateUpdate.CameraPreviewStateUpdate(CameraPreviewState.Initial)
             },
             intents.filterIsInstance<CameraIntent.CameraStreamStateChanged>().map { (streamState) ->
-                CameraStateUpdate.CameraStreamStateChanged(streamState)
+                CameraStateUpdate.CameraPreviewStateUpdate(CameraPreviewState.Active(streamState))
             },
             intents.filterIsInstance<CameraIntent.CameraPermissionDenied>().map {
-                CameraStateUpdate.CameraPermissionDenied
+                CameraStateUpdate.CameraPreviewStateUpdate(CameraPreviewState.PermissionDenied)
+            },
+            intents.filterIsInstance<CameraIntent.CameraInitializationFailed>().map {
+                CameraStateUpdate.CameraPreviewStateUpdate(CameraPreviewState.InitializationFailure)
             },
             intents.filterIsInstance<CameraIntent.CameraMarkersFirstIndexChanged>().map {
                 (difference) ->

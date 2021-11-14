@@ -84,6 +84,7 @@ internal fun arDisabledUpdates(
                     previewState is CameraPreviewState.PermissionDenied,
             locationDisabled = locationState.isFailedWith<LocationDisabledException>(),
             pitchOutsideRequiredLimit = !pitchWithinLimit && !obscured && showingAnyMarkers,
+            cameraInitializationFailure = previewState is CameraPreviewState.InitializationFailure
         )
     }
         .distinctUntilChanged()
