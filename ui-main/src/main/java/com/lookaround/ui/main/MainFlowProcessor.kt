@@ -14,9 +14,9 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.main.model.MainStateUpdate
+import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class MainFlowProcessor
@@ -136,6 +136,7 @@ constructor(
                             )
                     }
                 }
+                .onStart { if (!isLocationAvailable()) emit(MainStateUpdate.LocationDisabled) }
 
     companion object {
         private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L

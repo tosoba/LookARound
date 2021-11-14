@@ -12,6 +12,7 @@ import com.lookaround.core.repo.IAppRepo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import ru.beryukhov.reactivenetwork.ReactiveNetwork
 import javax.inject.Inject
@@ -56,4 +57,5 @@ constructor(
                     is LocationData.Fail -> LocationDataDTO.Failure
                 }
             }
+            .catch { emit(LocationDataDTO.Failure) }
 }

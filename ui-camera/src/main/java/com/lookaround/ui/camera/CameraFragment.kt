@@ -371,6 +371,7 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.onLoadingStarted() {
         hideARViews()
+        pitchOutsideLimitTextView.visibility = View.GONE
         locationDisabledTextView.visibility = View.GONE
         permissionsViewsGroup.visibility = View.GONE
         blurBackground.visibility = View.VISIBLE
@@ -378,6 +379,7 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.onAREnabled() {
+        pitchOutsideLimitTextView.visibility = View.GONE
         locationDisabledTextView.visibility = View.GONE
         permissionsViewsGroup.visibility = View.GONE
         loadingShimmerLayout.stopAndHide()
@@ -395,9 +397,9 @@ class CameraFragment :
         blurBackground.visibility = View.VISIBLE
         if (anyPermissionDenied) permissionsViewsGroup.visibility = View.VISIBLE
         if (locationDisabled) locationDisabledTextView.visibility = View.VISIBLE
-        if (pitchOutsideLimit) {
-            // TODO: show a text/picture/animation to tell the user to lift his phone
-        }
+        pitchOutsideLimitTextView.visibility =
+            if (!anyPermissionDenied && !locationDisabled && pitchOutsideLimit) View.VISIBLE
+            else View.GONE
     }
 
     private fun FragmentCameraBinding.onMarkersDrawn(

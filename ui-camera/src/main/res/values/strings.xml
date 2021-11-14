@@ -7,4 +7,5 @@
     <string name="location_required_for_ar">Location must be enabled for AR to work.</string>
     <string name="range_up">Range up</string>
     <string name="range_down">Range down</string>
+    <string name="hold_the_phone_higher">Hold the phone higher</string>
 </resources>

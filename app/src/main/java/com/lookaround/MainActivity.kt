@@ -118,6 +118,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         latestARState = ARState.ENABLED
         binding.searchBarView.visibility = View.VISIBLE
         binding.bottomNavigationView.visibility = View.VISIBLE
+        binding.bottomSheetViewPager.visibility = View.VISIBLE
         bottomSheetBehavior.state = viewModel.state.lastLiveBottomSheetState
     }
 
@@ -125,6 +126,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         latestARState = ARState.LOADING
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
+        binding.bottomSheetViewPager.visibility = View.GONE
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
@@ -140,6 +142,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
 
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
+        binding.bottomSheetViewPager.visibility = View.GONE
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
