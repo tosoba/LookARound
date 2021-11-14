@@ -18,7 +18,8 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.ext.*
 import java.util.*
-import kotlin.collections.LinkedHashMap
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -67,7 +68,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         }
 
     private var firstFrame: Boolean = true
-    private var lastDrawnMarkerIds = ArrayList<UUID>()
+    private var lastDrawnMarkerIds = HashSet<UUID>()
 
     private val markersDrawnStateFlow = MutableStateFlow(MarkersDrawn(currentPage, maxPage))
     val markersDrawnFlow: Flow<MarkersDrawn>
@@ -77,7 +78,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     val drawnRectsFlow: Flow<List<RectF>>
         get() = drawnRectsStateFlow
 
-    private val cameraMarkers = LinkedHashMap<UUID, CameraMarker>()
+    private val cameraMarkers = HashMap<UUID, CameraMarker>()
     private val cameraMarkerPagedPositions = TreeMap<Float, MutableSet<PagedPosition>>()
 
     private val numberOfRows: Int
@@ -123,11 +124,12 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     override fun draw(markers: List<ARMarker>, canvas: Canvas, orientation: Orientation) {
         cameraMarkerPagedPositions.clear()
         val drawnRects = mutableListOf<RectF>()
-        val drawnMarkerIds = ArrayList<UUID>()
+        val drawnMarkerIds = HashSet<UUID>()
         var maxPageThisFrame = 0
         var currentPageAfterScreenRotation = Int.MAX_VALUE
-        markers.forEach { marker ->
-            val cameraMarker = cameraMarkers[marker.wrapped.id] ?: return@forEach
+
+        fun drawMarker(marker: ARMarker) {
+            val cameraMarker = cameraMarkers[marker.wrapped.id] ?: return
 
             val pagedPosition = pagedPositionOf(cameraMarker)
             marker.y = pagedPosition.y
@@ -141,11 +143,11 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             ) {
                 currentPageAfterScreenRotation = pagedPosition.page
             }
-            if (cameraMarker.pagedPosition?.page != currentPage) return@forEach
+            if (cameraMarker.pagedPosition?.page != currentPage) return
 
             val markerRect = marker.rectF
             val canvasRect = RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat())
-            if (!RectF.intersects(canvasRect, markerRect)) return@forEach
+            if (!RectF.intersects(canvasRect, markerRect)) return
 
             canvas.drawTitleText(marker, markerRect)
             canvas.drawDistanceText(marker, markerRect)
@@ -153,6 +155,11 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             drawnRects.add(markerRect)
             drawnMarkerIds.add(marker.wrapped.id)
         }
+
+        val (lastDrawnMarkers, newlyAppearedMarkers) =
+            markers.partition { lastDrawnMarkerIds.contains(it.wrapped.id) }
+        lastDrawnMarkers.forEach(::drawMarker)
+        newlyAppearedMarkers.forEach(::drawMarker)
 
         maxPage = maxPageThisFrame
         if (firstFrame) currentPage = currentPageAfterScreenRotation
@@ -170,7 +177,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     override fun onRestoreInstanceState(bundle: Bundle?) {
         @Suppress("UNCHECKED_CAST")
         lastDrawnMarkerIds =
-            bundle?.getSerializable(SavedStateKeys.LAST_DRAWN_MARKER_IDS.name) as? ArrayList<UUID>
+            bundle?.getSerializable(SavedStateKeys.LAST_DRAWN_MARKER_IDS.name) as? HashSet<UUID>
                 ?: return
     }
 
