@@ -108,18 +108,15 @@ class OpenGLRenderer {
     }
 
     @MainThread
-    fun setLightIntensity(intensity: Float) {
+    fun setContrastingColor(red: Int, green: Int, blue: Int) {
         if (isShutdown || nativeContext == 0L) return
         try {
             executor.execute {
-                setLightIntensityMultiplier(
+                setContrastingColor(
                     nativeContext,
-                    lightIntensityMultiplier =
-                        when {
-                            intensity < 25f -> 1.05f
-                            intensity > 50f -> 0.95f
-                            else -> 1f
-                        }
+                    red = red.toFloat() / 256f,
+                    green = green.toFloat() / 256f,
+                    blue = blue.toFloat() / 256f
                 )
             }
         } catch (e: RejectedExecutionException) {
@@ -528,8 +525,10 @@ class OpenGLRenderer {
     private external fun setBlurEnabled(nativeContext: Long, enabled: Boolean, animated: Boolean)
 
     @WorkerThread
-    private external fun setLightIntensityMultiplier(
+    private external fun setContrastingColor(
         nativeContext: Long,
-        lightIntensityMultiplier: Float
+        red: Float,
+        green: Float,
+        blue: Float
     )
 }

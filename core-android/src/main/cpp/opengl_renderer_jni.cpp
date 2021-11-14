@@ -219,7 +219,7 @@ uniform mat4 texTransform;
 uniform float height;
 uniform float lod;
 uniform float minLod;
-uniform float lightIntensityMultiplier;
+uniform vec3 contrastingColor;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -244,7 +244,11 @@ void main() {
     vec2 transTexCoord = (texTransform * vec4(texCoord, 0., 1.)).xy;
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), lod);
-        fragColor = vec4(vec3(blurred.rgb) * lightIntensityMultiplier, blurred.a);
+        if (contrastingColor != vec3(-1.)) {
+            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.02), blurred.a);
+        } else {
+            fragColor = blurred;
+        }
     } else {
         fragColor = texture(sampler, transTexCoord);
     }
@@ -259,7 +263,7 @@ uniform sampler2D sampler;
 uniform float height;
 uniform float lod;
 uniform float minLod;
-uniform float lightIntensityMultiplier;
+uniform vec3 contrastingColor;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -283,7 +287,11 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float l )
 void main() {
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, texCoord, vec2(0., exp2(lod) / height), lod);
-        fragColor = vec4(vec3(blurred.rgb) * lightIntensityMultiplier, blurred.a);
+        if (contrastingColor != vec3(-1.)) {
+            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.02), blurred.a);
+        } else {
+            fragColor = blurred;
+        }
     } else {
         fragColor = texture(sampler, texCoord);
     }
@@ -298,7 +306,7 @@ uniform sampler2D sampler;
 uniform float width;
 uniform float lod;
 uniform float minLod;
-uniform float lightIntensityMultiplier;
+uniform vec3 contrastingColor;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -322,7 +330,11 @@ vec4 gaussBlur( sampler2D tex, vec2 uv, vec2 d, float l )
 void main() {
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, texCoord, vec2(exp2(lod) / width, 0.), lod);
-        fragColor = vec4(vec3(blurred.rgb) * lightIntensityMultiplier, blurred.a);
+        if (contrastingColor != vec3(-1.)) {
+            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.02), blurred.a);
+        } else {
+            fragColor = blurred;
+        }
     } else {
         fragColor = texture(sampler, texCoord);
     }
@@ -355,7 +367,7 @@ void main() {
         GLint heightHandleVOES = -1;
         GLint lodHandleVOES = -1;
         GLint minLodHandleVOES = -1;
-        GLint lightIntensityMultiplierHandleVOES = -1;
+        GLint contrastingColorHandleVOES = -1;
 
         GLuint programH = -1;
         GLint positionHandleH = -1;
@@ -363,7 +375,7 @@ void main() {
         GLint widthHandleH = -1;
         GLint lodHandleH = -1;
         GLint minLodHandleH = -1;
-        GLint lightIntensityMultiplierHandleH = -1;
+        GLint contrastingColorHandleH = -1;
 
         GLuint programV2D = -1;
         GLint positionHandleV2D = -1;
@@ -371,7 +383,7 @@ void main() {
         GLint heightHandleV2D = -1;
         GLint lodHandleV2D = -1;
         GLint minLodHandleV2D = -1;
-        GLint lightIntensityMultiplierHandleV2D = -1;
+        GLint contrastingColorHandleV2D = -1;
 
         GLuint inputTextureId = -1;
         GLuint pass1TextureId = -1;
@@ -391,9 +403,10 @@ void main() {
 
         GLboolean blurEnabled = GL_FALSE;
         GLfloat lod = MIN_LOD;
-        GLfloat lightIntensityMultiplier = 1.f;
-        GLfloat rectsLightIntensityMultiplier = 1.f;
         GLint currentAnimationFrame = -1;
+        GLfloat contrastingRed = -1.f;
+        GLfloat contrastingGreen = -1.f;
+        GLfloat contrastingBlue = -1.f;
 
         GLint vertexComponents = 2;
         GLenum vertexType = GL_FLOAT;
@@ -424,8 +437,6 @@ void main() {
         static constexpr GLint LOD_ANIMATION_FRAMES = 18;
         static constexpr GLfloat LOD_INCREMENT = (NativeContext::MAX_LOD - NativeContext::MIN_LOD) /
                                                  (GLfloat) NativeContext::LOD_ANIMATION_FRAMES;
-        static constexpr GLfloat LIGHT_INTENSITY_MULTIPLIER_INCREMENT = 0.05f /
-                                                                        (GLfloat) NativeContext::LOD_ANIMATION_FRAMES;
 
         NativeContext(EGLDisplay display,
                       EGLConfig config,
@@ -468,7 +479,8 @@ void main() {
         void PrepareDrawVOES(const GLfloat *vertTransformArray,
                              const GLfloat *texTransformArray,
                              GLfloat height,
-                             bool withMaxLod) const {
+                             bool withMaxLod,
+                             bool mixContrastingColor) const {
             CHECK_GL(glVertexAttribPointer(positionHandleVOES,
                                            vertexComponents, vertexType, normalized,
                                            vertexStride, VERTICES));
@@ -483,11 +495,15 @@ void main() {
             CHECK_GL(glUniform1f(heightHandleVOES, height));
             CHECK_GL(glUniform1f(lodHandleVOES, withMaxLod ? NativeContext::MAX_LOD : lod));
             CHECK_GL(glUniform1f(minLodHandleVOES, NativeContext::MIN_LOD));
-            CHECK_GL(glUniform1f(lightIntensityMultiplierHandleVOES,
-                                 lightIntensityMultiplier));
+            if (mixContrastingColor) {
+                CHECK_GL(glUniform3f(contrastingColorHandleVOES,
+                                     contrastingRed, contrastingGreen, contrastingBlue));
+            } else {
+                CHECK_GL(glUniform3f(contrastingColorHandleVOES, -1.f, -1.f, -1.f));
+            }
         }
 
-        void PrepareDrawV2D(GLfloat height, bool withMaxLod) const {
+        void PrepareDrawV2D(GLfloat height, bool withMaxLod, bool mixContrastingColor) const {
             CHECK_GL(glVertexAttribPointer(positionHandleV2D,
                                            vertexComponents, vertexType, normalized,
                                            vertexStride, VERTICES));
@@ -497,11 +513,15 @@ void main() {
             CHECK_GL(glUniform1f(heightHandleV2D, height));
             CHECK_GL(glUniform1f(lodHandleV2D, withMaxLod ? NativeContext::MAX_LOD : lod));
             CHECK_GL(glUniform1f(minLodHandleV2D, NativeContext::MIN_LOD));
-            CHECK_GL(glUniform1f(lightIntensityMultiplierHandleV2D,
-                                 lightIntensityMultiplier));
+            if (mixContrastingColor) {
+                CHECK_GL(glUniform3f(contrastingColorHandleV2D,
+                                     contrastingRed, contrastingGreen, contrastingBlue));
+            } else {
+                CHECK_GL(glUniform3f(contrastingColorHandleV2D, -1.f, -1.f, -1.f));
+            }
         }
 
-        void PrepareDrawH(GLfloat width, bool withMaxLod) const {
+        void PrepareDrawH(GLfloat width, bool withMaxLod, bool mixContrastingColor) const {
             CHECK_GL(glVertexAttribPointer(positionHandleH,
                                            vertexComponents, vertexType, normalized,
                                            vertexStride, VERTICES));
@@ -511,8 +531,12 @@ void main() {
             CHECK_GL(glUniform1f(widthHandleH, width));
             CHECK_GL(glUniform1f(lodHandleH, withMaxLod ? NativeContext::MAX_LOD : lod));
             CHECK_GL(glUniform1f(minLodHandleH, NativeContext::MIN_LOD));
-            CHECK_GL(glUniform1f(lightIntensityMultiplierHandleH,
-                                 lightIntensityMultiplier));
+            if (mixContrastingColor) {
+                CHECK_GL(glUniform3f(contrastingColorHandleH,
+                                     contrastingRed, contrastingGreen, contrastingBlue));
+            } else {
+                CHECK_GL(glUniform3f(contrastingColorHandleH, -1.f, -1.f, -1.f));
+            }
         }
 
         static void BindAndDraw(GLuint fboId, GLuint textureId, GLenum texTarget = GL_TEXTURE_2D) {
@@ -572,25 +596,9 @@ void main() {
         void AnimateValues() {
             if (blurEnabled) {
                 if (lod < NativeContext::MAX_LOD) lod += NativeContext::LOD_INCREMENT;
-
-                const GLfloat lightIntensityMultiplierTarget = 1.f;
-                if (lightIntensityMultiplierTarget > lightIntensityMultiplier) {
-                    lightIntensityMultiplier += NativeContext::LIGHT_INTENSITY_MULTIPLIER_INCREMENT;
-                } else if (lightIntensityMultiplierTarget < lightIntensityMultiplier) {
-                    lightIntensityMultiplier -= NativeContext::LIGHT_INTENSITY_MULTIPLIER_INCREMENT;
-                }
-
                 ++currentAnimationFrame;
             } else {
                 if (lod > NativeContext::MIN_LOD) lod -= NativeContext::LOD_INCREMENT;
-
-                const GLfloat lightIntensityMultiplierTarget = rectsLightIntensityMultiplier;
-                if (lightIntensityMultiplierTarget > lightIntensityMultiplier) {
-                    lightIntensityMultiplier += NativeContext::LIGHT_INTENSITY_MULTIPLIER_INCREMENT;
-                } else if (lightIntensityMultiplierTarget < lightIntensityMultiplier) {
-                    lightIntensityMultiplier -= NativeContext::LIGHT_INTENSITY_MULTIPLIER_INCREMENT;
-                }
-
                 --currentAnimationFrame;
             }
         }
@@ -615,34 +623,34 @@ void main() {
                       GLfloat width,
                       GLfloat height,
                       bool withMaxLod = false,
-                      bool withLightIntensityMultiplier = false) const {
+                      bool mixContrastingColor = false) const {
             PrepareDrawVOES(vertTransformArray, texTransformArray, height / 2.f,
-                            withMaxLod);
+                            withMaxLod, mixContrastingColor);
             CHECK_GL(glViewport(0, 0, width / 2.f, height / 2.f));
             BindAndDraw(fbo1Id, inputTextureId, GL_TEXTURE_EXTERNAL_OES);
 
-            PrepareDrawH(width / 2.f, withMaxLod);
+            PrepareDrawH(width / 2.f, withMaxLod, mixContrastingColor);
             BindAndDraw(fbo2Id, pass1TextureId);
 
-            PrepareDrawV2D(height / 4.f, withMaxLod);
+            PrepareDrawV2D(height / 4.f, withMaxLod, mixContrastingColor);
             CHECK_GL(glViewport(0, 0, width / 4.f, height / 4.f));
             BindAndDraw(fbo3Id, pass2TextureId);
 
-            PrepareDrawH(width / 4.f, withMaxLod);
+            PrepareDrawH(width / 4.f, withMaxLod, mixContrastingColor);
             BindAndDraw(fbo4Id, pass3TextureId);
 
-            PrepareDrawV2D(height / 2.f, withMaxLod);
+            PrepareDrawV2D(height / 2.f, withMaxLod, mixContrastingColor);
             CHECK_GL(glViewport(0, 0, width / 2.f, height / 2.f));
             BindAndDraw(fbo5Id, pass4TextureId);
 
-            PrepareDrawH(width / 2.f, withMaxLod);
+            PrepareDrawH(width / 2.f, withMaxLod, mixContrastingColor);
             BindAndDraw(fbo6Id, pass5TextureId);
 
-            PrepareDrawV2D(height, withMaxLod);
+            PrepareDrawV2D(height, withMaxLod, mixContrastingColor);
             CHECK_GL(glViewport(0, 0, width, height));
             BindAndDraw(fbo7Id, pass6TextureId);
 
-            PrepareDrawH(width, withMaxLod);
+            PrepareDrawH(width, withMaxLod, mixContrastingColor);
             BindAndDraw(0, pass7TextureId);
         }
 
@@ -894,9 +902,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->minLodHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "minLod"));
     assert(nativeContext->minLodHandleVOES != -1);
-    nativeContext->lightIntensityMultiplierHandleVOES =
-            CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "lightIntensityMultiplier"));
-    assert(nativeContext->lightIntensityMultiplierHandleVOES != -1);
+    nativeContext->contrastingColorHandleVOES =
+            CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "contrastingColor"));
+    assert(nativeContext->contrastingColorHandleVOES != -1);
     nativeContext->texTransformHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "texTransform"));
     assert(nativeContext->texTransformHandleVOES != -1);
@@ -919,9 +927,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->minLodHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "minLod"));
     assert(nativeContext->minLodHandleH != -1);
-    nativeContext->lightIntensityMultiplierHandleH =
-            CHECK_GL(glGetUniformLocation(nativeContext->programH, "lightIntensityMultiplier"));
-    assert(nativeContext->lightIntensityMultiplierHandleH != -1);
+    nativeContext->contrastingColorHandleH =
+            CHECK_GL(glGetUniformLocation(nativeContext->programH, "contrastingColor"));
+    assert(nativeContext->contrastingColorHandleH != -1);
 
     nativeContext->programV2D = CreateGlProgram(VERTEX_SHADER_SRC_NO_TRANSFORM,
                                                 FRAGMENT_SHADER_SRC_V_2D);
@@ -941,9 +949,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->minLodHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "minLod"));
     assert(nativeContext->minLodHandleV2D != -1);
-    nativeContext->lightIntensityMultiplierHandleV2D =
-            CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "lightIntensityMultiplier"));
-    assert(nativeContext->lightIntensityMultiplierHandleV2D != -1);
+    nativeContext->contrastingColorHandleV2D =
+            CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "contrastingColor"));
+    assert(nativeContext->contrastingColorHandleV2D != -1);
 
     CHECK_GL(glGenTextures(1, &(nativeContext->inputTextureId)));
 
@@ -1119,10 +1127,13 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setBlurEnabled(
 }
 
 JNIEXPORT void JNICALL
-Java_com_lookaround_core_android_camera_OpenGLRenderer_setLightIntensityMultiplier(
-        JNIEnv *env, jobject clazz, jlong context, jfloat lightIntensityMultiplier) {
+Java_com_lookaround_core_android_camera_OpenGLRenderer_setContrastingColor(
+        JNIEnv *env, jobject clazz, jlong context,
+        jfloat red, jfloat green, jfloat blue) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
-    nativeContext->rectsLightIntensityMultiplier = lightIntensityMultiplier;
+    nativeContext->contrastingRed = red;
+    nativeContext->contrastingGreen = green;
+    nativeContext->contrastingBlue = blue;
 }
 
 JNIEXPORT void JNICALL
