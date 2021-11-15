@@ -128,10 +128,10 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         var maxPageThisFrame = 0
         var currentPageAfterScreenRotation = Int.MAX_VALUE
 
-        fun drawMarker(marker: ARMarker) {
+        fun drawMarker(marker: ARMarker, lastDrawn: Boolean) {
             val cameraMarker = cameraMarkers[marker.wrapped.id] ?: return
 
-            val pagedPosition = pagedPositionOf(cameraMarker)
+            val pagedPosition = pagedPositionOf(cameraMarker, lastDrawn)
             marker.y = pagedPosition.y
             storeMarkerX(cameraMarker)
             cameraMarker.pagedPosition?.page?.let {
@@ -145,6 +145,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             }
             if (cameraMarker.pagedPosition?.page != currentPage) return
 
+            drawnMarkerIds.add(marker.wrapped.id)
+
             val markerRect = marker.rectF
             val canvasRect = RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat())
             if (!RectF.intersects(canvasRect, markerRect)) return
@@ -153,13 +155,12 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             canvas.drawDistanceText(marker, markerRect)
 
             drawnRects.add(markerRect)
-            drawnMarkerIds.add(marker.wrapped.id)
         }
 
         val (lastDrawnMarkers, newlyAppearedMarkers) =
             markers.partition { lastDrawnMarkerIds.contains(it.wrapped.id) }
-        lastDrawnMarkers.forEach(::drawMarker)
-        newlyAppearedMarkers.forEach(::drawMarker)
+        lastDrawnMarkers.forEach { drawMarker(it, lastDrawn = true) }
+        newlyAppearedMarkers.forEach { drawMarker(it, lastDrawn = false) }
 
         maxPage = maxPageThisFrame
         if (firstFrame) currentPage = currentPageAfterScreenRotation
@@ -190,7 +191,13 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     internal fun isOnCurrentPage(marker: ARMarker): Boolean =
         cameraMarkers[marker.wrapped.id]?.pagedPosition?.page == currentPage
 
-    private fun pagedPositionOf(cameraMarker: CameraMarker): PagedPosition {
+    private fun pagedPositionOf(cameraMarker: CameraMarker, lastDrawn: Boolean): PagedPosition {
+        if (lastDrawn) {
+            return requireNotNull(cameraMarker.pagedPosition) {
+                "Last drawn marker's paged position is null."
+            }
+        }
+
         val takenPositions =
             cameraMarkerPagedPositions
                 .subMap(
@@ -294,7 +301,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     companion object {
-        private const val MARKER_WIDTH_TAKEN_X_MULTIPLIER = 1.1f
+        private const val MARKER_WIDTH_TAKEN_X_MULTIPLIER = 2f
         private const val MARKER_VERTICAL_SPACING_PX = 50f
         private const val NUMBER_OF_ROWS_PORTRAIT = 4
         private const val NUMBER_OF_ROWS_LANDSCAPE = 2
