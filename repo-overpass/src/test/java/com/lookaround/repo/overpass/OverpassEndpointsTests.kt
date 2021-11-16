@@ -1,6 +1,6 @@
 package com.lookaround.repo.overpass
 
-import com.lookaround.core.model.Amenity
+import com.lookaround.core.android.model.Amenity
 import com.lookaround.repo.overpass.di.DaggerOverpassTestComponent
 import com.lookaround.repo.overpass.ext.nodesAround
 import kotlinx.coroutines.ExperimentalCoroutinesApi

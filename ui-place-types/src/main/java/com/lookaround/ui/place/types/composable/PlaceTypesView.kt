@@ -25,7 +25,7 @@ import com.lookaround.core.android.view.composable.LookARoundCard
 import com.lookaround.core.android.view.composable.LookARoundSurface
 import com.lookaround.core.android.view.composable.VerticalGrid
 import com.lookaround.core.android.view.theme.LookARoundTheme
-import com.lookaround.core.model.Amenity
+import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup

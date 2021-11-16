@@ -16,7 +16,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.view.theme.LookARoundTheme
-import com.lookaround.core.model.Amenity
+import com.lookaround.core.android.model.Amenity
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.place.types.composable.PlaceTypeGroupItem

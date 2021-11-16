@@ -1,8 +1,15 @@
-package com.lookaround.core.model
+package com.lookaround.core.android.model
 
+import android.os.Parcelable
+import com.lookaround.core.model.IPlaceType
 import java.util.*
+import kotlinx.parcelize.Parcelize
 
-enum class Amenity(override val description: String, override val count: Int) : IPlaceType {
+@Parcelize
+enum class Amenity(
+    override val description: String,
+    override val count: Int,
+) : IPlaceType, Parcelable {
     PARKING("A place for parking cars", 3784858),
     BENCH("A place for people to sit; allows room for several people.", 1448454),
     PLACE_OF_WORSHIP("A place where religious services are conducted", 1242549),
