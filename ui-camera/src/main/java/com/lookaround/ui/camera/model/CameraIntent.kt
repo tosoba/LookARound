@@ -2,11 +2,11 @@ package com.lookaround.ui.camera.model
 
 import androidx.camera.view.PreviewView
 
-sealed class CameraIntent {
-    object CameraViewCreated : CameraIntent()
-    data class CameraStreamStateChanged(val streamState: PreviewView.StreamState) : CameraIntent()
-    object CameraPermissionDenied : CameraIntent()
-    object CameraInitializationFailed : CameraIntent()
-    data class CameraMarkersFirstIndexChanged(val difference: Int) : CameraIntent()
-    object ToggleRadarEnlarged : CameraIntent()
+sealed interface CameraIntent {
+    object CameraViewCreated : CameraIntent
+    data class CameraStreamStateChanged(val streamState: PreviewView.StreamState) : CameraIntent
+    object CameraPermissionDenied : CameraIntent
+    object CameraInitializationFailed : CameraIntent
+    data class CameraMarkersFirstIndexChanged(val difference: Int) : CameraIntent
+    object ToggleRadarEnlarged : CameraIntent
 }

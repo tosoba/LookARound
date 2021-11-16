@@ -13,18 +13,18 @@ import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.model.NodeDTO
 import java.util.*
 
-sealed class MainStateUpdate : StateUpdate<MainState> {
-    object LoadingPlaces : MainStateUpdate() {
+sealed interface MainStateUpdate : StateUpdate<MainState> {
+    object LoadingPlaces : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             state.copy(markers = state.markers.copyWithLoadingInProgress)
     }
 
-    data class PlacesError(private val throwable: Throwable) : MainStateUpdate() {
+    data class PlacesError(private val throwable: Throwable) : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             state.copy(markers = state.markers.copyWithError(throwable))
     }
 
-    data class PlacesLoaded(val nodes: List<NodeDTO>) : MainStateUpdate() {
+    data class PlacesLoaded(val nodes: List<NodeDTO>) : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             state.copy(
                 markers =
@@ -51,7 +51,7 @@ sealed class MainStateUpdate : StateUpdate<MainState> {
             )
     }
 
-    data class LocationLoaded(val location: Location) : MainStateUpdate() {
+    data class LocationLoaded(val location: Location) : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             state.copy(
                 locationState = Ready(location),
@@ -64,49 +64,49 @@ sealed class MainStateUpdate : StateUpdate<MainState> {
             )
     }
 
-    object LoadingLocation : MainStateUpdate() {
+    object LoadingLocation : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             state.copy(locationState = state.locationState.copyWithLoadingInProgress)
     }
 
-    object LocationPermissionDenied : MainStateUpdate() {
+    object LocationPermissionDenied : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             state.copyWithLocationException(LocationPermissionDeniedException)
     }
 
-    object LocationDisabled : MainStateUpdate() {
+    object LocationDisabled : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             state.copyWithLocationException(LocationDisabledException)
     }
 
-    object FailedToUpdateLocation : MainStateUpdate() {
+    object FailedToUpdateLocation : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             state.copyWithLocationException(LocationUpdateFailureException)
     }
 
     data class LiveBottomSheetStateChanged(
         @BottomSheetBehavior.State val sheetState: Int,
-    ) : MainStateUpdate() {
+    ) : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             state.copy(lastLiveBottomSheetState = sheetState)
     }
 
-    data class SearchQueryChanged(val query: String) : MainStateUpdate() {
+    data class SearchQueryChanged(val query: String) : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             if (state.searchQuery == query) state else state.copy(searchQuery = query)
     }
 
-    data class SearchFocusChanged(val focused: Boolean) : MainStateUpdate() {
+    data class SearchFocusChanged(val focused: Boolean) : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             if (state.searchFocused == focused) state else state.copy(searchFocused = focused)
     }
 
-    data class BottomNavigationViewItemSelected(val itemId: Int) : MainStateUpdate() {
+    data class BottomNavigationViewItemSelected(val itemId: Int) : MainStateUpdate {
         override fun invoke(state: MainState): MainState =
             if (state.selectedBottomNavigationViewItemId == itemId) state
             else state.copy(selectedBottomNavigationViewItemId = itemId)
     }
-
-    protected fun MainState.copyWithLocationException(throwable: Throwable): MainState =
-        copy(locationState = locationState.copyWithError(throwable))
 }
+
+private fun MainState.copyWithLocationException(throwable: Throwable): MainState =
+    copy(locationState = locationState.copyWithError(throwable))
