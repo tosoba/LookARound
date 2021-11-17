@@ -186,6 +186,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     fun setMarkers(markers: Collection<ARMarker>) {
         cameraMarkers.clear()
         markers.forEach { marker -> cameraMarkers[marker.wrapped.id] = CameraMarker(marker) }
+        currentPage = 0
     }
 
     internal fun isOnCurrentPage(marker: ARMarker): Boolean =

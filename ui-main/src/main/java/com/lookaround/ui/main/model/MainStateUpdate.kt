@@ -28,26 +28,22 @@ sealed interface MainStateUpdate : StateUpdate<MainState> {
         override fun invoke(state: MainState): MainState =
             state.copy(
                 markers =
-                    if (state.markers is WithValue) {
-                        Ready(state.markers.value + nodes.map(::Marker))
-                    } else {
-                        Ready(
-                            ParcelableSortedSet(
-                                nodes.map(::Marker).toSortedSet { marker1, marker2 ->
-                                    val userLocation = state.locationState
-                                    if (userLocation !is WithValue<Location>) {
-                                        throw IllegalStateException(
-                                            "User location does not have a value."
-                                        )
-                                    }
-                                    marker1
-                                        .location
-                                        .distanceTo(userLocation.value)
-                                        .compareTo(marker2.location.distanceTo(userLocation.value))
+                    Ready(
+                        ParcelableSortedSet(
+                            nodes.map(::Marker).toSortedSet { marker1, marker2 ->
+                                val userLocation = state.locationState
+                                if (userLocation !is WithValue<Location>) {
+                                    throw IllegalStateException(
+                                        "User location does not have a value."
+                                    )
                                 }
-                            )
+                                marker1
+                                    .location
+                                    .distanceTo(userLocation.value)
+                                    .compareTo(marker2.location.distanceTo(userLocation.value))
+                            }
                         )
-                    }
+                    )
             )
     }
 
