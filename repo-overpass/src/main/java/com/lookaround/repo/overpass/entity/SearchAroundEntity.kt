@@ -1,9 +1,7 @@
 package com.lookaround.repo.overpass.entity
 
-import androidx.room.Embedded
-import androidx.room.Entity
-import androidx.room.Index
-import androidx.room.PrimaryKey
+import androidx.room.*
+import java.util.*
 
 @Entity(
     tableName = "search_around",
@@ -13,8 +11,12 @@ import androidx.room.PrimaryKey
                 value = ["lat", "lng", "radius_in_meters", "key", "value", "filter"],
                 unique = true,
             ),
+            Index(value = ["last_searched_at"]),
         ]
 )
-data class SearchAroundEntity(@Embedded val input: SearchAroundInput) {
+data class SearchAroundEntity(
+    @Embedded val input: SearchAroundInput,
+    @ColumnInfo(name = "last_searched_at") val lastSearchedAt: Date = Date()
+) {
     @PrimaryKey(autoGenerate = true) var id: Long = 0
 }
