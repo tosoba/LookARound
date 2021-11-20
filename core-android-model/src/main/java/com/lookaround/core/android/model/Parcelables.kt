@@ -16,11 +16,3 @@ data class ParcelableSortedSet<T : Parcelable>(
     operator fun plus(other: Collection<T>): ParcelableSortedSet<T> =
         ParcelableSortedSet(items.apply { addAll(other) })
 }
-
-@Parcelize
-data class ParcelableLinkedHashMap<K : Parcelable, V : Parcelable>(
-    val items: LinkedHashMap<K, V>,
-) : Parcelable, Map<K, V> by items {
-    operator fun plus(entry: Pair<K, V>): ParcelableLinkedHashMap<K, V> =
-        ParcelableLinkedHashMap(items.apply { put(entry.first, entry.second) })
-}

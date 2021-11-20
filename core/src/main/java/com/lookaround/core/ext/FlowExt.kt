@@ -1,13 +1,13 @@
 package com.lookaround.core.ext
 
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 fun <A, B : Any, R> Flow<A>.withLatestFrom(
     other: Flow<B>,
@@ -24,5 +24,26 @@ fun <A, B : Any, R> Flow<A>.withLatestFrom(
             }
         }
         collect { a: A -> latestB.get()?.let { b -> emit(transform(a, b)) } }
+    }
+}
+
+@ExperimentalCoroutinesApi
+fun <T, R> Flow<T>.flatMapFirst(transform: suspend (value: T) -> Flow<R>): Flow<R> =
+    map(transform).flattenFirst()
+
+@ExperimentalCoroutinesApi
+fun <T> Flow<Flow<T>>.flattenFirst(): Flow<T> = channelFlow {
+    val busy = AtomicBoolean(false)
+    collect { inner ->
+        if (busy.compareAndSet(false, true)) {
+            launch {
+                try {
+                    inner.collect { this@channelFlow.send(it) }
+                    busy.set(false)
+                } catch (e: CancellationException) {
+                    this@channelFlow.cancel(e)
+                }
+            }
+        }
     }
 }

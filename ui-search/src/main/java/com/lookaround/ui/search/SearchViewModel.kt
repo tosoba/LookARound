@@ -15,7 +15,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 
 @ExperimentalCoroutinesApi
-@FlowPreview
 class SearchViewModel
 @AssistedInject
 constructor(@Assisted savedStateHandle: SavedStateHandle, processor: SearchFlowProcessor) :

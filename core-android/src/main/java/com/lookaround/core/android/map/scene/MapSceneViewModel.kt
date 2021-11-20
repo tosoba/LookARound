@@ -12,10 +12,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 
 @ExperimentalCoroutinesApi
-@FlowPreview
 class MapSceneViewModel
 @AssistedInject
 constructor(@Assisted savedStateHandle: SavedStateHandle, processor: MapSceneFlowProcessor) :
