@@ -71,7 +71,7 @@ constructor(
             )
             .mapNotNull { it.tags["image"] }
 
-    override suspend fun recentSearchesAround(limit: Int): Flow<List<SearchAroundDTO>> =
+    override fun recentSearchesAround(limit: Int): Flow<List<SearchAroundDTO>> =
         dao.selectSearches(limit).map {
             it.map { (input, lastSearchedAt) ->
                 SearchAroundDTO(
@@ -82,4 +82,7 @@ constructor(
                 )
             }
         }
+
+    override val searchesAroundCount: Flow<Int>
+        get() = dao.selectSearchesCount()
 }

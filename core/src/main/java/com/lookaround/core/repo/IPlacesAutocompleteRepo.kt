@@ -11,5 +11,7 @@ interface IPlacesAutocompleteRepo {
         priorityLon: Double?
     ): List<PointDTO>
 
-    suspend fun recentAutocompleteSearches(limit: Int): Flow<List<AutocompleteSearchDTO>>
+    fun recentAutocompleteSearches(limit: Int): Flow<List<AutocompleteSearchDTO>>
+
+    val autocompleteSearchesCount: Flow<Int>
 }

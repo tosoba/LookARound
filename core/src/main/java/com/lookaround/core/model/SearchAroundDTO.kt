@@ -6,5 +6,5 @@ data class SearchAroundDTO(
     val key: String,
     val lat: Double,
     val lng: Double,
-    val lastSearchedAt: Date
-)
+    override val lastSearchedAt: Date
+) : SearchDTO

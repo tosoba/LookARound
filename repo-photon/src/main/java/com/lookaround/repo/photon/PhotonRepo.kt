@@ -32,7 +32,7 @@ constructor(
             )
         )
 
-    override suspend fun recentAutocompleteSearches(limit: Int): Flow<List<AutocompleteSearchDTO>> =
+    override fun recentAutocompleteSearches(limit: Int): Flow<List<AutocompleteSearchDTO>> =
         dao.selectSearches(limit).map {
             it.map { (input, lastSearchedAt) ->
                 AutocompleteSearchDTO(
@@ -43,4 +43,7 @@ constructor(
                 )
             }
         }
+
+    override val autocompleteSearchesCount: Flow<Int>
+        get() = dao.selectSearchesCount()
 }

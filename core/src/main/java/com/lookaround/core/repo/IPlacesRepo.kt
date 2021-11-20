@@ -17,5 +17,7 @@ interface IPlacesRepo {
 
     suspend fun imagesAround(lat: Double, lng: Double, radiusInMeters: Float): List<String>
 
-    suspend fun recentSearchesAround(limit: Int): Flow<List<SearchAroundDTO>>
+    fun recentSearchesAround(limit: Int): Flow<List<SearchAroundDTO>>
+
+    val searchesAroundCount: Flow<Int>
 }
