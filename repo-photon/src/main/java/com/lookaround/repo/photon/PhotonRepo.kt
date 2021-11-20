@@ -7,10 +7,10 @@ import com.lookaround.core.model.PointDTO
 import com.lookaround.core.repo.IPlacesAutocompleteRepo
 import com.lookaround.repo.photon.dao.AutocompleteSearchDao
 import com.lookaround.repo.photon.entity.AutocompleteSearchInput
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class PhotonRepo
@@ -34,8 +34,10 @@ constructor(
 
     override fun recentAutocompleteSearches(limit: Int): Flow<List<AutocompleteSearchDTO>> =
         dao.selectSearches(limit).map {
-            it.map { (input, lastSearchedAt) ->
+            it.map { entity ->
+                val (input, lastSearchedAt) = entity
                 AutocompleteSearchDTO(
+                    id = entity.id,
                     query = input.query,
                     priorityLat = input.priorityLat,
                     priorityLon = input.priorityLon,

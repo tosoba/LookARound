@@ -73,8 +73,10 @@ constructor(
 
     override fun recentSearchesAround(limit: Int): Flow<List<SearchAroundDTO>> =
         dao.selectSearches(limit).map {
-            it.map { (input, lastSearchedAt) ->
+            it.map { entity ->
+                val (input, lastSearchedAt) = entity
                 SearchAroundDTO(
+                    id = entity.id,
                     key = input.key,
                     lat = input.lat,
                     lng = input.lng,
