@@ -9,6 +9,7 @@ import com.lookaround.repo.photon.PhotonAutocompleteSearchStore
 import com.lookaround.repo.photon.PhotonDatabase
 import com.lookaround.repo.photon.PhotonEndpoints
 import com.lookaround.repo.photon.PhotonRepo
+import com.lookaround.repo.photon.dao.AutocompleteSearchDao
 import com.lookaround.repo.photon.entity.AutocompleteSearchInput
 import com.lookaround.repo.photon.mapper.PointEntityMapper
 import dagger.Binds
@@ -17,9 +18,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import javax.inject.Singleton
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -37,14 +38,15 @@ abstract class PhotonRepoModule {
         @Provides
         @Singleton
         fun photonAutocompleteSearchStore(
-            db: PhotonDatabase,
+            autocompleteSearchDao: AutocompleteSearchDao,
             endpoints: PhotonEndpoints,
             pointEntityMapper: PointEntityMapper
         ): Store<AutocompleteSearchInput, List<PointDTO>> =
-            PhotonAutocompleteSearchStore.build(
-                db.autocompleteSearchDao(),
-                endpoints,
-                pointEntityMapper,
-            )
+            PhotonAutocompleteSearchStore.build(autocompleteSearchDao, endpoints, pointEntityMapper)
+
+        @Provides
+        @Singleton
+        fun autocompleteSearchDao(db: PhotonDatabase): AutocompleteSearchDao =
+            db.autocompleteSearchDao()
     }
 }

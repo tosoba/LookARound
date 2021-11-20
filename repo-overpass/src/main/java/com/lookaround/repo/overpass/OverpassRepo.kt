@@ -4,17 +4,22 @@ import com.dropbox.android.external.store4.Store
 import com.dropbox.android.external.store4.get
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.core.model.NodeDTO
+import com.lookaround.core.model.SearchAroundDTO
 import com.lookaround.core.repo.IPlacesRepo
+import com.lookaround.repo.overpass.dao.SearchAroundDao
 import com.lookaround.repo.overpass.entity.SearchAroundInput
-import nice.fontaine.overpass.models.query.settings.Filter
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import nice.fontaine.overpass.models.query.settings.Filter
 
 @Singleton
 class OverpassRepo
 @Inject
 constructor(
     private val store: Store<SearchAroundInput, List<NodeDTO>>,
+    private val dao: SearchAroundDao
 ) : IPlacesRepo {
     override suspend fun attractionsAround(
         lat: Double,
@@ -65,4 +70,16 @@ constructor(
                 ) { filterNot { it.tags?.get("image") == null } }
             )
             .mapNotNull { it.tags["image"] }
+
+    override suspend fun recentSearchesAround(limit: Int): Flow<List<SearchAroundDTO>> =
+        dao.selectSearches(limit).map {
+            it.map { (input, lastSearchedAt) ->
+                SearchAroundDTO(
+                    key = input.key,
+                    lat = input.lat,
+                    lng = input.lng,
+                    lastSearchedAt = lastSearchedAt
+                )
+            }
+        }
 }

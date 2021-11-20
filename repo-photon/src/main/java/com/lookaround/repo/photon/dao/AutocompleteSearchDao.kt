@@ -70,4 +70,9 @@ interface AutocompleteSearchDao {
         val pointIds = insertPoints(points)
         insertResults(pointIds.map { nodeId -> AutocompleteSearchResultEntity(searchId, nodeId) })
     }
+
+    @Query("SELECT * FROM autocomplete_search ORDER BY last_searched_at DESC LIMIT :limit")
+    fun selectSearches(limit: Int): Flow<List<AutocompleteSearchEntity>>
+
+    @Query("SELECT COUNT(*) FROM autocomplete_search") fun selectSearchesCount(): Flow<Int>
 }

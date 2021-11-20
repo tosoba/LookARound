@@ -9,6 +9,7 @@ import com.lookaround.repo.overpass.OverpassDatabase
 import com.lookaround.repo.overpass.OverpassEndpoints
 import com.lookaround.repo.overpass.OverpassRepo
 import com.lookaround.repo.overpass.OverpassSearchAroundStore
+import com.lookaround.repo.overpass.dao.SearchAroundDao
 import com.lookaround.repo.overpass.entity.SearchAroundInput
 import com.lookaround.repo.overpass.mapper.NodeEntityMapper
 import com.lookaround.repo.overpass.mapper.NodeMapper
@@ -18,9 +19,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import javax.inject.Singleton
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -38,16 +39,20 @@ abstract class OverpassRepoModule {
         @Provides
         @Singleton
         fun overpassSearchAroundStore(
-            db: OverpassDatabase,
+            searchAroundDao: SearchAroundDao,
             endpoints: OverpassEndpoints,
             nodeMapper: NodeMapper,
             nodeEntityMapper: NodeEntityMapper
         ): Store<SearchAroundInput, List<NodeDTO>> =
             OverpassSearchAroundStore.build(
-                db.searchAroundDao(),
+                searchAroundDao,
                 endpoints,
                 nodeMapper,
                 nodeEntityMapper
             )
+
+        @Provides
+        @Singleton
+        fun searchAroundDao(db: OverpassDatabase): SearchAroundDao = db.searchAroundDao()
     }
 }

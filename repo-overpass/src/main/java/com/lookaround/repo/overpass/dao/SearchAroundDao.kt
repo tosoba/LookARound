@@ -86,4 +86,9 @@ interface SearchAroundDao {
         val nodeIds = insertNodes(nodes)
         insertResults(nodeIds.map { nodeId -> SearchAroundResultEntity(searchId, nodeId) })
     }
+
+    @Query("SELECT * FROM search_around ORDER BY last_searched_at DESC LIMIT :limit")
+    fun selectSearches(limit: Int): Flow<List<SearchAroundEntity>>
+
+    @Query("SELECT COUNT(*) FROM search_around") fun selectSearchesCount(): Flow<Int>
 }
