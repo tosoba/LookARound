@@ -28,6 +28,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@android:color/transparent"
+        android:visibility="gone"
         app:elevation="0dp"
         app:itemHorizontalTranslationEnabled="false"
         app:menu="@menu/main_bottom_nav_menu" />

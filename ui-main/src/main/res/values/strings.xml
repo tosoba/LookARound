@@ -2,5 +2,6 @@
 <resources>
     <string name="place_types">Place types</string>
     <string name="places">Places</string>
+    <string name="recent">Recent</string>
     <string name="unchecked">Unchecked</string>
 </resources>

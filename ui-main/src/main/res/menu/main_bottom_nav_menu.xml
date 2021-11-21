@@ -15,4 +15,9 @@
         android:icon="@drawable/ic_baseline_view_list_24"
         android:title="@string/places" />
 
+    <item
+        android:id="@+id/action_recent_searches"
+        android:icon="@drawable/ic_baseline_view_list_24"
+        android:title="@string/recent" />
+
 </menu>
