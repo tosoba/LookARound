@@ -1,25 +1,22 @@
 package com.lookaround.ui.search
 
-import com.lookaround.core.android.base.arch.FlowProcessor
+import com.lookaround.core.android.architecture.FlowProcessor
 import com.lookaround.core.android.ext.roundToDecimalPlaces
 import com.lookaround.core.usecase.SearchPoints
-import com.lookaround.ui.search.model.SearchIntent
-import com.lookaround.ui.search.model.SearchSignal
-import com.lookaround.ui.search.model.SearchState
-import com.lookaround.ui.search.model.SearchStateUpdate
+import com.lookaround.ui.search.model.*
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.transformLatest
-import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class SearchFlowProcessor
 @Inject
 constructor(
     private val searchPoints: SearchPoints,
-) : FlowProcessor<SearchIntent, SearchStateUpdate, SearchState, SearchSignal> {
+) : FlowProcessor<SearchIntent, SearchState, SearchSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
         intents: Flow<SearchIntent>,
@@ -27,19 +24,17 @@ constructor(
         states: Flow<SearchState>,
         intent: suspend (SearchIntent) -> Unit,
         signal: suspend (SearchSignal) -> Unit
-    ): Flow<SearchStateUpdate> =
+    ): Flow<(SearchState) -> SearchState> =
         intents.filterIsInstance<SearchIntent.SearchPlaces>().transformLatest {
             (query, priorityLocation) ->
             when {
-                query.isBlank() -> emit(SearchStateUpdate.BlankQueryUpdate)
-                query.count(Char::isLetterOrDigit) <= 3 -> {
-                    emit(SearchStateUpdate.QueryTooShortUpdate)
-                }
+                query.isBlank() -> emit(BlankQueryUpdate)
+                query.count(Char::isLetterOrDigit) <= 3 -> emit(QueryTooShortUpdate)
                 else -> {
-                    emit(SearchStateUpdate.LoadingPlaces)
+                    emit(LoadingPlaces)
                     try {
                         emit(
-                            SearchStateUpdate.PlacesLoaded(
+                            PlacesLoaded(
                                 points =
                                     searchPoints(
                                         query = query,
@@ -58,7 +53,7 @@ constructor(
                             )
                         )
                     } catch (throwable: Throwable) {
-                        emit(SearchStateUpdate.PlacesLoadingError(throwable))
+                        emit(PlacesLoadingError(throwable))
                     }
                 }
             }

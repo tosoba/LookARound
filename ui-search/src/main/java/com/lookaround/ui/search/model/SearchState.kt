@@ -11,4 +11,7 @@ import kotlinx.parcelize.Parcelize
 data class SearchState(
     val points: Loadable<ParcelableList<Point>> = Empty,
     val lastPerformedWithLocationPriority: Boolean = false
-) : Parcelable
+) : Parcelable {
+    internal fun copyWithPointsException(throwable: Throwable): SearchState =
+        copy(points = points.copyWithError(throwable))
+}

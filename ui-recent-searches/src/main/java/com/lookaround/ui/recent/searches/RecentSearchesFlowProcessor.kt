@@ -1,6 +1,6 @@
 package com.lookaround.ui.recent.searches
 
-import com.lookaround.core.android.base.arch.FlowProcessor
+import com.lookaround.core.android.architecture.FlowProcessor
 import com.lookaround.core.ext.withLatestFrom
 import com.lookaround.core.usecase.RecentSearchesFlow
 import com.lookaround.core.usecase.SearchesCountFlow
@@ -15,13 +15,7 @@ class RecentSearchesFlowProcessor
 constructor(
     private val recentSearchesFlow: RecentSearchesFlow,
     private val searchesCountFlow: SearchesCountFlow
-) :
-    FlowProcessor<
-        RecentSearchesIntent,
-        RecentSearchesStateUpdate,
-        RecentSearchesState,
-        RecentSearchesSignal> {
-
+) : FlowProcessor<RecentSearchesIntent, RecentSearchesState, RecentSearchesSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
         intents: Flow<RecentSearchesIntent>,
@@ -29,7 +23,7 @@ constructor(
         states: Flow<RecentSearchesState>,
         intent: suspend (RecentSearchesIntent) -> Unit,
         signal: suspend (RecentSearchesSignal) -> Unit
-    ): Flow<RecentSearchesStateUpdate> =
+    ): Flow<(RecentSearchesState) -> RecentSearchesState> =
         merge(
             intents
                 .filterIsInstance<RecentSearchesIntent.IncreaseLimit>()
@@ -38,11 +32,11 @@ constructor(
                     val (_, limit) = currentState()
                     totalSearchesCount > limit + RecentSearchesState.SEARCHES_LIMIT_INCREMENT
                 }
-                .map { RecentSearchesStateUpdate.IncreaseLimit() },
+                .map { IncreaseLimitUpdate() },
             states.map(RecentSearchesState::limit::get).distinctUntilChanged().transformLatest {
                 limit ->
-                emit(RecentSearchesStateUpdate.LoadingSearches)
-                emitAll(recentSearchesFlow(limit).map(RecentSearchesStateUpdate::SearchesLoaded))
+                emit(LoadingSearchesUpdate)
+                emitAll(recentSearchesFlow(limit).map(::SearchesLoadedUpdate))
             }
         )
 }

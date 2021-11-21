@@ -1,23 +1,20 @@
 package com.lookaround.core.android.map.scene
 
-import com.lookaround.core.android.base.arch.FlowProcessor
-import com.lookaround.core.android.map.scene.model.MapSceneIntent
-import com.lookaround.core.android.map.scene.model.MapSceneSignal
-import com.lookaround.core.android.map.scene.model.MapSceneState
-import com.lookaround.core.android.map.scene.model.MapSceneStateUpdate
+import com.lookaround.core.android.architecture.FlowProcessor
+import com.lookaround.core.android.map.scene.model.*
 import com.lookaround.core.usecase.IsConnectedFlow
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class MapSceneFlowProcessor
 @Inject
 constructor(
     private val isConnectedFlow: IsConnectedFlow,
-) : FlowProcessor<MapSceneIntent, MapSceneStateUpdate, MapSceneState, MapSceneSignal> {
+) : FlowProcessor<MapSceneIntent, MapSceneState, MapSceneSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
         intents: Flow<MapSceneIntent>,
@@ -25,17 +22,14 @@ constructor(
         states: Flow<MapSceneState>,
         intent: suspend (MapSceneIntent) -> Unit,
         signal: suspend (MapSceneSignal) -> Unit
-    ): Flow<MapSceneStateUpdate> =
+    ): Flow<(MapSceneState) -> MapSceneState> =
         merge(
             intents.filterIsInstance<MapSceneIntent.LoadingScene>().transformLatest {
-                emit(MapSceneStateUpdate.LoadingScene(it.scene))
+                emit(LoadingSceneUpdate(it.scene))
                 delay(SCENE_LOADING_TIME_LIMIT_MS)
-                if (!currentState().sceneLoaded)
-                    emit(MapSceneStateUpdate.SceneLoadingTimeoutOccurred)
+                if (!currentState().sceneLoaded) emit(SceneLoadingTimeoutUpdate)
             },
-            intents.filterIsInstance<MapSceneIntent.SceneLoaded>().map {
-                MapSceneStateUpdate.SceneLoaded
-            },
+            intents.filterIsInstance<MapSceneIntent.SceneLoaded>(),
         )
 
     override fun sideEffects(
@@ -45,7 +39,7 @@ constructor(
         signal: suspend (MapSceneSignal) -> Unit
     ) {
         states
-            .filter { it.sceneLoadingTimeoutOccurred }
+            .filter(MapSceneState::sceneLoadingTimeoutOccurred::get)
             .combine(isConnectedFlow().filter { it }) { state, _ ->
                 signal(MapSceneSignal.RetryLoadScene(state.scene))
             }

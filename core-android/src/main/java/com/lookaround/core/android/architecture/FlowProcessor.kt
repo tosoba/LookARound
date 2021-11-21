@@ -1,10 +1,10 @@
-package com.lookaround.core.android.base.arch
+package com.lookaround.core.android.architecture
 
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
-interface FlowProcessor<Intent : Any, Update : StateUpdate<State>, State : Any, Signal : Any> {
+interface FlowProcessor<Intent : Any, State : Any, Signal : Any> {
     fun updates(
         coroutineScope: CoroutineScope,
         intents: Flow<Intent>,
@@ -12,7 +12,7 @@ interface FlowProcessor<Intent : Any, Update : StateUpdate<State>, State : Any, 
         states: Flow<State>,
         intent: suspend (Intent) -> Unit,
         signal: suspend (Signal) -> Unit
-    ): Flow<Update>
+    ): Flow<(State) -> State>
 
     fun sideEffects(
         coroutineScope: CoroutineScope,
@@ -24,7 +24,7 @@ interface FlowProcessor<Intent : Any, Update : StateUpdate<State>, State : Any, 
     fun stateWillUpdate(
         currentState: State,
         nextState: State,
-        update: Update,
+        update: (State) -> State,
         savedStateHandle: SavedStateHandle
     ) = Unit
 }

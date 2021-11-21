@@ -1,4 +1,4 @@
-package com.lookaround.core.android.base.arch
+package com.lookaround.core.android.architecture
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
 @ExperimentalCoroutinesApi
-abstract class FlowViewModel<Intent : Any, Update : StateUpdate<State>, State : Any, Signal : Any>(
+abstract class FlowViewModel<Intent : Any, State : Any, Signal : Any>(
     initialState: State,
-    processor: FlowProcessor<Intent, Update, State, Signal>,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    processor: FlowProcessor<Intent, State, Signal>
 ) : ViewModel() {
     private val mutableSignals: MutableSharedFlow<Signal> = MutableSharedFlow()
     val signals: Flow<Signal>

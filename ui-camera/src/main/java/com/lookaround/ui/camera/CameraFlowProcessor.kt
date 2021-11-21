@@ -1,6 +1,6 @@
 package com.lookaround.ui.camera
 
-import com.lookaround.core.android.base.arch.FlowProcessor
+import com.lookaround.core.android.architecture.FlowProcessor
 import com.lookaround.ui.camera.model.*
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.merge
 
 @ExperimentalCoroutinesApi
 class CameraFlowProcessor @Inject constructor() :
-    FlowProcessor<CameraIntent, CameraStateUpdate, CameraState, CameraSignal> {
+    FlowProcessor<CameraIntent, CameraState, CameraSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
         intents: Flow<CameraIntent>,
@@ -20,26 +20,20 @@ class CameraFlowProcessor @Inject constructor() :
         states: Flow<CameraState>,
         intent: suspend (CameraIntent) -> Unit,
         signal: suspend (CameraSignal) -> Unit
-    ): Flow<CameraStateUpdate> =
+    ): Flow<(CameraState) -> CameraState> =
         merge(
             intents.filterIsInstance<CameraIntent.CameraViewCreated>().map {
-                CameraStateUpdate.CameraPreviewStateUpdate(CameraPreviewState.Initial)
+                CameraPreviewStateUpdate(CameraPreviewState.Initial)
             },
             intents.filterIsInstance<CameraIntent.CameraStreamStateChanged>().map { (streamState) ->
-                CameraStateUpdate.CameraPreviewStateUpdate(CameraPreviewState.Active(streamState))
+                CameraPreviewStateUpdate(CameraPreviewState.Active(streamState))
             },
             intents.filterIsInstance<CameraIntent.CameraPermissionDenied>().map {
-                CameraStateUpdate.CameraPreviewStateUpdate(CameraPreviewState.PermissionDenied)
+                CameraPreviewStateUpdate(CameraPreviewState.PermissionDenied)
             },
             intents.filterIsInstance<CameraIntent.CameraInitializationFailed>().map {
-                CameraStateUpdate.CameraPreviewStateUpdate(CameraPreviewState.InitializationFailure)
+                CameraPreviewStateUpdate(CameraPreviewState.InitializationFailure)
             },
-            intents.filterIsInstance<CameraIntent.CameraMarkersFirstIndexChanged>().map {
-                (difference) ->
-                CameraStateUpdate.CameraMarkersFirstIndexChanged(difference)
-            },
-            intents.filterIsInstance<CameraIntent.ToggleRadarEnlarged>().map {
-                CameraStateUpdate.ToggleRadarEnlarged
-            }
+            intents.filterIsInstance()
         )
 }

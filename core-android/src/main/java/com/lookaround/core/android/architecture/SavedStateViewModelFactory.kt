@@ -1,4 +1,4 @@
-package com.lookaround.core.android.base.arch
+package com.lookaround.core.android.architecture
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
