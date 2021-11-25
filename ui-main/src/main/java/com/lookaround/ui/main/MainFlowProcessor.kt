@@ -8,9 +8,9 @@ import com.lookaround.core.ext.withLatestFrom
 import com.lookaround.core.model.LocationDataDTO
 import com.lookaround.core.usecase.*
 import com.lookaround.ui.main.model.*
+import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class MainFlowProcessor
@@ -19,7 +19,8 @@ constructor(
     private val getPlacesOfType: GetPlacesOfType,
     private val isLocationAvailable: IsLocationAvailable,
     private val locationDataFlow: LocationDataFlow,
-    private val isConnectedFlow: IsConnectedFlow
+    private val isConnectedFlow: IsConnectedFlow,
+    private val searchesCountFlow: SearchesCountFlow
 ) : FlowProcessor<MainIntent, MainState, MainSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
@@ -34,6 +35,7 @@ constructor(
             intents.filterIsInstance<MainIntent.LocationPermissionGranted>().take(1).flatMapLatest {
                 locationStateUpdatesFlow
             },
+            searchesCountFlow().distinctUntilChanged().map(::SearchesCountUpdate),
             intents.filterIsInstance(),
         )
 

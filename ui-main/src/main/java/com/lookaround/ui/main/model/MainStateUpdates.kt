@@ -68,3 +68,7 @@ object FailedToUpdateLocationUpdate : (MainState) -> MainState {
     override fun invoke(state: MainState): MainState =
         state.copyWithLocationException(LocationUpdateFailureException)
 }
+
+data class SearchesCountUpdate(private val count: Int) : (MainState) -> MainState {
+    override fun invoke(state: MainState): MainState = state.copy(searchesCount = count)
+}

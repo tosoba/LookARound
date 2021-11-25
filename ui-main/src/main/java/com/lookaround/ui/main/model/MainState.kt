@@ -18,6 +18,7 @@ data class MainState(
     val searchQuery: String = "",
     val searchFocused: Boolean = false,
     val selectedBottomNavigationViewItemId: Int = R.id.action_unchecked,
+    val searchesCount: Int = 0
 ) : Parcelable {
     internal fun copyWithLocationException(throwable: Throwable): MainState =
         copy(locationState = locationState.copyWithError(throwable))

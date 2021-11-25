@@ -32,11 +32,15 @@ import com.lookaround.core.android.view.composable.PlaceItemNameText
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainSignal
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 
+@AndroidEntryPoint
+@WithFragmentBindings
 @ExperimentalCoroutinesApi
 class RecentSearchesFragment : Fragment() {
     @Inject internal lateinit var recentSearchesViewModelFactory: RecentSearchesViewModel.Factory

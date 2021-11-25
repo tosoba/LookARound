@@ -27,6 +27,7 @@ import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.list.PlaceListFragment
 import com.lookaround.ui.place.list.PlaceMapItemActionController
 import com.lookaround.ui.place.types.PlaceTypesFragment
+import com.lookaround.ui.recent.searches.RecentSearchesFragment
 import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.SearchBar
 import com.lookaround.ui.search.composable.rememberSearchBarState
@@ -62,12 +63,15 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                 lifecycleScope.launch {
                     viewModel.intent(MainIntent.BottomNavigationViewItemSelected(menuItem.itemId))
                 }
-                if (menuItem.itemId == R.id.action_unchecked) return@OnItemSelectedListener true
+                if (menuItem.itemId == R.id.action_unchecked || !menuItem.isVisible) {
+                    return@OnItemSelectedListener true
+                }
 
                 binding.bottomSheetViewPager.currentItem =
                     when (menuItem.itemId) {
                         R.id.action_place_types -> 0
                         R.id.action_place_list -> 1
+                        R.id.action_recent_searches -> 2
                         else -> throw IllegalArgumentException()
                     }
 
@@ -217,7 +221,8 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         )
 
         with(binding.bottomSheetViewPager) {
-            val fragments = arrayOf(PlaceTypesFragment(), PlaceListFragment())
+            val fragments =
+                arrayOf(PlaceTypesFragment(), PlaceListFragment(), RecentSearchesFragment())
             offscreenPageLimit = fragments.size - 1
             adapter =
                 object : FragmentStateAdapter(this@MainActivity) {
@@ -232,6 +237,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                             when (position) {
                                 0 -> R.id.action_place_types
                                 1 -> R.id.action_place_list
+                                2 -> R.id.action_recent_searches
                                 else -> throw IllegalArgumentException()
                             }
                     }
@@ -260,6 +266,13 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
             viewModel
                 .placesBottomNavItemVisibilityUpdates
                 .onEach { isVisible -> menu.findItem(R.id.action_place_list).isVisible = isVisible }
+                .launchIn(lifecycleScope)
+
+            viewModel
+                .recentSearchesBottomNavItemVisibilityUpdates
+                .onEach { isVisible ->
+                    menu.findItem(R.id.action_recent_searches).isVisible = isVisible
+                }
                 .launchIn(lifecycleScope)
         }
     }

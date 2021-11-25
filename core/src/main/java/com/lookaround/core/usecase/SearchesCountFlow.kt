@@ -6,6 +6,7 @@ import dagger.Reusable
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
 
 @Reusable
 class SearchesCountFlow
@@ -15,9 +16,10 @@ constructor(
     private val autocompleteRepo: IPlacesAutocompleteRepo
 ) {
     operator fun invoke(): Flow<Int> =
-        placesRepo.searchesAroundCount.combine(autocompleteRepo.autocompleteSearchesCount) {
-            aroundSearchesCount,
-            autocompleteSearchesCount ->
+        combine(
+            placesRepo.searchesAroundCount.onStart { emit(0) },
+            autocompleteRepo.autocompleteSearchesCount.onStart { emit(0) }
+        ) { aroundSearchesCount, autocompleteSearchesCount ->
             aroundSearchesCount + autocompleteSearchesCount
         }
 }

@@ -53,6 +53,11 @@ val MainViewModel.placesBottomNavItemVisibilityUpdates: Flow<Boolean>
 
 @FlowPreview
 @ExperimentalCoroutinesApi
+val MainViewModel.recentSearchesBottomNavItemVisibilityUpdates: Flow<Boolean>
+    get() = states.map { it.searchesCount > 0 }.distinctUntilChanged()
+
+@FlowPreview
+@ExperimentalCoroutinesApi
 val MainViewModel.locationReadyUpdates: Flow<Location>
     get() =
         states
