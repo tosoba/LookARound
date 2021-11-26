@@ -1,5 +1,6 @@
 package com.lookaround
 
+import androidx.annotation.MainThread
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -11,23 +12,23 @@ import kotlinx.coroutines.FlowPreview
 @FlowPreview
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
-class MainViewPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
-    private val items: ArrayList<MainFragment> = arrayListOf()
+class MainViewPagerAdapter(
+    activity: FragmentActivity,
+    items: List<MainFragment>,
+) : FragmentStateAdapter(activity) {
+    var items: List<MainFragment> = items
+        @MainThread
+        set(value) {
+            val callback = PagerDiffUtil(field, value)
+            val diff = DiffUtil.calculateDiff(callback)
+            field = value
+            diff.dispatchUpdatesTo(this)
+        }
 
     override fun createFragment(position: Int): Fragment = items[position].newInstance()
     override fun getItemCount() = items.size
     override fun getItemId(position: Int): Long = items[position].ordinal.toLong()
     override fun containsItem(itemId: Long): Boolean = items.any { it.ordinal.toLong() == itemId }
-
-    fun setItems(newItems: List<MainFragment>) {
-        val callback = PagerDiffUtil(items, newItems)
-        val diff = DiffUtil.calculateDiff(callback)
-
-        items.clear()
-        items.addAll(newItems)
-
-        diff.dispatchUpdatesTo(this)
-    }
 
     class PagerDiffUtil(
         private val oldList: List<MainFragment>,
