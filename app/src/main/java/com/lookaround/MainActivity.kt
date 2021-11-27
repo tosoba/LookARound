@@ -17,6 +17,7 @@ import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.core.android.view.viewpager.DiffUtilFragmentStateAdapter
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.camera.CameraFragment
 import com.lookaround.ui.main.*
@@ -52,7 +53,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         lazy(LazyThreadSafetyMode.NONE) { BottomSheetBehavior.from(binding.bottomSheetViewPager) }
 
     private val bottomSheetViewPagerAdapter by
-        lazy(LazyThreadSafetyMode.NONE) { MainViewPagerAdapter(this@MainActivity) }
+        lazy(LazyThreadSafetyMode.NONE) { DiffUtilFragmentStateAdapter(this@MainActivity) }
 
     private var placesStatusLoadingSnackbar: Snackbar? = null
 
@@ -233,6 +234,7 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                                 MainFragmentFactory.PLACE_TYPES -> R.id.action_place_types
                                 MainFragmentFactory.PLACE_LIST -> R.id.action_place_list
                                 MainFragmentFactory.RECENT_SEARCHES -> R.id.action_recent_searches
+                                else -> throw IllegalArgumentException()
                             }
                     }
                 }

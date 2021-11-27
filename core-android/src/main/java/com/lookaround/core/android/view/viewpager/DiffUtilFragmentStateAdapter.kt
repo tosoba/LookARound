@@ -1,4 +1,4 @@
-package com.lookaround
+package com.lookaround.core.android.view.viewpager
 
 import androidx.annotation.MainThread
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -12,11 +12,11 @@ import kotlinx.coroutines.FlowPreview
 @FlowPreview
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
-internal class MainViewPagerAdapter(
+class DiffUtilFragmentStateAdapter(
     activity: FragmentActivity,
-    fragmentFactories: List<MainFragmentFactory> = emptyList(),
+    fragmentFactories: List<ViewPagerFragmentFactory> = emptyList(),
 ) : FragmentStateAdapter(activity) {
-    var fragmentFactories: List<MainFragmentFactory> = fragmentFactories
+    var fragmentFactories: List<ViewPagerFragmentFactory> = fragmentFactories
         @MainThread
         set(value) {
             val callback = DiffUtilCallback(field, value)
@@ -27,19 +27,19 @@ internal class MainViewPagerAdapter(
 
     override fun createFragment(position: Int): Fragment = fragmentFactories[position].newInstance()
     override fun getItemCount() = fragmentFactories.size
-    override fun getItemId(position: Int): Long = fragmentFactories[position].ordinal.toLong()
+    override fun getItemId(position: Int): Long = fragmentFactories[position].fragmentId
     override fun containsItem(itemId: Long): Boolean =
-        fragmentFactories.any { it.ordinal.toLong() == itemId }
+        fragmentFactories.any { it.fragmentId == itemId }
 
     private class DiffUtilCallback(
-        private val oldList: List<MainFragmentFactory>,
-        private val newList: List<MainFragmentFactory>
+        private val oldList: List<ViewPagerFragmentFactory>,
+        private val newList: List<ViewPagerFragmentFactory>
     ) : DiffUtil.Callback() {
         override fun getOldListSize() = oldList.size
         override fun getNewListSize() = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-            oldList[oldItemPosition].ordinal == newList[newItemPosition].ordinal
+            oldList[oldItemPosition].fragmentId == newList[newItemPosition].fragmentId
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
             areItemsTheSame(oldItemPosition, newItemPosition)
