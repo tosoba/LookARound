@@ -13,7 +13,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
-import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
@@ -41,7 +40,7 @@ import timber.log.Timber
 @ExperimentalFoundationApi
 @ExperimentalStdlibApi
 @FlowPreview
-class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionController {
+class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
@@ -99,6 +98,27 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         initBottomNavigationView()
 
         viewModel
+            .signals
+            .filterIsInstance<MainSignal.ARLoading>()
+            .onEach { onARLoading() }
+            .launchIn(lifecycleScope)
+        viewModel
+            .signals
+            .filterIsInstance<MainSignal.AREnabled>()
+            .onEach { onAREnabled() }
+            .launchIn(lifecycleScope)
+        viewModel
+            .signals
+            .filterIsInstance<MainSignal.ARDisabled>()
+            .onEach { onARDisabled() }
+            .launchIn(lifecycleScope)
+        viewModel
+            .signals
+            .filterIsInstance<MainSignal.ToggleSearchBarVisibility>()
+            .onEach { (targetVisibility) -> changeSearchbarVisibility(targetVisibility) }
+            .launchIn(lifecycleScope)
+
+        viewModel
             .locationUpdateFailureUpdates
             .onEach { Timber.tag("LOCATION").e("Failed to update location.") }
             .launchIn(lifecycleScope)
@@ -120,15 +140,21 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         }
     }
 
-    override fun onAREnabled() {
-        latestARState = ARState.ENABLED
-        binding.searchBarView.visibility = View.VISIBLE
-        binding.bottomNavigationView.visibility = View.VISIBLE
-        binding.bottomSheetViewPager.visibility = View.VISIBLE
-        bottomSheetBehavior.state = viewModel.state.lastLiveBottomSheetState
+    override fun onPlaceMapItemClick(marker: Marker) {
+        if (!lifecycle.isResumed) return
+        when (val topFragment = currentTopFragment) {
+            is MapFragment -> topFragment.updateMarker(marker)
+            else -> {
+                fragmentTransaction {
+                    setSlideInFromBottom()
+                    add(R.id.main_fragment_container, MapFragment.new(marker))
+                    addToBackStack(null)
+                }
+            }
+        }
     }
 
-    override fun onARLoading() {
+    private fun onARLoading() {
         latestARState = ARState.LOADING
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
@@ -136,7 +162,15 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
-    override fun onARDisabled() {
+    private fun onAREnabled() {
+        latestARState = ARState.ENABLED
+        binding.searchBarView.visibility = View.VISIBLE
+        binding.bottomNavigationView.visibility = View.VISIBLE
+        binding.bottomSheetViewPager.visibility = View.VISIBLE
+        bottomSheetBehavior.state = viewModel.state.lastLiveBottomSheetState
+    }
+
+    private fun onARDisabled() {
         if (latestARState == ARState.ENABLED &&
                 bottomSheetBehavior.state != BottomSheetBehavior.STATE_SETTLING
         ) {
@@ -150,24 +184,6 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         binding.bottomNavigationView.visibility = View.GONE
         binding.bottomSheetViewPager.visibility = View.GONE
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-    }
-
-    override fun onCameraTouch(targetVisibility: Int) {
-        changeSearchbarVisibility(targetVisibility)
-    }
-
-    override fun onPlaceMapItemClick(marker: Marker) {
-        if (!lifecycle.isResumed) return
-        when (val topFragment = currentTopFragment) {
-            is MapFragment -> topFragment.updateMarker(marker)
-            else -> {
-                fragmentTransaction {
-                    setSlideInFromBottom()
-                    add(R.id.main_fragment_container, MapFragment.new(marker))
-                    addToBackStack(null)
-                }
-            }
-        }
     }
 
     private fun signalTopFragmentChanged(onResume: Boolean) {

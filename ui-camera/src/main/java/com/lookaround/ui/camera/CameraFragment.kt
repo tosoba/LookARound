@@ -16,7 +16,6 @@ import androidx.transition.AutoTransition
 import androidx.transition.Transition
 import androidx.transition.TransitionManager
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.lookaround.core.android.ar.listener.AREventsListener
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.marker.SimpleARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
@@ -72,7 +71,7 @@ class CameraFragment :
     private val cameraMarkerRenderer: CameraMarkerRenderer by
         lazy(LazyThreadSafetyMode.NONE) { CameraMarkerRenderer(requireContext()) }
     private val radarMarkerRenderer: RadarMarkerRenderer by
-        lazy(LazyThreadSafetyMode.NONE) { RadarMarkerRenderer() }
+        lazy(LazyThreadSafetyMode.NONE, ::RadarMarkerRenderer)
 
     private val orientationManager: OrientationManager by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -82,8 +81,7 @@ class CameraFragment :
             }
         }
 
-    private val openGLRenderer: OpenGLRenderer by
-        lazy(LazyThreadSafetyMode.NONE) { OpenGLRenderer() }
+    private val openGLRenderer: OpenGLRenderer by lazy(LazyThreadSafetyMode.NONE, ::OpenGLRenderer)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
@@ -91,7 +89,7 @@ class CameraFragment :
         arDisabledUpdates(mainViewModel, cameraViewModel)
             .onEach {
                 (anyPermissionDenied, locationDisabled, pitchOutsideLimit, initializationFailure) ->
-                (activity as? AREventsListener)?.onARDisabled()
+                mainViewModel.signal(MainSignal.ARDisabled)
                 binding.onARDisabled(
                     anyPermissionDenied = anyPermissionDenied,
                     locationDisabled = locationDisabled,
@@ -128,7 +126,7 @@ class CameraFragment :
 
         loadingStartedUpdates(mainViewModel, cameraViewModel)
             .onEach {
-                (activity as? AREventsListener)?.onARLoading()
+                mainViewModel.signal(MainSignal.ARLoading)
                 binding.onLoadingStarted()
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -137,7 +135,7 @@ class CameraFragment :
 
         arEnabledUpdates(mainViewModel, cameraViewModel)
             .onEach {
-                (activity as? AREventsListener)?.onAREnabled()
+                mainViewModel.signal(MainSignal.AREnabled)
                 binding.onAREnabled()
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -541,7 +539,9 @@ class CameraFragment :
     private fun FragmentCameraBinding.onCameraTouch() {
         val targetVisibility = visibilityToggleView.toggleVisibility()
         changeRadarViewTopGuideline(targetVisibility)
-        (activity as? AREventsListener)?.onCameraTouch(targetVisibility)
+        lifecycleScope.launch {
+            mainViewModel.signal(MainSignal.ToggleSearchBarVisibility(targetVisibility))
+        }
     }
 
     companion object {
