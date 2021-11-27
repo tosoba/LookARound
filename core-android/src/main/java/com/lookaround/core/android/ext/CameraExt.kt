@@ -25,6 +25,7 @@ suspend fun Context.initCamera(
     lifecycleOwner: LifecycleOwner,
     @RotationValue rotation: Int,
     screenSize: Size,
+    imageAnalysisResolutionDivisor: Int
 ): CameraInitializationResult = suspendCoroutine { continuation ->
     val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
     cameraProviderFuture.addListener(
@@ -36,7 +37,7 @@ suspend fun Context.initCamera(
                     .build()
             val imageAnalysis =
                 ImageAnalysis.Builder()
-                    .setTargetResolution(screenSize / 10)
+                    .setTargetResolution(screenSize / imageAnalysisResolutionDivisor)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
             val imageFlow = MutableSharedFlow<ImageProxy>()

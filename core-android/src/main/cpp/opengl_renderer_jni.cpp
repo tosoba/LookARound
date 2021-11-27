@@ -403,7 +403,13 @@ void main() {
 
         GLboolean blurEnabled = GL_FALSE;
         GLfloat lod = MIN_LOD;
-        GLint currentAnimationFrame = -1;
+        GLint currentLodAnimationFrame = -1;
+
+        GLint currentContrastingColorAnimationFrame
+                = NativeContext::CONTRASTING_COLOR_ANIMATION_FRAMES;
+        GLfloat targetContrastingRed = -1.f;
+        GLfloat targetContrastingGreen = -1.f;
+        GLfloat targetContrastingBlue = -1.f;
         GLfloat contrastingRed = -1.f;
         GLfloat contrastingGreen = -1.f;
         GLfloat contrastingBlue = -1.f;
@@ -432,11 +438,14 @@ void main() {
         //                          +-------+-------+-->
         //                       (-1,-1)  (1,-1)  (3,-1)
         static constexpr GLfloat VERTICES[] = {-1.0f, -1.0f, 3.0f, -1.0f, -1.0f, 3.0f};
+
         static constexpr GLfloat MAX_LOD = 3.f;
         static constexpr GLfloat MIN_LOD = -3.f;
         static constexpr GLint LOD_ANIMATION_FRAMES = 18;
         static constexpr GLfloat LOD_INCREMENT = (NativeContext::MAX_LOD - NativeContext::MIN_LOD) /
                                                  (GLfloat) NativeContext::LOD_ANIMATION_FRAMES;
+
+        static constexpr GLint CONTRASTING_COLOR_ANIMATION_FRAMES = 60;
 
         NativeContext(EGLDisplay display,
                       EGLConfig config,
@@ -588,18 +597,34 @@ void main() {
         }
 
     public:
-        [[nodiscard]] GLboolean IsAnimating() const {
-            return currentAnimationFrame > -1 &&
-                   currentAnimationFrame < NativeContext::LOD_ANIMATION_FRAMES;
+        [[nodiscard]] GLboolean IsAnimatingContrastingColor() const {
+            return currentContrastingColorAnimationFrame
+                   < NativeContext::CONTRASTING_COLOR_ANIMATION_FRAMES;
         }
 
-        void AnimateValues() {
+        void AnimateContrastingColor() {
+            auto fraction = (GLfloat) (currentContrastingColorAnimationFrame + 1) /
+                            (GLfloat) NativeContext::CONTRASTING_COLOR_ANIMATION_FRAMES;
+            contrastingRed = (targetContrastingRed - contrastingRed) * fraction + contrastingRed;
+            contrastingGreen =
+                    (targetContrastingGreen - contrastingGreen) * fraction + contrastingGreen;
+            contrastingBlue =
+                    (targetContrastingBlue - contrastingBlue) * fraction + contrastingBlue;
+            ++currentContrastingColorAnimationFrame;
+        }
+
+        [[nodiscard]] GLboolean IsAnimatingLod() const {
+            return currentLodAnimationFrame > -1 &&
+                   currentLodAnimationFrame < NativeContext::LOD_ANIMATION_FRAMES;
+        }
+
+        void AnimateLod() {
             if (blurEnabled) {
                 if (lod < NativeContext::MAX_LOD) lod += NativeContext::LOD_INCREMENT;
-                ++currentAnimationFrame;
+                ++currentLodAnimationFrame;
             } else {
                 if (lod > NativeContext::MIN_LOD) lod -= NativeContext::LOD_INCREMENT;
-                --currentAnimationFrame;
+                --currentLodAnimationFrame;
             }
         }
 
@@ -1051,19 +1076,23 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     CHECK_GL(glClear(GL_STENCIL_BUFFER_BIT));
     CHECK_GL(glDisable(GL_STENCIL_TEST));
 
-    if (nativeContext->blurEnabled || nativeContext->IsAnimating()) {
-        if (nativeContext->IsAnimating()) nativeContext->AnimateValues();
+    if (nativeContext->blurEnabled || nativeContext->IsAnimatingLod()) {
+        if (nativeContext->IsAnimatingLod()) nativeContext->AnimateLod();
         nativeContext->DrawBlur(vertTransformArray, texTransformArray, width, height);
     } else {
         nativeContext->DrawNoBlur(vertTransformArray, texTransformArray, width, height, 0, 0, .0f);
     }
 
-    if (!nativeContext->blurEnabled || nativeContext->IsAnimating()) {
+    if (!nativeContext->blurEnabled || nativeContext->IsAnimatingLod()) {
         GLfloat *rectsCoordinates =
                 jrectsLength == 0
                 ? nullptr
                 : env->GetFloatArrayElements(jrectsCoordinates, nullptr);
         if (rectsCoordinates != nullptr) {
+            if (nativeContext->IsAnimatingContrastingColor()) {
+                nativeContext->AnimateContrastingColor();
+            }
+
             nativeContext->DrawBlurredRects(vertTransformArray, texTransformArray,
                                             rectsCoordinates, jrectsLength,
                                             width, height);
@@ -1108,19 +1137,19 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setBlurEnabled(
         JNIEnv *env, jobject clazz, jlong context, jboolean enabled, jboolean animated) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
     nativeContext->blurEnabled = enabled;
-    if (enabled && nativeContext->currentAnimationFrame == -1) {
+    if (enabled && nativeContext->currentLodAnimationFrame == -1) {
         if (animated) {
-            nativeContext->currentAnimationFrame = 0;
+            nativeContext->currentLodAnimationFrame = 0;
         } else {
-            nativeContext->currentAnimationFrame = NativeContext::LOD_ANIMATION_FRAMES;
+            nativeContext->currentLodAnimationFrame = NativeContext::LOD_ANIMATION_FRAMES;
             nativeContext->lod = NativeContext::MAX_LOD;
         }
     } else if (!enabled &&
-               nativeContext->currentAnimationFrame == NativeContext::LOD_ANIMATION_FRAMES) {
+               nativeContext->currentLodAnimationFrame == NativeContext::LOD_ANIMATION_FRAMES) {
         if (animated) {
-            nativeContext->currentAnimationFrame = NativeContext::LOD_ANIMATION_FRAMES - 1;
+            nativeContext->currentLodAnimationFrame = NativeContext::LOD_ANIMATION_FRAMES - 1;
         } else {
-            nativeContext->currentAnimationFrame = -1;
+            nativeContext->currentLodAnimationFrame = -1;
             nativeContext->lod = NativeContext::MIN_LOD;
         }
     }
@@ -1131,9 +1160,18 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setContrastingColor(
         JNIEnv *env, jobject clazz, jlong context,
         jfloat red, jfloat green, jfloat blue) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
-    nativeContext->contrastingRed = red;
-    nativeContext->contrastingGreen = green;
-    nativeContext->contrastingBlue = blue;
+    nativeContext->targetContrastingRed = red;
+    nativeContext->targetContrastingGreen = green;
+    nativeContext->targetContrastingBlue = blue;
+    if (nativeContext->contrastingRed == -1.f
+        && nativeContext->contrastingGreen == -1.f
+        && nativeContext->contrastingBlue == -1.f) {
+        nativeContext->contrastingRed = red;
+        nativeContext->contrastingGreen = green;
+        nativeContext->contrastingBlue = blue;
+    } else {
+        nativeContext->currentContrastingColorAnimationFrame = 0;
+    }
 }
 
 JNIEXPORT void JNICALL

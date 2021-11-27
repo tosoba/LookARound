@@ -225,22 +225,24 @@ class CameraFragment :
                         .initCamera(
                             lifecycleOwner = this@CameraFragment,
                             rotation = rotation,
-                            screenSize = requireContext().getScreenSize()
+                            screenSize = requireContext().getScreenSize(),
+                            imageAnalysisResolutionDivisor = 15
                         )
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
                 imageFlow
                     .flowOn(Dispatchers.Default)
-                    .debounce(1_000)
+                    .debounce(1_000L)
                     .map(ImageProxy::bitmap::get)
                     .filterNotNull()
                     .map { bitmap -> Palette.from(bitmap).generate().dominantSwatch }
                     .filterNotNull()
-                    .collect { swatch ->
-                        val contrast = colorContrastingTo(swatch.rgb)
+                    .map { swatch -> colorContrastingTo(swatch.rgb) }
+                    .distinctUntilChanged()
+                    .collect { contrastingColor ->
                         openGLRenderer.setContrastingColor(
-                            red = Color.red(contrast),
-                            green = Color.green(contrast),
-                            blue = Color.blue(contrast)
+                            red = Color.red(contrastingColor),
+                            green = Color.green(contrastingColor),
+                            blue = Color.blue(contrastingColor)
                         )
                     }
             } catch (ex: Exception) {
