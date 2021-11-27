@@ -127,7 +127,7 @@ class PlaceListFragment :
                     modifier = Modifier.padding(horizontal = 10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    item { Spacer(Modifier.height(112f.dp)) }
+                    item { Spacer(Modifier.height(112.dp)) }
                     items(
                         markers.value.chunked(
                             if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2

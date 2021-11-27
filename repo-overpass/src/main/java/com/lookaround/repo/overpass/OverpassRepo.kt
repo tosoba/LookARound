@@ -77,7 +77,7 @@ constructor(
                 val (input, lastSearchedAt) = entity
                 SearchAroundDTO(
                     id = entity.id,
-                    key = input.key,
+                    value = input.value,
                     lat = input.lat,
                     lng = input.lng,
                     lastSearchedAt = lastSearchedAt

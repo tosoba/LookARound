@@ -1,5 +1,6 @@
 package com.lookaround.ui.recent.searches
 
+import com.lookaround.core.android.model.LocationFactory
 import com.lookaround.core.android.model.ParcelableList
 import com.lookaround.core.android.model.Ready
 import com.lookaround.core.model.AutocompleteSearchDTO
@@ -18,8 +19,9 @@ object LoadingSearchesUpdate : (RecentSearchesState) -> RecentSearchesState {
         RecentSearchesState(searches = state.searches.copyWithLoadingInProgress)
 }
 
-data class SearchesLoadedUpdate(private val searches: List<SearchDTO>) :
-    (RecentSearchesState) -> RecentSearchesState {
+data class SearchesLoadedUpdate(
+    private val searches: List<SearchDTO>,
+) : (RecentSearchesState) -> RecentSearchesState {
     override fun invoke(state: RecentSearchesState): RecentSearchesState =
         RecentSearchesState(
             searches =
@@ -31,13 +33,28 @@ data class SearchesLoadedUpdate(private val searches: List<SearchDTO>) :
                                     RecentSearchModel(
                                         id = dto.id,
                                         label = dto.query,
-                                        type = RecentSearchModel.Type.AUTOCOMPLETE
+                                        type = RecentSearchModel.Type.AUTOCOMPLETE,
+                                        location =
+                                            if (dto.priorityLat != null && dto.priorityLon != null
+                                            ) {
+                                                LocationFactory.create(
+                                                    latitude = dto.priorityLat!!,
+                                                    longitude = dto.priorityLon!!
+                                                )
+                                            } else {
+                                                null
+                                            }
                                     )
                                 is SearchAroundDTO ->
                                     RecentSearchModel(
                                         id = dto.id,
-                                        label = dto.key,
-                                        type = RecentSearchModel.Type.AROUND
+                                        label = dto.value,
+                                        type = RecentSearchModel.Type.AROUND,
+                                        location =
+                                            LocationFactory.create(
+                                                latitude = dto.lat,
+                                                longitude = dto.lng
+                                            )
                                     )
                             }
                         }

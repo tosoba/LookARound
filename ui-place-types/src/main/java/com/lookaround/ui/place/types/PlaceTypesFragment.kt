@@ -45,7 +45,7 @@ class PlaceTypesFragment : Fragment() {
             setContent {
                 LookARoundTheme {
                     LazyColumn {
-                        item { Spacer(Modifier.height(112f.dp)) }
+                        item { Spacer(Modifier.height(112.dp)) }
                         itemsIndexed(
                             listOf(
                                 PlaceTypeGroup(

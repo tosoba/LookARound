@@ -15,8 +15,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.model.INamedLocation
 import com.lookaround.core.android.view.composable.LookARoundCard
-import com.lookaround.core.android.view.composable.PlaceItemDistanceText
-import com.lookaround.core.android.view.composable.PlaceItemNameText
+import com.lookaround.core.android.view.composable.ItemDistanceText
+import com.lookaround.core.android.view.composable.ItemNameText
 import com.lookaround.core.android.view.composable.ShimmerAnimation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
@@ -44,7 +44,7 @@ internal fun PlaceMapListItem(
     val userLocationState = userLocationFlow.collectAsState(initial = null)
 
     LookARoundCard(
-        backgroundColor = Color.White.copy(alpha = .5f),
+        backgroundColor = Color.White.copy(alpha = .75f),
         elevation = 0.dp,
         modifier = modifier
     ) {
@@ -59,11 +59,11 @@ internal fun PlaceMapListItem(
                 )
             }
                 ?: run { ShimmerAnimation(bitmapModifier) }
-            PlaceItemNameText(point.name, modifier = Modifier.padding(5.dp))
+            ItemNameText(point.name, modifier = Modifier.padding(5.dp))
             userLocationState.value?.let { userLocation ->
-                PlaceItemDistanceText(
-                    point = point,
-                    location = userLocation,
+                ItemDistanceText(
+                    location1 = point.location,
+                    location2 = userLocation,
                     modifier = Modifier.padding(5.dp)
                 )
             }

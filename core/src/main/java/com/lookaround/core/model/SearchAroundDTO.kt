@@ -4,7 +4,7 @@ import java.util.*
 
 data class SearchAroundDTO(
     override val id: Long,
-    val key: String,
+    val value: String,
     val lat: Double,
     val lng: Double,
     override val lastSearchedAt: Date

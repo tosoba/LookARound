@@ -9,6 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -22,21 +23,17 @@ import kotlinx.coroutines.flow.Flow
 fun PlaceItem(point: INamedLocation, locationFlow: Flow<Location>, modifier: Modifier = Modifier) {
     LookARoundCard(modifier = modifier) {
         Column(modifier = Modifier.padding(5.dp)) {
-            PlaceItemNameText(point.name)
+            ItemNameText(point.name)
             val location = locationFlow.collectAsState(null).value
-            if (location != null) PlaceItemDistanceText(point, location)
+            if (location != null) ItemDistanceText(point.location, location)
         }
     }
 }
 
 @Composable
-fun PlaceItemDistanceText(
-    point: INamedLocation,
-    location: Location,
-    modifier: Modifier = Modifier
-) {
+fun ItemDistanceText(location1: Location, location2: Location, modifier: Modifier = Modifier) {
     Text(
-        text = point.location.formattedDistanceTo(location),
+        text = location1.formattedDistanceTo(location2),
         style = MaterialTheme.typography.subtitle2,
         color = LookARoundTheme.colors.textSecondary,
         modifier = Modifier.heightIn(min = 16.dp).wrapContentHeight() then modifier
@@ -44,7 +41,7 @@ fun PlaceItemDistanceText(
 }
 
 @Composable
-fun PlaceItemNameText(name: String, modifier: Modifier = Modifier) {
+fun ItemNameText(name: String, modifier: Modifier = Modifier) {
     Text(
         text = name,
         style = MaterialTheme.typography.subtitle1,
@@ -54,7 +51,7 @@ fun PlaceItemNameText(name: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun PlaceInfoItem(text: String, color: Color, modifier: Modifier = Modifier) {
+fun InfoItem(text: String, color: Color, modifier: Modifier = Modifier) {
     LookARoundCard(modifier) {
         Text(
             text,
