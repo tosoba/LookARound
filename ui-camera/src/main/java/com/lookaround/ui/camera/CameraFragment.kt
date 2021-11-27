@@ -160,19 +160,20 @@ class CameraFragment :
                     .states
                     .map(MainState::markers::get)
                     .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
-                    .map { it.value.size }
-            ) { markersDrawn, firstMarkerIndex, markersSize ->
-                Triple(markersDrawn, firstMarkerIndex, markersSize)
-            }
-            .onEach { (markersDrawn, firstMarkerIndex, markersSize) ->
+                    .map { it.value.size },
+                cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
+            ) { markersDrawn, firstMarkerIndex, markersSize, cameraObscured ->
                 val (currentPage, maxPage) = markersDrawn
-                onMarkersDrawn(
+                CameraMarkersDrawnViewUpdate(
                     firstMarkerIndex = firstMarkerIndex,
                     markersSize = markersSize,
                     currentPage = currentPage,
-                    maxPage = maxPage
+                    maxPage = maxPage,
+                    cameraObscured = cameraObscured
                 )
             }
+            .distinctUntilChanged()
+            .onEach { onMarkersDrawn(it) }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         cameraMarkerRenderer
@@ -304,24 +305,20 @@ class CameraFragment :
         markers: Loadable<ParcelableSortedSet<Marker>>,
         firstMarkerIndex: Int
     ) {
-        when (markers) {
-            is Empty -> {
-                arCameraPageUpBtn.visibility = View.GONE
-                arCameraPageDownBtn.visibility = View.GONE
-            }
-            is WithValue -> {
-                val lastMarkerIndexExclusive =
-                    min(markers.value.size, firstMarkerIndex + FIRST_MARKER_INDEX_DIFF)
-                val arMarkers =
-                    markers
-                        .value
-                        .map(::SimpleARMarker)
-                        .subList(firstMarkerIndex, lastMarkerIndexExclusive)
-                cameraMarkerRenderer.setMarkers(arMarkers)
-                arCameraView.markers = arMarkers
-                arRadarView.markers =
-                    markers.value.map(::SimpleARMarker).take(lastMarkerIndexExclusive)
-            }
+        if (markers is Empty) {
+            arCameraPageUpBtn.visibility = View.GONE
+            arCameraPageDownBtn.visibility = View.GONE
+        } else if (markers is WithValue) {
+            val lastMarkerIndexExclusive =
+                min(markers.value.size, firstMarkerIndex + FIRST_MARKER_INDEX_DIFF)
+            val arMarkers =
+                markers
+                    .value
+                    .map(::SimpleARMarker)
+                    .subList(firstMarkerIndex, lastMarkerIndexExclusive)
+            cameraMarkerRenderer.setMarkers(arMarkers)
+            arCameraView.markers = arMarkers
+            arRadarView.markers = markers.value.map(::SimpleARMarker).take(lastMarkerIndexExclusive)
         }
     }
 
@@ -413,19 +410,10 @@ class CameraFragment :
             else View.GONE
     }
 
-    private fun FragmentCameraBinding.onMarkersDrawn(
-        firstMarkerIndex: Int,
-        markersSize: Int,
-        currentPage: Int,
-        maxPage: Int,
-    ) {
-        if (markersSize == 0) {
-            arCameraPageUpBtn.visibility = View.GONE
-            arCameraPageDownBtn.visibility = View.GONE
-        } else {
-            arCameraPageUpBtn.visibility = View.VISIBLE
-            arCameraPageDownBtn.visibility = View.VISIBLE
-        }
+    private fun FragmentCameraBinding.onMarkersDrawn(update: CameraMarkersDrawnViewUpdate) {
+        val (firstMarkerIndex, markersSize, currentPage, maxPage, cameraObscured) = update
+        if (markersSize == 0) arCameraPageViewsGroup.visibility = View.GONE
+        else if (!cameraObscured) arCameraPageViewsGroup.visibility = View.VISIBLE
         arCameraPageUpBtn.isEnabled =
             firstMarkerIndex * FIRST_MARKER_INDEX_DIFF + FIRST_MARKER_INDEX_DIFF < markersSize ||
                 currentPage < maxPage

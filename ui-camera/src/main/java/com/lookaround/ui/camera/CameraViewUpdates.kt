@@ -5,7 +5,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.model.*
-import com.lookaround.ui.camera.model.CameraARDisabledViewUpdate
 import com.lookaround.ui.camera.model.CameraPreviewState
 import com.lookaround.ui.camera.model.CameraSignal
 import com.lookaround.ui.camera.model.CameraState
@@ -92,9 +91,16 @@ internal fun arDisabledUpdates(
             anyPermissionDenied || locationDisabled || pitchOutsideLimit
         }
 
+internal data class CameraARDisabledViewUpdate(
+    val anyPermissionDenied: Boolean,
+    val locationDisabled: Boolean,
+    val pitchOutsideRequiredLimit: Boolean,
+    val cameraInitializationFailure: Boolean,
+)
+
 @FlowPreview
 @ExperimentalCoroutinesApi
-fun cameraViewObscuredUpdates(
+internal fun cameraViewObscuredUpdates(
     mainViewModel: MainViewModel,
     cameraViewModel: CameraViewModel
 ): Flow<Boolean> =
@@ -123,7 +129,10 @@ fun cameraViewObscuredUpdates(
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-fun cameraTouchUpdates(mainViewModel: MainViewModel, cameraViewModel: CameraViewModel): Flow<Unit> =
+internal fun cameraTouchUpdates(
+    mainViewModel: MainViewModel,
+    cameraViewModel: CameraViewModel
+): Flow<Unit> =
     cameraViewModel
         .signals
         .filterIsInstance<CameraSignal.CameraTouch>()
@@ -135,7 +144,7 @@ fun cameraTouchUpdates(mainViewModel: MainViewModel, cameraViewModel: CameraView
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-fun markerUpdates(
+internal fun markerUpdates(
     mainViewModel: MainViewModel,
     cameraViewModel: CameraViewModel
 ): Flow<Pair<Loadable<ParcelableSortedSet<Marker>>, Int>> =
@@ -151,5 +160,13 @@ fun markerUpdates(
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-val CameraViewModel.radarEnlargedUpdates: Flow<Boolean>
+internal val CameraViewModel.radarEnlargedUpdates: Flow<Boolean>
     get() = states.map(CameraState::radarEnlarged::get).distinctUntilChanged().debounce(250L)
+
+internal data class CameraMarkersDrawnViewUpdate(
+    val firstMarkerIndex: Int,
+    val markersSize: Int,
+    val currentPage: Int,
+    val maxPage: Int,
+    val cameraObscured: Boolean
+)

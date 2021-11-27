@@ -38,8 +38,6 @@ android {
         }
     }
 
-    buildFeatures { compose = true }
-
     composeOptions { kotlinCompilerExtensionVersion = "1.1.0-beta02" }
 
     compileOptions {
@@ -51,7 +49,10 @@ android {
         jvmTarget = "1.8"
     }
 
-    buildFeatures { viewBinding = true }
+    buildFeatures {
+        compose = true
+        viewBinding = true
+    }
 }
 
 dependencies {
