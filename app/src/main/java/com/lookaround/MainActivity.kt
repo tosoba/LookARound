@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
@@ -24,10 +23,7 @@ import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.map.MapFragment
-import com.lookaround.ui.place.list.PlaceListFragment
 import com.lookaround.ui.place.list.PlaceMapItemActionController
-import com.lookaround.ui.place.types.PlaceTypesFragment
-import com.lookaround.ui.recent.searches.RecentSearchesFragment
 import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.SearchBar
 import com.lookaround.ui.search.composable.rememberSearchBarState
@@ -55,6 +51,9 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
     private val bottomSheetBehavior by
         lazy(LazyThreadSafetyMode.NONE) { BottomSheetBehavior.from(binding.bottomSheetViewPager) }
 
+    private val bottomSheetViewPagerAdapter by
+        lazy(LazyThreadSafetyMode.NONE) { MainViewPagerAdapter(this@MainActivity) }
+
     private var placesStatusLoadingSnackbar: Snackbar? = null
 
     private val onBottomNavItemSelectedListener by
@@ -68,12 +67,14 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
                 }
 
                 binding.bottomSheetViewPager.currentItem =
-                    when (menuItem.itemId) {
-                        R.id.action_place_types -> 0
-                        R.id.action_place_list -> 1
-                        R.id.action_recent_searches -> 2
-                        else -> throw IllegalArgumentException()
-                    }
+                    bottomSheetViewPagerAdapter.fragmentFactories.indexOf(
+                        when (menuItem.itemId) {
+                            R.id.action_place_types -> MainFragmentFactory.PLACE_TYPES
+                            R.id.action_place_list -> MainFragmentFactory.PLACE_LIST
+                            R.id.action_recent_searches -> MainFragmentFactory.RECENT_SEARCHES
+                            else -> throw IllegalArgumentException()
+                        }
+                    )
 
                 if (latestARState == ARState.ENABLED) {
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -221,30 +222,36 @@ class MainActivity : AppCompatActivity(), AREventsListener, PlaceMapItemActionCo
         )
 
         with(binding.bottomSheetViewPager) {
-            val fragments =
-                arrayOf(PlaceTypesFragment(), PlaceListFragment(), RecentSearchesFragment())
-            offscreenPageLimit = fragments.size - 1
-            adapter =
-                object : FragmentStateAdapter(this@MainActivity) {
-                    override fun getItemCount(): Int = fragments.size
-                    override fun createFragment(position: Int): Fragment = fragments[position]
-                }
+            offscreenPageLimit = MainFragmentFactory.values().size - 1
+            adapter = bottomSheetViewPagerAdapter
             registerOnPageChangeCallback(
                 object : ViewPager2.OnPageChangeCallback() {
                     override fun onPageSelected(position: Int) {
                         if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) return
                         binding.bottomNavigationView.selectedItemId =
-                            when (position) {
-                                0 -> R.id.action_place_types
-                                1 -> R.id.action_place_list
-                                2 -> R.id.action_recent_searches
-                                else -> throw IllegalArgumentException()
+                            when (bottomSheetViewPagerAdapter.fragmentFactories[position]) {
+                                MainFragmentFactory.PLACE_TYPES -> R.id.action_place_types
+                                MainFragmentFactory.PLACE_LIST -> R.id.action_place_list
+                                MainFragmentFactory.RECENT_SEARCHES -> R.id.action_recent_searches
                             }
                     }
                 }
             )
             disableNestedScrolling()
         }
+
+        combine(
+                viewModel.placesBottomNavItemVisibilityUpdates,
+                viewModel.recentSearchesBottomNavItemVisibilityUpdates
+            ) { placesVisible, recentSearchesVisible ->
+                val factories = mutableListOf(MainFragmentFactory.PLACE_TYPES)
+                if (placesVisible) factories.add(MainFragmentFactory.PLACE_LIST)
+                if (recentSearchesVisible) factories.add(MainFragmentFactory.RECENT_SEARCHES)
+                factories
+            }
+            .distinctUntilChanged()
+            .onEach(bottomSheetViewPagerAdapter::fragmentFactories::set)
+            .launchIn(lifecycleScope)
 
         viewModel
             .bottomSheetStateUpdates

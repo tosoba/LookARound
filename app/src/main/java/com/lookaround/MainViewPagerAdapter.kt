@@ -12,27 +12,28 @@ import kotlinx.coroutines.FlowPreview
 @FlowPreview
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
-class MainViewPagerAdapter(
+internal class MainViewPagerAdapter(
     activity: FragmentActivity,
-    items: List<MainFragment>,
+    fragmentFactories: List<MainFragmentFactory> = emptyList(),
 ) : FragmentStateAdapter(activity) {
-    var items: List<MainFragment> = items
+    var fragmentFactories: List<MainFragmentFactory> = fragmentFactories
         @MainThread
         set(value) {
-            val callback = PagerDiffUtil(field, value)
+            val callback = DiffUtilCallback(field, value)
             val diff = DiffUtil.calculateDiff(callback)
             field = value
             diff.dispatchUpdatesTo(this)
         }
 
-    override fun createFragment(position: Int): Fragment = items[position].newInstance()
-    override fun getItemCount() = items.size
-    override fun getItemId(position: Int): Long = items[position].ordinal.toLong()
-    override fun containsItem(itemId: Long): Boolean = items.any { it.ordinal.toLong() == itemId }
+    override fun createFragment(position: Int): Fragment = fragmentFactories[position].newInstance()
+    override fun getItemCount() = fragmentFactories.size
+    override fun getItemId(position: Int): Long = fragmentFactories[position].ordinal.toLong()
+    override fun containsItem(itemId: Long): Boolean =
+        fragmentFactories.any { it.ordinal.toLong() == itemId }
 
-    class PagerDiffUtil(
-        private val oldList: List<MainFragment>,
-        private val newList: List<MainFragment>
+    private class DiffUtilCallback(
+        private val oldList: List<MainFragmentFactory>,
+        private val newList: List<MainFragmentFactory>
     ) : DiffUtil.Callback() {
         override fun getOldListSize() = oldList.size
         override fun getNewListSize() = newList.size

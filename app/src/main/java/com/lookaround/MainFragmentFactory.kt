@@ -11,7 +11,7 @@ import kotlinx.coroutines.FlowPreview
 @FlowPreview
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
-enum class MainFragment(internal val newInstance: () -> Fragment) {
+internal enum class MainFragmentFactory(val newInstance: () -> Fragment) {
     PLACE_TYPES({ PlaceTypesFragment() }),
     PLACE_LIST({ PlaceListFragment() }),
     RECENT_SEARCHES({ RecentSearchesFragment() })
