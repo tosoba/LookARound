@@ -10,6 +10,7 @@ import com.lookaround.repo.overpass.dao.SearchAroundDao
 import com.lookaround.repo.overpass.entity.SearchAroundInput
 import com.lookaround.repo.overpass.mapper.NodeEntityMapper
 import dagger.Reusable
+import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -90,6 +91,8 @@ constructor(
     override val searchesAroundCount: Flow<Int>
         get() = dao.selectSearchesCount()
 
-    override suspend fun searchResults(searchId: Long): List<NodeDTO> =
-        dao.selectSearchResults(searchAroundId = searchId).map(nodeEntityMapper::toDTO)
+    override suspend fun searchResults(searchId: Long): List<NodeDTO> {
+        dao.updateSearchAroundLastSearchedAt(searchId, Date())
+        return dao.selectSearchResults(searchAroundId = searchId).map(nodeEntityMapper::toDTO)
+    }
 }

@@ -4,6 +4,7 @@ import androidx.room.*
 import com.lookaround.repo.photon.entity.AutocompleteSearchEntity
 import com.lookaround.repo.photon.entity.AutocompleteSearchResultEntity
 import com.lookaround.repo.photon.entity.PointEntity
+import java.util.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -82,4 +83,7 @@ interface AutocompleteSearchDao {
         WHERE acsr.autocomplete_search_id = :autocompleteSearchId"""
     )
     suspend fun selectSearchResults(autocompleteSearchId: Long): List<PointEntity>
+
+    @Query("UPDATE autocomplete_search SET last_searched_at = :date WHERE id = :searchId")
+    suspend fun updateAutocompleteSearchLastSearchedAt(searchId: Long, date: Date)
 }

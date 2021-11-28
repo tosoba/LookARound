@@ -4,6 +4,7 @@ import androidx.room.*
 import com.lookaround.repo.overpass.entity.NodeEntity
 import com.lookaround.repo.overpass.entity.SearchAroundEntity
 import com.lookaround.repo.overpass.entity.SearchAroundResultEntity
+import java.util.*
 import kotlinx.coroutines.flow.Flow
 import nice.fontaine.overpass.models.query.settings.Filter
 
@@ -98,4 +99,7 @@ interface SearchAroundDao {
         WHERE sar.search_around_id = :searchAroundId"""
     )
     suspend fun selectSearchResults(searchAroundId: Long): List<NodeEntity>
+
+    @Query("UPDATE search_around SET last_searched_at = :date WHERE id = :searchId")
+    suspend fun updateSearchAroundLastSearchedAt(searchId: Long, date: Date)
 }

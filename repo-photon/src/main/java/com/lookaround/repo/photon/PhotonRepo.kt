@@ -8,6 +8,7 @@ import com.lookaround.core.repo.IAutocompleteSearchRepo
 import com.lookaround.repo.photon.dao.AutocompleteSearchDao
 import com.lookaround.repo.photon.entity.AutocompleteSearchInput
 import com.lookaround.repo.photon.mapper.PointEntityMapper
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -51,6 +52,9 @@ constructor(
     override val autocompleteSearchesCount: Flow<Int>
         get() = dao.selectSearchesCount()
 
-    override suspend fun searchResults(searchId: Long): List<PointDTO> =
-        dao.selectSearchResults(autocompleteSearchId = searchId).map(pointEntityMapper::toDTO)
+    override suspend fun searchResults(searchId: Long): List<PointDTO> {
+        dao.updateAutocompleteSearchLastSearchedAt(searchId, Date())
+        return dao.selectSearchResults(autocompleteSearchId = searchId)
+            .map(pointEntityMapper::toDTO)
+    }
 }
