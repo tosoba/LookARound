@@ -9,7 +9,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -51,15 +50,15 @@ fun ItemNameText(name: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun InfoItem(text: String, color: Color, modifier: Modifier = Modifier) {
+fun InfoItemCard(text: String, color: Color, modifier: Modifier = Modifier) {
     LookARoundCard(modifier) {
-        Text(
-            text,
-            style = MaterialTheme.typography.subtitle2,
-            color = color,
-            modifier = Modifier.padding(10.dp).fillMaxWidth()
-        )
+        InfoItemText(text, color, modifier = Modifier.padding(10.dp).fillMaxWidth())
     }
+}
+
+@Composable
+fun InfoItemText(text: String, color: Color, modifier: Modifier = Modifier) {
+    Text(text, style = MaterialTheme.typography.subtitle2, color = color, modifier = modifier)
 }
 
 @Composable

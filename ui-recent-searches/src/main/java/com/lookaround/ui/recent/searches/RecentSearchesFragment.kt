@@ -15,12 +15,14 @@ import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import com.github.marlonlom.utilities.timeago.TimeAgo
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.ext.assistedViewModel
@@ -28,10 +30,7 @@ import com.lookaround.core.android.model.Empty
 import com.lookaround.core.android.model.LoadingFirst
 import com.lookaround.core.android.model.LoadingInProgress
 import com.lookaround.core.android.model.WithValue
-import com.lookaround.core.android.view.composable.InfiniteListHandler
-import com.lookaround.core.android.view.composable.ItemDistanceText
-import com.lookaround.core.android.view.composable.ItemNameText
-import com.lookaround.core.android.view.composable.LookARoundCard
+import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainSignal
@@ -97,48 +96,7 @@ class RecentSearchesFragment : Fragment() {
                     LazyColumn(state = lazyListState) {
                         item { Spacer(Modifier.height(112.dp)) }
                         items(recentSearches.value) { recentSearch ->
-                            LookARoundCard(
-                                backgroundColor = Color.White.copy(alpha = .75f),
-                                elevation = 0.dp,
-                                modifier = Modifier.padding(10.dp).fillMaxWidth().clickable {}
-                            ) {
-                                Column {
-                                    ItemNameText(
-                                        name =
-                                            recentSearch.label.replaceFirstChar {
-                                                if (it.isLowerCase()) {
-                                                    it.titlecase(Locale.getDefault())
-                                                } else {
-                                                    it.toString()
-                                                }
-                                            },
-                                        modifier = Modifier.padding(5.dp)
-                                    )
-                                    if (recentSearch.location != null) {
-                                        Row(
-                                            modifier = Modifier.padding(5.dp).fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            ItemDistanceText(
-                                                location1 = locationState.value,
-                                                location2 = recentSearch.location
-                                            )
-                                            when (recentSearch.type) {
-                                                RecentSearchModel.Type.AROUND ->
-                                                    Icon(
-                                                        imageVector = Icons.Outlined.Category,
-                                                        contentDescription = "Place type search"
-                                                    )
-                                                RecentSearchModel.Type.AUTOCOMPLETE ->
-                                                    Icon(
-                                                        imageVector = Icons.Outlined.Search,
-                                                        contentDescription = "Text search"
-                                                    )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            RecentSearchItem(recentSearch, locationState.value)
                         }
                         if (recentSearches is LoadingInProgress) {
                             item { CircularProgressIndicator() }
@@ -151,4 +109,68 @@ class RecentSearchesFragment : Fragment() {
                 }
             }
         }
+
+    @Composable
+    private fun RecentSearchItem(recentSearch: RecentSearchModel, location: Location) {
+        LookARoundCard(
+            backgroundColor = Color.White.copy(alpha = .75f),
+            elevation = 0.dp,
+            modifier = Modifier.padding(10.dp).fillMaxWidth().clickable {}
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.padding(5.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    ItemNameText(
+                        name =
+                            recentSearch.label.replaceFirstChar {
+                                if (it.isLowerCase()) {
+                                    it.titlecase(Locale.getDefault())
+                                } else {
+                                    it.toString()
+                                }
+                            },
+                        modifier = Modifier.padding(5.dp)
+                    )
+                    when (recentSearch.type) {
+                        RecentSearchModel.Type.AROUND ->
+                            Icon(
+                                imageVector = Icons.Outlined.Category,
+                                contentDescription = "Place type search",
+                                modifier =
+                                    Modifier.defaultMinSize(minWidth = 10.dp, minHeight = 10.dp)
+                                        .padding(5.dp)
+                            )
+                        RecentSearchModel.Type.AUTOCOMPLETE ->
+                            Icon(
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = "Text search",
+                                modifier =
+                                    Modifier.defaultMinSize(minWidth = 10.dp, minHeight = 10.dp)
+                                        .padding(5.dp)
+                            )
+                    }
+                }
+                if (recentSearch.location != null) {
+                    Row(
+                        modifier = Modifier.padding(5.dp).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        ItemDistanceText(
+                            location1 = location,
+                            location2 = recentSearch.location,
+                            modifier = Modifier.padding(5.dp)
+                        )
+                        InfoItemText(
+                            text = TimeAgo.using(recentSearch.lastSearchedAt.time),
+                            color = LookARoundTheme.colors.textSecondary,
+                            modifier =
+                                Modifier.heightIn(min = 16.dp).wrapContentHeight().padding(5.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
 }

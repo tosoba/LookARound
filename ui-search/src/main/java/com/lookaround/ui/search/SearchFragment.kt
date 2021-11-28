@@ -20,7 +20,7 @@ import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.composable.ListTopSpacer
-import com.lookaround.core.android.view.composable.InfoItem
+import com.lookaround.core.android.view.composable.InfoItemCard
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
@@ -85,7 +85,7 @@ class SearchFragment : Fragment() {
                             is Empty -> {
                                 Column(modifier = Modifier.padding(horizontal = 10.dp)) {
                                     ListTopSpacer()
-                                    InfoItem(
+                                    InfoItemCard(
                                         requireContext().getString(R.string.search_places_nearby),
                                         color = LookARoundTheme.colors.textPrimary,
                                     )
@@ -123,7 +123,7 @@ class SearchFragment : Fragment() {
         if (items.isEmpty()) {
             Column(modifier) {
                 ListTopSpacer()
-                InfoItem(
+                InfoItemCard(
                     requireContext().getString(R.string.no_places_found),
                     color = LookARoundTheme.colors.error
                 )
@@ -144,7 +144,7 @@ class SearchFragment : Fragment() {
             is QueryTooShortExcecption -> {
                 Column(modifier) {
                     ListTopSpacer()
-                    InfoItem(
+                    InfoItemCard(
                         requireContext().getString(R.string.search_query_too_short),
                         color = LookARoundTheme.colors.error
                     )
@@ -154,7 +154,7 @@ class SearchFragment : Fragment() {
                 Column(modifier) {
                     ListTopSpacer()
                     // TODO: retry button?
-                    InfoItem(
+                    InfoItemCard(
                         requireContext().getString(R.string.places_loading_error_occurred),
                         color = LookARoundTheme.colors.error
                     )

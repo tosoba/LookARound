@@ -29,33 +29,35 @@ data class SearchesLoadedUpdate(
                     ParcelableList(
                         searches.map { dto ->
                             when (dto) {
-                                is AutocompleteSearchDTO ->
+                                is AutocompleteSearchDTO -> {
+                                    val (id, query, priorityLat, priorityLon, lastSearchedAt) = dto
                                     RecentSearchModel(
-                                        id = dto.id,
-                                        label = dto.query,
+                                        id = id,
+                                        label = query,
                                         type = RecentSearchModel.Type.AUTOCOMPLETE,
                                         location =
-                                            if (dto.priorityLat != null && dto.priorityLon != null
-                                            ) {
+                                            if (priorityLat != null && priorityLon != null) {
                                                 LocationFactory.create(
-                                                    latitude = dto.priorityLat!!,
-                                                    longitude = dto.priorityLon!!
+                                                    latitude = priorityLat,
+                                                    longitude = priorityLon
                                                 )
                                             } else {
                                                 null
-                                            }
+                                            },
+                                        lastSearchedAt = lastSearchedAt
                                     )
-                                is SearchAroundDTO ->
+                                }
+                                is SearchAroundDTO -> {
+                                    val (id, value, lat, lng, lastSearchedAt) = dto
                                     RecentSearchModel(
-                                        id = dto.id,
-                                        label = dto.value,
+                                        id = id,
+                                        label = value,
                                         type = RecentSearchModel.Type.AROUND,
                                         location =
-                                            LocationFactory.create(
-                                                latitude = dto.lat,
-                                                longitude = dto.lng
-                                            )
+                                            LocationFactory.create(latitude = lat, longitude = lng),
+                                        lastSearchedAt = lastSearchedAt
                                     )
+                                }
                             }
                         }
                     )
