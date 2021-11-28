@@ -5,7 +5,7 @@ import com.lookaround.core.model.NodeDTO
 import com.lookaround.core.model.SearchAroundDTO
 import kotlinx.coroutines.flow.Flow
 
-interface IPlacesRepo {
+interface ISearchAroundRepo {
     suspend fun attractionsAround(lat: Double, lng: Double, radiusInMeters: Float): List<NodeDTO>
 
     suspend fun placesOfTypeAround(
@@ -20,4 +20,6 @@ interface IPlacesRepo {
     fun recentSearchesAround(limit: Int): Flow<List<SearchAroundDTO>>
 
     val searchesAroundCount: Flow<Int>
+
+    suspend fun searchResults(searchId: Long): List<NodeDTO>
 }

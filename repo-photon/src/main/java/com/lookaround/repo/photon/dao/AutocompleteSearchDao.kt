@@ -75,4 +75,11 @@ interface AutocompleteSearchDao {
     fun selectSearches(limit: Int): Flow<List<AutocompleteSearchEntity>>
 
     @Query("SELECT COUNT(*) FROM autocomplete_search") fun selectSearchesCount(): Flow<Int>
+
+    @Query(
+        """SELECT p.* FROM point p 
+        INNER JOIN autocomplete_search_result acsr ON acsr.point_id = p.id 
+        WHERE acsr.autocomplete_search_id = :autocompleteSearchId"""
+    )
+    suspend fun selectSearchResults(autocompleteSearchId: Long): List<PointEntity>
 }

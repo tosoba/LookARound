@@ -74,7 +74,7 @@ class PlaceTypesFragment : Fragment() {
                         ) { index, group ->
                             PlaceTypeGroupItem(group, index) { placeType ->
                                 lifecycleScope.launch {
-                                    mainViewModel.intent(MainIntent.LoadPlaces(placeType))
+                                    mainViewModel.intent(MainIntent.GetPlacesOfType(placeType))
                                 }
                             }
                         }

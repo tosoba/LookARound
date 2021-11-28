@@ -91,4 +91,11 @@ interface SearchAroundDao {
     fun selectSearches(limit: Int): Flow<List<SearchAroundEntity>>
 
     @Query("SELECT COUNT(*) FROM search_around") fun selectSearchesCount(): Flow<Int>
+
+    @Query(
+        """SELECT n.* FROM node n 
+        INNER JOIN search_around_result sar ON sar.node_id = n.id 
+        WHERE sar.search_around_id = :searchAroundId"""
+    )
+    suspend fun selectSearchResults(searchAroundId: Long): List<NodeEntity>
 }

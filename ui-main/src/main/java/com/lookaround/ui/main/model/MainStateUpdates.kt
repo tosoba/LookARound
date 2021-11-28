@@ -3,42 +3,61 @@ package com.lookaround.ui.main.model
 import android.location.Location
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationUpdateFailureException
-import com.lookaround.core.android.model.Marker
-import com.lookaround.core.android.model.ParcelableSortedSet
-import com.lookaround.core.android.model.Ready
-import com.lookaround.core.android.model.WithValue
+import com.lookaround.core.android.model.*
 import com.lookaround.core.model.NodeDTO
+import com.lookaround.core.model.PointDTO
 import java.util.*
 
-object LoadingPlacesUpdate : (MainState) -> MainState {
+object LoadingSearchResultsUpdate : (MainState) -> MainState {
     override fun invoke(state: MainState): MainState =
         state.copy(markers = state.markers.copyWithLoadingInProgress)
 }
 
-data class PlacesErrorUpdate(private val throwable: Throwable) : (MainState) -> MainState {
+data class SearchErrorUpdate(private val throwable: Throwable) : (MainState) -> MainState {
     override fun invoke(state: MainState): MainState =
         state.copy(markers = state.markers.copyWithError(throwable))
 }
 
-data class PlacesLoadedUpdate(private val nodes: List<NodeDTO>) : (MainState) -> MainState {
+data class SearchAroundResultsLoadedUpdate(
+    private val nodes: List<NodeDTO>,
+) : (MainState) -> MainState {
     override fun invoke(state: MainState): MainState =
         state.copy(
             markers =
                 Ready(
                     ParcelableSortedSet(
-                        nodes.map(::Marker).toSortedSet { marker1, marker2 ->
-                            val userLocation = state.locationState
-                            if (userLocation !is WithValue<Location>) {
-                                throw IllegalStateException("User location does not have a value.")
-                            }
-                            marker1
-                                .location
-                                .distanceTo(userLocation.value)
-                                .compareTo(marker2.location.distanceTo(userLocation.value))
-                        }
+                        nodes.map(::Marker).toSetSortedByDistanceToUserLocation(state.locationState)
                     )
                 )
         )
+}
+
+data class AutocompleteSearchResultsLoadedUpdate(
+    private val points: List<PointDTO>,
+) : (MainState) -> MainState {
+    override fun invoke(state: MainState): MainState =
+        state.copy(
+            markers =
+                Ready(
+                    ParcelableSortedSet(
+                        points
+                            .map(::Marker)
+                            .toSetSortedByDistanceToUserLocation(state.locationState)
+                    )
+                )
+        )
+}
+
+private fun List<Marker>.toSetSortedByDistanceToUserLocation(
+    userLocation: Loadable<Location>
+): SortedSet<Marker> = toSortedSet { marker1, marker2 ->
+    if (userLocation !is WithValue<Location>) {
+        throw IllegalStateException("User location does not have a value.")
+    }
+    marker1
+        .location
+        .distanceTo(userLocation.value)
+        .compareTo(marker2.location.distanceTo(userLocation.value))
 }
 
 data class LocationLoadedUpdate(val location: Location) : (MainState) -> MainState {

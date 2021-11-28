@@ -1,8 +1,8 @@
 package com.lookaround.core.usecase
 
 import com.lookaround.core.model.SearchDTO
-import com.lookaround.core.repo.IPlacesAutocompleteRepo
-import com.lookaround.core.repo.IPlacesRepo
+import com.lookaround.core.repo.IAutocompleteSearchRepo
+import com.lookaround.core.repo.ISearchAroundRepo
 import dagger.Reusable
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
@@ -12,12 +12,12 @@ import kotlinx.coroutines.flow.combine
 class RecentSearchesFlow
 @Inject
 constructor(
-    private val placesRepo: IPlacesRepo,
-    private val autocompleteRepo: IPlacesAutocompleteRepo
+    private val searchAroundRepo: ISearchAroundRepo,
+    private val autocompleteSearchRepo: IAutocompleteSearchRepo
 ) {
     operator fun invoke(limit: Int): Flow<List<SearchDTO>> =
-        placesRepo.recentSearchesAround(limit).combine(
-                autocompleteRepo.recentAutocompleteSearches(limit)
+        searchAroundRepo.recentSearchesAround(limit).combine(
+                autocompleteSearchRepo.recentAutocompleteSearches(limit)
             ) { recentSearchesAround, recentAutocompleteSearches ->
             recentSearchesAround
                 .union(recentAutocompleteSearches)

@@ -5,22 +5,24 @@ import com.dropbox.android.external.store4.get
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.core.model.NodeDTO
 import com.lookaround.core.model.SearchAroundDTO
-import com.lookaround.core.repo.IPlacesRepo
+import com.lookaround.core.repo.ISearchAroundRepo
 import com.lookaround.repo.overpass.dao.SearchAroundDao
 import com.lookaround.repo.overpass.entity.SearchAroundInput
+import com.lookaround.repo.overpass.mapper.NodeEntityMapper
+import dagger.Reusable
 import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import nice.fontaine.overpass.models.query.settings.Filter
 
-@Singleton
+@Reusable
 class OverpassRepo
 @Inject
 constructor(
     private val store: Store<SearchAroundInput, List<NodeDTO>>,
-    private val dao: SearchAroundDao
-) : IPlacesRepo {
+    private val dao: SearchAroundDao,
+    private val nodeEntityMapper: NodeEntityMapper
+) : ISearchAroundRepo {
     override suspend fun attractionsAround(
         lat: Double,
         lng: Double,
@@ -87,4 +89,7 @@ constructor(
 
     override val searchesAroundCount: Flow<Int>
         get() = dao.selectSearchesCount()
+
+    override suspend fun searchResults(searchId: Long): List<NodeDTO> =
+        dao.selectSearchResults(searchAroundId = searchId).map(nodeEntityMapper::toDTO)
 }

@@ -7,6 +7,7 @@ import com.lookaround.repo.nominatim.mapper.AddressMapperImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import dagger.Reusable
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import fr.dudie.nominatim.client.JsonNominatimClient
@@ -22,7 +23,7 @@ abstract class NominatimModule {
     @Binds abstract fun geocodingRepo(nominatimRepo: NominatimRepo): IGeocodingRepo
 
     companion object {
-        @Provides @Singleton fun addressMapperImpl(): AddressMapperImpl = AddressMapperImpl()
+        @Provides @Reusable fun addressMapperImpl(): AddressMapperImpl = AddressMapperImpl()
 
         @Provides
         @Singleton

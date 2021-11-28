@@ -5,7 +5,7 @@ import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.model.IPlaceType
 
 sealed interface MainIntent {
-    data class LoadPlaces(val type: IPlaceType) : MainIntent
+    data class GetPlacesOfType(val type: IPlaceType) : MainIntent
 
     object LocationPermissionGranted : MainIntent
 
@@ -41,4 +41,7 @@ sealed interface MainIntent {
             if (state.selectedBottomNavigationViewItemId == itemId) state
             else state.copy(selectedBottomNavigationViewItemId = itemId)
     }
+
+    data class LoadSearchAroundResults(val searchId: Long) : MainIntent
+    data class LoadSearchAutocompleteResults(val searchId: Long) : MainIntent
 }

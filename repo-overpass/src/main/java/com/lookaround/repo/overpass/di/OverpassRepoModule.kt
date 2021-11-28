@@ -4,7 +4,7 @@ import android.content.Context
 import com.dropbox.android.external.store4.Store
 import com.lookaround.core.android.ext.buildRoom
 import com.lookaround.core.model.NodeDTO
-import com.lookaround.core.repo.IPlacesRepo
+import com.lookaround.core.repo.ISearchAroundRepo
 import com.lookaround.repo.overpass.OverpassDatabase
 import com.lookaround.repo.overpass.OverpassEndpoints
 import com.lookaround.repo.overpass.OverpassRepo
@@ -16,19 +16,20 @@ import com.lookaround.repo.overpass.mapper.NodeMapper
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import dagger.Reusable
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import javax.inject.Singleton
 
 @ExperimentalCoroutinesApi
 @FlowPreview
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class OverpassRepoModule {
-    @Binds abstract fun overpassRepo(overpassRepo: OverpassRepo): IPlacesRepo
+    @Binds abstract fun overpassRepo(overpassRepo: OverpassRepo): ISearchAroundRepo
 
     companion object {
         @Provides
@@ -37,7 +38,7 @@ abstract class OverpassRepoModule {
             context.buildRoom()
 
         @Provides
-        @Singleton
+        @Reusable
         fun overpassSearchAroundStore(
             searchAroundDao: SearchAroundDao,
             endpoints: OverpassEndpoints,
@@ -51,8 +52,6 @@ abstract class OverpassRepoModule {
                 nodeEntityMapper
             )
 
-        @Provides
-        @Singleton
-        fun searchAroundDao(db: OverpassDatabase): SearchAroundDao = db.searchAroundDao()
+        @Provides fun searchAroundDao(db: OverpassDatabase): SearchAroundDao = db.searchAroundDao()
     }
 }

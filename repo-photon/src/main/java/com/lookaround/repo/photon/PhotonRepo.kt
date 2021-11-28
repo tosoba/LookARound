@@ -4,13 +4,14 @@ import com.dropbox.android.external.store4.Store
 import com.dropbox.android.external.store4.get
 import com.lookaround.core.model.AutocompleteSearchDTO
 import com.lookaround.core.model.PointDTO
-import com.lookaround.core.repo.IPlacesAutocompleteRepo
+import com.lookaround.core.repo.IAutocompleteSearchRepo
 import com.lookaround.repo.photon.dao.AutocompleteSearchDao
 import com.lookaround.repo.photon.entity.AutocompleteSearchInput
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import com.lookaround.repo.photon.mapper.PointEntityMapper
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 @Singleton
 class PhotonRepo
@@ -18,8 +19,9 @@ class PhotonRepo
 constructor(
     private val store: Store<AutocompleteSearchInput, List<PointDTO>>,
     private val dao: AutocompleteSearchDao,
-) : IPlacesAutocompleteRepo {
-    override suspend fun searchPoints(
+    private val pointEntityMapper: PointEntityMapper
+) : IAutocompleteSearchRepo {
+    override suspend fun search(
         query: String,
         priorityLat: Double?,
         priorityLon: Double?
@@ -48,4 +50,7 @@ constructor(
 
     override val autocompleteSearchesCount: Flow<Int>
         get() = dao.selectSearchesCount()
+
+    override suspend fun searchResults(searchId: Long): List<PointDTO> =
+        dao.selectSearchResults(autocompleteSearchId = searchId).map(pointEntityMapper::toDTO)
 }

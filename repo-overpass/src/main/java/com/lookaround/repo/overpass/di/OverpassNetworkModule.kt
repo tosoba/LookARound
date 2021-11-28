@@ -10,6 +10,7 @@ import com.squareup.moshi.Moshi
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import dagger.Reusable
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import nice.fontaine.overpass.models.response.adapters.ElementAdapter
@@ -29,10 +30,10 @@ abstract class OverpassNetworkModule {
     @Binds abstract fun nodeEntityMapper(mapper: NodeEntityMapperImpl): NodeEntityMapper
 
     companion object {
-        @Provides @Singleton fun nodeMapperImpl(): NodeMapperImpl = NodeMapperImpl()
+        @Provides @Reusable fun nodeMapperImpl(): NodeMapperImpl = NodeMapperImpl()
 
         @Provides
-        @Singleton
+        @Reusable
         fun nodeEntityMapperImpl(): NodeEntityMapperImpl = NodeEntityMapperImpl()
 
         @Provides

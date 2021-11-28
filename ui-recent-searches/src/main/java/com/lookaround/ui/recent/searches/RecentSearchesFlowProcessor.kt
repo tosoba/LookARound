@@ -3,7 +3,7 @@ package com.lookaround.ui.recent.searches
 import com.lookaround.core.android.architecture.FlowProcessor
 import com.lookaround.core.ext.withLatestFrom
 import com.lookaround.core.usecase.RecentSearchesFlow
-import com.lookaround.core.usecase.SearchesCountFlow
+import com.lookaround.core.usecase.TotalSearchesCountFlow
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -14,7 +14,7 @@ class RecentSearchesFlowProcessor
 @Inject
 constructor(
     private val recentSearchesFlow: RecentSearchesFlow,
-    private val searchesCountFlow: SearchesCountFlow
+    private val totalSearchesCountFlow: TotalSearchesCountFlow
 ) : FlowProcessor<RecentSearchesIntent, RecentSearchesState, RecentSearchesSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
@@ -27,7 +27,7 @@ constructor(
         merge(
             intents
                 .filterIsInstance<RecentSearchesIntent.IncreaseLimit>()
-                .withLatestFrom(searchesCountFlow()) { _, totalSearchesCount -> totalSearchesCount }
+                .withLatestFrom(totalSearchesCountFlow()) { _, totalSearchesCount -> totalSearchesCount }
                 .filter { totalSearchesCount ->
                     val (_, limit) = currentState()
                     totalSearchesCount > limit + RecentSearchesState.SEARCHES_LIMIT_INCREMENT

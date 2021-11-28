@@ -3,8 +3,9 @@ package com.lookaround.core.android.model
 import android.location.Location
 import android.os.Parcelable
 import com.lookaround.core.model.NodeDTO
-import kotlinx.parcelize.Parcelize
+import com.lookaround.core.model.PointDTO
 import java.util.*
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Marker(
@@ -15,7 +16,18 @@ data class Marker(
 ) : INamedLocation, Parcelable {
     constructor(
         node: NodeDTO
-    ) : this(node.name, LocationFactory.create(node.lat, node.lon), node.tags)
+    ) : this(
+        name = node.name,
+        location = LocationFactory.create(latitude = node.lat, longitude = node.lon),
+        tags = node.tags
+    )
+
+    constructor(
+        point: PointDTO
+    ) : this(
+        name = point.name,
+        location = LocationFactory.create(latitude = point.lat, longitude = point.lng)
+    )
 
     override fun equals(other: Any?): Boolean =
         this === other || (other is Marker && other.id == id)

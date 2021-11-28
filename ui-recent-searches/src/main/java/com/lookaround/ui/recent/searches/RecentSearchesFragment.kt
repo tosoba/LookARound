@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.github.marlonlom.utilities.timeago.TimeAgo
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.assistedActivityViewModel
@@ -33,6 +34,7 @@ import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import dagger.hilt.android.AndroidEntryPoint
@@ -42,6 +44,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 @WithFragmentBindings
@@ -115,7 +118,19 @@ class RecentSearchesFragment : Fragment() {
         LookARoundCard(
             backgroundColor = Color.White.copy(alpha = .75f),
             elevation = 0.dp,
-            modifier = Modifier.padding(10.dp).fillMaxWidth().clickable {}
+            modifier =
+                Modifier.padding(10.dp).fillMaxWidth().clickable {
+                    lifecycleScope.launch {
+                        mainViewModel.intent(
+                            when (recentSearch.type) {
+                                RecentSearchModel.Type.AROUND ->
+                                    MainIntent.LoadSearchAroundResults(recentSearch.id)
+                                RecentSearchModel.Type.AUTOCOMPLETE ->
+                                    MainIntent.LoadSearchAutocompleteResults(recentSearch.id)
+                            }
+                        )
+                    }
+                }
         ) {
             Column {
                 Row(

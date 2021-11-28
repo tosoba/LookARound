@@ -8,19 +8,21 @@ import com.lookaround.core.ext.withLatestFrom
 import com.lookaround.core.model.LocationDataDTO
 import com.lookaround.core.usecase.*
 import com.lookaround.ui.main.model.*
-import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class MainFlowProcessor
 @Inject
 constructor(
-    private val getPlacesOfType: GetPlacesOfType,
+    private val getPlacesOfTypeAround: GetPlacesOfTypeAround,
     private val isLocationAvailable: IsLocationAvailable,
     private val locationDataFlow: LocationDataFlow,
     private val isConnectedFlow: IsConnectedFlow,
-    private val searchesCountFlow: SearchesCountFlow
+    private val totalSearchesCountFlow: TotalSearchesCountFlow,
+    private val getSearchAroundResults: GetSearchAroundResults,
+    private val getAutocompleteSearchResults: GetAutocompleteSearchResults,
 ) : FlowProcessor<MainIntent, MainState, MainSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
@@ -31,12 +33,22 @@ constructor(
         signal: suspend (MainSignal) -> Unit
     ): Flow<(MainState) -> MainState> =
         merge(
-            loadPlacesUpdates(intents, currentState, signal),
+            searchAroundUpdates(intents, currentState, signal),
             intents.filterIsInstance<MainIntent.LocationPermissionGranted>().take(1).flatMapLatest {
                 locationStateUpdatesFlow
             },
-            searchesCountFlow().distinctUntilChanged().map(::SearchesCountUpdate),
-            intents.filterIsInstance(),
+            totalSearchesCountFlow().distinctUntilChanged().map(::SearchesCountUpdate),
+            intents.filterIsInstance<MainIntent.LoadSearchAroundResults>().transformLatest {
+                (searchId) ->
+                emit(LoadingSearchResultsUpdate)
+                emit(SearchAroundResultsLoadedUpdate(getSearchAroundResults(searchId)))
+            },
+            intents.filterIsInstance<MainIntent.LoadSearchAutocompleteResults>().transformLatest {
+                (searchId) ->
+                emit(LoadingSearchResultsUpdate)
+                emit(AutocompleteSearchResultsLoadedUpdate(getAutocompleteSearchResults(searchId)))
+            },
+            intents.filterIsInstance()
         )
 
     override fun stateWillUpdate(
@@ -48,13 +60,13 @@ constructor(
         savedStateHandle[MainState::class.java.simpleName] = nextState
     }
 
-    private fun loadPlacesUpdates(
+    private fun searchAroundUpdates(
         intents: Flow<MainIntent>,
         currentState: () -> MainState,
         signal: suspend (MainSignal) -> Unit
     ): Flow<(MainState) -> MainState> =
         intents
-            .filterIsInstance<MainIntent.LoadPlaces>()
+            .filterIsInstance<MainIntent.GetPlacesOfType>()
             .withLatestFrom(isConnectedFlow()) { (placeType), isConnected ->
                 placeType to isConnected
             }
@@ -70,20 +82,20 @@ constructor(
                     return@transformLatest
                 }
 
-                emit(LoadingPlacesUpdate)
+                emit(LoadingSearchResultsUpdate)
                 try {
                     val places =
                         withTimeout(10_000) {
-                            getPlacesOfType(
+                            getPlacesOfTypeAround(
                                 placeType = placeType,
                                 lat = currentLocation.value.latitude,
                                 lng = currentLocation.value.longitude,
                                 radiusInMeters = PLACES_LOADING_RADIUS_METERS
                             )
                         }
-                    emit(PlacesLoadedUpdate(places))
+                    emit(SearchAroundResultsLoadedUpdate(places))
                 } catch (throwable: Throwable) {
-                    emit(PlacesErrorUpdate(throwable))
+                    emit(SearchErrorUpdate(throwable))
                     signal(MainSignal.PlacesLoadingFailed(throwable))
                 }
             }

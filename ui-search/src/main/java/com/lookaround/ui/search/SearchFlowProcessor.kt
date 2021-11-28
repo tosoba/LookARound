@@ -2,7 +2,7 @@ package com.lookaround.ui.search
 
 import com.lookaround.core.android.architecture.FlowProcessor
 import com.lookaround.core.android.ext.roundToDecimalPlaces
-import com.lookaround.core.usecase.SearchPoints
+import com.lookaround.core.usecase.AutocompleteSearch
 import com.lookaround.ui.search.model.*
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.transformLatest
 class SearchFlowProcessor
 @Inject
 constructor(
-    private val searchPoints: SearchPoints,
+    private val autocompleteSearch: AutocompleteSearch,
 ) : FlowProcessor<SearchIntent, SearchState, SearchSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
@@ -36,7 +36,7 @@ constructor(
                         emit(
                             PlacesLoaded(
                                 points =
-                                    searchPoints(
+                                    autocompleteSearch(
                                         query = query,
                                         priorityLat =
                                             priorityLocation

@@ -2,12 +2,12 @@ package com.lookaround.core.usecase
 
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.core.model.NodeDTO
-import com.lookaround.core.repo.IPlacesRepo
+import com.lookaround.core.repo.ISearchAroundRepo
+import dagger.Reusable
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class GetPlacesOfType @Inject constructor(private val repo: IPlacesRepo) {
+@Reusable
+class GetPlacesOfTypeAround @Inject constructor(private val repo: ISearchAroundRepo) {
     suspend operator fun invoke(
         placeType: IPlaceType,
         lat: Double,
