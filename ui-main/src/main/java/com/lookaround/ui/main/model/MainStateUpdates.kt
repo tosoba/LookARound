@@ -64,12 +64,7 @@ data class LocationLoadedUpdate(val location: Location) : (MainState) -> MainSta
     override fun invoke(state: MainState): MainState =
         state.copy(
             locationState = Ready(location),
-            markers =
-                if (state.markers is WithValue) {
-                    state.markers.map { ParcelableSortedSet(TreeSet(it.items)) }
-                } else {
-                    state.markers
-                }
+            markers = state.markers.map { ParcelableSortedSet(TreeSet(it.items)) }
         )
 }
 
