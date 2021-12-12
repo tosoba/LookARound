@@ -19,8 +19,8 @@ import com.google.accompanist.insets.ProvideWindowInsets
 import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.model.*
-import com.lookaround.core.android.view.composable.ListTopSpacer
 import com.lookaround.core.android.view.composable.InfoItemCard
+import com.lookaround.core.android.view.composable.ListTopSpacer
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
@@ -30,12 +30,12 @@ import com.lookaround.ui.search.exception.QueryTooShortExcecption
 import com.lookaround.ui.search.model.SearchIntent
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import javax.inject.Inject
 
 @AndroidEntryPoint
 @WithFragmentBindings
@@ -50,24 +50,6 @@ class SearchFragment : Fragment() {
     @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
     private val mainViewModel: MainViewModel by assistedActivityViewModel {
         mainViewModelFactory.create(it)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        mainViewModel
-            .searchQueryUpdates
-            .run { if (savedInstanceState != null) drop(1) else this }
-            .onEach { query ->
-                val (_, locationState) = mainViewModel.state
-                searchViewModel.intent(
-                    SearchIntent.SearchPlaces(
-                        query = query,
-                        priorityLocation =
-                            if (locationState is WithValue) locationState.value else null
-                    )
-                )
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     override fun onCreateView(
@@ -112,6 +94,23 @@ class SearchFragment : Fragment() {
                 }
             }
         }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        mainViewModel
+            .searchQueryUpdates
+            .run { if (savedInstanceState != null) drop(1) else this }
+            .onEach { query ->
+                val (_, locationState) = mainViewModel.state
+                searchViewModel.intent(
+                    SearchIntent.SearchPlaces(
+                        query = query,
+                        priorityLocation =
+                            if (locationState is WithValue) locationState.value else null
+                    )
+                )
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
 
     @Composable
     private fun PointsReady(
