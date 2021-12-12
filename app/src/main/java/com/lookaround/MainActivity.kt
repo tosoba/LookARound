@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
                     return@OnItemSelectedListener true
                 }
 
-                binding.bottomSheetViewPager.currentItem =
+                binding.bottomSheetViewPager.setCurrentItem(
                     bottomSheetViewPagerAdapter.fragmentFactories.indexOf(
                         when (menuItem.itemId) {
                             R.id.action_place_types -> MainFragmentFactory.PLACE_TYPES
@@ -74,7 +74,9 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
                             R.id.action_recent_searches -> MainFragmentFactory.RECENT_SEARCHES
                             else -> throw IllegalArgumentException()
                         }
-                    )
+                    ),
+                    bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED
+                )
 
                 if (latestARState == ARState.ENABLED) {
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -268,7 +270,24 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
                 factories
             }
             .distinctUntilChanged()
-            .onEach(bottomSheetViewPagerAdapter::fragmentFactories::set)
+            .onEach { factories ->
+                val currentFragmentFactory =
+                    if (bottomSheetViewPagerAdapter.fragmentFactories.isNotEmpty()) {
+                        bottomSheetViewPagerAdapter.fragmentFactories[
+                            binding.bottomSheetViewPager.currentItem]
+                    } else {
+                        null
+                    }
+                bottomSheetViewPagerAdapter.fragmentFactories = factories
+                currentFragmentFactory?.let { fragmentFactory ->
+                    factories
+                        .indexOf(fragmentFactory)
+                        .takeIf { itemIndex -> itemIndex != -1 }
+                        ?.let { itemIndex ->
+                            binding.bottomSheetViewPager.setCurrentItem(itemIndex, false)
+                        }
+                }
+            }
             .launchIn(lifecycleScope)
 
         viewModel
