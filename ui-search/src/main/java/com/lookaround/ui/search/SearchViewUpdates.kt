@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
 internal val MainViewModel.searchQueryUpdates: Flow<String>
     get() =
         states
-            .map(MainState::searchQuery::get)
+            .map(MainState::autocompleteSearchQuery::get)
             .debounce(500L)
             .map(String::trim)
             .distinctUntilChanged()

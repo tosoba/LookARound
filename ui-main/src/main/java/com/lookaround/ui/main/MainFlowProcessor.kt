@@ -37,7 +37,7 @@ constructor(
             intents.filterIsInstance<MainIntent.LocationPermissionGranted>().take(1).flatMapLatest {
                 locationStateUpdatesFlow
             },
-            totalSearchesCountFlow().distinctUntilChanged().map(::SearchesCountUpdate),
+            totalSearchesCountFlow().distinctUntilChanged().map(::RecentSearchesCountUpdate),
             intents.filterIsInstance<MainIntent.LoadSearchAroundResults>().transformLatest {
                 (searchId) ->
                 emit(LoadingSearchResultsUpdate)

@@ -35,8 +35,8 @@ import com.lookaround.ui.search.R
 
 @Composable
 fun SearchBar(
+    state: SearchBarState,
     modifier: Modifier = Modifier,
-    state: SearchBarState = rememberSearchBarState(),
     onSearchFocusChange: (Boolean) -> Unit = {},
     onTextValueChange: (TextFieldValue) -> Unit = {}
 ) {
@@ -55,19 +55,16 @@ fun SearchBar(
             Spacer(modifier = Modifier.statusBarsPadding())
             SearchBar(
                 textValue = state.textValue,
+                searchFocused = state.focused,
                 onTextValueChange = { query ->
                     state.textValue = query
                     onTextValueChange(query)
                 },
-                searchFocused = state.focused,
                 onSearchFocusChange = { focused ->
                     state.focused = focused
                     onSearchFocusChange(focused)
-                    if (focused) {
-                        onBackPressedDispatcher.addCallback(onBackPressedCallback)
-                    } else {
-                        onBackPressedCallback.remove()
-                    }
+                    if (focused) onBackPressedDispatcher.addCallback(onBackPressedCallback)
+                    else onBackPressedCallback.remove()
                 },
                 onBackArrowClicked = focusManager::clearFocus,
                 onClearQueryClicked = {
@@ -100,8 +97,8 @@ class SearchBarState(textValue: TextFieldValue, focused: Boolean) {
 @Composable
 private fun SearchBar(
     textValue: TextFieldValue,
-    onTextValueChange: (TextFieldValue) -> Unit,
     searchFocused: Boolean,
+    onTextValueChange: (TextFieldValue) -> Unit,
     onSearchFocusChange: (Boolean) -> Unit,
     onBackArrowClicked: () -> Unit,
     onClearQueryClicked: () -> Unit,

@@ -21,12 +21,29 @@ sealed interface MainIntent {
             mainState.copy(lastLiveBottomSheetState = state)
     }
 
+    data class SearchModeChanged(
+        private val mode: MainSearchMode,
+    ) : MainIntent, (MainState) -> MainState {
+        override fun invoke(state: MainState): MainState =
+            MainState(searchMode = mode, searchFocused = false)
+    }
+
     data class SearchQueryChanged(
         private val query: String,
     ) : MainIntent, (MainState) -> MainState {
         override fun invoke(state: MainState): MainState =
-            if (state.searchQuery == query) state else state.copy(searchQuery = query)
+            if (state.autocompleteSearchQuery == query) {
+                state
+            } else {
+                when (state.searchMode) {
+                    MainSearchMode.AUTOCOMPLETE -> state.copy(autocompleteSearchQuery = query)
+                    MainSearchMode.PLACE_TYPES -> state.copy(placeTypesSearchQuery = query)
+                    MainSearchMode.PLACE_LIST -> state.copy(placeListSearchQuery = query)
+                    MainSearchMode.RECENT -> state.copy(recentSearchQuery = query)
+                }
+            }
     }
+
     data class SearchFocusChanged(
         private val focused: Boolean,
     ) : MainIntent, (MainState) -> MainState {
@@ -43,5 +60,6 @@ sealed interface MainIntent {
     }
 
     data class LoadSearchAroundResults(val searchId: Long) : MainIntent
+
     data class LoadSearchAutocompleteResults(val searchId: Long) : MainIntent
 }

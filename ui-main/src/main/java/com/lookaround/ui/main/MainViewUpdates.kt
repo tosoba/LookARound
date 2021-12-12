@@ -30,31 +30,13 @@ val MainViewModel.bottomSheetStateUpdates: Flow<Int>
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-val MainViewModel.searchFragmentVisibilityUpdates: Flow<Boolean>
-    get() =
-        states
-            .map(MainState::searchFocused::get)
-            .combine(
-                signals
-                    .filterIsInstance<MainSignal.BottomSheetStateChanged>()
-                    .map(MainSignal.BottomSheetStateChanged::state::get)
-            ) { searchFocused, bottomSheetState ->
-                bottomSheetState != BottomSheetBehavior.STATE_EXPANDED &&
-                    bottomSheetState != BottomSheetBehavior.STATE_DRAGGING &&
-                    searchFocused
-            }
-            .debounce(500L)
-            .distinctUntilChanged()
-
-@FlowPreview
-@ExperimentalCoroutinesApi
 val MainViewModel.placesBottomNavItemVisibilityUpdates: Flow<Boolean>
     get() = states.map { it.markers is WithValue }.distinctUntilChanged()
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 val MainViewModel.recentSearchesBottomNavItemVisibilityUpdates: Flow<Boolean>
-    get() = states.map { it.searchesCount > 0 }.distinctUntilChanged()
+    get() = states.map { it.recentSearchesCount > 0 }.distinctUntilChanged()
 
 @FlowPreview
 @ExperimentalCoroutinesApi

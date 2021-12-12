@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.runtime.collectAsState
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
@@ -21,10 +22,11 @@ import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.camera.CameraFragment
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
+import com.lookaround.ui.main.model.MainSearchMode
 import com.lookaround.ui.main.model.MainSignal
+import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.list.PlaceMapItemActionController
-import com.lookaround.ui.search.SearchFragment
 import com.lookaround.ui.search.composable.SearchBar
 import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
@@ -81,6 +83,20 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
                 if (latestARState == ARState.ENABLED) {
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
                 }
+
+                lifecycleScope.launch {
+                    viewModel.intent(
+                        MainIntent.SearchModeChanged(
+                            when (menuItem.itemId) {
+                                R.id.action_place_types -> MainSearchMode.PLACE_TYPES
+                                R.id.action_place_list -> MainSearchMode.PLACE_LIST
+                                R.id.action_recent_searches -> MainSearchMode.RECENT
+                                else -> throw IllegalArgumentException()
+                            }
+                        )
+                    )
+                }
+
                 true
             }
         }
@@ -200,32 +216,41 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
     }
 
     private fun initSearch() {
-        lifecycleScope.launchWhenResumed {
-            viewModel.searchFragmentVisibilityUpdates.collect {
-                if (it && currentTopFragment !is SearchFragment) {
-                    showSearchFragment()
-                } else if (!it && currentTopFragment is SearchFragment) {
-                    supportFragmentManager.popBackStack()
-                }
-            }
-        }
-
+        val searchModes = viewModel.states.map(MainState::searchMode::get).distinctUntilChanged()
         binding.searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
-                    val (_, _, _, searchQuery, searchFocused) = viewModel.state
+                    val searchMode =
+                        searchModes.collectAsState(initial = MainSearchMode.AUTOCOMPLETE)
+                    val state = viewModel.state
+                    val autocompleteSearchBarState =
+                        rememberSearchBarState(state.autocompleteSearchQuery, state.searchFocused)
+                    val placeTypesSearchBarState =
+                        rememberSearchBarState(state.placeTypesSearchQuery, state.searchFocused)
+                    val placeListSearchBarState =
+                        rememberSearchBarState(state.placeListSearchQuery, state.searchFocused)
+                    val recentSearchBarState =
+                        rememberSearchBarState(state.recentSearchQuery, state.searchFocused)
+
                     SearchBar(
-                        state = rememberSearchBarState(searchQuery, searchFocused),
+                        state =
+                            when (searchMode.value) {
+                                MainSearchMode.AUTOCOMPLETE -> autocompleteSearchBarState
+                                MainSearchMode.PLACE_TYPES -> placeTypesSearchBarState
+                                MainSearchMode.PLACE_LIST -> placeListSearchBarState
+                                MainSearchMode.RECENT -> recentSearchBarState
+                            },
                         onSearchFocusChange = { focused ->
                             lifecycleScope.launch {
                                 viewModel.intent(MainIntent.SearchFocusChanged(focused))
                             }
+                        },
+                        onTextValueChange = { textValue ->
+                            lifecycleScope.launch {
+                                viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
+                            }
                         }
-                    ) { textValue ->
-                        lifecycleScope.launch {
-                            viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
-                        }
-                    }
+                    )
                 }
             }
         }
@@ -247,8 +272,9 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
                 object : ViewPager2.OnPageChangeCallback() {
                     override fun onPageSelected(position: Int) {
                         if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) return
+                        val factory = bottomSheetViewPagerAdapter.fragmentFactories[position]
                         binding.bottomNavigationView.selectedItemId =
-                            when (bottomSheetViewPagerAdapter.fragmentFactories[position]) {
+                            when (factory) {
                                 MainFragmentFactory.PLACE_TYPES -> R.id.action_place_types
                                 MainFragmentFactory.PLACE_LIST -> R.id.action_place_list
                                 MainFragmentFactory.RECENT_SEARCHES -> R.id.action_recent_searches
@@ -318,15 +344,6 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
                     menu.findItem(R.id.action_recent_searches).isVisible = isVisible
                 }
                 .launchIn(lifecycleScope)
-        }
-    }
-
-    private fun showSearchFragment() {
-        if (currentTopFragment is SearchFragment || !lifecycle.isResumed) return
-        fragmentTransaction {
-            setSlideInFromBottom()
-            add(R.id.main_fragment_container, SearchFragment())
-            addToBackStack(null)
         }
     }
 
