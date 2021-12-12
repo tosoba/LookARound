@@ -29,7 +29,7 @@ import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.model.Empty
 import com.lookaround.core.android.model.LoadingFirst
-import com.lookaround.core.android.model.LoadingInProgress
+import com.lookaround.core.android.model.Loading
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
@@ -101,7 +101,7 @@ class RecentSearchesFragment : Fragment() {
                         items(recentSearches.value) { recentSearch ->
                             RecentSearchItem(recentSearch, locationState.value)
                         }
-                        if (recentSearches is LoadingInProgress) {
+                        if (recentSearches is Loading) {
                             item { CircularProgressIndicator() }
                         }
                     }

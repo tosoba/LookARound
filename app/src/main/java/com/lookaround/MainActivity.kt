@@ -373,7 +373,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
             .markerUpdates
             .onEach { markers ->
                 placesStatusLoadingSnackbar?.dismiss()
-                if (markers is LoadingInProgress) {
+                if (markers is Loading) {
                     placesStatusLoadingSnackbar =
                         showPlacesLoadingStatusSnackbar(
                             getString(R.string.loading_places_in_progress),

@@ -24,19 +24,19 @@ sealed interface WithValue<T : Parcelable> : Loadable<T> {
 sealed interface WithoutValue : Loadable<Nothing>
 
 @Parcelize
-object Empty : WithoutValue {
+object Empty : Loadable<Nothing>, WithoutValue {
     override fun <R : Parcelable> map(block: (Nothing) -> R): Empty = this
 }
 
-interface LoadingInProgress
+sealed interface Loading<T : Parcelable> : Loadable<T>
 
 @Parcelize
-object LoadingFirst : WithoutValue, LoadingInProgress {
+object LoadingFirst : WithoutValue, Loading<Nothing> {
     override fun <R : Parcelable> map(block: (Nothing) -> R): Loadable<R> = this
 }
 
 @Parcelize
-data class LoadingNext<T : Parcelable>(override val value: T) : WithValue<T>, LoadingInProgress {
+data class LoadingNext<T : Parcelable>(override val value: T) : WithValue<T>, Loading<T> {
     override val copyWithLoadingInProgress: Loadable<T>
         get() = this
 
@@ -61,12 +61,12 @@ data class Ready<T : Parcelable>(override val value: T) : WithValue<T> {
     override fun <R : Parcelable> map(block: (T) -> R): Loadable<R> = Ready(block(value))
 }
 
-sealed interface Failed {
+sealed interface Failed<T : Parcelable> : Loadable<T> {
     val error: Throwable?
 }
 
 @Parcelize
-data class FailedFirst(override val error: Throwable?) : WithoutValue, Failed {
+data class FailedFirst(override val error: Throwable?) : Failed<Nothing>, WithoutValue {
     override val copyWithLoadingInProgress: LoadingFirst
         get() = LoadingFirst
 
@@ -77,7 +77,7 @@ data class FailedFirst(override val error: Throwable?) : WithoutValue, Failed {
 data class FailedNext<T : Parcelable>(
     override val value: T,
     override val error: Throwable?,
-) : WithValue<T>, Failed {
+) : Failed<T>, WithValue<T> {
     override val copyWithClearedError: Ready<T>
         get() = Ready(value)
 

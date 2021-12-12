@@ -1,5 +1,6 @@
 package com.lookaround.ui.search
 
+import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -73,7 +74,7 @@ class SearchFragment : Fragment() {
                                     )
                                 }
                             }
-                            is LoadingInProgress -> {
+                            is Loading -> {
                                 CircularProgressIndicator(modifier = Modifier.wrapContentSize())
                             }
                             is Ready -> {
@@ -105,7 +106,7 @@ class SearchFragment : Fragment() {
                     SearchIntent.SearchPlaces(
                         query = query,
                         priorityLocation =
-                            if (locationState is WithValue) locationState.value else null
+                            if (locationState is WithValue<Location>) locationState.value else null
                     )
                 )
             }
@@ -138,7 +139,7 @@ class SearchFragment : Fragment() {
     }
 
     @Composable
-    private fun PointsFailed(points: Failed, modifier: Modifier = Modifier) {
+    private fun PointsFailed(points: Failed<*>, modifier: Modifier = Modifier) {
         when (points.error) {
             is QueryTooShortExcecption -> {
                 Column(modifier) {

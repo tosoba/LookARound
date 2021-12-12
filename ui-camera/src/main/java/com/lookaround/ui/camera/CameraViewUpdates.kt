@@ -58,7 +58,7 @@ internal fun loadingStartedUpdates(
             locationState,
             previewState ->
             locationState !is Failed &&
-                (locationState is LoadingInProgress || previewState.isLoading)
+                (locationState is Loading || previewState.isLoading)
         }
         .distinctUntilChanged()
         .filter { it }
