@@ -28,7 +28,6 @@ import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.list.PlaceMapItemActionController
 import com.lookaround.ui.search.composable.SearchBar
-import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -217,29 +216,24 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
 
     private fun initSearch() {
         val searchModes = viewModel.states.map(MainState::searchMode::get).distinctUntilChanged()
+        val searchFocusedFlow =
+            viewModel.states.map(MainState::searchFocused::get).distinctUntilChanged()
         binding.searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
                     val searchMode =
                         searchModes.collectAsState(initial = MainSearchMode.AUTOCOMPLETE)
+                    val searchFocused = searchFocusedFlow.collectAsState(initial = false)
                     val state = viewModel.state
-                    val autocompleteSearchBarState =
-                        rememberSearchBarState(state.autocompleteSearchQuery, state.searchFocused)
-                    val placeTypesSearchBarState =
-                        rememberSearchBarState(state.placeTypesSearchQuery, state.searchFocused)
-                    val placeListSearchBarState =
-                        rememberSearchBarState(state.placeListSearchQuery, state.searchFocused)
-                    val recentSearchBarState =
-                        rememberSearchBarState(state.recentSearchQuery, state.searchFocused)
-
                     SearchBar(
-                        state =
+                        query =
                             when (searchMode.value) {
-                                MainSearchMode.AUTOCOMPLETE -> autocompleteSearchBarState
-                                MainSearchMode.PLACE_TYPES -> placeTypesSearchBarState
-                                MainSearchMode.PLACE_LIST -> placeListSearchBarState
-                                MainSearchMode.RECENT -> recentSearchBarState
+                                MainSearchMode.AUTOCOMPLETE -> state.autocompleteSearchQuery
+                                MainSearchMode.PLACE_TYPES -> state.placeTypesSearchQuery
+                                MainSearchMode.PLACE_LIST -> state.placeListSearchQuery
+                                MainSearchMode.RECENT -> state.recentSearchQuery
                             },
+                        searchFocused = searchFocused.value,
                         onSearchFocusChange = { focused ->
                             lifecycleScope.launch {
                                 viewModel.intent(MainIntent.SearchFocusChanged(focused))

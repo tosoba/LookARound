@@ -35,11 +35,13 @@ import com.lookaround.ui.search.R
 
 @Composable
 fun SearchBar(
-    state: SearchBarState,
+    query: String,
+    searchFocused: Boolean,
     modifier: Modifier = Modifier,
     onSearchFocusChange: (Boolean) -> Unit = {},
     onTextValueChange: (TextFieldValue) -> Unit = {}
 ) {
+    var textValue by remember { mutableStateOf(TextFieldValue(query)) }
     val focusManager = LocalFocusManager.current
     val onBackPressedDispatcher =
         (LocalLifecycleOwner.current as ComponentActivity).onBackPressedDispatcher
@@ -49,49 +51,32 @@ fun SearchBar(
                 focusManager.clearFocus()
             }
         }
-    val focusRequester = remember { FocusRequester() }
+    val focusRequester = remember(::FocusRequester)
     LookARoundSurface(color = Color.Transparent, modifier = modifier.wrapContentHeight()) {
         Column {
             Spacer(modifier = Modifier.statusBarsPadding())
             SearchBar(
-                textValue = state.textValue,
-                searchFocused = state.focused,
-                onTextValueChange = { query ->
-                    state.textValue = query
-                    onTextValueChange(query)
+                textValue = textValue,
+                searchFocused = searchFocused,
+                onTextValueChange = { value ->
+                    textValue = value
+                    onTextValueChange(value)
                 },
                 onSearchFocusChange = { focused ->
-                    state.focused = focused
                     onSearchFocusChange(focused)
                     if (focused) onBackPressedDispatcher.addCallback(onBackPressedCallback)
                     else onBackPressedCallback.remove()
                 },
                 onBackArrowClicked = focusManager::clearFocus,
                 onClearQueryClicked = {
-                    state.textValue = TextFieldValue("")
+                    textValue = TextFieldValue("")
                     focusRequester.requestFocus()
                 },
                 focusRequester = focusRequester,
             )
         }
-        if (state.focused) {
-            LaunchedEffect(Unit) { focusRequester.requestFocus() }
-        }
+        if (searchFocused) LaunchedEffect(Unit) { focusRequester.requestFocus() }
     }
-}
-
-@Composable
-fun rememberSearchBarState(
-    query: String = "",
-    focused: Boolean = false,
-): SearchBarState = remember {
-    SearchBarState(textValue = TextFieldValue(query), focused = focused)
-}
-
-@Stable
-class SearchBarState(textValue: TextFieldValue, focused: Boolean) {
-    var textValue by mutableStateOf(textValue)
-    var focused by mutableStateOf(focused)
 }
 
 @Composable
