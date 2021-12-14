@@ -14,6 +14,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 @ExperimentalCoroutinesApi
+@FlowPreview
 class MainFlowProcessor
 @Inject
 constructor(
@@ -54,7 +55,7 @@ constructor(
             },
             intents
                 .filterIsInstance<MainIntent.SearchQueryChanged>()
-                .textSearchUpdates(currentState, signal),
+                .autocompleteSearchUpdates(currentState, signal),
             intents.filterIsInstance()
         )
 
@@ -119,7 +120,7 @@ constructor(
                                 emit(FailedToUpdateLocationUpdate)
                             }
                         }
-                        is LocationDataDTO.Success ->
+                        is LocationDataDTO.Success -> {
                             emit(
                                 LocationLoadedUpdate(
                                     LocationFactory.create(
@@ -129,27 +130,26 @@ constructor(
                                     )
                                 )
                             )
+                        }
                     }
                 }
                 .onStart { if (!isLocationAvailable()) emit(LocationDisabledUpdate) }
 
-    private fun Flow<MainIntent.SearchQueryChanged>.textSearchUpdates(
+    private fun Flow<MainIntent.SearchQueryChanged>.autocompleteSearchUpdates(
         currentState: () -> MainState,
         signal: suspend (MainSignal) -> Unit
     ): Flow<(MainState) -> MainState> =
-        withLatestFrom(isConnectedFlow()) { update, isConnected -> update to isConnected }
-            .transformLatest { (update, isConnected) ->
-                emit(update)
-                val state = currentState()
-                val trimmedQuery = update.query.trim()
-                if (state.searchMode != MainSearchMode.AUTOCOMPLETE ||
-                        trimmedQuery.isBlank() ||
-                        trimmedQuery.count(Char::isLetterOrDigit) <= 3
-                ) {
-                    return@transformLatest
-                }
-
-                val currentLocation = state.locationState
+        map { (query) -> query.trim() }
+            .filterNot { query ->
+                query.isBlank() ||
+                    query.count(Char::isLetterOrDigit) <= 3 ||
+                    currentState().searchMode != MainSearchMode.AUTOCOMPLETE
+            }
+            .distinctUntilChanged()
+            .debounce(500L)
+            .withLatestFrom(isConnectedFlow()) { query, isConnected -> query to isConnected }
+            .transformLatest { (query, isConnected) ->
+                val currentLocation = currentState().locationState
                 if (currentLocation !is WithValue) {
                     signal(MainSignal.UnableToLoadPlacesWithoutLocation)
                     return@transformLatest
@@ -166,7 +166,7 @@ constructor(
                         AutocompleteSearchResultsLoadedUpdate(
                             points =
                                 autocompleteSearch(
-                                    query = trimmedQuery,
+                                    query = query,
                                     priorityLat =
                                         currentLocation
                                             .value

@@ -15,17 +15,25 @@ sealed interface MainIntent {
     }
 
     data class LiveBottomSheetStateChanged(
-        @BottomSheetBehavior.State private val state: Int,
+        @BottomSheetBehavior.State private val bottomSheetState: Int,
     ) : MainIntent, (MainState) -> MainState {
-        override fun invoke(mainState: MainState): MainState =
-            mainState.copy(lastLiveBottomSheetState = state)
+        override fun invoke(state: MainState): MainState =
+            state.copy(
+                lastLiveBottomSheetState = bottomSheetState,
+                searchMode =
+                    if (bottomSheetState == BottomSheetBehavior.STATE_COLLAPSED) {
+                        MainSearchMode.AUTOCOMPLETE
+                    } else {
+                        state.searchMode
+                    }
+            )
     }
 
     data class SearchModeChanged(
         private val mode: MainSearchMode,
     ) : MainIntent, (MainState) -> MainState {
         override fun invoke(state: MainState): MainState =
-            MainState(searchMode = mode, searchFocused = false)
+            state.copy(searchMode = mode, searchFocused = false)
     }
 
     data class SearchQueryChanged(val query: String) : MainIntent, (MainState) -> MainState {
