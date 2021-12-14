@@ -2,15 +2,16 @@ package com.lookaround.ui.main
 
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.architecture.FlowProcessor
+import com.lookaround.core.android.ext.roundToDecimalPlaces
 import com.lookaround.core.android.model.LocationFactory
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.ext.withLatestFrom
 import com.lookaround.core.model.LocationDataDTO
 import com.lookaround.core.usecase.*
 import com.lookaround.ui.main.model.*
+import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 class MainFlowProcessor
@@ -23,6 +24,7 @@ constructor(
     private val totalSearchesCountFlow: TotalSearchesCountFlow,
     private val getSearchAroundResults: GetSearchAroundResults,
     private val getAutocompleteSearchResults: GetAutocompleteSearchResults,
+    private val autocompleteSearch: AutocompleteSearch,
 ) : FlowProcessor<MainIntent, MainState, MainSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
@@ -33,7 +35,9 @@ constructor(
         signal: suspend (MainSignal) -> Unit
     ): Flow<(MainState) -> MainState> =
         merge(
-            searchAroundUpdates(intents, currentState, signal),
+            intents
+                .filterIsInstance<MainIntent.GetPlacesOfType>()
+                .searchAroundUpdates(currentState, signal),
             intents.filterIsInstance<MainIntent.LocationPermissionGranted>().take(1).flatMapLatest {
                 locationStateUpdatesFlow
             },
@@ -48,6 +52,9 @@ constructor(
                 emit(LoadingSearchResultsUpdate)
                 emit(AutocompleteSearchResultsLoadedUpdate(getAutocompleteSearchResults(searchId)))
             },
+            intents
+                .filterIsInstance<MainIntent.SearchQueryChanged>()
+                .textSearchUpdates(currentState, signal),
             intents.filterIsInstance()
         )
 
@@ -60,16 +67,11 @@ constructor(
         savedStateHandle[MainState::class.java.simpleName] = nextState
     }
 
-    private fun searchAroundUpdates(
-        intents: Flow<MainIntent>,
+    private fun Flow<MainIntent.GetPlacesOfType>.searchAroundUpdates(
         currentState: () -> MainState,
         signal: suspend (MainSignal) -> Unit
     ): Flow<(MainState) -> MainState> =
-        intents
-            .filterIsInstance<MainIntent.GetPlacesOfType>()
-            .withLatestFrom(isConnectedFlow()) { (placeType), isConnected ->
-                placeType to isConnected
-            }
+        withLatestFrom(isConnectedFlow()) { (placeType), isConnected -> placeType to isConnected }
             .transformLatest { (placeType, isConnected) ->
                 val currentLocation = currentState().locationState
                 if (currentLocation !is WithValue) {
@@ -130,6 +132,61 @@ constructor(
                     }
                 }
                 .onStart { if (!isLocationAvailable()) emit(LocationDisabledUpdate) }
+
+    private fun Flow<MainIntent.SearchQueryChanged>.textSearchUpdates(
+        currentState: () -> MainState,
+        signal: suspend (MainSignal) -> Unit
+    ): Flow<(MainState) -> MainState> =
+        withLatestFrom(isConnectedFlow()) { update, isConnected -> update to isConnected }
+            .transformLatest { (update, isConnected) ->
+                emit(update)
+                val state = currentState()
+                val trimmedQuery = update.query.trim()
+                if (state.searchMode != MainSearchMode.AUTOCOMPLETE ||
+                        trimmedQuery.isBlank() ||
+                        trimmedQuery.count(Char::isLetterOrDigit) <= 3
+                ) {
+                    return@transformLatest
+                }
+
+                val currentLocation = state.locationState
+                if (currentLocation !is WithValue) {
+                    signal(MainSignal.UnableToLoadPlacesWithoutLocation)
+                    return@transformLatest
+                }
+
+                if (!isConnected) {
+                    signal(MainSignal.UnableToLoadPlacesWithoutConnection)
+                    return@transformLatest
+                }
+
+                emit(LoadingSearchResultsUpdate)
+                try {
+                    emit(
+                        AutocompleteSearchResultsLoadedUpdate(
+                            points =
+                                autocompleteSearch(
+                                    query = trimmedQuery,
+                                    priorityLat =
+                                        currentLocation
+                                            .value
+                                            .latitude
+                                            .roundToDecimalPlaces(3)
+                                            .toDouble(),
+                                    priorityLon =
+                                        currentLocation
+                                            .value
+                                            .longitude
+                                            .roundToDecimalPlaces(3)
+                                            .toDouble()
+                                ),
+                        )
+                    )
+                } catch (throwable: Throwable) {
+                    emit(SearchErrorUpdate(throwable))
+                    signal(MainSignal.PlacesLoadingFailed(throwable))
+                }
+            }
 
     companion object {
         private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L

@@ -28,19 +28,13 @@ sealed interface MainIntent {
             MainState(searchMode = mode, searchFocused = false)
     }
 
-    data class SearchQueryChanged(
-        private val query: String,
-    ) : MainIntent, (MainState) -> MainState {
+    data class SearchQueryChanged(val query: String) : MainIntent, (MainState) -> MainState {
         override fun invoke(state: MainState): MainState =
-            if (state.autocompleteSearchQuery == query) {
-                state
-            } else {
-                when (state.searchMode) {
-                    MainSearchMode.AUTOCOMPLETE -> state.copy(autocompleteSearchQuery = query)
-                    MainSearchMode.PLACE_TYPES -> state.copy(placeTypesSearchQuery = query)
-                    MainSearchMode.PLACE_LIST -> state.copy(placeListSearchQuery = query)
-                    MainSearchMode.RECENT -> state.copy(recentSearchQuery = query)
-                }
+            when (state.searchMode) {
+                MainSearchMode.AUTOCOMPLETE -> state.copy(autocompleteSearchQuery = query)
+                MainSearchMode.PLACE_TYPES -> state.copy(placeTypesSearchQuery = query)
+                MainSearchMode.PLACE_LIST -> state.copy(placeListSearchQuery = query)
+                MainSearchMode.RECENT -> state.copy(recentSearchQuery = query)
             }
     }
 
