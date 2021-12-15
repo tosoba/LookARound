@@ -88,7 +88,7 @@ constructor(
                 emit(LoadingSearchResultsUpdate)
                 try {
                     val places =
-                        withTimeout(10_000) {
+                        withTimeout(PLACES_LOADING_TIMEOUT) {
                             getPlacesOfTypeAround(
                                 placeType = placeType,
                                 lat = currentLocation.value.latitude,
@@ -165,21 +165,23 @@ constructor(
                     emit(
                         AutocompleteSearchResultsLoadedUpdate(
                             points =
-                                autocompleteSearch(
-                                    query = query,
-                                    priorityLat =
-                                        currentLocation
-                                            .value
-                                            .latitude
-                                            .roundToDecimalPlaces(3)
-                                            .toDouble(),
-                                    priorityLon =
-                                        currentLocation
-                                            .value
-                                            .longitude
-                                            .roundToDecimalPlaces(3)
-                                            .toDouble()
-                                ),
+                                withTimeout(PLACES_LOADING_TIMEOUT) {
+                                    autocompleteSearch(
+                                        query = query,
+                                        priorityLat =
+                                            currentLocation
+                                                .value
+                                                .latitude
+                                                .roundToDecimalPlaces(3)
+                                                .toDouble(),
+                                        priorityLon =
+                                            currentLocation
+                                                .value
+                                                .longitude
+                                                .roundToDecimalPlaces(3)
+                                                .toDouble()
+                                    )
+                                },
                         )
                     )
                 } catch (throwable: Throwable) {
@@ -190,6 +192,7 @@ constructor(
 
     companion object {
         private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L
+        private const val PLACES_LOADING_TIMEOUT = 10_000L
         private const val PLACES_LOADING_RADIUS_METERS = 5_000f
     }
 }
