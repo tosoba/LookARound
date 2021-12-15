@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,12 +25,13 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.github.marlonlom.utilities.timeago.TimeAgo
+import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.model.Empty
-import com.lookaround.core.android.model.LoadingFirst
 import com.lookaround.core.android.model.Loading
+import com.lookaround.core.android.model.LoadingFirst
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
@@ -37,11 +39,13 @@ import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
+import com.lookaround.ui.search.composable.SearchBar
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -49,6 +53,8 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 @WithFragmentBindings
 @ExperimentalCoroutinesApi
+@ExperimentalFoundationApi
+@FlowPreview
 class RecentSearchesFragment : Fragment() {
     @Inject internal lateinit var recentSearchesViewModelFactory: RecentSearchesViewModel.Factory
     private val recentSearchesViewModel: RecentSearchesViewModel by assistedViewModel {
@@ -80,34 +86,54 @@ class RecentSearchesFragment : Fragment() {
                     .filterIsInstance<WithValue<Location>>()
 
             setContent {
-                LookARoundTheme {
-                    val bottomSheetState =
-                        bottomSheetSignalsFlow.collectAsState(
-                                initial = BottomSheetBehavior.STATE_HIDDEN
-                            )
-                            .value
-                    if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN) return@LookARoundTheme
+                ProvideWindowInsets {
+                    LookARoundTheme {
+                        val bottomSheetState =
+                            bottomSheetSignalsFlow.collectAsState(
+                                    initial = BottomSheetBehavior.STATE_HIDDEN
+                                )
+                                .value
+                        if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN)
+                            return@LookARoundTheme
 
-                    val locationState = locationFlow.collectAsState(initial = Empty).value
-                    if (locationState !is WithValue) return@LookARoundTheme
+                        val locationState = locationFlow.collectAsState(initial = Empty).value
+                        if (locationState !is WithValue) return@LookARoundTheme
 
-                    val recentSearches = recentSearchesFlow.collectAsState(initial = Empty).value
-                    if (recentSearches is LoadingFirst) CircularProgressIndicator()
-                    if (recentSearches !is WithValue) return@LookARoundTheme
+                        val recentSearches =
+                            recentSearchesFlow.collectAsState(initial = Empty).value
+                        if (recentSearches is LoadingFirst) CircularProgressIndicator()
+                        if (recentSearches !is WithValue) return@LookARoundTheme
 
-                    val lazyListState = rememberLazyListState()
-                    LazyColumn(state = lazyListState) {
-                        item { Spacer(Modifier.height(112.dp)) }
-                        items(recentSearches.value) { recentSearch ->
-                            RecentSearchItem(recentSearch, locationState.value)
+                        val lazyListState = rememberLazyListState()
+                        LazyColumn(state = lazyListState) {
+                            if (bottomSheetState != BottomSheetBehavior.STATE_EXPANDED) {
+                                item { Spacer(Modifier.height(112.dp)) }
+                            } else {
+                                // TODO: maybe have it in a constraint layout (a compose one) above
+                                // the list -> test how this variant will work when list is
+                                // scrolling (in PlaceList)
+                                stickyHeader {
+                                    SearchBar(
+                                        query = "",
+                                        searchFocused = false,
+                                        onBackPressedDispatcher =
+                                            requireActivity().onBackPressedDispatcher,
+                                        onSearchFocusChange = { focused -> },
+                                        onTextValueChange = { textValue -> }
+                                    )
+                                }
+                            }
+                            items(recentSearches.value) { recentSearch ->
+                                RecentSearchItem(recentSearch, locationState.value)
+                            }
+                            if (recentSearches is Loading) {
+                                item { CircularProgressIndicator() }
+                            }
                         }
-                        if (recentSearches is Loading) {
-                            item { CircularProgressIndicator() }
-                        }
-                    }
 
-                    InfiniteListHandler(listState = lazyListState) {
-                        recentSearchesViewModel.intent(RecentSearchesIntent.IncreaseLimit)
+                        InfiniteListHandler(listState = lazyListState) {
+                            recentSearchesViewModel.intent(RecentSearchesIntent.IncreaseLimit)
+                        }
                     }
                 }
             }

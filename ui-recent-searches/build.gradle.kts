@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":core-android"))
     implementation(project(":core-android-model"))
     implementation(project(":ui-main"))
+    implementation(project(":ui-search"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("androidx.appcompat:appcompat:1.4.0-rc01")

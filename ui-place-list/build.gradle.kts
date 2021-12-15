@@ -61,6 +61,7 @@ dependencies {
     implementation(project(":core-android-model"))
     implementation(project(":tangram"))
     implementation(project(":ui-main"))
+    implementation(project(":ui-search"))
 
     implementation(kotlin("stdlib", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
     implementation("androidx.appcompat:appcompat:1.4.0-rc01")

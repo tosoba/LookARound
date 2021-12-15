@@ -234,6 +234,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
                                 MainSearchMode.RECENT -> state.recentSearchQuery
                             },
                         searchFocused = searchFocused.value,
+                        onBackPressedDispatcher = onBackPressedDispatcher,
                         onSearchFocusChange = { focused ->
                             lifecycleScope.launch {
                                 viewModel.intent(MainIntent.SearchFocusChanged(focused))
@@ -314,9 +315,11 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
             .bottomSheetStateUpdates
             .onEach { sheetState ->
                 when (sheetState) {
-                    BottomSheetBehavior.STATE_EXPANDED -> changeSearchbarVisibility(View.VISIBLE)
-                    BottomSheetBehavior.STATE_HIDDEN ->
+                    BottomSheetBehavior.STATE_EXPANDED -> changeSearchbarVisibility(View.GONE)
+                    BottomSheetBehavior.STATE_HIDDEN -> {
+                        changeSearchbarVisibility(View.VISIBLE)
                         binding.bottomNavigationView.selectedItemId = R.id.action_unchecked
+                    }
                 }
             }
             .launchIn(lifecycleScope)

@@ -1,7 +1,7 @@
 package com.lookaround.ui.search.composable
 
-import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -22,7 +22,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -37,14 +36,13 @@ import com.lookaround.ui.search.R
 fun SearchBar(
     query: String,
     searchFocused: Boolean,
+    onBackPressedDispatcher: OnBackPressedDispatcher,
     modifier: Modifier = Modifier,
     onSearchFocusChange: (Boolean) -> Unit = {},
     onTextValueChange: (TextFieldValue) -> Unit = {}
 ) {
     var textValue by remember { mutableStateOf(TextFieldValue(query)) }
     val focusManager = LocalFocusManager.current
-    val onBackPressedDispatcher =
-        (LocalLifecycleOwner.current as ComponentActivity).onBackPressedDispatcher
     val onBackPressedCallback =
         object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {

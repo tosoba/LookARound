@@ -88,7 +88,7 @@ constructor(
                 emit(LoadingSearchResultsUpdate)
                 try {
                     val places =
-                        withTimeout(PLACES_LOADING_TIMEOUT) {
+                        withTimeout(PLACES_LOADING_TIMEOUT_MILLIS) {
                             getPlacesOfTypeAround(
                                 placeType = placeType,
                                 lat = currentLocation.value.latitude,
@@ -165,7 +165,7 @@ constructor(
                     emit(
                         AutocompleteSearchResultsLoadedUpdate(
                             points =
-                                withTimeout(PLACES_LOADING_TIMEOUT) {
+                                withTimeout(PLACES_LOADING_TIMEOUT_MILLIS) {
                                     autocompleteSearch(
                                         query = query,
                                         priorityLat =
@@ -192,7 +192,7 @@ constructor(
 
     companion object {
         private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L
-        private const val PLACES_LOADING_TIMEOUT = 10_000L
+        private const val PLACES_LOADING_TIMEOUT_MILLIS = 10_000L
         private const val PLACES_LOADING_RADIUS_METERS = 5_000f
     }
 }
