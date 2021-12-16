@@ -22,7 +22,7 @@ constructor(
             recentSearchesAround
                 .union(recentAutocompleteSearches)
                 .toSortedSet { search1, search2 ->
-                    search1.lastSearchedAt.compareTo(search2.lastSearchedAt)
+                    -1 * search1.lastSearchedAt.compareTo(search2.lastSearchedAt)
                 }
                 .take(limit)
         }
