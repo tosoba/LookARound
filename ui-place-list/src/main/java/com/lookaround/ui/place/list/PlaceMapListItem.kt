@@ -4,9 +4,8 @@ import android.graphics.Bitmap
 import android.location.Location
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -14,9 +13,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.model.INamedLocation
-import com.lookaround.core.android.view.composable.LookARoundCard
 import com.lookaround.core.android.view.composable.ItemDistanceText
 import com.lookaround.core.android.view.composable.ItemNameText
+import com.lookaround.core.android.view.composable.LookARoundCard
 import com.lookaround.core.android.view.composable.ShimmerAnimation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
@@ -49,16 +48,8 @@ internal fun PlaceMapListItem(
         modifier = modifier
     ) {
         Column {
-            val bitmapModifier = Modifier.width(bitmapDimension.dp).height(bitmapDimension.dp)
-            bitmap?.let {
-                Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = point.location.toString(),
-                    contentScale = ContentScale.FillBounds,
-                    modifier = bitmapModifier
-                )
-            }
-                ?: run { ShimmerAnimation(bitmapModifier) }
+            val bitmapModifier = Modifier.size(bitmapDimension.dp)
+            bitmap?.let { MapImage(it, bitmapModifier) } ?: run { ShimmerAnimation(bitmapModifier) }
             ItemNameText(point.name, modifier = Modifier.padding(5.dp))
             userLocationState.value?.let { userLocation ->
                 ItemDistanceText(
@@ -69,4 +60,14 @@ internal fun PlaceMapListItem(
             }
         }
     }
+}
+
+@Composable
+private fun MapImage(bitmap: Bitmap, modifier: Modifier) {
+    Image(
+        bitmap = bitmap.asImageBitmap(),
+        contentDescription = null,
+        contentScale = ContentScale.FillBounds,
+        modifier = modifier
+    )
 }

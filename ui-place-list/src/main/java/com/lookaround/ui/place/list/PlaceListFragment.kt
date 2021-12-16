@@ -32,8 +32,8 @@ import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.locationReadyUpdates
-import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.databinding.FragmentPlaceListBinding
 import com.lookaround.ui.search.composable.SearchBar
@@ -103,9 +103,9 @@ class PlaceListFragment :
         val markersFlow = mainViewModel.states.map(MainState::markers::get).distinctUntilChanged()
         val bottomSheetSignalsFlow =
             mainViewModel
-                .signals
-                .filterIsInstance<MainSignal.BottomSheetStateChanged>()
-                .map(MainSignal.BottomSheetStateChanged::state::get)
+                .bottomSheetStateUpdates
+                .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
+                .distinctUntilChanged()
 
         binding.placeMapRecyclerView.setContent {
             ProvideWindowInsets {
@@ -115,7 +115,6 @@ class PlaceListFragment :
                                 initial = BottomSheetBehavior.STATE_HIDDEN
                             )
                             .value
-                    if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN) return@LookARoundTheme
 
                     val markers = markersFlow.collectAsState(initial = Empty).value
                     if (markers !is WithValue) return@LookARoundTheme

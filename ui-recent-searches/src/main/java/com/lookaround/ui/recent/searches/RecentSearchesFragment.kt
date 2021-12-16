@@ -36,8 +36,8 @@ import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.MainIntent
-import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.search.composable.SearchBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,8 +46,10 @@ import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -76,9 +78,9 @@ class RecentSearchesFragment : Fragment() {
                 recentSearchesViewModel.states.map(RecentSearchesState::searches::get)
             val bottomSheetSignalsFlow =
                 mainViewModel
-                    .signals
-                    .filterIsInstance<MainSignal.BottomSheetStateChanged>()
-                    .map(MainSignal.BottomSheetStateChanged::state::get)
+                    .bottomSheetStateUpdates
+                    .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
+                    .distinctUntilChanged()
             val locationFlow =
                 mainViewModel
                     .states
@@ -93,9 +95,6 @@ class RecentSearchesFragment : Fragment() {
                                     initial = BottomSheetBehavior.STATE_HIDDEN
                                 )
                                 .value
-                        if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN) {
-                            return@LookARoundTheme
-                        }
 
                         val locationState = locationFlow.collectAsState(initial = Empty).value
                         if (locationState !is WithValue) return@LookARoundTheme

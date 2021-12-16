@@ -21,8 +21,8 @@ import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.MainIntent
-import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.place.types.composable.PlaceTypeGroupItem
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
@@ -30,8 +30,8 @@ import com.lookaround.ui.search.composable.SearchBar
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 @FlowPreview
@@ -51,9 +51,9 @@ class PlaceTypesFragment : Fragment() {
         ComposeView(requireContext()).apply {
             val bottomSheetSignalsFlow =
                 mainViewModel
-                    .signals
-                    .filterIsInstance<MainSignal.BottomSheetStateChanged>()
-                    .map(MainSignal.BottomSheetStateChanged::state::get)
+                    .bottomSheetStateUpdates
+                    .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
+                    .distinctUntilChanged()
             setContent {
                 ProvideWindowInsets {
                     LookARoundTheme {
