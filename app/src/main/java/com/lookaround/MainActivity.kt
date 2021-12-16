@@ -354,14 +354,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
     }
 
     private fun changeSearchbarVisibility(targetVisibility: Int) {
-        binding.searchBarView.apply {
-            val delta = -250f
-            if (targetVisibility == View.GONE) {
-                slideChangeVisibility(targetVisibility, toYDelta = delta)
-            } else {
-                slideChangeVisibility(targetVisibility, fromYDelta = delta)
-            }
-        }
+        binding.searchBarView.animate().alpha(if (targetVisibility == View.GONE) 0f else 1f)
     }
 
     private fun launchPlacesLoadingSnackbarUpdates() {

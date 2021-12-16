@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.MapCaptureCache
@@ -35,6 +36,7 @@ import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.databinding.FragmentPlaceListBinding
+import com.lookaround.ui.search.composable.SearchBar
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
@@ -98,7 +100,7 @@ class PlaceListFragment :
             }
         }
 
-        val markersFlow = mainViewModel.states.map(MainState::markers::get)
+        val markersFlow = mainViewModel.states.map(MainState::markers::get).distinctUntilChanged()
         val bottomSheetSignalsFlow =
             mainViewModel
                 .signals
@@ -106,53 +108,68 @@ class PlaceListFragment :
                 .map(MainSignal.BottomSheetStateChanged::state::get)
 
         binding.placeMapRecyclerView.setContent {
-            LookARoundTheme {
-                val bottomSheetState =
-                    bottomSheetSignalsFlow.collectAsState(
-                            initial = BottomSheetBehavior.STATE_HIDDEN
-                        )
-                        .value
-                if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN) return@LookARoundTheme
+            ProvideWindowInsets {
+                LookARoundTheme {
+                    val bottomSheetState =
+                        bottomSheetSignalsFlow.collectAsState(
+                                initial = BottomSheetBehavior.STATE_HIDDEN
+                            )
+                            .value
+                    if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN) return@LookARoundTheme
 
-                val markers = markersFlow.collectAsState(initial = Empty).value
-                if (markers !is WithValue) return@LookARoundTheme
+                    val markers = markersFlow.collectAsState(initial = Empty).value
+                    if (markers !is WithValue) return@LookARoundTheme
 
-                binding.reloadMapsFab.visibility =
-                    if (bottomSheetState == BottomSheetBehavior.STATE_EXPANDED) View.VISIBLE
-                    else View.GONE
+                    binding.reloadMapsFab.visibility =
+                        if (bottomSheetState == BottomSheetBehavior.STATE_EXPANDED) View.VISIBLE
+                        else View.GONE
 
-                val orientation = LocalConfiguration.current.orientation
-                LazyColumn(
-                    state = rememberLazyListState(),
-                    modifier = Modifier.padding(horizontal = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    item { Spacer(Modifier.height(112.dp)) }
-                    items(
-                        markers.value.chunked(
-                            if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
-                        )
-                    ) { chunk ->
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.wrapContentHeight()
-                        ) {
-                            chunk.forEach { point ->
-                                PlaceMapListItem(
-                                    point = point,
-                                    userLocationFlow = mainViewModel.locationReadyUpdates,
-                                    getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
-                                    reloadBitmapTrigger = reloadBitmapTrigger.receiveAsFlow(),
-                                    bitmapDimension =
-                                        requireContext()
-                                            .pxToDp(mapLayoutParams.width.toFloat())
-                                            .toInt(),
-                                    modifier =
-                                        Modifier.weight(1f, fill = false).clickable {
-                                            (activity as? PlaceMapItemActionController)
-                                                ?.onPlaceMapItemClick(point)
-                                        },
+                    val orientation = LocalConfiguration.current.orientation
+                    LazyColumn(
+                        state = rememberLazyListState(),
+                        modifier = Modifier.padding(horizontal = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        if (bottomSheetState != BottomSheetBehavior.STATE_EXPANDED) {
+                            item { Spacer(Modifier.height(112.dp)) }
+                        } else {
+                            stickyHeader {
+                                SearchBar(
+                                    query = "",
+                                    searchFocused = false,
+                                    onBackPressedDispatcher =
+                                        requireActivity().onBackPressedDispatcher,
+                                    onSearchFocusChange = { focused -> },
+                                    onTextValueChange = { textValue -> }
                                 )
+                            }
+                        }
+                        items(
+                            markers.value.chunked(
+                                if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
+                            )
+                        ) { chunk ->
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.wrapContentHeight()
+                            ) {
+                                chunk.forEach { point ->
+                                    PlaceMapListItem(
+                                        point = point,
+                                        userLocationFlow = mainViewModel.locationReadyUpdates,
+                                        getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
+                                        reloadBitmapTrigger = reloadBitmapTrigger.receiveAsFlow(),
+                                        bitmapDimension =
+                                            requireContext()
+                                                .pxToDp(mapLayoutParams.width.toFloat())
+                                                .toInt(),
+                                        modifier =
+                                            Modifier.weight(1f, fill = false).clickable {
+                                                (activity as? PlaceMapItemActionController)
+                                                    ?.onPlaceMapItemClick(point)
+                                            },
+                                    )
+                                }
                             }
                         }
                     }

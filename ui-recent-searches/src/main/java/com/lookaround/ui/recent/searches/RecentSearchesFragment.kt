@@ -93,8 +93,9 @@ class RecentSearchesFragment : Fragment() {
                                     initial = BottomSheetBehavior.STATE_HIDDEN
                                 )
                                 .value
-                        if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN)
+                        if (bottomSheetState == BottomSheetBehavior.STATE_HIDDEN) {
                             return@LookARoundTheme
+                        }
 
                         val locationState = locationFlow.collectAsState(initial = Empty).value
                         if (locationState !is WithValue) return@LookARoundTheme
@@ -109,9 +110,6 @@ class RecentSearchesFragment : Fragment() {
                             if (bottomSheetState != BottomSheetBehavior.STATE_EXPANDED) {
                                 item { Spacer(Modifier.height(112.dp)) }
                             } else {
-                                // TODO: maybe have it in a constraint layout (a compose one) above
-                                // the list -> test how this variant will work when list is
-                                // scrolling (in PlaceList)
                                 stickyHeader {
                                     SearchBar(
                                         query = "",
