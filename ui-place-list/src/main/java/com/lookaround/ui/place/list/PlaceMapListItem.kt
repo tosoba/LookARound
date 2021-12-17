@@ -49,7 +49,8 @@ internal fun PlaceMapListItem(
     ) {
         Column {
             val bitmapModifier = Modifier.size(bitmapDimension.dp)
-            bitmap?.let { MapImage(it, bitmapModifier) } ?: run { ShimmerAnimation(bitmapModifier) }
+            if (bitmap != null) MapImage(bitmap!!, bitmapModifier)
+            else ShimmerAnimation(bitmapModifier)
             ItemNameText(point.name, modifier = Modifier.padding(5.dp))
             userLocationState.value?.let { userLocation ->
                 ItemDistanceText(
