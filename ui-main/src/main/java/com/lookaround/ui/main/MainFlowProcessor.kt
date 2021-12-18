@@ -140,11 +140,7 @@ constructor(
         signal: suspend (MainSignal) -> Unit
     ): Flow<(MainState) -> MainState> =
         map { (query) -> query.trim() }
-            .filterNot { query ->
-                query.isBlank() ||
-                    query.count(Char::isLetterOrDigit) <= 3 ||
-                    currentState().searchMode != MainSearchMode.AUTOCOMPLETE
-            }
+            .filterNot { query -> query.isBlank() || query.count(Char::isLetterOrDigit) <= 3 }
             .distinctUntilChanged()
             .debounce(500L)
             .withLatestFrom(isConnectedFlow()) { query, isConnected -> query to isConnected }

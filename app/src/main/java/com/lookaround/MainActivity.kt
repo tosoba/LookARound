@@ -22,7 +22,6 @@ import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.camera.CameraFragment
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
-import com.lookaround.ui.main.model.MainSearchMode
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
@@ -81,19 +80,6 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
 
                 if (latestARState == ARState.ENABLED) {
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-                }
-
-                lifecycleScope.launch {
-                    viewModel.intent(
-                        MainIntent.SearchModeChanged(
-                            when (menuItem.itemId) {
-                                R.id.action_place_types -> MainSearchMode.PLACE_TYPES
-                                R.id.action_place_list -> MainSearchMode.PLACE_LIST
-                                R.id.action_recent_searches -> MainSearchMode.RECENT
-                                else -> throw IllegalArgumentException()
-                            }
-                        )
-                    )
                 }
 
                 true
@@ -215,24 +201,15 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
     }
 
     private fun initSearch() {
-        val searchModes = viewModel.states.map(MainState::searchMode::get).distinctUntilChanged()
         val searchFocusedFlow =
             viewModel.states.map(MainState::searchFocused::get).distinctUntilChanged()
         binding.searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
-                    val searchMode =
-                        searchModes.collectAsState(initial = MainSearchMode.AUTOCOMPLETE)
                     val searchFocused = searchFocusedFlow.collectAsState(initial = false)
                     val state = viewModel.state
                     SearchBar(
-                        query =
-                            when (searchMode.value) {
-                                MainSearchMode.AUTOCOMPLETE -> state.autocompleteSearchQuery
-                                MainSearchMode.PLACE_TYPES -> state.placeTypesSearchQuery
-                                MainSearchMode.PLACE_LIST -> state.placeListSearchQuery
-                                MainSearchMode.RECENT -> state.recentSearchQuery
-                            },
+                        query = state.autocompleteSearchQuery,
                         searchFocused = searchFocused.value,
                         onBackPressedDispatcher = onBackPressedDispatcher,
                         onSearchFocusChange = { focused ->

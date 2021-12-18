@@ -13,6 +13,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
@@ -27,7 +30,8 @@ import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
-import com.lookaround.core.android.model.Empty
+import com.lookaround.core.android.model.Marker
+import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
@@ -42,6 +46,7 @@ import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -100,7 +105,6 @@ class PlaceListFragment :
             }
         }
 
-        val markersFlow = mainViewModel.states.map(MainState::markers::get).distinctUntilChanged()
         val bottomSheetSignalsFlow =
             mainViewModel
                 .bottomSheetStateUpdates
@@ -116,12 +120,37 @@ class PlaceListFragment :
                             )
                             .value
 
-                    val markers = markersFlow.collectAsState(initial = Empty).value
-                    if (markers !is WithValue) return@LookARoundTheme
-
                     binding.reloadMapsFab.visibility =
                         if (bottomSheetState == BottomSheetBehavior.STATE_EXPANDED) View.VISIBLE
                         else View.GONE
+
+                    val query = rememberSaveable { mutableStateOf("") }
+                    val searchFocused = rememberSaveable { mutableStateOf(false) }
+
+                    val markersFlow = remember {
+                        mainViewModel
+                            .states
+                            .map(MainState::markers::get)
+                            .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
+                            .map { markers ->
+                                val trimmedQuery = query.value.trim()
+                                markers.value.items.apply {
+                                    if (trimmedQuery.isBlank()) toList()
+                                    else {
+                                        filter { marker ->
+                                            marker
+                                                .name
+                                                .lowercase(Locale.getDefault())
+                                                .contains(
+                                                    trimmedQuery.lowercase(Locale.getDefault())
+                                                )
+                                        }
+                                    }
+                                }
+                            }
+                            .distinctUntilChanged()
+                    }
+                    val markers = markersFlow.collectAsState(initial = emptyList()).value
 
                     val orientation = LocalConfiguration.current.orientation
                     LazyColumn(
@@ -134,17 +163,22 @@ class PlaceListFragment :
                         } else {
                             stickyHeader {
                                 SearchBar(
-                                    query = "",
-                                    searchFocused = false,
+                                    query = query.value,
+                                    searchFocused = searchFocused.value,
                                     onBackPressedDispatcher =
                                         requireActivity().onBackPressedDispatcher,
-                                    onSearchFocusChange = { focused -> },
-                                    onTextValueChange = { textValue -> }
+                                    onSearchFocusChange = {
+                                        searchFocused.value = it
+                                                          },
+                                    onTextValueChange = {
+                                        query.value = it.text
+                                    }
                                 )
                             }
                         }
+
                         items(
-                            markers.value.chunked(
+                            markers.chunked(
                                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
                             )
                         ) { chunk ->

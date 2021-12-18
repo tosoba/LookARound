@@ -2,7 +2,6 @@ package com.lookaround.ui.main.model
 
 import android.location.Location
 import android.os.Parcelable
-import androidx.compose.ui.text.input.TextFieldValue
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.model.Empty
 import com.lookaround.core.android.model.Loadable
@@ -18,11 +17,7 @@ data class MainState(
     val lastLiveBottomSheetState: Int = BottomSheetBehavior.STATE_HIDDEN,
     val selectedBottomNavigationViewItemId: Int = R.id.action_unchecked,
     val recentSearchesCount: Int = 0,
-    val searchMode: MainSearchMode = MainSearchMode.AUTOCOMPLETE,
     val autocompleteSearchQuery: String = "",
-    val placeTypesSearchQuery: String = "",
-    val placeListSearchQuery: String = "",
-    val recentSearchQuery: String = "",
     val searchFocused: Boolean = false,
 ) : Parcelable {
     internal fun copyWithLocationException(throwable: Throwable): MainState =
