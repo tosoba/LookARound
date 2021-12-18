@@ -1,5 +1,6 @@
 package com.lookaround.core.android.ext
 
+import android.animation.Animator
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
@@ -22,7 +23,7 @@ fun View.toggleVisibility(): Int {
     return visibility
 }
 
-fun View.slideChangeVisibility(
+fun View.slideSetVisibility(
     targetVisibility: Int,
     fromXDelta: Float = 0f,
     toXDelta: Float = 0f,
@@ -47,6 +48,21 @@ fun View.slideChangeVisibility(
             )
         }
     )
+}
+
+fun View.fadeSetVisibility(visibility: Int) {
+    animate()
+        .alpha(if (visibility == View.GONE) 0f else 1f)
+        .setListener(
+            object : Animator.AnimatorListener {
+                override fun onAnimationStart(animation: Animator?) = Unit
+                override fun onAnimationEnd(animation: Animator?) {
+                    this@fadeSetVisibility.visibility = visibility
+                }
+                override fun onAnimationCancel(animation: Animator?) = Unit
+                override fun onAnimationRepeat(animation: Animator?) = Unit
+            }
+        )
 }
 
 fun ViewPager2.disableNestedScrolling() {

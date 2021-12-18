@@ -40,6 +40,7 @@ import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.search.composable.SearchBar
+import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
@@ -104,6 +105,12 @@ class RecentSearchesFragment : Fragment() {
                         if (recentSearches is LoadingFirst) CircularProgressIndicator()
                         if (recentSearches !is WithValue) return@LookARoundTheme
 
+                        var searchQuery =
+                            "" // TODO: convert to flow with initial value saved in saved state
+                        // bundle
+                        var searchFocused = false
+                        val searchBarState = rememberSearchBarState(searchQuery, searchFocused)
+
                         val lazyListState = rememberLazyListState()
                         LazyColumn(state = lazyListState) {
                             if (bottomSheetState != BottomSheetBehavior.STATE_EXPANDED) {
@@ -111,8 +118,7 @@ class RecentSearchesFragment : Fragment() {
                             } else {
                                 stickyHeader {
                                     SearchBar(
-                                        query = "",
-                                        searchFocused = false,
+                                        state = searchBarState,
                                         onBackPressedDispatcher =
                                             requireActivity().onBackPressedDispatcher,
                                         onSearchFocusChange = { focused -> },

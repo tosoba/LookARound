@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.runtime.collectAsState
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
@@ -23,10 +22,10 @@ import com.lookaround.ui.camera.CameraFragment
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
-import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.list.PlaceMapItemActionController
 import com.lookaround.ui.search.composable.SearchBar
+import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -118,7 +117,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
         viewModel
             .signals
             .filterIsInstance<MainSignal.ToggleSearchBarVisibility>()
-            .onEach { (targetVisibility) -> changeSearchbarVisibility(targetVisibility) }
+            .onEach { (targetVisibility) -> setSearchbarVisibility(targetVisibility) }
             .launchIn(lifecycleScope)
 
         viewModel
@@ -201,16 +200,13 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
     }
 
     private fun initSearch() {
-        val searchFocusedFlow =
-            viewModel.states.map(MainState::searchFocused::get).distinctUntilChanged()
         binding.searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
-                    val searchFocused = searchFocusedFlow.collectAsState(initial = false)
-                    val state = viewModel.state
+                    val (_, _, _, _, _, searchQuery, searchFocused) = viewModel.state
+                    val searchBarState = rememberSearchBarState(searchQuery, searchFocused)
                     SearchBar(
-                        query = state.autocompleteSearchQuery,
-                        searchFocused = searchFocused.value,
+                        state = searchBarState,
                         onBackPressedDispatcher = onBackPressedDispatcher,
                         onSearchFocusChange = { focused ->
                             lifecycleScope.launch {
@@ -292,9 +288,9 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
             .bottomSheetStateUpdates
             .onEach { sheetState ->
                 when (sheetState) {
-                    BottomSheetBehavior.STATE_EXPANDED -> changeSearchbarVisibility(View.GONE)
+                    BottomSheetBehavior.STATE_EXPANDED -> setSearchbarVisibility(View.GONE)
                     BottomSheetBehavior.STATE_HIDDEN -> {
-                        changeSearchbarVisibility(View.VISIBLE)
+                        setSearchbarVisibility(View.VISIBLE)
                         binding.bottomNavigationView.selectedItemId = R.id.action_unchecked
                     }
                 }
@@ -330,8 +326,8 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
         lifecycleScope.launch { viewModel.signal(MainSignal.BottomSheetStateChanged(sheetState)) }
     }
 
-    private fun changeSearchbarVisibility(targetVisibility: Int) {
-        binding.searchBarView.animate().alpha(if (targetVisibility == View.GONE) 0f else 1f)
+    private fun setSearchbarVisibility(visibility: Int) {
+        binding.searchBarView.fadeSetVisibility(visibility)
     }
 
     private fun launchPlacesLoadingSnackbarUpdates() {

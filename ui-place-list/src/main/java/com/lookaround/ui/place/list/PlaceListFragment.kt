@@ -13,9 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
@@ -41,6 +38,7 @@ import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.databinding.FragmentPlaceListBinding
 import com.lookaround.ui.search.composable.SearchBar
+import com.lookaround.ui.search.composable.rememberSearchBarState
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
@@ -81,6 +79,17 @@ class PlaceListFragment :
         MutableSharedFlow<Pair<Location, CompletableDeferred<Bitmap>>>()
     private val mapReady = CompletableDeferred<Unit>()
 
+    private var searchQuery: String = ""
+    private var searchFocused: Boolean = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.getString(SavedStateKey.SEARCH_QUERY.name)?.let(this::searchQuery::set)
+        savedInstanceState
+            ?.getBoolean(SavedStateKey.SEARCH_FOCUSED.name)
+            ?.let(this::searchFocused::set)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mapController.launch {
             setSceneLoadListener(this@PlaceListFragment)
@@ -111,46 +120,50 @@ class PlaceListFragment :
                 .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
                 .distinctUntilChanged()
 
+        val searchQueryFlow = MutableStateFlow(searchQuery)
+
+        val markersFlow =
+            mainViewModel
+                .states
+                .map(MainState::markers::get)
+                .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
+                .distinctUntilChanged()
+                .combine(searchQueryFlow.map { it }.distinctUntilChanged()) { markers, query ->
+                    markers to query.trim()
+                }
+                .map { (markers, query) ->
+                    markers.value.items.run {
+                        if (query.isBlank()) toList()
+                        else {
+                            filter { marker ->
+                                marker
+                                    .name
+                                    .lowercase(Locale.getDefault())
+                                    .contains(query.lowercase(Locale.getDefault()))
+                            }
+                        }
+                    }
+                }
+                .distinctUntilChanged()
+
         binding.placeMapRecyclerView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
                     val bottomSheetState =
                         bottomSheetSignalsFlow.collectAsState(
-                                initial = BottomSheetBehavior.STATE_HIDDEN
-                            )
-                            .value
+                            initial = BottomSheetBehavior.STATE_HIDDEN
+                        )
 
                     binding.reloadMapsFab.visibility =
-                        if (bottomSheetState == BottomSheetBehavior.STATE_EXPANDED) View.VISIBLE
-                        else View.GONE
+                        if (bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED) {
+                            View.VISIBLE
+                        } else {
+                            View.GONE
+                        }
 
-                    val query = rememberSaveable { mutableStateOf("") }
-                    val searchFocused = rememberSaveable { mutableStateOf(false) }
+                    val searchBarState = rememberSearchBarState(searchQuery, searchFocused)
 
-                    val markersFlow = remember {
-                        mainViewModel
-                            .states
-                            .map(MainState::markers::get)
-                            .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
-                            .map { markers ->
-                                val trimmedQuery = query.value.trim()
-                                markers.value.items.apply {
-                                    if (trimmedQuery.isBlank()) toList()
-                                    else {
-                                        filter { marker ->
-                                            marker
-                                                .name
-                                                .lowercase(Locale.getDefault())
-                                                .contains(
-                                                    trimmedQuery.lowercase(Locale.getDefault())
-                                                )
-                                        }
-                                    }
-                                }
-                            }
-                            .distinctUntilChanged()
-                    }
-                    val markers = markersFlow.collectAsState(initial = emptyList()).value
+                    val markers = markersFlow.collectAsState(initial = emptyList())
 
                     val orientation = LocalConfiguration.current.orientation
                     LazyColumn(
@@ -158,27 +171,26 @@ class PlaceListFragment :
                         modifier = Modifier.padding(horizontal = 10.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        if (bottomSheetState != BottomSheetBehavior.STATE_EXPANDED) {
+                        if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED) {
                             item { Spacer(Modifier.height(112.dp)) }
                         } else {
                             stickyHeader {
                                 SearchBar(
-                                    query = query.value,
-                                    searchFocused = searchFocused.value,
+                                    state = searchBarState,
                                     onBackPressedDispatcher =
                                         requireActivity().onBackPressedDispatcher,
-                                    onSearchFocusChange = {
-                                        searchFocused.value = it
-                                                          },
+                                    onSearchFocusChange =
+                                        this@PlaceListFragment::searchFocused::set,
                                     onTextValueChange = {
-                                        query.value = it.text
+                                        searchQueryFlow.value = it.text
+                                        this@PlaceListFragment.searchQuery = it.text
                                     }
                                 )
                             }
                         }
 
                         items(
-                            markers.chunked(
+                            markers.value.chunked(
                                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
                             )
                         ) { chunk ->
@@ -208,6 +220,13 @@ class PlaceListFragment :
                     }
                 }
             }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.apply {
+            putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
+            putBoolean(SavedStateKey.SEARCH_FOCUSED.name, searchFocused)
         }
     }
 
@@ -324,4 +343,9 @@ class PlaceListFragment :
     override fun onRegionWillChange(animated: Boolean) = Unit
     override fun onRegionIsChanging() = Unit
     override fun onRegionDidChange(animated: Boolean) = Unit
+
+    private enum class SavedStateKey {
+        SEARCH_QUERY,
+        SEARCH_FOCUSED
+    }
 }

@@ -27,6 +27,7 @@ import com.lookaround.ui.place.types.composable.PlaceTypeGroupItem
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
 import com.lookaround.ui.search.composable.SearchBar
+import com.lookaround.ui.search.composable.rememberSearchBarState
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -62,14 +63,20 @@ class PlaceTypesFragment : Fragment() {
                                     initial = BottomSheetBehavior.STATE_HIDDEN
                                 )
                                 .value
+
+                        var searchQuery =
+                            "" // TODO: convert to flow with initial value saved in saved state
+                        // bundle
+                        var searchFocused = false
+                        val searchBarState = rememberSearchBarState(searchQuery, searchFocused)
+
                         LazyColumn {
                             if (bottomSheetState != BottomSheetBehavior.STATE_EXPANDED) {
                                 item { Spacer(Modifier.height(112.dp)) }
                             } else {
                                 stickyHeader {
                                     SearchBar(
-                                        query = "",
-                                        searchFocused = false,
+                                        state = searchBarState,
                                         onBackPressedDispatcher =
                                             requireActivity().onBackPressedDispatcher,
                                         onSearchFocusChange = { focused -> },
