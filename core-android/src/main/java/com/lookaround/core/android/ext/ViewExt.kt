@@ -4,8 +4,6 @@ import android.animation.Animator
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
-import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
 import com.facebook.shimmer.ShimmerFrameLayout
 
 fun ShimmerFrameLayout.showAndStart() {
@@ -63,12 +61,4 @@ fun View.fadeSetVisibility(visibility: Int) {
                 override fun onAnimationRepeat(animation: Animator?) = Unit
             }
         )
-}
-
-fun ViewPager2.disableNestedScrolling() {
-    (getChildAt(0) as? RecyclerView)?.apply {
-        isNestedScrollingEnabled = false
-        overScrollMode = View.OVER_SCROLL_NEVER
-    }
-        ?: throw IllegalStateException("First child of the ViewPager is not of type RecyclerView.")
 }

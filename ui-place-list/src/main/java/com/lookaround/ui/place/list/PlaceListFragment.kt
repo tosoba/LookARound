@@ -157,9 +157,14 @@ class PlaceListFragment :
                     val searchQuery = searchQueryFlow.collectAsState(initial = "")
                     val searchFocused = rememberSaveable { mutableStateOf(false) }
 
+                val lazyListState = rememberLazyListState()
+                                binding.disallowInterceptTouchContainer.shouldRequestDisallowInterceptTouchEvent =
+                    (lazyListState.firstVisibleItemIndex != 0 ||
+                        lazyListState.firstVisibleItemScrollOffset != 0) &&
+                        bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED
                     val orientation = LocalConfiguration.current.orientation
                     LazyColumn(
-                        state = rememberLazyListState(),
+                        state = lazyListState,
                         modifier = Modifier.padding(horizontal = 10.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {

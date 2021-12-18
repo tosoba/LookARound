@@ -13,8 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/bottom_sheet_view_pager"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/bottom_sheet_fragment_container_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
