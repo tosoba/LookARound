@@ -185,11 +185,8 @@ class RecentSearchesFragment : Fragment() {
                     ItemNameText(
                         name =
                             recentSearch.label.replaceFirstChar {
-                                if (it.isLowerCase()) {
-                                    it.titlecase(Locale.getDefault())
-                                } else {
-                                    it.toString()
-                                }
+                                if (it.isLowerCase()) it.titlecase(Locale.getDefault())
+                                else it.toString()
                             },
                         modifier = Modifier.padding(5.dp)
                     )
