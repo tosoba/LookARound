@@ -131,7 +131,11 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         fun drawMarker(marker: ARMarker, lastDrawn: Boolean) {
             val cameraMarker = cameraMarkers[marker.wrapped.id] ?: return
 
-            val pagedPosition = pagedPositionOf(cameraMarker, lastDrawn)
+            val pagedPosition =
+                pagedPositionOf(
+                    cameraMarker = cameraMarker,
+                    requireAlreadyCalculated = lastDrawn && !firstFrame
+                )
             marker.y = pagedPosition.y
             storeMarkerX(cameraMarker)
             cameraMarker.pagedPosition?.page?.let {
@@ -192,8 +196,11 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     internal fun isOnCurrentPage(marker: ARMarker): Boolean =
         cameraMarkers[marker.wrapped.id]?.pagedPosition?.page == currentPage
 
-    private fun pagedPositionOf(cameraMarker: CameraMarker, lastDrawn: Boolean): PagedPosition {
-        if (lastDrawn) {
+    private fun pagedPositionOf(
+        cameraMarker: CameraMarker,
+        requireAlreadyCalculated: Boolean
+    ): PagedPosition {
+        if (requireAlreadyCalculated) {
             return requireNotNull(cameraMarker.pagedPosition) {
                 "Last drawn marker's paged position is null."
             }
