@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.runtime.collectAsState
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
@@ -22,10 +23,10 @@ import com.lookaround.ui.camera.CameraFragment
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
+import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.list.PlaceMapItemActionController
 import com.lookaround.ui.search.composable.SearchBar
-import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -200,20 +201,23 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
     }
 
     private fun initSearch() {
+        val searchFocusedFlow =
+            viewModel.states.map(MainState::searchFocused::get).distinctUntilChanged()
         binding.searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
-                    val (_, _, _, _, _, searchQuery, searchFocused) = viewModel.state
-                    val searchBarState = rememberSearchBarState(searchQuery, searchFocused)
+                    val searchFocused = searchFocusedFlow.collectAsState(initial = false)
+                    val state = viewModel.state
                     SearchBar(
-                        state = searchBarState,
+                        query = state.autocompleteSearchQuery,
+                        focused = searchFocused.value,
                         onBackPressedDispatcher = onBackPressedDispatcher,
                         onSearchFocusChange = { focused ->
                             lifecycleScope.launch {
                                 viewModel.intent(MainIntent.SearchFocusChanged(focused))
                             }
                         },
-                        onTextValueChange = { textValue ->
+                        onTextFieldValueChange = { textValue ->
                             lifecycleScope.launch {
                                 viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
                             }

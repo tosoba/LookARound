@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
@@ -27,12 +29,10 @@ import com.lookaround.ui.place.types.composable.PlaceTypeGroupItem
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
 import com.lookaround.ui.search.composable.SearchBar
-import com.lookaround.ui.search.composable.rememberSearchBarState
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 @FlowPreview
@@ -42,6 +42,13 @@ class PlaceTypesFragment : Fragment() {
     @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
     private val mainViewModel: MainViewModel by assistedActivityViewModel {
         mainViewModelFactory.create(it)
+    }
+
+    private var searchQuery: String = ""
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.getString(SavedStateKey.SEARCH_QUERY.name)?.let(::searchQuery::set)
     }
 
     override fun onCreateView(
@@ -55,6 +62,19 @@ class PlaceTypesFragment : Fragment() {
                     .bottomSheetStateUpdates
                     .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
                     .distinctUntilChanged()
+            val searchQueryFlow = MutableStateFlow(searchQuery)
+            val placeTypesFlow =
+                searchQueryFlow
+                    .map { it.trim().lowercase() }
+                    .distinctUntilChanged()
+                    .map { query ->
+                        allPlaceTypes.filter { placeType ->
+                            placeType.wrapped.label.lowercase().contains(query) ||
+                                placeType.wrapped.description.lowercase().contains(query)
+                        }
+                    }
+                    .distinctUntilChanged()
+
             setContent {
                 ProvideWindowInsets {
                     LookARoundTheme {
@@ -64,11 +84,9 @@ class PlaceTypesFragment : Fragment() {
                                 )
                                 .value
 
-                        var searchQuery =
-                            "" // TODO: convert to flow with initial value saved in saved state
-                        // bundle
-                        var searchFocused = false
-                        val searchBarState = rememberSearchBarState(searchQuery, searchFocused)
+                        val searchQuery = searchQueryFlow.collectAsState(initial = "")
+                        val searchFocused = rememberSaveable { mutableStateOf(false) }
+                        val placeTypes = placeTypesFlow.collectAsState(initial = allPlaceTypes)
 
                         LazyColumn {
                             if (bottomSheetState != BottomSheetBehavior.STATE_EXPANDED) {
@@ -76,42 +94,21 @@ class PlaceTypesFragment : Fragment() {
                             } else {
                                 stickyHeader {
                                     SearchBar(
-                                        state = searchBarState,
+                                        query = searchQuery.value,
+                                        focused = searchFocused.value,
                                         onBackPressedDispatcher =
                                             requireActivity().onBackPressedDispatcher,
-                                        onSearchFocusChange = { focused -> },
-                                        onTextValueChange = { textValue -> }
+                                        onSearchFocusChange = searchFocused::value::set,
+                                        onTextFieldValueChange = {
+                                            searchQueryFlow.value = it.text
+                                            this@PlaceTypesFragment.searchQuery = it.text
+                                        }
                                     )
                                 }
                             }
                             itemsIndexed(
                                 listOf(
-                                    PlaceTypeGroup(
-                                        name = "General",
-                                        placeTypes =
-                                            listOf(
-                                                PlaceType(
-                                                    wrapped = Amenity.PARKING,
-                                                    imageUrl =
-                                                        "https://source.unsplash.com/UsSdMZ78Q3E"
-                                                ),
-                                                PlaceType(
-                                                    wrapped = Amenity.RESTAURANT,
-                                                    imageUrl =
-                                                        "https://source.unsplash.com/SfP1PtM9Qa8"
-                                                ),
-                                                PlaceType(
-                                                    wrapped = Amenity.FUEL,
-                                                    imageUrl =
-                                                        "https://source.unsplash.com/_jk8KIyN_uA"
-                                                ),
-                                                PlaceType(
-                                                    wrapped = Amenity.BANK,
-                                                    imageUrl =
-                                                        "https://source.unsplash.com/UsSdMZ78Q3E"
-                                                )
-                                            )
-                                    ),
+                                    PlaceTypeGroup(name = "General", placeTypes = placeTypes.value),
                                 )
                             ) { index, group ->
                                 PlaceTypeGroupItem(group, index) { placeType ->
@@ -125,4 +122,34 @@ class PlaceTypesFragment : Fragment() {
                 }
             }
         }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
+    }
+
+    private enum class SavedStateKey {
+        SEARCH_QUERY
+    }
+
+    companion object {
+        private val allPlaceTypes =
+            listOf(
+                PlaceType(
+                    wrapped = Amenity.PARKING,
+                    imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
+                ),
+                PlaceType(
+                    wrapped = Amenity.RESTAURANT,
+                    imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                ),
+                PlaceType(
+                    wrapped = Amenity.FUEL,
+                    imageUrl = "https://source.unsplash.com/_jk8KIyN_uA"
+                ),
+                PlaceType(
+                    wrapped = Amenity.BANK,
+                    imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
+                )
+            )
+    }
 }

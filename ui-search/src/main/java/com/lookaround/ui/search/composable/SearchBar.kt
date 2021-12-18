@@ -34,71 +34,57 @@ import com.lookaround.ui.search.R
 
 @Composable
 fun SearchBar(
-    state: SearchBarState,
+    query: String,
+    focused: Boolean,
     onBackPressedDispatcher: OnBackPressedDispatcher,
     modifier: Modifier = Modifier,
     onSearchFocusChange: (Boolean) -> Unit = {},
-    onTextValueChange: (TextFieldValue) -> Unit = {}
+    onTextFieldValueChange: (TextFieldValue) -> Unit = {}
 ) {
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(query)) }
     val focusManager = LocalFocusManager.current
-    val onBackPressedCallback =
+    val onBackPressedCallback = remember {
         object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 focusManager.clearFocus()
             }
         }
+    }
     val focusRequester = remember(::FocusRequester)
     LookARoundSurface(color = Color.Transparent, modifier = modifier.wrapContentHeight()) {
         Column {
             Spacer(modifier = Modifier.statusBarsPadding())
             SearchBar(
-                textValue = state.textValue,
-                onTextValueChange = { textValue ->
-                    state.textValue = textValue
-                    onTextValueChange(textValue)
+                value = textFieldValue,
+                focused = focused,
+                onTextValueChange = { value ->
+                    textFieldValue = value
+                    onTextFieldValueChange(value)
                 },
-                searchFocused = state.focused,
                 onSearchFocusChange = { focused ->
-                    state.focused = focused
                     onSearchFocusChange(focused)
                     if (focused) onBackPressedDispatcher.addCallback(onBackPressedCallback)
                     else onBackPressedCallback.remove()
                 },
                 onBackArrowClicked = focusManager::clearFocus,
                 onClearQueryClicked = {
-                    val textValue = TextFieldValue("")
-                    state.textValue = textValue
-                    onTextValueChange(textValue)
+                    val clearedTextFieldValue = TextFieldValue("")
+                    textFieldValue = clearedTextFieldValue
+                    onTextFieldValueChange(clearedTextFieldValue)
                     focusRequester.requestFocus()
                 },
                 focusRequester = focusRequester,
             )
         }
-        if (state.focused) {
-            LaunchedEffect(Unit) { focusRequester.requestFocus() }
-        }
+        if (focused) LaunchedEffect(Unit) { focusRequester.requestFocus() }
     }
 }
 
 @Composable
-fun rememberSearchBarState(
-    query: String = "",
-    focused: Boolean = false,
-): SearchBarState = remember {
-    SearchBarState(textValue = TextFieldValue(query), focused = focused)
-}
-
-@Stable
-class SearchBarState(textValue: TextFieldValue, focused: Boolean) {
-    var textValue by mutableStateOf(textValue)
-    var focused by mutableStateOf(focused)
-}
-
-@Composable
 private fun SearchBar(
-    textValue: TextFieldValue,
+    value: TextFieldValue,
+    focused: Boolean,
     onTextValueChange: (TextFieldValue) -> Unit,
-    searchFocused: Boolean,
     onSearchFocusChange: (Boolean) -> Unit,
     onBackArrowClicked: () -> Unit,
     onClearQueryClicked: () -> Unit,
@@ -114,12 +100,12 @@ private fun SearchBar(
             modifier.fillMaxWidth().height(56.dp).padding(horizontal = 24.dp, vertical = 8.dp)
     ) {
         Box(Modifier.fillMaxSize()) {
-            if (textValue.text.isEmpty()) SearchHint()
+            if (value.text.isEmpty()) SearchHint()
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxSize().wrapContentHeight()
             ) {
-                if (searchFocused) {
+                if (focused) {
                     IconButton(onClick = onBackArrowClicked) {
                         Icon(
                             imageVector = Icons.Outlined.ArrowBack,
@@ -129,19 +115,19 @@ private fun SearchBar(
                     }
                 }
                 BasicTextField(
-                    value = textValue,
+                    value = value,
                     onValueChange = onTextValueChange,
                     keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     singleLine = true,
                     modifier =
                         Modifier.weight(1f)
-                            .padding(horizontal = if (searchFocused) 5.dp else 10.dp)
+                            .padding(horizontal = if (focused) 5.dp else 10.dp)
                             .focusRequester(focusRequester)
                             .onFocusChanged { onSearchFocusChange(it.isFocused) }
                 )
                 when {
-                    textValue.text.isNotEmpty() ->
+                    value.text.isNotEmpty() ->
                         IconButton(onClick = onClearQueryClicked) {
                             Icon(
                                 imageVector = Icons.Outlined.Clear,
@@ -178,9 +164,9 @@ private fun SearchBarPreview() {
     LookARoundTheme {
         LookARoundSurface {
             SearchBar(
-                textValue = TextFieldValue(""),
+                value = TextFieldValue(""),
+                focused = false,
                 onTextValueChange = {},
-                searchFocused = false,
                 onSearchFocusChange = {},
                 onBackArrowClicked = {},
                 onClearQueryClicked = {},
@@ -196,9 +182,9 @@ private fun SearchBarDarkPreview() {
     LookARoundTheme(darkTheme = true) {
         LookARoundSurface {
             SearchBar(
-                textValue = TextFieldValue(""),
+                value = TextFieldValue(""),
                 onTextValueChange = {},
-                searchFocused = false,
+                focused = false,
                 onSearchFocusChange = {},
                 onBackArrowClicked = {},
                 onClearQueryClicked = {},

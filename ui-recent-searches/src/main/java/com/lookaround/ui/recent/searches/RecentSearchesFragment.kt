@@ -11,13 +11,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
@@ -29,10 +30,7 @@ import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.ext.assistedViewModel
-import com.lookaround.core.android.model.Empty
-import com.lookaround.core.android.model.Loading
-import com.lookaround.core.android.model.LoadingFirst
-import com.lookaround.core.android.model.WithValue
+import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
@@ -40,17 +38,13 @@ import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.search.composable.SearchBar
-import com.lookaround.ui.search.composable.rememberSearchBarState
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -69,14 +63,19 @@ class RecentSearchesFragment : Fragment() {
         mainViewModelFactory.create(it)
     }
 
+    private var searchQuery: String = ""
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.getString(SavedStateKey.SEARCH_QUERY.name)?.let(::searchQuery::set)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View =
         ComposeView(requireContext()).apply {
-            val recentSearchesFlow =
-                recentSearchesViewModel.states.map(RecentSearchesState::searches::get)
             val bottomSheetSignalsFlow =
                 mainViewModel
                     .bottomSheetStateUpdates
@@ -87,6 +86,27 @@ class RecentSearchesFragment : Fragment() {
                     .states
                     .map(MainState::locationState::get)
                     .filterIsInstance<WithValue<Location>>()
+            val searchQueryFlow = MutableStateFlow(searchQuery)
+            val recentSearchesFlow =
+                recentSearchesViewModel
+                    .states
+                    .map(RecentSearchesState::searches::get)
+                    .filterIsInstance<WithValue<ParcelableList<RecentSearchModel>>>()
+                    .distinctUntilChanged()
+                    .combine(
+                        searchQueryFlow.map { it.trim().lowercase() }.distinctUntilChanged()
+                    ) { markers, query -> markers to query }
+                    .map { (recentSearches, query) ->
+                        recentSearches.value.items.run {
+                            if (query.isBlank()) toList()
+                            else {
+                                filter { recentSearch ->
+                                    recentSearch.label.lowercase().contains(query)
+                                }
+                            }
+                        }
+                    }
+                    .distinctUntilChanged()
 
             setContent {
                 ProvideWindowInsets {
@@ -101,15 +121,10 @@ class RecentSearchesFragment : Fragment() {
                         if (locationState !is WithValue) return@LookARoundTheme
 
                         val recentSearches =
-                            recentSearchesFlow.collectAsState(initial = Empty).value
-                        if (recentSearches is LoadingFirst) CircularProgressIndicator()
-                        if (recentSearches !is WithValue) return@LookARoundTheme
+                            recentSearchesFlow.collectAsState(initial = emptyList())
 
-                        var searchQuery =
-                            "" // TODO: convert to flow with initial value saved in saved state
-                        // bundle
-                        var searchFocused = false
-                        val searchBarState = rememberSearchBarState(searchQuery, searchFocused)
+                        val searchQuery = searchQueryFlow.collectAsState(initial = "")
+                        val searchFocused = rememberSaveable { mutableStateOf(false) }
 
                         val lazyListState = rememberLazyListState()
                         LazyColumn(state = lazyListState) {
@@ -118,19 +133,20 @@ class RecentSearchesFragment : Fragment() {
                             } else {
                                 stickyHeader {
                                     SearchBar(
-                                        state = searchBarState,
+                                        query = searchQuery.value,
+                                        focused = searchFocused.value,
                                         onBackPressedDispatcher =
                                             requireActivity().onBackPressedDispatcher,
-                                        onSearchFocusChange = { focused -> },
-                                        onTextValueChange = { textValue -> }
+                                        onSearchFocusChange = searchFocused::value::set,
+                                        onTextFieldValueChange = {
+                                            searchQueryFlow.value = it.text
+                                            this@RecentSearchesFragment.searchQuery = it.text
+                                        }
                                     )
                                 }
                             }
                             items(recentSearches.value) { recentSearch ->
                                 RecentSearchItem(recentSearch, locationState.value)
-                            }
-                            if (recentSearches is Loading) {
-                                item { CircularProgressIndicator() }
                             }
                         }
 
@@ -216,5 +232,13 @@ class RecentSearchesFragment : Fragment() {
                 }
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
+    }
+
+    private enum class SavedStateKey {
+        SEARCH_QUERY
     }
 }

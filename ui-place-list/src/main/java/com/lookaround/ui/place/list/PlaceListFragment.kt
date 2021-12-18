@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
@@ -38,7 +40,6 @@ import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.databinding.FragmentPlaceListBinding
 import com.lookaround.ui.search.composable.SearchBar
-import com.lookaround.ui.search.composable.rememberSearchBarState
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
@@ -80,14 +81,10 @@ class PlaceListFragment :
     private val mapReady = CompletableDeferred<Unit>()
 
     private var searchQuery: String = ""
-    private var searchFocused: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        savedInstanceState?.getString(SavedStateKey.SEARCH_QUERY.name)?.let(this::searchQuery::set)
-        savedInstanceState
-            ?.getBoolean(SavedStateKey.SEARCH_FOCUSED.name)
-            ?.let(this::searchFocused::set)
+        savedInstanceState?.getString(SavedStateKey.SEARCH_QUERY.name)?.let(::searchQuery::set)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -128,20 +125,15 @@ class PlaceListFragment :
                 .map(MainState::markers::get)
                 .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
                 .distinctUntilChanged()
-                .combine(searchQueryFlow.map { it }.distinctUntilChanged()) { markers, query ->
-                    markers to query.trim()
+                .combine(searchQueryFlow.map { it.trim().lowercase() }.distinctUntilChanged()) {
+                    markers,
+                    query ->
+                    markers to query
                 }
                 .map { (markers, query) ->
                     markers.value.items.run {
                         if (query.isBlank()) toList()
-                        else {
-                            filter { marker ->
-                                marker
-                                    .name
-                                    .lowercase(Locale.getDefault())
-                                    .contains(query.lowercase(Locale.getDefault()))
-                            }
-                        }
+                        else filter { marker -> marker.name.lowercase().contains(query) }
                     }
                 }
                 .distinctUntilChanged()
@@ -161,9 +153,9 @@ class PlaceListFragment :
                             View.GONE
                         }
 
-                    val searchBarState = rememberSearchBarState(searchQuery, searchFocused)
-
                     val markers = markersFlow.collectAsState(initial = emptyList())
+                    val searchQuery = searchQueryFlow.collectAsState(initial = "")
+                    val searchFocused = rememberSaveable { mutableStateOf(false) }
 
                     val orientation = LocalConfiguration.current.orientation
                     LazyColumn(
@@ -176,12 +168,12 @@ class PlaceListFragment :
                         } else {
                             stickyHeader {
                                 SearchBar(
-                                    state = searchBarState,
+                                    query = searchQuery.value,
+                                    focused = searchFocused.value,
                                     onBackPressedDispatcher =
                                         requireActivity().onBackPressedDispatcher,
-                                    onSearchFocusChange =
-                                        this@PlaceListFragment::searchFocused::set,
-                                    onTextValueChange = {
+                                    onSearchFocusChange = searchFocused::value::set,
+                                    onTextFieldValueChange = {
                                         searchQueryFlow.value = it.text
                                         this@PlaceListFragment.searchQuery = it.text
                                     }
@@ -224,10 +216,7 @@ class PlaceListFragment :
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.apply {
-            putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
-            putBoolean(SavedStateKey.SEARCH_FOCUSED.name, searchFocused)
-        }
+        outState.putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
     }
 
     override fun onDestroyView() {
