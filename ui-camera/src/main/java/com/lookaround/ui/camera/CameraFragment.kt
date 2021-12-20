@@ -1,7 +1,6 @@
 package com.lookaround.ui.camera
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
@@ -217,7 +216,6 @@ class CameraFragment :
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
-    @SuppressLint("UnsafeOptInUsageError")
     private fun initCamera() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
