@@ -1,6 +1,5 @@
 package com.lookaround.core.android.ext
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Size
 import androidx.camera.core.*
@@ -20,7 +19,6 @@ import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
-@SuppressLint("UnsafeOptInUsageError")
 suspend fun Context.initCamera(
     lifecycleOwner: LifecycleOwner,
     @RotationValue rotation: Int,

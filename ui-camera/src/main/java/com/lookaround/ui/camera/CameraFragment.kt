@@ -225,7 +225,7 @@ class CameraFragment :
                             lifecycleOwner = this@CameraFragment,
                             rotation = rotation,
                             screenSize = requireContext().getScreenSize(),
-                            imageAnalysisResolutionDivisor = 15
+                            imageAnalysisResolutionDivisor = 25
                         )
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
                 imageFlow
