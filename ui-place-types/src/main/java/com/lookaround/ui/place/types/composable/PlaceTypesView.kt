@@ -21,11 +21,11 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
+import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.view.composable.LookARoundCard
 import com.lookaround.core.android.view.composable.LookARoundSurface
 import com.lookaround.core.android.view.composable.VerticalGrid
 import com.lookaround.core.android.view.theme.LookARoundTheme
-import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
@@ -35,12 +35,13 @@ import kotlin.math.max
 internal fun PlaceTypeGroupItem(
     group: PlaceTypeGroup,
     index: Int,
+    columns: Int,
     modifier: Modifier = Modifier,
     onClick: (IPlaceType) -> Unit = {}
 ) {
     Column(modifier) {
         PlaceTypeGroupHeader(group)
-        VerticalGrid(Modifier.padding(horizontal = 16.dp)) {
+        VerticalGrid(columns = columns, modifier = Modifier.padding(horizontal = 16.dp)) {
             val gradient =
                 when (index % 2) {
                     0 -> LookARoundTheme.colors.gradient2_2

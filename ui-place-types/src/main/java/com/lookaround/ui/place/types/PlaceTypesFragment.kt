@@ -1,5 +1,6 @@
 package com.lookaround.ui.place.types
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -76,6 +78,8 @@ class PlaceTypesFragment : Fragment() {
             setContent {
                 ProvideWindowInsets {
                     LookARoundTheme {
+                        val orientation = LocalConfiguration.current.orientation
+
                         val bottomSheetState =
                             bottomSheetSignalsFlow.collectAsState(
                                     initial = BottomSheetBehavior.STATE_HIDDEN
@@ -107,8 +111,14 @@ class PlaceTypesFragment : Fragment() {
                             }
 
                             if (placeTypeGroups.value.isNotEmpty()) {
+                                val columns =
+                                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
                                 itemsIndexed(placeTypeGroups.value) { index, group ->
-                                    PlaceTypeGroupItem(group, index) { placeType ->
+                                    PlaceTypeGroupItem(
+                                        group = group,
+                                        index = index,
+                                        columns = columns
+                                    ) { placeType ->
                                         lifecycleScope.launch {
                                             mainViewModel.intent(
                                                 MainIntent.GetPlacesOfType(placeType)
