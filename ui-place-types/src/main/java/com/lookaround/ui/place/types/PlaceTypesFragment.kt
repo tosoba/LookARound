@@ -5,15 +5,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.Text
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -62,17 +64,13 @@ class PlaceTypesFragment : Fragment() {
                     .bottomSheetStateUpdates
                     .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
                     .distinctUntilChanged()
+
             val searchQueryFlow = MutableStateFlow(searchQuery)
-            val placeTypesFlow =
+            val placeTypeGroupsFlow =
                 searchQueryFlow
                     .map { it.trim().lowercase() }
                     .distinctUntilChanged()
-                    .map { query ->
-                        allPlaceTypes.filter { placeType ->
-                            placeType.wrapped.label.lowercase().contains(query) ||
-                                placeType.wrapped.description.lowercase().contains(query)
-                        }
-                    }
+                    .map(::placeTypeGroupsMatching)
                     .distinctUntilChanged()
 
             setContent {
@@ -86,7 +84,8 @@ class PlaceTypesFragment : Fragment() {
 
                         val searchQuery = searchQueryFlow.collectAsState(initial = "")
                         val searchFocused = rememberSaveable { mutableStateOf(false) }
-                        val placeTypes = placeTypesFlow.collectAsState(initial = allPlaceTypes)
+                        val placeTypeGroups =
+                            placeTypeGroupsFlow.collectAsState(initial = allPlaceTypeGroups)
 
                         LazyColumn {
                             if (bottomSheetState != BottomSheetBehavior.STATE_EXPANDED) {
@@ -106,15 +105,25 @@ class PlaceTypesFragment : Fragment() {
                                     )
                                 }
                             }
-                            itemsIndexed(
-                                listOf(
-                                    PlaceTypeGroup(name = "General", placeTypes = placeTypes.value),
-                                )
-                            ) { index, group ->
-                                PlaceTypeGroupItem(group, index) { placeType ->
-                                    lifecycleScope.launch {
-                                        mainViewModel.intent(MainIntent.GetPlacesOfType(placeType))
+
+                            if (placeTypeGroups.value.isNotEmpty()) {
+                                itemsIndexed(placeTypeGroups.value) { index, group ->
+                                    PlaceTypeGroupItem(group, index) { placeType ->
+                                        lifecycleScope.launch {
+                                            mainViewModel.intent(
+                                                MainIntent.GetPlacesOfType(placeType)
+                                            )
+                                        }
                                     }
+                                }
+                            } else {
+                                item {
+                                    Text(
+                                        text = "No place types found.",
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
                                 }
                             }
                         }
@@ -127,28 +136,56 @@ class PlaceTypesFragment : Fragment() {
         outState.putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
     }
 
+    private fun placeTypeGroupsMatching(query: String): List<PlaceTypeGroup> =
+        allPlaceTypeGroups
+            .map {
+                PlaceTypeGroup(
+                    name = it.name,
+                    placeTypes =
+                        it.placeTypes.filter { placeType ->
+                            placeType.wrapped.label.lowercase().contains(query) ||
+                                placeType.wrapped.description.lowercase().contains(query)
+                        }
+                )
+            }
+            .filter { it.placeTypes.isNotEmpty() }
+
     private enum class SavedStateKey {
         SEARCH_QUERY
     }
 
     companion object {
-        private val allPlaceTypes =
+        private val allPlaceTypeGroups =
             listOf(
-                PlaceType(
-                    wrapped = Amenity.PARKING,
-                    imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
-                ),
-                PlaceType(
-                    wrapped = Amenity.RESTAURANT,
-                    imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
-                ),
-                PlaceType(
-                    wrapped = Amenity.FUEL,
-                    imageUrl = "https://source.unsplash.com/_jk8KIyN_uA"
-                ),
-                PlaceType(
-                    wrapped = Amenity.BANK,
-                    imageUrl = "https://source.unsplash.com/UsSdMZ78Q3E"
+                PlaceTypeGroup(
+                    name = "Food & drinks",
+                    placeTypes =
+                        listOf(
+                            PlaceType(
+                                wrapped = Amenity.RESTAURANT,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.CAFE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.FAST_FOOD,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.BAR,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.PUB,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.ICE_CREAM,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            )
+                        )
                 )
             )
     }
