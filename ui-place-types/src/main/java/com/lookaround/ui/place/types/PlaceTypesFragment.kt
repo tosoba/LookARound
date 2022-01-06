@@ -186,6 +186,36 @@ class PlaceTypesFragment : Fragment() {
                                 imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
                             )
                         )
+                ),
+                PlaceTypeGroup(
+                    name = "Entertainment",
+                    placeTypes =
+                        listOf(
+                            PlaceType(
+                                wrapped = Amenity.CINEMA,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.THEATRE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.NIGHTCLUB,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.ARTS_CENTRE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.COMMUNITY_CENTRE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.EVENTS_VENUE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            )
+                        )
                 )
             )
     }
