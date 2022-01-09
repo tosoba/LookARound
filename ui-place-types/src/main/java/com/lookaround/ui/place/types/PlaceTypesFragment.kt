@@ -126,7 +126,6 @@ class PlaceTypesFragment : Fragment() {
                                         }
                                     }
                                 }
-                                item { Box(modifier = Modifier.height(56.dp)) }
                             } else {
                                 item {
                                     Text(
