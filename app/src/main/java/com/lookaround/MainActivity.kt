@@ -146,6 +146,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
         viewModel
             .signals
             .filterIsInstance<MainSignal.ToggleSearchBarVisibility>()
+            .filter { latestARState == ARState.ENABLED }
             .onEach { (targetVisibility) -> setSearchbarVisibility(targetVisibility) }
             .launchIn(lifecycleScope)
 
@@ -272,7 +273,9 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
                     when (sheetState) {
                         BottomSheetBehavior.STATE_EXPANDED -> setSearchbarVisibility(View.GONE)
                         BottomSheetBehavior.STATE_HIDDEN -> {
-                            setSearchbarVisibility(View.VISIBLE)
+                            if (latestARState == ARState.ENABLED) {
+                                setSearchbarVisibility(View.VISIBLE)
+                            }
                             binding.bottomNavigationView.selectedItemId = R.id.action_unchecked
                         }
                     }
