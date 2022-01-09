@@ -138,7 +138,7 @@ class PlaceListFragment :
                 }
                 .distinctUntilChanged()
 
-        binding.placeMapRecyclerView.setContent {
+        binding.placeMapList.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
                     val bottomSheetState =
@@ -157,11 +157,13 @@ class PlaceListFragment :
                     val searchQuery = searchQueryFlow.collectAsState(initial = "")
                     val searchFocused = rememberSaveable { mutableStateOf(false) }
 
-                val lazyListState = rememberLazyListState()
-                                binding.disallowInterceptTouchContainer.shouldRequestDisallowInterceptTouchEvent =
-                    (lazyListState.firstVisibleItemIndex != 0 ||
-                        lazyListState.firstVisibleItemScrollOffset != 0) &&
-                        bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED
+                    val lazyListState = rememberLazyListState()
+                    binding
+                        .disallowInterceptTouchContainer
+                        .shouldRequestDisallowInterceptTouchEvent =
+                        (lazyListState.firstVisibleItemIndex != 0 ||
+                            lazyListState.firstVisibleItemScrollOffset != 0) &&
+                            bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED
                     val orientation = LocalConfiguration.current.orientation
                     LazyColumn(
                         state = lazyListState,

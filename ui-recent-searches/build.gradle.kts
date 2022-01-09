@@ -30,7 +30,10 @@ android {
         }
     }
 
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        viewBinding = true
+    }
 
     composeOptions { kotlinCompilerExtensionVersion = "1.1.0-beta02" }
 
@@ -56,6 +59,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-insets:0.20.1")
     implementation("com.google.accompanist:accompanist-coil:0.15.0")
     implementation("io.coil-kt:coil-compose:1.4.0")
+    implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.3.6")
@@ -75,7 +79,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.1.0-beta02")
     implementation("androidx.compose.material:material-icons-extended:1.1.0-beta02")
 
-    implementation( "com.github.marlonlom:timeago:4.0.3")
+    implementation("com.github.marlonlom:timeago:4.0.3")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

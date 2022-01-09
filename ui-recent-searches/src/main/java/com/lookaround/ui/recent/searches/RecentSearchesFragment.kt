@@ -2,9 +2,7 @@ package com.lookaround.ui.recent.searches
 
 import android.location.Location
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,10 +19,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.github.marlonlom.utilities.timeago.TimeAgo
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -37,6 +35,7 @@ import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainState
+import com.lookaround.ui.recent.searches.databinding.FragmentRecentSearchesBinding
 import com.lookaround.ui.search.composable.SearchBar
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
@@ -52,7 +51,10 @@ import kotlinx.coroutines.launch
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
 @FlowPreview
-class RecentSearchesFragment : Fragment() {
+class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
+    private val binding: FragmentRecentSearchesBinding by
+        viewBinding(FragmentRecentSearchesBinding::bind)
+
     @Inject internal lateinit var recentSearchesViewModelFactory: RecentSearchesViewModel.Factory
     private val recentSearchesViewModel: RecentSearchesViewModel by assistedViewModel {
         recentSearchesViewModelFactory.create(it)
@@ -70,93 +72,94 @@ class RecentSearchesFragment : Fragment() {
         savedInstanceState?.getString(SavedStateKey.SEARCH_QUERY.name)?.let(::searchQuery::set)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View =
-        ComposeView(requireContext()).apply {
-            val bottomSheetSignalsFlow =
-                mainViewModel
-                    .bottomSheetStateUpdates
-                    .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
-                    .distinctUntilChanged()
-            val locationFlow =
-                mainViewModel
-                    .states
-                    .map(MainState::locationState::get)
-                    .filterIsInstance<WithValue<Location>>()
-            val searchQueryFlow = MutableStateFlow(searchQuery)
-            val recentSearchesFlow =
-                recentSearchesViewModel
-                    .states
-                    .map(RecentSearchesState::searches::get)
-                    .filterIsInstance<WithValue<ParcelableList<RecentSearchModel>>>()
-                    .distinctUntilChanged()
-                    .combine(
-                        searchQueryFlow.map { it.trim().lowercase() }.distinctUntilChanged()
-                    ) { markers, query -> markers to query }
-                    .map { (recentSearches, query) ->
-                        recentSearches.value.items.run {
-                            if (query.isBlank()) toList()
-                            else {
-                                filter { recentSearch ->
-                                    recentSearch.label.lowercase().contains(query)
-                                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val bottomSheetSignalsFlow =
+            mainViewModel
+                .bottomSheetStateUpdates
+                .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
+                .distinctUntilChanged()
+        val locationFlow =
+            mainViewModel
+                .states
+                .map(MainState::locationState::get)
+                .filterIsInstance<WithValue<Location>>()
+        val searchQueryFlow = MutableStateFlow(searchQuery)
+        val recentSearchesFlow =
+            recentSearchesViewModel
+                .states
+                .map(RecentSearchesState::searches::get)
+                .filterIsInstance<WithValue<ParcelableList<RecentSearchModel>>>()
+                .distinctUntilChanged()
+                .combine(searchQueryFlow.map { it.trim().lowercase() }.distinctUntilChanged()) {
+                    markers,
+                    query ->
+                    markers to query
+                }
+                .map { (recentSearches, query) ->
+                    recentSearches.value.items.run {
+                        if (query.isBlank()) toList()
+                        else {
+                            filter { recentSearch ->
+                                recentSearch.label.lowercase().contains(query)
                             }
                         }
                     }
-                    .distinctUntilChanged()
+                }
+                .distinctUntilChanged()
 
-            setContent {
-                ProvideWindowInsets {
-                    LookARoundTheme {
-                        val bottomSheetState =
-                            bottomSheetSignalsFlow.collectAsState(
-                                    initial = BottomSheetBehavior.STATE_HIDDEN
+        binding.recentSearchesList.setContent {
+            ProvideWindowInsets {
+                LookARoundTheme {
+                    val bottomSheetState =
+                        bottomSheetSignalsFlow.collectAsState(
+                            initial = BottomSheetBehavior.STATE_HIDDEN
+                        )
+
+                    val locationState = locationFlow.collectAsState(initial = Empty).value
+                    if (locationState !is WithValue) return@LookARoundTheme
+
+                    val recentSearches = recentSearchesFlow.collectAsState(initial = emptyList())
+
+                    val searchQuery = searchQueryFlow.collectAsState(initial = "")
+                    val searchFocused = rememberSaveable { mutableStateOf(false) }
+
+                    val lazyListState = rememberLazyListState()
+                    binding
+                        .disallowInterceptTouchContainer
+                        .shouldRequestDisallowInterceptTouchEvent =
+                        (lazyListState.firstVisibleItemIndex != 0 ||
+                            lazyListState.firstVisibleItemScrollOffset != 0) &&
+                            bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED
+                    LazyColumn(state = lazyListState) {
+                        if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED) {
+                            item { Spacer(Modifier.height(112.dp)) }
+                        } else {
+                            stickyHeader {
+                                SearchBar(
+                                    query = searchQuery.value,
+                                    focused = searchFocused.value,
+                                    onBackPressedDispatcher =
+                                        requireActivity().onBackPressedDispatcher,
+                                    onSearchFocusChange = searchFocused::value::set,
+                                    onTextFieldValueChange = {
+                                        searchQueryFlow.value = it.text
+                                        this@RecentSearchesFragment.searchQuery = it.text
+                                    }
                                 )
-                                .value
-
-                        val locationState = locationFlow.collectAsState(initial = Empty).value
-                        if (locationState !is WithValue) return@LookARoundTheme
-
-                        val recentSearches =
-                            recentSearchesFlow.collectAsState(initial = emptyList())
-
-                        val searchQuery = searchQueryFlow.collectAsState(initial = "")
-                        val searchFocused = rememberSaveable { mutableStateOf(false) }
-
-                        val lazyListState = rememberLazyListState()
-                        LazyColumn(state = lazyListState) {
-                            if (bottomSheetState != BottomSheetBehavior.STATE_EXPANDED) {
-                                item { Spacer(Modifier.height(112.dp)) }
-                            } else {
-                                stickyHeader {
-                                    SearchBar(
-                                        query = searchQuery.value,
-                                        focused = searchFocused.value,
-                                        onBackPressedDispatcher =
-                                            requireActivity().onBackPressedDispatcher,
-                                        onSearchFocusChange = searchFocused::value::set,
-                                        onTextFieldValueChange = {
-                                            searchQueryFlow.value = it.text
-                                            this@RecentSearchesFragment.searchQuery = it.text
-                                        }
-                                    )
-                                }
-                            }
-                            items(recentSearches.value) { recentSearch ->
-                                RecentSearchItem(recentSearch, locationState.value)
                             }
                         }
-
-                        InfiniteListHandler(listState = lazyListState) {
-                            recentSearchesViewModel.intent(RecentSearchesIntent.IncreaseLimit)
+                        items(recentSearches.value) { recentSearch ->
+                            RecentSearchItem(recentSearch, locationState.value)
                         }
+                    }
+
+                    InfiniteListHandler(listState = lazyListState) {
+                        recentSearchesViewModel.intent(RecentSearchesIntent.IncreaseLimit)
                     }
                 }
             }
         }
+    }
 
     @Composable
     private fun RecentSearchItem(recentSearch: RecentSearchModel, location: Location) {

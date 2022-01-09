@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/disallow_intercept_touch_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:animateLayoutChanges="true">
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/place_types_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout>
