@@ -209,7 +209,7 @@ class PlaceListFragment :
                                                 .toInt(),
                                         modifier =
                                             Modifier.weight(1f, fill = false).clickable {
-                                                (activity as? PlaceMapItemActionController)
+                                                (activity as? PlaceMapItemActionsHandler)
                                                     ?.onPlaceMapItemClick(point)
                                             },
                                     )
@@ -341,7 +341,6 @@ class PlaceListFragment :
     override fun onRegionDidChange(animated: Boolean) = Unit
 
     private enum class SavedStateKey {
-        SEARCH_QUERY,
-        SEARCH_FOCUSED
+        SEARCH_QUERY
     }
 }

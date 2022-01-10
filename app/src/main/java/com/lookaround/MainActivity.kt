@@ -25,7 +25,7 @@ import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.list.PlaceListFragment
-import com.lookaround.ui.place.list.PlaceMapItemActionController
+import com.lookaround.ui.place.list.PlaceMapItemActionsHandler
 import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
 import com.lookaround.ui.search.composable.SearchBar
@@ -42,7 +42,7 @@ import timber.log.Timber
 @ExperimentalFoundationApi
 @ExperimentalStdlibApi
 @FlowPreview
-class MainActivity : AppCompatActivity(), PlaceMapItemActionController {
+class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
     @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
