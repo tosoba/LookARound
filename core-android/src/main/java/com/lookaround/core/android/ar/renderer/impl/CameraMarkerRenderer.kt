@@ -2,10 +2,7 @@ package com.lookaround.core.android.ar.renderer.impl
 
 import android.content.Context
 import android.content.res.Configuration
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.RectF
+import android.graphics.*
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
@@ -94,6 +91,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 isAntiAlias = true
                 textSize = markerTitleTextSizePx
                 textAlign = Paint.Align.LEFT
+                typeface = Typeface.DEFAULT_BOLD
                 isLinearText = true
                 setShadowLayer(2.0f, 3.0f, 3.0f, Color.GRAY)
             }
@@ -309,15 +307,15 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     companion object {
-        private const val MARKER_WIDTH_TAKEN_X_MULTIPLIER = 2f
+        private const val MARKER_WIDTH_TAKEN_X_MULTIPLIER = 2.5f
         private const val MARKER_VERTICAL_SPACING_PX = 50f
-        private const val NUMBER_OF_ROWS_PORTRAIT = 4
+        private const val NUMBER_OF_ROWS_PORTRAIT = 5
         private const val NUMBER_OF_ROWS_LANDSCAPE = 2
         private const val MARKER_WIDTH_DIVISOR_PORTRAIT = 2
         private const val MARKER_WIDTH_DIVISOR_LANDSCAPE = 4
         private const val MARKER_PADDING_DP = 10f
         private const val ELLIPSIS_WIDTH_PX = 10f
-        private const val MARKER_TITLE_TEXT_SIZE_SP = 20f
-        private const val MARKER_DISTANCE_TEXT_SIZE_SP = 16f
+        private const val MARKER_TITLE_TEXT_SIZE_SP = 16f
+        private const val MARKER_DISTANCE_TEXT_SIZE_SP = 14f
     }
 }

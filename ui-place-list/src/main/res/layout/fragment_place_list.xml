@@ -35,7 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
         android:layout_marginRight="20dp"
-        android:layout_marginBottom="66dp"
+        android:layout_marginBottom="10dp"
         android:text="@string/reload_maps"
         app:icon="@drawable/ic_baseline_refresh_24" />
 
