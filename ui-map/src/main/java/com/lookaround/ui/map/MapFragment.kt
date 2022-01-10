@@ -1,8 +1,12 @@
 package com.lookaround.ui.map
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -68,6 +72,9 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
             .filterIsInstance<MapSceneSignal.RetryLoadScene>()
             .onEach { (scene) -> mapController.await().loadScene(scene) }
             .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        binding.navigateFab.setOnClickListener { launchGoogleMapsForNavigation() }
+        binding.streetViewFab.setOnClickListener { launchGoogleMapsForStreetView() }
     }
 
     override fun onDestroyView() {
@@ -146,6 +153,48 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
             setStylingFromString(
                 "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue}"
             )
+        }
+    }
+
+    private fun launchGoogleMapsForNavigation() {
+        currentMarker?.let { marker ->
+            val mapIntent =
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse(
+                        "google.navigation:q=${marker.location.latitude},${marker.location.longitude}"
+                    )
+                )
+            mapIntent.setPackage("com.google.android.apps.maps")
+            try {
+                startActivity(mapIntent)
+            } catch (ex: ActivityNotFoundException) {
+                Toast.makeText(
+                        requireContext(),
+                        getString(R.string.unable_to_launch_google_maps_for_navigation),
+                        Toast.LENGTH_SHORT
+                    )
+                    .show()
+            }
+        }
+    }
+
+    private fun launchGoogleMapsForStreetView() {
+        currentMarker?.let { marker ->
+            val mapIntent =
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse(
+                        "google.streetview:cbll=${marker.location.latitude},${marker.location.longitude}"
+                    )
+                )
+            mapIntent.setPackage("com.google.android.apps.maps")
+            try {
+                startActivity(mapIntent)
+            } catch (ex: ActivityNotFoundException) {
+                Toast.makeText(requireContext(), "Unable to launch StreetView", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
     }
 
