@@ -73,9 +73,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+    kotlinOptions { jvmTarget = "1.8" }
 
     buildFeatures {
         viewBinding = true
@@ -127,7 +125,6 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
-
 
     implementation("ru.beryukhov:flowreactivenetwork:1.0.2")
 

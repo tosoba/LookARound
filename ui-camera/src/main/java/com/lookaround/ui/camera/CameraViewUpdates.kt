@@ -57,8 +57,7 @@ internal fun loadingStartedUpdates(
         .combine(cameraViewModel.states.map(CameraState::previewState::get)) {
             locationState,
             previewState ->
-            locationState !is Failed &&
-                (locationState is Loading || previewState.isLoading)
+            locationState !is Failed && (locationState is Loading || previewState.isLoading)
         }
         .distinctUntilChanged()
         .filter { it }

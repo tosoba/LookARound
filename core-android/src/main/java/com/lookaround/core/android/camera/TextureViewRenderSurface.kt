@@ -10,8 +10,8 @@ import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.core.content.ContextCompat
 import com.google.common.util.concurrent.ListenableFuture
 import com.lookaround.core.android.R
-import timber.log.Timber
 import java.util.concurrent.atomic.AtomicReference
+import timber.log.Timber
 
 internal class TextureViewRenderSurface : IRenderSurface {
     private val nextFrameCompleter = AtomicReference<CallbackToFutureAdapter.Completer<Unit>?>()

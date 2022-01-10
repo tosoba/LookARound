@@ -11,12 +11,12 @@ import com.lookaround.core.model.LocationDataDTO
 import com.lookaround.core.repo.IAppRepo
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import ru.beryukhov.reactivenetwork.ReactiveNetwork
-import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 @Reusable

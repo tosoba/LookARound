@@ -27,7 +27,9 @@ constructor(
         merge(
             intents
                 .filterIsInstance<RecentSearchesIntent.IncreaseLimit>()
-                .withLatestFrom(totalSearchesCountFlow()) { _, totalSearchesCount -> totalSearchesCount }
+                .withLatestFrom(totalSearchesCountFlow()) { _, totalSearchesCount ->
+                    totalSearchesCount
+                }
                 .filter { totalSearchesCount ->
                     val (_, limit) = currentState()
                     totalSearchesCount > limit + RecentSearchesState.SEARCHES_LIMIT_INCREMENT

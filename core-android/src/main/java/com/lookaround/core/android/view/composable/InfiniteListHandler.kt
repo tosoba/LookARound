@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
-fun InfiniteListHandler(listState: LazyListState, buffer: Int = 2, onLoadMore: suspend() -> Unit) {
+fun InfiniteListHandler(listState: LazyListState, buffer: Int = 2, onLoadMore: suspend () -> Unit) {
     val loadMore: State<Boolean> = remember {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo

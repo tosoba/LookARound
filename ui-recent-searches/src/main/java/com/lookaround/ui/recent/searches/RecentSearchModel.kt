@@ -2,8 +2,8 @@ package com.lookaround.ui.recent.searches
 
 import android.location.Location
 import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
 import java.util.*
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class RecentSearchModel(

@@ -1,7 +1,6 @@
 package com.lookaround.ui.main
 
 import android.location.Location
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.model.*
 import com.lookaround.ui.main.model.MainSignal

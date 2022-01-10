@@ -9,8 +9,8 @@ import android.view.ViewStub
 import androidx.camera.core.impl.utils.futures.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.lookaround.core.android.R
-import timber.log.Timber
 import java.util.concurrent.ExecutionException
+import timber.log.Timber
 
 internal class SurfaceViewRenderSurface : IRenderSurface {
     /**

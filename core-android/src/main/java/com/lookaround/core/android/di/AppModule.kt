@@ -7,9 +7,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import ru.beryukhov.reactivenetwork.ReactiveNetwork
-import javax.inject.Singleton
 
 @ExperimentalCoroutinesApi
 @Module
