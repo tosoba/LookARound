@@ -310,7 +310,7 @@ enum class Amenity(
             }
 
     override val typeKey: String
-        get() = "amenity"
+        get() = javaClass.simpleName
 
     override val typeValue: String
         get() = name.lowercase(Locale.getDefault())
