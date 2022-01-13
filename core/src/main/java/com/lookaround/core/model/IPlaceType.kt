@@ -1,7 +1,5 @@
 package com.lookaround.core.model
 
-import java.util.*
-
 interface IPlaceType {
     val description: String
     val count: Int
@@ -9,18 +7,16 @@ interface IPlaceType {
     val label: String
         get() =
             if (this is Enum<*>) {
-                name.replace("_", " ").lowercase(Locale.getDefault()).replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+                name.replace("_", " ").lowercase().replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase() else it.toString()
                 }
             } else {
                 throw IllegalArgumentException()
             }
 
     val typeKey: String
-        get() = javaClass.simpleName
+        get() = javaClass.simpleName.lowercase()
 
     val typeValue: String
-        get() =
-            if (this is Enum<*>) name.lowercase(Locale.getDefault())
-            else throw IllegalArgumentException()
+        get() = if (this is Enum<*>) name.lowercase() else throw IllegalArgumentException()
 }
