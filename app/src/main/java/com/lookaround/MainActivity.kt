@@ -346,10 +346,11 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
             .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutLocation>()
             .onEach {
                 placesStatusLoadingSnackbar?.dismiss()
-                showPlacesLoadingStatusSnackbar(
-                    getString(R.string.location_unavailable),
-                    Snackbar.LENGTH_SHORT
-                )
+                placesStatusLoadingSnackbar =
+                    showPlacesLoadingStatusSnackbar(
+                        getString(R.string.location_unavailable),
+                        Snackbar.LENGTH_SHORT
+                    )
             }
             .launchIn(lifecycleScope)
 
@@ -358,10 +359,11 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
             .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutConnection>()
             .onEach {
                 placesStatusLoadingSnackbar?.dismiss()
-                showPlacesLoadingStatusSnackbar(
-                    getString(R.string.no_internet_connection),
-                    Snackbar.LENGTH_SHORT
-                )
+                placesStatusLoadingSnackbar =
+                    showPlacesLoadingStatusSnackbar(
+                        getString(R.string.no_internet_connection),
+                        Snackbar.LENGTH_SHORT
+                    )
             }
             .launchIn(lifecycleScope)
 
@@ -376,6 +378,19 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
                             Snackbar.LENGTH_INDEFINITE
                         )
                 }
+            }
+            .launchIn(lifecycleScope)
+
+        viewModel
+            .signals
+            .filterIsInstance<MainSignal.NoPlacesFound>()
+            .onEach {
+                placesStatusLoadingSnackbar?.dismiss()
+                placesStatusLoadingSnackbar =
+                    showPlacesLoadingStatusSnackbar(
+                        getString(R.string.no_places_found),
+                        Snackbar.LENGTH_SHORT
+                    )
             }
             .launchIn(lifecycleScope)
     }

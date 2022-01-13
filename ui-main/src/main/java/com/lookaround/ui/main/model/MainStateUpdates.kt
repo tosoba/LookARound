@@ -48,6 +48,10 @@ data class AutocompleteSearchResultsLoadedUpdate(
         )
 }
 
+object NoPlacesFoundUpdate : (MainState) -> MainState {
+    override fun invoke(state: MainState): MainState = state.copy(markers = Empty)
+}
+
 private fun List<Marker>.toSetSortedByDistanceToUserLocation(
     userLocation: Loadable<Location>
 ): SortedSet<Marker> = toSortedSet { marker1, marker2 ->

@@ -38,7 +38,7 @@ constructor(
         merge(
             intents
                 .filterIsInstance<MainIntent.GetPlacesOfType>()
-                .searchAroundUpdates(currentState, signal),
+                .placesOfTypeAroundUpdates(currentState, signal),
             intents.filterIsInstance<MainIntent.LocationPermissionGranted>().take(1).flatMapLatest {
                 locationStateUpdatesFlow
             },
@@ -68,7 +68,7 @@ constructor(
         savedStateHandle[MainState::class.java.simpleName] = nextState
     }
 
-    private fun Flow<MainIntent.GetPlacesOfType>.searchAroundUpdates(
+    private fun Flow<MainIntent.GetPlacesOfType>.placesOfTypeAroundUpdates(
         currentState: () -> MainState,
         signal: suspend (MainSignal) -> Unit
     ): Flow<(MainState) -> MainState> =
@@ -96,7 +96,12 @@ constructor(
                                 radiusInMeters = PLACES_LOADING_RADIUS_METERS
                             )
                         }
-                    emit(SearchAroundResultsLoadedUpdate(places))
+                    if (places.isEmpty()) {
+                        signal(MainSignal.NoPlacesFound)
+                        emit(NoPlacesFoundUpdate)
+                    } else {
+                        emit(SearchAroundResultsLoadedUpdate(places))
+                    }
                 } catch (throwable: Throwable) {
                     emit(SearchErrorUpdate(throwable))
                     signal(MainSignal.PlacesLoadingFailed(throwable))
@@ -158,28 +163,30 @@ constructor(
 
                 emit(LoadingSearchResultsUpdate)
                 try {
-                    emit(
-                        AutocompleteSearchResultsLoadedUpdate(
-                            points =
-                                withTimeout(PLACES_LOADING_TIMEOUT_MILLIS) {
-                                    autocompleteSearch(
-                                        query = query,
-                                        priorityLat =
-                                            currentLocation
-                                                .value
-                                                .latitude
-                                                .roundToDecimalPlaces(3)
-                                                .toDouble(),
-                                        priorityLon =
-                                            currentLocation
-                                                .value
-                                                .longitude
-                                                .roundToDecimalPlaces(3)
-                                                .toDouble()
-                                    )
-                                },
-                        )
-                    )
+                    val places =
+                        withTimeout(PLACES_LOADING_TIMEOUT_MILLIS) {
+                            autocompleteSearch(
+                                query = query,
+                                priorityLat =
+                                    currentLocation
+                                        .value
+                                        .latitude
+                                        .roundToDecimalPlaces(3)
+                                        .toDouble(),
+                                priorityLon =
+                                    currentLocation
+                                        .value
+                                        .longitude
+                                        .roundToDecimalPlaces(3)
+                                        .toDouble()
+                            )
+                        }
+                    if (places.isEmpty()) {
+                        emit(NoPlacesFoundUpdate)
+                        signal(MainSignal.NoPlacesFound)
+                    } else {
+                        emit(AutocompleteSearchResultsLoadedUpdate(places))
+                    }
                 } catch (throwable: Throwable) {
                     emit(SearchErrorUpdate(throwable))
                     signal(MainSignal.PlacesLoadingFailed(throwable))
