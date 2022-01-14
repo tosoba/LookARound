@@ -332,7 +332,6 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
             .signals
             .filterIsInstance<MainSignal.PlacesLoadingFailed>()
             .onEach {
-                placesStatusLoadingSnackbar?.dismiss()
                 placesStatusLoadingSnackbar =
                     showPlacesLoadingStatusSnackbar(
                         getString(R.string.loading_places_failed),
@@ -345,7 +344,6 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
             .signals
             .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutLocation>()
             .onEach {
-                placesStatusLoadingSnackbar?.dismiss()
                 placesStatusLoadingSnackbar =
                     showPlacesLoadingStatusSnackbar(
                         getString(R.string.location_unavailable),
@@ -358,7 +356,6 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
             .signals
             .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutConnection>()
             .onEach {
-                placesStatusLoadingSnackbar?.dismiss()
                 placesStatusLoadingSnackbar =
                     showPlacesLoadingStatusSnackbar(
                         getString(R.string.no_internet_connection),
@@ -370,13 +367,14 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
         viewModel
             .markerUpdates
             .onEach { markers ->
-                placesStatusLoadingSnackbar?.dismiss()
                 if (markers is Loading) {
                     placesStatusLoadingSnackbar =
                         showPlacesLoadingStatusSnackbar(
                             getString(R.string.loading_places_in_progress),
                             Snackbar.LENGTH_INDEFINITE
                         )
+                } else if (markers is Ready) {
+                    placesStatusLoadingSnackbar?.dismiss()
                 }
             }
             .launchIn(lifecycleScope)
@@ -385,7 +383,6 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
             .signals
             .filterIsInstance<MainSignal.NoPlacesFound>()
             .onEach {
-                placesStatusLoadingSnackbar?.dismiss()
                 placesStatusLoadingSnackbar =
                     showPlacesLoadingStatusSnackbar(
                         getString(R.string.no_places_found),
