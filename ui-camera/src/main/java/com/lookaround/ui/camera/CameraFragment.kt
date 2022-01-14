@@ -306,6 +306,9 @@ class CameraFragment :
         if (markers is Empty) {
             arCameraPageUpBtn.visibility = View.GONE
             arCameraPageDownBtn.visibility = View.GONE
+            cameraMarkerRenderer.setMarkers(emptyList())
+            arCameraView.markers = emptyList()
+            arRadarView.markers = emptyList()
         } else if (markers is WithValue) {
             val lastMarkerIndexExclusive =
                 min(markers.value.size, firstMarkerIndex + FIRST_MARKER_INDEX_DIFF)
