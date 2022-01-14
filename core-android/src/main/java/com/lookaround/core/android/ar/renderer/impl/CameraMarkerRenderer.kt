@@ -75,8 +75,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     val drawnRectsFlow: Flow<List<RectF>>
         get() = drawnRectsStateFlow
 
-    private val cameraMarkers = HashMap<UUID, CameraMarker>()
-    private val cameraMarkerPagedPositions = TreeMap<Float, MutableSet<PagedPosition>>()
+    private val pagedMarkers = HashMap<UUID, PagedMarker>()
+    private val pagedMarkerPositions = TreeMap<Float, MutableSet<PagedPosition>>()
 
     private val numberOfRows: Int
         get() =
@@ -120,23 +120,23 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             )
 
     override fun draw(markers: List<ARMarker>, canvas: Canvas, orientation: Orientation) {
-        cameraMarkerPagedPositions.clear()
+        pagedMarkerPositions.clear()
         val drawnRects = mutableListOf<RectF>()
         val drawnMarkerIds = HashSet<UUID>()
         var maxPageThisFrame = 0
         var currentPageAfterScreenRotation = Int.MAX_VALUE
 
         fun drawMarker(marker: ARMarker, lastDrawn: Boolean) {
-            val cameraMarker = cameraMarkers[marker.wrapped.id] ?: return
+            val pagedMarker = pagedMarkers[marker.wrapped.id] ?: return
 
             val pagedPosition =
                 pagedPositionOf(
-                    cameraMarker = cameraMarker,
+                    pagedMarker = pagedMarker,
                     requireAlreadyCalculated = lastDrawn && !firstFrame
                 )
             marker.y = pagedPosition.y
-            storeMarkerX(cameraMarker)
-            cameraMarker.pagedPosition?.page?.let {
+            storeMarkerPosition(pagedMarker)
+            pagedMarker.pagedPosition?.page?.let {
                 if (it > maxPageThisFrame) maxPageThisFrame = it
             }
             if (firstFrame &&
@@ -145,7 +145,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             ) {
                 currentPageAfterScreenRotation = pagedPosition.page
             }
-            if (cameraMarker.pagedPosition?.page != currentPage) return
+            if (pagedMarker.pagedPosition?.page != currentPage) return
 
             drawnMarkerIds.add(marker.wrapped.id)
 
@@ -160,7 +160,10 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         }
 
         val (lastDrawnMarkers, newlyAppearedMarkers) =
-            markers.partition { lastDrawnMarkerIds.contains(it.wrapped.id) }
+            markers.partition {
+                lastDrawnMarkerIds.contains(it.wrapped.id) &&
+                    pagedMarkers[it.wrapped.id]?.pagedPosition != null
+            }
         lastDrawnMarkers.forEach { drawMarker(it, lastDrawn = true) }
         newlyAppearedMarkers.forEach { drawMarker(it, lastDrawn = false) }
 
@@ -186,34 +189,34 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     @MainThread
     fun setMarkers(markers: Collection<ARMarker>) {
-        cameraMarkers.clear()
-        markers.forEach { marker -> cameraMarkers[marker.wrapped.id] = CameraMarker(marker) }
+        pagedMarkers.clear()
+        markers.forEach { marker -> pagedMarkers[marker.wrapped.id] = PagedMarker(marker) }
         currentPage = 0
     }
 
     internal fun isOnCurrentPage(marker: ARMarker): Boolean =
-        cameraMarkers[marker.wrapped.id]?.pagedPosition?.page == currentPage
+        pagedMarkers[marker.wrapped.id]?.pagedPosition?.page == currentPage
 
     private fun pagedPositionOf(
-        cameraMarker: CameraMarker,
+        pagedMarker: PagedMarker,
         requireAlreadyCalculated: Boolean
     ): PagedPosition {
         if (requireAlreadyCalculated) {
-            return requireNotNull(cameraMarker.pagedPosition) {
+            return requireNotNull(pagedMarker.pagedPosition) {
                 "Last drawn marker's paged position is null."
             }
         }
 
         val takenPositions =
-            cameraMarkerPagedPositions
+            pagedMarkerPositions
                 .subMap(
-                    cameraMarker.wrapped.x - markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER,
-                    cameraMarker.wrapped.x + markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER
+                    pagedMarker.wrapped.x - markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER,
+                    pagedMarker.wrapped.x + markerWidthPx * MARKER_WIDTH_TAKEN_X_MULTIPLIER
                 )
                 .values
                 .flatten()
                 .toSet()
-        cameraMarker.pagedPosition?.let { if (!takenPositions.contains(it)) return it }
+        pagedMarker.pagedPosition?.let { if (!takenPositions.contains(it)) return it }
 
         val baseY = statusBarHeightPx + actionBarHeightPx
         val position = PagedPosition(baseY, 0)
@@ -227,17 +230,17 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
                 ++position.page
             }
         }
-        cameraMarker.pagedPosition = position
+        pagedMarker.pagedPosition = position
         return position
     }
 
-    private fun storeMarkerX(marker: CameraMarker) {
+    private fun storeMarkerPosition(marker: PagedMarker) {
         val pagedPosition =
             marker.pagedPosition
                 ?: throw IllegalArgumentException("Marker must have a PagedPosition.")
-        val existingMarkerSet = cameraMarkerPagedPositions[marker.wrapped.x]
+        val existingMarkerSet = pagedMarkerPositions[marker.wrapped.x]
         existingMarkerSet?.add(pagedPosition)
-            ?: run { cameraMarkerPagedPositions[marker.wrapped.x] = mutableSetOf(pagedPosition) }
+            ?: run { pagedMarkerPositions[marker.wrapped.x] = mutableSetOf(pagedPosition) }
     }
 
     private fun Canvas.drawTitleText(marker: ARMarker, rect: RectF) {
@@ -288,12 +291,12 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
         )
     }
 
-    private class CameraMarker(
+    private class PagedMarker(
         val wrapped: ARMarker,
         var pagedPosition: PagedPosition? = null,
     ) {
         override fun equals(other: Any?): Boolean =
-            this === other || (other is CameraMarker && other.wrapped == wrapped)
+            this === other || (other is PagedMarker && other.wrapped == wrapped)
 
         override fun hashCode(): Int = Objects.hash(wrapped)
     }
