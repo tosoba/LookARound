@@ -2,7 +2,6 @@ package com.lookaround.core.android.model
 
 import android.os.Parcelable
 import com.lookaround.core.model.IPlaceType
-import java.util.*
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -61,16 +60,4 @@ enum class Tourism(
     ),
     ZOO("A zoological garden, where animals are confined for viewing by the public.", 7294),
     AQUARIUM("A facility with living aquatic animals for public viewing.", 1107);
-
-    override val label: String
-        get() =
-            name.replace("_", " ").lowercase(Locale.getDefault()).replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-            }
-
-    override val typeKey: String
-        get() = javaClass.simpleName
-
-    override val typeValue: String
-        get() = name.lowercase(Locale.getDefault())
 }

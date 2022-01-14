@@ -2,7 +2,6 @@ package com.lookaround.core.android.model
 
 import android.os.Parcelable
 import com.lookaround.core.model.IPlaceType
-import java.util.*
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -301,17 +300,5 @@ enum class Amenity(
     TABLE("A public table", 863),
     HOOKAH_LOUNGE("A place where guests can smoke hookah (aka waterpipe, nargile, shisha).", 797),
     LOUNGER("An object for people to lie down.", 792),
-    POLLING_STATION("A place where one can cast a ballot.", 769);
-
-    override val label: String
-        get() =
-            name.replace("_", " ").lowercase(Locale.getDefault()).replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-            }
-
-    override val typeKey: String
-        get() = javaClass.simpleName
-
-    override val typeValue: String
-        get() = name.lowercase(Locale.getDefault())
+    POLLING_STATION("A place where one can cast a ballot.", 769)
 }

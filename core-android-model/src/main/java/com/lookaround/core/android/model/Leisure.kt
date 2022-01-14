@@ -2,7 +2,6 @@ package com.lookaround.core.android.model
 
 import android.os.Parcelable
 import com.lookaround.core.model.IPlaceType
-import java.util.*
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -65,16 +64,4 @@ enum class Leisure(
         "A facility where people practise horse riding, usually in their spare time, e.g. a riding centre. For a riding arena use tag:leisure=pitch + tag:sport=equestrian.",
         14655
     );
-
-    override val label: String
-        get() =
-            name.replace("_", " ").lowercase(Locale.getDefault()).replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-            }
-
-    override val typeKey: String
-        get() = javaClass.simpleName
-
-    override val typeValue: String
-        get() = name.lowercase(Locale.getDefault())
 }
