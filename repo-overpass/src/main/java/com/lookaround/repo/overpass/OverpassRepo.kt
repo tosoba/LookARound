@@ -45,8 +45,17 @@ constructor(
         lat: Double,
         lng: Double,
         radiusInMeters: Float
-    ): List<NodeDTO> =
-        store.get(
+    ): List<NodeDTO> {
+        dao.updateSearchAroundLastSearchedAt(
+            lat = lat,
+            lng = lng,
+            radiusInMeters = radiusInMeters,
+            key = placeType.typeKey,
+            value = placeType.typeValue,
+            filter = Filter.EQUAL,
+            date = Date()
+        )
+        return store.get(
             SearchAroundInput(
                 lat = lat,
                 lng = lng,
@@ -56,6 +65,7 @@ constructor(
                 filter = Filter.EQUAL
             )
         )
+    }
 
     override suspend fun imagesAround(
         lat: Double,

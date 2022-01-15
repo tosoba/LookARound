@@ -102,4 +102,19 @@ interface SearchAroundDao {
 
     @Query("UPDATE search_around SET last_searched_at = :date WHERE id = :searchId")
     suspend fun updateSearchAroundLastSearchedAt(searchId: Long, date: Date)
+
+    @Query(
+        """UPDATE search_around SET last_searched_at = :date 
+        WHERE lat = :lat AND lng = :lng AND radius_in_meters = :radiusInMeters  
+        AND `key` = :key AND value = :value AND filter = :filter"""
+    )
+    suspend fun updateSearchAroundLastSearchedAt(
+        lat: Double,
+        lng: Double,
+        radiusInMeters: Float,
+        key: String,
+        value: String,
+        filter: Filter,
+        date: Date
+    )
 }
