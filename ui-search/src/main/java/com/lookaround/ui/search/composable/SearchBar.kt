@@ -38,6 +38,7 @@ fun SearchBar(
     focused: Boolean,
     onBackPressedDispatcher: OnBackPressedDispatcher,
     modifier: Modifier = Modifier,
+    leadingUnfocused: @Composable () -> Unit = {},
     onSearchFocusChange: (Boolean) -> Unit = {},
     onTextFieldValueChange: (TextFieldValue) -> Unit = {}
 ) {
@@ -74,6 +75,7 @@ fun SearchBar(
                     focusRequester.requestFocus()
                 },
                 focusRequester = focusRequester,
+                leadingUnfocused = leadingUnfocused,
             )
         }
         if (focused) LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -89,6 +91,7 @@ private fun SearchBar(
     onBackArrowClicked: () -> Unit,
     onClearQueryClicked: () -> Unit,
     focusRequester: FocusRequester,
+    leadingUnfocused: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val focusManager = LocalFocusManager.current
@@ -113,6 +116,8 @@ private fun SearchBar(
                             contentDescription = stringResource(R.string.back)
                         )
                     }
+                } else {
+                    leadingUnfocused()
                 }
                 BasicTextField(
                     value = value,
@@ -171,6 +176,7 @@ private fun SearchBarPreview() {
                 onBackArrowClicked = {},
                 onClearQueryClicked = {},
                 focusRequester = FocusRequester(),
+                leadingUnfocused = {},
             )
         }
     }
@@ -189,6 +195,7 @@ private fun SearchBarDarkPreview() {
                 onBackArrowClicked = {},
                 onClearQueryClicked = {},
                 focusRequester = FocusRequester(),
+                leadingUnfocused = {},
             )
         }
     }

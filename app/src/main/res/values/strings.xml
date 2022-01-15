@@ -4,4 +4,8 @@
     <string name="loading_places_failed">Loading places failed.</string>
     <string name="location_unavailable">Location is unavailable.</string>
     <string name="no_internet_connection">No internet connection.</string>
+    <string name="navigation">Navigation</string>
+    <string name="map">Map</string>
+    <string name="about">About</string>
+    <string name="settings">Settings</string>
 </resources>

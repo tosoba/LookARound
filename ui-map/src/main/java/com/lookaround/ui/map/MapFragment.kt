@@ -17,7 +17,10 @@ import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
+import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.delegate.lazyAsync
+import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.LngLat
 import com.mapzen.tangram.MapController
@@ -29,9 +32,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
 @FlowPreview
@@ -41,8 +42,15 @@ import timber.log.Timber
 class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadListener {
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
 
-    @Inject internal lateinit var viewModelFactory: MapSceneViewModel.Factory
-    private val viewModel: MapSceneViewModel by assistedViewModel { viewModelFactory.create(it) }
+    @Inject internal lateinit var mapSceneViewModelFactory: MapSceneViewModel.Factory
+    private val mapSceneViewModel: MapSceneViewModel by assistedViewModel {
+        mapSceneViewModelFactory.create(it)
+    }
+
+    @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
+    private val mainViewModel: MainViewModel by assistedActivityViewModel {
+        mainViewModelFactory.create(it)
+    }
 
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
@@ -67,7 +75,22 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
             zoomOnDoubleTap()
         }
 
-        viewModel
+        mainViewModel
+            .states
+            .map(MainState::markers::get)
+            .distinctUntilChanged()
+            .onEach {
+                mapController.launch {
+                    if (it is WithValue) {
+                        it.value.items.forEach { marker -> addMarker(marker.location) }
+                    } else {
+                        removeAllMarkers()
+                    }
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        mapSceneViewModel
             .signals
             .filterIsInstance<MapSceneSignal.RetryLoadScene>()
             .onEach { (scene) -> mapController.await().loadScene(scene) }
@@ -105,7 +128,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
         if (sceneError == null) {
             viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.intent(MapSceneIntent.SceneLoaded)
+                mapSceneViewModel.intent(MapSceneIntent.SceneLoaded)
             }
 
             binding.shimmerLayout.stopAndHide()
@@ -139,7 +162,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         binding.blurBackground.visibility = View.VISIBLE
         binding.shimmerLayout.showAndStart()
 
-        viewModel.intent(MapSceneIntent.LoadingScene(scene))
+        mapSceneViewModel.intent(MapSceneIntent.LoadingScene(scene))
         loadSceneFile(
             scene.url,
             listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))

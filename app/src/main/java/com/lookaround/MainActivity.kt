@@ -1,10 +1,17 @@
 package com.lookaround
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
@@ -42,6 +49,7 @@ import timber.log.Timber
 @ExperimentalFoundationApi
 @ExperimentalStdlibApi
 @FlowPreview
+@SuppressLint("RtlHardcoded")
 class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
@@ -124,6 +132,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
 
         supportFragmentManager.addOnBackStackChangedListener { signalTopFragmentChanged(false) }
 
+        initNavigationDrawer()
         initSearch()
         initBottomSheet()
         initBottomNavigationView()
@@ -167,6 +176,8 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
         if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
             if (viewModel.state.searchFocused) super.onBackPressed()
+        } else if (binding.mainDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
+            binding.mainDrawerLayout.closeDrawer(Gravity.LEFT)
         } else {
             super.onBackPressed()
         }
@@ -229,6 +240,27 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
         }
     }
 
+    private fun initNavigationDrawer() {
+        binding.drawerNavigationView.setNavigationItemSelectedListener {
+            if (lifecycle.isResumed)
+                when (it.itemId) {
+                    R.id.drawer_nav_map -> {
+                        if (currentTopFragment !is MapFragment) {
+                            fragmentTransaction {
+                                setSlideInFromBottom()
+                                add(R.id.main_fragment_container, MapFragment())
+                                addToBackStack(null)
+                            }
+                        }
+                    }
+                    R.id.drawer_nav_about -> {}
+                    R.id.drawer_nav_settings -> {}
+                }
+            binding.mainDrawerLayout.closeDrawer(Gravity.LEFT)
+            true
+        }
+    }
+
     private fun initSearch() {
         val searchFocusedFlow =
             viewModel.states.map(MainState::searchFocused::get).distinctUntilChanged()
@@ -241,6 +273,22 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
                         query = state.autocompleteSearchQuery,
                         focused = searchFocused.value,
                         onBackPressedDispatcher = onBackPressedDispatcher,
+                        leadingUnfocused = {
+                            IconButton(
+                                onClick = {
+                                    with(binding.mainDrawerLayout) {
+                                        if (isDrawerOpen(Gravity.LEFT)) closeDrawer(Gravity.LEFT)
+                                        else openDrawer(Gravity.LEFT)
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Menu,
+                                    tint = LookARoundTheme.colors.iconPrimary,
+                                    contentDescription = stringResource(R.string.navigation)
+                                )
+                            }
+                        },
                         onSearchFocusChange = { focused ->
                             lifecycleScope.launch {
                                 viewModel.intent(MainIntent.SearchFocusChanged(focused))
@@ -396,7 +444,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
         message: String,
         @BaseTransientBottomBar.Duration length: Int
     ): Snackbar =
-        Snackbar.make(binding.mainLayout, message, length)
+        Snackbar.make(binding.mainCoordinatorLayout, message, length)
             .setAnchorView(binding.bottomNavigationView)
             .apply {
                 fun signalSnackbarStatusChanged(isShowing: Boolean) {

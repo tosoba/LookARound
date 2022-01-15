@@ -55,7 +55,9 @@ kapt { correctErrorTypes = true }
 dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
+    implementation(project(":core-android-model"))
     implementation(project(":tangram"))
+    implementation(project(":ui-main"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
