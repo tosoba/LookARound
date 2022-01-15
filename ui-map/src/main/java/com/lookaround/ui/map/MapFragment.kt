@@ -2,6 +2,7 @@ package com.lookaround.ui.map
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Rect
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
@@ -18,14 +19,12 @@ import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.WithValue
+import com.lookaround.core.android.model.WithoutValue
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.databinding.FragmentMapBinding
-import com.mapzen.tangram.LngLat
-import com.mapzen.tangram.MapController
-import com.mapzen.tangram.SceneError
-import com.mapzen.tangram.SceneUpdate
+import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
@@ -77,14 +76,39 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
 
         mainViewModel
             .states
+            .filter { it.markers is WithoutValue }
+            .map(MainState::locationState::get)
+            .filterIsInstance<WithValue<Location>>()
+            .onEach { location ->
+                mapController.launch {
+                    moveCameraPositionTo(
+                        location.value.latitude,
+                        location.value.longitude,
+                        MARKER_FOCUSED_ZOOM
+                    )
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        mainViewModel
+            .states
             .map(MainState::markers::get)
             .distinctUntilChanged()
-            .onEach {
+            .onEach { markers ->
+                mapSceneViewModel.awaitSceneLoaded()
                 mapController.launch {
-                    if (it is WithValue) {
-                        it.value.items.forEach { marker -> addMarker(marker.location) }
-                    } else {
-                        removeAllMarkers()
+                    removeAllMarkers()
+                    if (markers !is WithValue) return@launch
+                    markers.value.items.forEach { marker -> addMarker(marker.location) }
+                    if (markers.value.items.size > 1) {
+                        calculateAndZoomToBoundsOf(markers.value.items.map(Marker::location::get))
+                    } else if (markers.value.items.size == 1) {
+                        val marker = markers.value.items.first()
+                        moveCameraPositionTo(
+                            marker.location.latitude,
+                            marker.location.longitude,
+                            MARKER_FOCUSED_ZOOM
+                        )
                     }
                 }
             }
@@ -143,7 +167,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         mapController.launch {
             val (_, location) = marker
             removeAllMarkers()
-            moveCameraPositionTo(location.latitude, location.longitude, 15f, 250)
+            moveCameraPositionTo(location.latitude, location.longitude, MARKER_FOCUSED_ZOOM, 250)
             addMarker(location)
         }
     }
@@ -153,7 +177,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
             restoreCameraPosition(savedInstanceState)
         } else {
             currentMarker?.let { (_, location) ->
-                moveCameraPositionTo(location.latitude, location.longitude, 15f)
+                moveCameraPositionTo(location.latitude, location.longitude, MARKER_FOCUSED_ZOOM)
             }
         }
     }
@@ -177,6 +201,20 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                 "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue}"
             )
         }
+    }
+
+    private fun MapController.calculateAndZoomToBoundsOf(locations: Iterable<Location>) {
+        val north = locations.maxOf(Location::getLatitude)
+        val south = locations.minOf(Location::getLatitude)
+        val west = locations.minOf(Location::getLongitude)
+        val east = locations.maxOf(Location::getLongitude)
+        updateCameraPosition(
+            CameraUpdateFactory.newLngLatBounds(
+                LngLat(west, south),
+                LngLat(east, north),
+                Rect(1, 1, 1, 1)
+            ),
+        )
     }
 
     private fun launchGoogleMapsForNavigation() {
@@ -228,6 +266,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     companion object {
+        private const val MARKER_FOCUSED_ZOOM = 15f
+
         enum class SavedStateKeys {
             CURRENT_MARKER
         }

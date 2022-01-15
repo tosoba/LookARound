@@ -76,7 +76,7 @@ class PlaceListFragment :
         lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
 
     @Inject internal lateinit var mapCaptureCache: MapCaptureCache
-    private val getLocationBitmapChannel =
+    private val getLocationBitmapFlow =
         MutableSharedFlow<Pair<Location, CompletableDeferred<Bitmap>>>()
     private val mapReady = CompletableDeferred<Unit>()
 
@@ -263,7 +263,7 @@ class PlaceListFragment :
             return
         }
 
-        getLocationBitmapChannel
+        getLocationBitmapFlow
             .onEach { (location, deferred) ->
                 val bitmap = captureBitmapAndCacheBitmap(location)
                 deferred.complete(bitmap)
@@ -292,7 +292,7 @@ class PlaceListFragment :
 
         mapReady.await()
         val deferredBitmap = CompletableDeferred<Bitmap>()
-        getLocationBitmapChannel.emit(location to deferredBitmap)
+        getLocationBitmapFlow.emit(location to deferredBitmap)
         return deferredBitmap.await()
     }
 

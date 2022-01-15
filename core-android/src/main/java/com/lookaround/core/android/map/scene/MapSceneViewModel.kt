@@ -11,6 +11,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 @ExperimentalCoroutinesApi
 class MapSceneViewModel
@@ -21,5 +23,9 @@ constructor(@Assisted savedStateHandle: SavedStateHandle, processor: MapSceneFlo
         savedStateHandle,
         processor
     ) {
+    suspend fun awaitSceneLoaded() {
+        states.map(MapSceneState::sceneLoaded::get).first { it }
+    }
+
     @AssistedFactory interface Factory : SavedStateViewModelFactory<MapSceneViewModel>
 }
