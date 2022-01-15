@@ -26,14 +26,21 @@ constructor(
         query: String,
         priorityLat: Double?,
         priorityLon: Double?
-    ): List<PointDTO> =
-        store.get(
+    ): List<PointDTO> {
+        dao.updateAutocompleteSearchLastSearchedAt(
+            query = query,
+            priorityLat = priorityLat,
+            priorityLon = priorityLon,
+            date = Date()
+        )
+        return store.get(
             AutocompleteSearchInput(
                 query = query,
                 priorityLat = priorityLat,
                 priorityLon = priorityLon
             )
         )
+    }
 
     override fun recentAutocompleteSearches(limit: Int): Flow<List<AutocompleteSearchDTO>> =
         dao.selectSearches(limit).map {

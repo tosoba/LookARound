@@ -86,4 +86,17 @@ interface AutocompleteSearchDao {
 
     @Query("UPDATE autocomplete_search SET last_searched_at = :date WHERE id = :searchId")
     suspend fun updateAutocompleteSearchLastSearchedAt(searchId: Long, date: Date)
+
+    @Query(
+        """UPDATE autocomplete_search SET last_searched_at = :date 
+        WHERE `query` = :query 
+        AND (priority_lat = :priorityLat OR (priority_lat IS NULL AND :priorityLat IS NULL))  
+        AND (priority_lon = :priorityLon OR (priority_lon IS NULL AND :priorityLon IS NULL))"""
+    )
+    suspend fun updateAutocompleteSearchLastSearchedAt(
+        query: String,
+        priorityLat: Double?,
+        priorityLon: Double?,
+        date: Date
+    )
 }
