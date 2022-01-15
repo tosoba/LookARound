@@ -443,6 +443,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
                         )
                 } else if (markers is Ready) {
                     placesStatusLoadingSnackbar?.dismiss()
+                    signalSnackbarStatusChanged(isShowing = false)
                 }
             }
             .launchIn(lifecycleScope)
@@ -467,12 +468,6 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
         Snackbar.make(binding.mainCoordinatorLayout, message, length)
             .setAnchorView(binding.bottomNavigationView)
             .apply {
-                fun signalSnackbarStatusChanged(isShowing: Boolean) {
-                    lifecycleScope.launch {
-                        viewModel.signal(MainSignal.SnackbarStatusChanged(isShowing))
-                    }
-                }
-
                 addCallback(
                     object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                         override fun onShown(transientBottomBar: Snackbar?) {
@@ -487,6 +482,10 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
                 )
                 show()
             }
+
+    private fun signalSnackbarStatusChanged(isShowing: Boolean) {
+        lifecycleScope.launch { viewModel.signal(MainSignal.SnackbarStatusChanged(isShowing)) }
+    }
 
     private enum class ARState {
         INITIAL,
