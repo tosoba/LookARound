@@ -9,6 +9,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
@@ -158,7 +159,6 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
             .filter { latestARState == ARState.ENABLED }
             .onEach { (targetVisibility) -> setSearchbarVisibility(targetVisibility) }
             .launchIn(lifecycleScope)
-
         viewModel
             .locationUpdateFailureUpdates
             .onEach { Timber.tag("LOCATION").e("Failed to update location.") }
@@ -264,29 +264,49 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
     private fun initSearch() {
         val searchFocusedFlow =
             viewModel.states.map(MainState::searchFocused::get).distinctUntilChanged()
+        val cameraFragmentVisibleFlow =
+            viewModel
+                .signals
+                .filterIsInstance<MainSignal.TopFragmentChanged>()
+                .map { !it.cameraObscured }
+                .distinctUntilChanged()
         binding.searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
                     val searchFocused = searchFocusedFlow.collectAsState(initial = false)
-                    val state = viewModel.state
+                    val cameraFragmentVisible =
+                        cameraFragmentVisibleFlow.collectAsState(initial = true)
                     SearchBar(
-                        query = state.autocompleteSearchQuery,
+                        query = viewModel.state.autocompleteSearchQuery,
                         focused = searchFocused.value,
                         onBackPressedDispatcher = onBackPressedDispatcher,
                         leadingUnfocused = {
-                            IconButton(
-                                onClick = {
-                                    with(binding.mainDrawerLayout) {
-                                        if (isDrawerOpen(Gravity.LEFT)) closeDrawer(Gravity.LEFT)
-                                        else openDrawer(Gravity.LEFT)
+                            if (cameraFragmentVisible.value) {
+                                IconButton(
+                                    onClick = {
+                                        with(binding.mainDrawerLayout) {
+                                            if (isDrawerOpen(Gravity.LEFT)) {
+                                                closeDrawer(Gravity.LEFT)
+                                            } else {
+                                                openDrawer(Gravity.LEFT)
+                                            }
+                                        }
                                     }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Menu,
+                                        tint = LookARoundTheme.colors.iconPrimary,
+                                        contentDescription = stringResource(R.string.navigation)
+                                    )
                                 }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Menu,
-                                    tint = LookARoundTheme.colors.iconPrimary,
-                                    contentDescription = stringResource(R.string.navigation)
-                                )
+                            } else {
+                                IconButton(onClick = ::onBackPressed) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.ArrowBack,
+                                        tint = LookARoundTheme.colors.iconPrimary,
+                                        contentDescription = stringResource(R.string.back)
+                                    )
+                                }
                             }
                         },
                         onSearchFocusChange = { focused ->
