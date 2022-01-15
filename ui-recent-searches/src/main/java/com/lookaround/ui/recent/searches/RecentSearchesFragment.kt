@@ -31,6 +31,7 @@ import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.MainIntent
@@ -186,11 +187,7 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     ItemNameText(
-                        name =
-                            recentSearch.label.replaceFirstChar {
-                                if (it.isLowerCase()) it.titlecase(Locale.getDefault())
-                                else it.toString()
-                            },
+                        name = recentSearch.label.titleCaseWithSpacesInsteadOfUnderscores,
                         modifier = Modifier.padding(5.dp)
                     )
                     when (recentSearch.type) {
