@@ -7,13 +7,6 @@ import com.lookaround.core.model.AutocompleteSearchDTO
 import com.lookaround.core.model.SearchAroundDTO
 import com.lookaround.core.model.SearchDTO
 
-data class IncreaseLimitUpdate(
-    private val increment: Int = RecentSearchesState.SEARCHES_LIMIT_INCREMENT
-) : (RecentSearchesState) -> RecentSearchesState {
-    override fun invoke(state: RecentSearchesState): RecentSearchesState =
-        RecentSearchesState(limit = state.limit + increment)
-}
-
 object LoadingSearchesUpdate : (RecentSearchesState) -> RecentSearchesState {
     override fun invoke(state: RecentSearchesState): RecentSearchesState =
         RecentSearchesState(searches = state.searches.copyWithLoadingInProgress)

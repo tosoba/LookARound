@@ -1,6 +1,8 @@
 package com.lookaround.ui.recent.searches
 
 import com.lookaround.core.android.architecture.FlowProcessor
+import com.lookaround.core.android.model.Empty
+import com.lookaround.core.android.model.Ready
 import com.lookaround.core.ext.withLatestFrom
 import com.lookaround.core.usecase.RecentSearchesFlow
 import com.lookaround.core.usecase.TotalSearchesCountFlow
@@ -24,21 +26,31 @@ constructor(
         intent: suspend (RecentSearchesIntent) -> Unit,
         signal: suspend (RecentSearchesSignal) -> Unit
     ): Flow<(RecentSearchesState) -> RecentSearchesState> =
-        merge(
-            intents
-                .filterIsInstance<RecentSearchesIntent.IncreaseLimit>()
-                .withLatestFrom(totalSearchesCountFlow()) { _, totalSearchesCount ->
-                    totalSearchesCount
-                }
-                .filter { totalSearchesCount ->
-                    val (_, limit) = currentState()
-                    totalSearchesCount > limit + RecentSearchesState.SEARCHES_LIMIT_INCREMENT
-                }
-                .map { IncreaseLimitUpdate() },
-            states.map(RecentSearchesState::limit::get).distinctUntilChanged().transformLatest {
-                limit ->
-                emit(LoadingSearchesUpdate)
-                emitAll(recentSearchesFlow(limit).map(::SearchesLoadedUpdate))
+        intents
+            .filterIsInstance<RecentSearchesIntent.LoadSearches>()
+            .onStart { emit(RecentSearchesIntent.LoadSearches) }
+            .withLatestFrom(totalSearchesCountFlow()) { _, totalSearchesCount ->
+                totalSearchesCount
             }
-        )
+            .map { totalSearchesCount ->
+                val (searches) = currentState()
+                when (searches) {
+                    is Ready -> {
+                        val increment = RecentSearchesState.SEARCHES_LIMIT_INCREMENT
+                        val nextLimit =
+                            searches.value.items.size / increment * increment + increment
+                        if (totalSearchesCount > nextLimit) nextLimit else null
+                    }
+                    is Empty -> RecentSearchesState.SEARCHES_LIMIT_INCREMENT
+                    else -> null
+                }
+            }
+            .filterNotNull()
+            .distinctUntilChanged()
+            .transformLatest { limit ->
+                emit(LoadingSearchesUpdate)
+                emitAll(
+                    recentSearchesFlow(limit).map(::SearchesLoadedUpdate).distinctUntilChanged()
+                )
+            }
 }

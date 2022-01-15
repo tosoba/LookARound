@@ -155,7 +155,7 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                     }
 
                     InfiniteListHandler(listState = lazyListState) {
-                        recentSearchesViewModel.intent(RecentSearchesIntent.IncreaseLimit)
+                        recentSearchesViewModel.intent(RecentSearchesIntent.LoadSearches)
                     }
                 }
             }
