@@ -17,9 +17,11 @@ interface ISearchAroundRepo {
 
     suspend fun imagesAround(lat: Double, lng: Double, radiusInMeters: Float): List<String>
 
-    fun recentSearchesAround(limit: Int): Flow<List<SearchAroundDTO>>
+    fun recentSearchesAround(limit: Int, query: String?): Flow<List<SearchAroundDTO>>
 
-    val searchesAroundCount: Flow<Int>
+    val searchesAroundCountFlow: Flow<Int>
+
+    suspend fun getSearchesAroundCount(query: String?): Int
 
     suspend fun searchResults(searchId: Long): List<NodeDTO>
 }

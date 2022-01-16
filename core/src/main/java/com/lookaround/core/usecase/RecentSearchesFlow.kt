@@ -15,9 +15,9 @@ constructor(
     private val searchAroundRepo: ISearchAroundRepo,
     private val autocompleteSearchRepo: IAutocompleteSearchRepo
 ) {
-    operator fun invoke(limit: Int): Flow<List<SearchDTO>> =
-        searchAroundRepo.recentSearchesAround(limit).combine(
-                autocompleteSearchRepo.recentAutocompleteSearches(limit)
+    operator fun invoke(limit: Int, query: String? = null): Flow<List<SearchDTO>> =
+        searchAroundRepo.recentSearchesAround(limit, query).combine(
+                autocompleteSearchRepo.recentAutocompleteSearches(limit, query)
             ) { recentSearchesAround, recentAutocompleteSearches ->
             recentSearchesAround
                 .union(recentAutocompleteSearches)

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -66,13 +67,6 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
         mainViewModelFactory.create(it)
     }
 
-    private var searchQuery: String = ""
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        savedInstanceState?.getString(SavedStateKey.SEARCH_QUERY.name)?.let(::searchQuery::set)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val bottomSheetSignalsFlow =
             mainViewModel
@@ -84,33 +78,19 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                 .states
                 .map(MainState::locationState::get)
                 .filterIsInstance<WithValue<Location>>()
-        val searchQueryFlow = MutableStateFlow(searchQuery)
         val recentSearchesFlow =
             recentSearchesViewModel
                 .states
                 .map(RecentSearchesState::searches::get)
                 .filterIsInstance<WithValue<ParcelableList<RecentSearchModel>>>()
-                .distinctUntilChanged()
-                .combine(searchQueryFlow.map { it.trim().lowercase() }.distinctUntilChanged()) {
-                    markers,
-                    query ->
-                    markers to query
-                }
-                .map { (recentSearches, query) ->
-                    recentSearches.value.items.run {
-                        if (query.isBlank()) toList()
-                        else {
-                            filter { recentSearch ->
-                                recentSearch.label.lowercase().contains(query)
-                            }
-                        }
-                    }
-                }
+                .map(WithValue<ParcelableList<RecentSearchModel>>::value::get)
                 .distinctUntilChanged()
 
         binding.recentSearchesList.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
+                    val scope = rememberCoroutineScope()
+
                     val bottomSheetState =
                         bottomSheetSignalsFlow.collectAsState(
                             initial = BottomSheetBehavior.STATE_HIDDEN
@@ -121,7 +101,7 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
 
                     val recentSearches = recentSearchesFlow.collectAsState(initial = emptyList())
 
-                    val searchQuery = searchQueryFlow.collectAsState(initial = "")
+                    val searchQuery = rememberSaveable { mutableStateOf("") }
                     val searchFocused = rememberSaveable { mutableStateOf(false) }
 
                     val lazyListState = rememberLazyListState()
@@ -143,8 +123,12 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                                         requireActivity().onBackPressedDispatcher,
                                     onSearchFocusChange = searchFocused::value::set,
                                     onTextFieldValueChange = {
-                                        searchQueryFlow.value = it.text
-                                        this@RecentSearchesFragment.searchQuery = it.text
+                                        searchQuery.value = it.text
+                                        scope.launch {
+                                            recentSearchesViewModel.intent(
+                                                RecentSearchesIntent.LoadSearches(it.text)
+                                            )
+                                        }
                                     }
                                 )
                             }
@@ -155,7 +139,9 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                     }
 
                     InfiniteListHandler(listState = lazyListState) {
-                        recentSearchesViewModel.intent(RecentSearchesIntent.LoadSearches)
+                        recentSearchesViewModel.intent(
+                            RecentSearchesIntent.LoadSearches(searchQuery.value)
+                        )
                     }
                 }
             }
@@ -229,13 +215,5 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                 }
             }
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
-    }
-
-    private enum class SavedStateKey {
-        SEARCH_QUERY
     }
 }

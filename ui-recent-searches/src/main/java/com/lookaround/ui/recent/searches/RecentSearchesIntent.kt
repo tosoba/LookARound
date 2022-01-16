@@ -1,5 +1,5 @@
 package com.lookaround.ui.recent.searches
 
 sealed interface RecentSearchesIntent {
-    object LoadSearches : RecentSearchesIntent
+    data class LoadSearches(val query: String?) : RecentSearchesIntent
 }

@@ -3,9 +3,8 @@ package com.lookaround.ui.recent.searches
 import com.lookaround.core.android.architecture.FlowProcessor
 import com.lookaround.core.android.model.Empty
 import com.lookaround.core.android.model.Ready
-import com.lookaround.core.ext.withLatestFrom
+import com.lookaround.core.usecase.GetSearchesCount
 import com.lookaround.core.usecase.RecentSearchesFlow
-import com.lookaround.core.usecase.TotalSearchesCountFlow
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,7 +15,7 @@ class RecentSearchesFlowProcessor
 @Inject
 constructor(
     private val recentSearchesFlow: RecentSearchesFlow,
-    private val totalSearchesCountFlow: TotalSearchesCountFlow
+    private val getSearchesCount: GetSearchesCount
 ) : FlowProcessor<RecentSearchesIntent, RecentSearchesState, RecentSearchesSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
@@ -28,29 +27,39 @@ constructor(
     ): Flow<(RecentSearchesState) -> RecentSearchesState> =
         intents
             .filterIsInstance<RecentSearchesIntent.LoadSearches>()
-            .onStart { emit(RecentSearchesIntent.LoadSearches) }
-            .withLatestFrom(totalSearchesCountFlow()) { _, totalSearchesCount ->
-                totalSearchesCount
+            .onStart { emit(RecentSearchesIntent.LoadSearches(null)) }
+            .mapLatest { (query) -> query to getSearchesCount(query) }
+            .scan(Triple<String?, String?, Int>(null, null, -1)) {
+                (_, previousQuery, _),
+                (currentQuery, count) ->
+                val trimmed = currentQuery?.trim()
+                Triple(previousQuery, if (trimmed?.isBlank() == true) null else trimmed, count)
             }
-            .map { totalSearchesCount ->
-                val (searches) = currentState()
-                when (searches) {
-                    is Ready -> {
-                        val increment = RecentSearchesState.SEARCHES_LIMIT_INCREMENT
-                        val nextLimit =
-                            searches.value.items.size / increment * increment + increment
-                        if (totalSearchesCount > nextLimit) nextLimit else null
+            .map { (previousQuery, currentQuery, totalSearchesCount) ->
+                if (previousQuery != currentQuery) {
+                    currentQuery to RecentSearchesState.SEARCHES_LIMIT_INCREMENT
+                } else {
+                    val (searches) = currentState()
+                    when (searches) {
+                        is Ready -> {
+                            val increment = RecentSearchesState.SEARCHES_LIMIT_INCREMENT
+                            val nextLimit =
+                                searches.value.items.size / increment * increment + increment
+                            if (totalSearchesCount > nextLimit) currentQuery to nextLimit else null
+                        }
+                        is Empty -> currentQuery to RecentSearchesState.SEARCHES_LIMIT_INCREMENT
+                        else -> null
                     }
-                    is Empty -> RecentSearchesState.SEARCHES_LIMIT_INCREMENT
-                    else -> null
                 }
             }
             .filterNotNull()
             .distinctUntilChanged()
-            .transformLatest { limit ->
+            .transformLatest { (query, limit) ->
                 emit(LoadingSearchesUpdate)
                 emitAll(
-                    recentSearchesFlow(limit).map(::SearchesLoadedUpdate).distinctUntilChanged()
+                    recentSearchesFlow(limit, query)
+                        .map(::SearchesLoadedUpdate)
+                        .distinctUntilChanged()
                 )
             }
 }

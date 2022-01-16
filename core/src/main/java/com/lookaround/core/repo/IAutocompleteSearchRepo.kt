@@ -7,9 +7,11 @@ import kotlinx.coroutines.flow.Flow
 interface IAutocompleteSearchRepo {
     suspend fun search(query: String, priorityLat: Double?, priorityLon: Double?): List<PointDTO>
 
-    fun recentAutocompleteSearches(limit: Int): Flow<List<AutocompleteSearchDTO>>
+    fun recentAutocompleteSearches(limit: Int, query: String?): Flow<List<AutocompleteSearchDTO>>
 
-    val autocompleteSearchesCount: Flow<Int>
+    val autocompleteSearchesCountFlow: Flow<Int>
+
+    suspend fun getAutocompleteSearchesCount(query: String?): Int
 
     suspend fun searchResults(searchId: Long): List<PointDTO>
 }

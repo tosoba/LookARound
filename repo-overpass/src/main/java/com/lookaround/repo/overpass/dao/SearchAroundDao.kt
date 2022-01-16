@@ -91,7 +91,22 @@ interface SearchAroundDao {
     @Query("SELECT * FROM search_around ORDER BY last_searched_at DESC LIMIT :limit")
     fun selectSearches(limit: Int): Flow<List<SearchAroundEntity>>
 
-    @Query("SELECT COUNT(*) FROM search_around") fun selectSearchesCount(): Flow<Int>
+    @Query(
+        """SELECT * FROM search_around 
+        WHERE LOWER(value) LIKE '%' || :query || '%' 
+        ORDER BY last_searched_at DESC LIMIT :limit"""
+    )
+    fun selectSearches(limit: Int, query: String): Flow<List<SearchAroundEntity>>
+
+    @Query("SELECT COUNT(*) FROM search_around") fun selectSearchesCountFlow(): Flow<Int>
+
+    @Query(
+        """SELECT COUNT(*) FROM search_around
+        WHERE LOWER(value) LIKE '%' || :query || '%'"""
+    )
+    suspend fun selectSearchesCount(query: String): Int
+
+    @Query("SELECT COUNT(*) FROM search_around") suspend fun selectSearchesCount(): Int
 
     @Query(
         """SELECT n.* FROM node n 

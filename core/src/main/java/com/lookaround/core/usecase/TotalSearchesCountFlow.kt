@@ -17,8 +17,8 @@ constructor(
 ) {
     operator fun invoke(): Flow<Int> =
         combine(
-            searchAroundRepo.searchesAroundCount.onStart { emit(0) },
-            autocompleteSearchRepo.autocompleteSearchesCount.onStart { emit(0) }
+            searchAroundRepo.searchesAroundCountFlow.onStart { emit(0) },
+            autocompleteSearchRepo.autocompleteSearchesCountFlow.onStart { emit(0) }
         ) { aroundSearchesCount, autocompleteSearchesCount ->
             aroundSearchesCount + autocompleteSearchesCount
         }

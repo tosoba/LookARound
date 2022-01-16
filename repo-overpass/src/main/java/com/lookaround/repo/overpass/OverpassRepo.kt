@@ -84,8 +84,11 @@ constructor(
             )
             .mapNotNull { it.tags["image"] }
 
-    override fun recentSearchesAround(limit: Int): Flow<List<SearchAroundDTO>> =
-        dao.selectSearches(limit).map {
+    override fun recentSearchesAround(limit: Int, query: String?): Flow<List<SearchAroundDTO>> {
+        val searches =
+            if (query != null) dao.selectSearches(limit, query.lowercase())
+            else dao.selectSearches(limit)
+        return searches.map {
             it.map { entity ->
                 val (input, lastSearchedAt) = entity
                 SearchAroundDTO(
@@ -97,9 +100,13 @@ constructor(
                 )
             }
         }
+    }
 
-    override val searchesAroundCount: Flow<Int>
-        get() = dao.selectSearchesCount()
+    override val searchesAroundCountFlow: Flow<Int>
+        get() = dao.selectSearchesCountFlow()
+
+    override suspend fun getSearchesAroundCount(query: String?): Int =
+        if (query != null) dao.selectSearchesCount(query.lowercase()) else dao.selectSearchesCount()
 
     override suspend fun searchResults(searchId: Long): List<NodeDTO> {
         dao.updateSearchAroundLastSearchedAt(searchId, Date())

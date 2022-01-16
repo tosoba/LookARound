@@ -42,8 +42,13 @@ constructor(
         )
     }
 
-    override fun recentAutocompleteSearches(limit: Int): Flow<List<AutocompleteSearchDTO>> =
-        dao.selectSearches(limit).map {
+    override fun recentAutocompleteSearches(
+        limit: Int,
+        query: String?
+    ): Flow<List<AutocompleteSearchDTO>> {
+        val searches =
+            if (query != null) dao.selectSearches(limit, query) else dao.selectSearches(limit)
+        return searches.map {
             it.map { entity ->
                 val (input, lastSearchedAt) = entity
                 AutocompleteSearchDTO(
@@ -55,9 +60,13 @@ constructor(
                 )
             }
         }
+    }
 
-    override val autocompleteSearchesCount: Flow<Int>
-        get() = dao.selectSearchesCount()
+    override suspend fun getAutocompleteSearchesCount(query: String?): Int =
+        if (query != null) dao.selectSearchesCount(query.lowercase()) else dao.selectSearchesCount()
+
+    override val autocompleteSearchesCountFlow: Flow<Int>
+        get() = dao.selectSearchesCountFlow()
 
     override suspend fun searchResults(searchId: Long): List<PointDTO> {
         dao.updateAutocompleteSearchLastSearchedAt(searchId, Date())

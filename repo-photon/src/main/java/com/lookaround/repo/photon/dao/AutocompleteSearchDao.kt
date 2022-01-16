@@ -75,7 +75,22 @@ interface AutocompleteSearchDao {
     @Query("SELECT * FROM autocomplete_search ORDER BY last_searched_at DESC LIMIT :limit")
     fun selectSearches(limit: Int): Flow<List<AutocompleteSearchEntity>>
 
-    @Query("SELECT COUNT(*) FROM autocomplete_search") fun selectSearchesCount(): Flow<Int>
+    @Query(
+        """SELECT * FROM autocomplete_search 
+            WHERE LOWER(`query`) LIKE '%' || :query || '%' 
+            ORDER BY last_searched_at DESC LIMIT :limit"""
+    )
+    fun selectSearches(limit: Int, query: String): Flow<List<AutocompleteSearchEntity>>
+
+    @Query("SELECT COUNT(*) FROM autocomplete_search") fun selectSearchesCountFlow(): Flow<Int>
+
+    @Query(
+        """SELECT COUNT(*) FROM autocomplete_search
+        WHERE LOWER(`query`) LIKE '%' || :query || '%'"""
+    )
+    suspend fun selectSearchesCount(query: String): Int
+
+    @Query("SELECT COUNT(*) FROM autocomplete_search") suspend fun selectSearchesCount(): Int
 
     @Query(
         """SELECT p.* FROM point p 
