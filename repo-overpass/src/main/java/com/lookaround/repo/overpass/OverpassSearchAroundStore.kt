@@ -53,6 +53,7 @@ internal object OverpassSearchAroundStore {
                                 }
                         },
                         writer = { input, nodes ->
+                            if (nodes.isEmpty()) return@of
                             dao.insert(
                                 search = SearchAroundEntity(input),
                                 nodes = nodes.map(nodeMapper::toEntity)

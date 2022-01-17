@@ -54,6 +54,7 @@ internal object PhotonAutocompleteSearchStore {
                                 }
                         },
                         writer = { input, points ->
+                            if (points.isEmpty()) return@of
                             dao.insert(
                                 search = AutocompleteSearchEntity(input),
                                 points =
