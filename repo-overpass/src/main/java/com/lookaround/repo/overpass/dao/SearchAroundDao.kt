@@ -62,6 +62,8 @@ interface SearchAroundDao {
 
     @Query("DELETE FROM node") suspend fun deleteAllNodes()
 
+    @Query("DELETE FROM search_around WHERE id = :id") suspend fun deleteById(id: Long)
+
     @Transaction
     suspend fun delete(
         lat: Double,

@@ -24,4 +24,6 @@ interface ISearchAroundRepo {
     suspend fun getSearchesAroundCount(query: String?): Int
 
     suspend fun searchResults(searchId: Long): List<NodeDTO>
+
+    suspend fun deleteSearch(id: Long)
 }

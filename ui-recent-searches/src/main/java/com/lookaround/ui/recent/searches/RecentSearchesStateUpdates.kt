@@ -6,6 +6,7 @@ import com.lookaround.core.android.model.Ready
 import com.lookaround.core.model.AutocompleteSearchDTO
 import com.lookaround.core.model.SearchAroundDTO
 import com.lookaround.core.model.SearchDTO
+import com.lookaround.core.model.SearchType
 
 object LoadingSearchesUpdate : (RecentSearchesState) -> RecentSearchesState {
     override fun invoke(state: RecentSearchesState): RecentSearchesState =
@@ -27,7 +28,7 @@ data class SearchesLoadedUpdate(
                                     RecentSearchModel(
                                         id = id,
                                         label = query,
-                                        type = RecentSearchModel.Type.AUTOCOMPLETE,
+                                        type = SearchType.AUTOCOMPLETE,
                                         location =
                                             if (priorityLat != null && priorityLon != null) {
                                                 LocationFactory.create(
@@ -45,7 +46,7 @@ data class SearchesLoadedUpdate(
                                     RecentSearchModel(
                                         id = id,
                                         label = value,
-                                        type = RecentSearchModel.Type.AROUND,
+                                        type = SearchType.AROUND,
                                         location =
                                             LocationFactory.create(latitude = lat, longitude = lng),
                                         lastSearchedAt = lastSearchedAt

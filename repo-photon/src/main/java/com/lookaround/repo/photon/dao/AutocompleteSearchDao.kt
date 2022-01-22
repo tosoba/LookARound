@@ -53,6 +53,8 @@ interface AutocompleteSearchDao {
 
     @Query("DELETE FROM point") suspend fun deleteAllPoints()
 
+    @Query("DELETE FROM autocomplete_search WHERE id = :id") suspend fun deleteById(id: Long)
+
     @Transaction
     suspend fun delete(query: String, priorityLat: Double?, priorityLon: Double?) {
         deleteSearch(query, priorityLat, priorityLon)

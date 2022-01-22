@@ -34,6 +34,7 @@ constructor(
 
     override fun sideEffects(
         coroutineScope: CoroutineScope,
+        intents: Flow<MapSceneIntent>,
         currentState: () -> MapSceneState,
         states: Flow<MapSceneState>,
         signal: suspend (MapSceneSignal) -> Unit

@@ -3,6 +3,7 @@ package com.lookaround.ui.recent.searches
 import android.location.Location
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Search
@@ -20,6 +22,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -33,6 +36,7 @@ import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
+import com.lookaround.core.model.SearchType
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.MainIntent
@@ -158,9 +162,9 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                     lifecycleScope.launch {
                         mainViewModel.intent(
                             when (recentSearch.type) {
-                                RecentSearchModel.Type.AROUND ->
+                                SearchType.AROUND ->
                                     MainIntent.LoadSearchAroundResults(recentSearch.id)
-                                RecentSearchModel.Type.AUTOCOMPLETE ->
+                                SearchType.AUTOCOMPLETE ->
                                     MainIntent.LoadSearchAutocompleteResults(recentSearch.id)
                             }
                         )
@@ -172,12 +176,8 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                     modifier = Modifier.padding(5.dp).fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    ItemNameText(
-                        name = recentSearch.label.titleCaseWithSpacesInsteadOfUnderscores,
-                        modifier = Modifier.padding(5.dp)
-                    )
                     when (recentSearch.type) {
-                        RecentSearchModel.Type.AROUND ->
+                        SearchType.AROUND -> {
                             Icon(
                                 imageVector = Icons.Outlined.Category,
                                 contentDescription = "Place type search",
@@ -185,7 +185,8 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                                     Modifier.defaultMinSize(minWidth = 10.dp, minHeight = 10.dp)
                                         .padding(5.dp)
                             )
-                        RecentSearchModel.Type.AUTOCOMPLETE ->
+                        }
+                        SearchType.AUTOCOMPLETE -> {
                             Icon(
                                 imageVector = Icons.Outlined.Search,
                                 contentDescription = "Text search",
@@ -193,7 +194,30 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                                     Modifier.defaultMinSize(minWidth = 10.dp, minHeight = 10.dp)
                                         .padding(5.dp)
                             )
+                        }
                     }
+                    ItemNameText(
+                        name = recentSearch.label.titleCaseWithSpacesInsteadOfUnderscores,
+                        modifier = Modifier.padding(5.dp)
+                    )
+                    IconButton(
+                        onClick = {
+                            lifecycleScope.launch {
+                                recentSearchesViewModel.intent(
+                                    RecentSearchesIntent.DeleteSearch(
+                                        recentSearch.id,
+                                        recentSearch.type
+                                    )
+                                )
+                            }
+                            Toast.makeText(
+                                    requireContext(),
+                                    getString(R.string.recent_search_deleted),
+                                    Toast.LENGTH_SHORT
+                                )
+                                .show()
+                        }
+                    ) { Icon(painterResource(id = R.drawable.ic_baseline_delete_24), "") }
                 }
                 if (recentSearch.location != null) {
                     Row(

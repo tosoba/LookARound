@@ -112,4 +112,8 @@ constructor(
         dao.updateSearchAroundLastSearchedAt(searchId, Date())
         return dao.selectSearchResults(searchAroundId = searchId).map(nodeEntityMapper::toDTO)
     }
+
+    override suspend fun deleteSearch(id: Long) {
+        dao.deleteById(id)
+    }
 }

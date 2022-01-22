@@ -73,4 +73,8 @@ constructor(
         return dao.selectSearchResults(autocompleteSearchId = searchId)
             .map(pointEntityMapper::toDTO)
     }
+
+    override suspend fun deleteSearch(id: Long) {
+        dao.deleteById(id)
+    }
 }

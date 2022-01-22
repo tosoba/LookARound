@@ -14,4 +14,6 @@ interface IAutocompleteSearchRepo {
     suspend fun getAutocompleteSearchesCount(query: String?): Int
 
     suspend fun searchResults(searchId: Long): List<PointDTO>
+
+    suspend fun deleteSearch(id: Long)
 }

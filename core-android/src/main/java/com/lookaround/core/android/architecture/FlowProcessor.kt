@@ -16,6 +16,7 @@ interface FlowProcessor<Intent : Any, State : Any, Signal : Any> {
 
     fun sideEffects(
         coroutineScope: CoroutineScope,
+        intents: Flow<Intent>,
         currentState: () -> State,
         states: Flow<State>,
         signal: suspend (Signal) -> Unit
