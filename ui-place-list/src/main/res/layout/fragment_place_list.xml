@@ -36,7 +36,7 @@
         android:layout_gravity="bottom|right"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="10dp"
-        android:text="@string/reload_maps"
+        android:text="@string/reload"
         app:icon="@drawable/ic_baseline_refresh_24" />
 
 </com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout>

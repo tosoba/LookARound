@@ -43,7 +43,7 @@ internal fun PlaceMapListItem(
     val userLocationState = userLocationFlow.collectAsState(initial = null)
 
     LookARoundCard(
-        backgroundColor = Color.White.copy(alpha = .75f),
+        backgroundColor = Color.White.copy(alpha = .85f),
         elevation = 0.dp,
         modifier = modifier
     ) {

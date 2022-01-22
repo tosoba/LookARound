@@ -7,15 +7,19 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -205,10 +209,23 @@ class PlaceListFragment :
                                                 .pxToDp(mapLayoutParams.width.toFloat())
                                                 .toInt(),
                                         modifier =
-                                            Modifier.weight(1f, fill = false).clickable {
-                                                (activity as? PlaceMapItemActionsHandler)
-                                                    ?.onPlaceMapItemClick(point)
-                                            },
+                                            Modifier.weight(1f, fill = false)
+                                                .border(
+                                                    width = 2.dp,
+                                                    brush =
+                                                        Brush.horizontalGradient(
+                                                            colors =
+                                                                listOf(
+                                                                    Color.Transparent,
+                                                                    Color.LightGray
+                                                                )
+                                                        ),
+                                                    shape = RoundedCornerShape(12.dp)
+                                                )
+                                                .clickable {
+                                                    (activity as? PlaceMapItemActionsHandler)
+                                                        ?.onPlaceMapItemClick(point)
+                                                },
                                     )
                                 }
                             }

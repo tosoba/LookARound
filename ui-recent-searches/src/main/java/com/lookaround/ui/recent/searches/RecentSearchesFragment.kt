@@ -5,11 +5,13 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -21,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -147,21 +150,31 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
     @Composable
     private fun RecentSearchItem(recentSearch: RecentSearchModel, location: Location) {
         LookARoundCard(
-            backgroundColor = Color.White.copy(alpha = .75f),
+            backgroundColor = Color.White.copy(alpha = .85f),
             elevation = 0.dp,
             modifier =
-                Modifier.padding(10.dp).fillMaxWidth().clickable {
-                    lifecycleScope.launch {
-                        mainViewModel.intent(
-                            when (recentSearch.type) {
-                                SearchType.AROUND ->
-                                    MainIntent.LoadSearchAroundResults(recentSearch.id)
-                                SearchType.AUTOCOMPLETE ->
-                                    MainIntent.LoadSearchAutocompleteResults(recentSearch.id)
-                            }
-                        )
+                Modifier.padding(10.dp)
+                    .fillMaxWidth()
+                    .border(
+                        width = 2.dp,
+                        brush =
+                            Brush.horizontalGradient(
+                                colors = listOf(Color.Transparent, Color.LightGray)
+                            ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clickable {
+                        lifecycleScope.launch {
+                            mainViewModel.intent(
+                                when (recentSearch.type) {
+                                    SearchType.AROUND ->
+                                        MainIntent.LoadSearchAroundResults(recentSearch.id)
+                                    SearchType.AUTOCOMPLETE ->
+                                        MainIntent.LoadSearchAutocompleteResults(recentSearch.id)
+                                }
+                            )
+                        }
                     }
-                }
         ) {
             Column {
                 Row(

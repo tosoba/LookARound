@@ -1,33 +1,20 @@
 package com.lookaround.core.android.view.composable
 
 import android.location.Location
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.ext.formattedDistanceTo
-import com.lookaround.core.android.model.INamedLocation
 import com.lookaround.core.android.view.theme.LookARoundTheme
-import kotlinx.coroutines.flow.Flow
-
-@Composable
-fun PlaceItem(point: INamedLocation, locationFlow: Flow<Location>, modifier: Modifier = Modifier) {
-    LookARoundCard(modifier = modifier) {
-        Column(modifier = Modifier.padding(5.dp)) {
-            ItemNameText(point.name)
-            val location = locationFlow.collectAsState(null).value
-            if (location != null) ItemDistanceText(point.location, location)
-        }
-    }
-}
 
 @Composable
 fun ItemDistanceText(location1: Location, location2: Location, modifier: Modifier = Modifier) {
@@ -47,13 +34,6 @@ fun ItemNameText(name: String, modifier: Modifier = Modifier) {
         color = LookARoundTheme.colors.textPrimary,
         modifier = Modifier.heightIn(min = 20.dp).wrapContentHeight() then modifier
     )
-}
-
-@Composable
-fun InfoItemCard(text: String, color: Color, modifier: Modifier = Modifier) {
-    LookARoundCard(modifier) {
-        InfoItemText(text, color, modifier = Modifier.padding(10.dp).fillMaxWidth())
-    }
 }
 
 @Composable
