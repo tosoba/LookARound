@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
@@ -62,13 +64,8 @@ class PlaceListFragment :
     Fragment(R.layout.fragment_place_list), MapController.SceneLoadListener, MapChangeListener {
     private val binding: FragmentPlaceListBinding by viewBinding(FragmentPlaceListBinding::bind)
 
-    @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
-    private val mainViewModel: MainViewModel by assistedActivityViewModel {
-        mainViewModelFactory.create(it)
-    }
-
-    @Inject internal lateinit var viewModelFactory: MapSceneViewModel.Factory
-    private val viewModel: MapSceneViewModel by assistedViewModel { viewModelFactory.create(it) }
+    private val mainViewModel: MainViewModel by activityViewModels()
+    private val viewModel: MapSceneViewModel by viewModels()
 
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory

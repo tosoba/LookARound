@@ -8,6 +8,8 @@ import android.view.View
 import androidx.camera.core.*
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import androidx.palette.graphics.Palette
@@ -35,7 +37,6 @@ import com.lookaround.ui.main.model.MainState
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
-import javax.inject.Inject
 import kotlin.math.min
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,15 +58,8 @@ class CameraFragment :
     Fragment(R.layout.fragment_camera), OrientationManager.OnOrientationChangedListener {
     private val binding: FragmentCameraBinding by viewBinding(FragmentCameraBinding::bind)
 
-    @Inject internal lateinit var cameraViewModelFactory: CameraViewModel.Factory
-    private val cameraViewModel: CameraViewModel by assistedViewModel {
-        cameraViewModelFactory.create(it)
-    }
-
-    @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
-    private val mainViewModel: MainViewModel by assistedActivityViewModel {
-        mainViewModelFactory.create(it)
-    }
+    private val cameraViewModel: CameraViewModel by viewModels()
+    private val mainViewModel: MainViewModel by activityViewModels()
 
     private val cameraMarkerRenderer: CameraMarkerRenderer by
         lazy(LazyThreadSafetyMode.NONE) { CameraMarkerRenderer(requireContext()) }

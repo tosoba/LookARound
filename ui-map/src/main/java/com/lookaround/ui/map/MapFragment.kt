@@ -10,6 +10,8 @@ import android.view.View
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.*
@@ -41,15 +43,8 @@ import timber.log.Timber
 class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadListener {
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
 
-    @Inject internal lateinit var mapSceneViewModelFactory: MapSceneViewModel.Factory
-    private val mapSceneViewModel: MapSceneViewModel by assistedViewModel {
-        mapSceneViewModelFactory.create(it)
-    }
-
-    @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
-    private val mainViewModel: MainViewModel by assistedActivityViewModel {
-        mainViewModelFactory.create(it)
-    }
+    private val mapSceneViewModel: MapSceneViewModel by viewModels()
+    private val mainViewModel: MainViewModel by activityViewModels()
 
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory

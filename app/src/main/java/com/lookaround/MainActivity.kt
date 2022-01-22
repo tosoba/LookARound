@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.Icon
@@ -38,7 +39,6 @@ import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
 import com.lookaround.ui.search.composable.SearchBar
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -54,8 +54,7 @@ import timber.log.Timber
 class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
-    @Inject internal lateinit var viewModelFactory: MainViewModel.Factory
-    private val viewModel: MainViewModel by assistedViewModel { viewModelFactory.create(it) }
+    private val viewModel: MainViewModel by viewModels()
 
     private val bottomSheetBehavior by
         lazy(LazyThreadSafetyMode.NONE) {

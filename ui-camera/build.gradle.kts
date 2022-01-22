@@ -54,6 +54,7 @@ dependencies {
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
 
     implementation("androidx.core:core-ktx:1.7.0")
+    implementation("androidx.fragment:fragment-ktx:1.3.6")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.4.0")
 

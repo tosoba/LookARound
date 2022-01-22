@@ -18,11 +18,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.lookaround.core.android.ext.assistedActivityViewModel
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
@@ -33,7 +33,6 @@ import com.lookaround.ui.place.types.databinding.FragmentPlaceTypesBinding
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
 import com.lookaround.ui.search.composable.SearchBar
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -45,10 +44,7 @@ import kotlinx.coroutines.launch
 class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
     private val binding: FragmentPlaceTypesBinding by viewBinding(FragmentPlaceTypesBinding::bind)
 
-    @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
-    private val mainViewModel: MainViewModel by assistedActivityViewModel {
-        mainViewModelFactory.create(it)
-    }
+    private val mainViewModel: MainViewModel by activityViewModels()
 
     private var searchQuery: String = ""
 

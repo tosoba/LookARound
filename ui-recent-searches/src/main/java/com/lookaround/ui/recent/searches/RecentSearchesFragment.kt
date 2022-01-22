@@ -25,13 +25,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.github.marlonlom.utilities.timeago.TimeAgo
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.lookaround.core.android.ext.assistedActivityViewModel
-import com.lookaround.core.android.ext.assistedViewModel
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
@@ -46,7 +46,6 @@ import com.lookaround.ui.search.composable.SearchBar
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
-import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -61,15 +60,8 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
     private val binding: FragmentRecentSearchesBinding by
         viewBinding(FragmentRecentSearchesBinding::bind)
 
-    @Inject internal lateinit var recentSearchesViewModelFactory: RecentSearchesViewModel.Factory
-    private val recentSearchesViewModel: RecentSearchesViewModel by assistedViewModel {
-        recentSearchesViewModelFactory.create(it)
-    }
-
-    @Inject internal lateinit var mainViewModelFactory: MainViewModel.Factory
-    private val mainViewModel: MainViewModel by assistedActivityViewModel {
-        mainViewModelFactory.create(it)
-    }
+    private val recentSearchesViewModel: RecentSearchesViewModel by viewModels()
+    private val mainViewModel: MainViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val bottomSheetSignalsFlow =
