@@ -17,8 +17,6 @@ class CameraFlowProcessor @Inject constructor() :
         coroutineScope: CoroutineScope,
         intents: Flow<CameraIntent>,
         currentState: () -> CameraState,
-        states: Flow<CameraState>,
-        intent: suspend (CameraIntent) -> Unit,
         signal: suspend (CameraSignal) -> Unit
     ): Flow<(CameraState) -> CameraState> =
         merge(

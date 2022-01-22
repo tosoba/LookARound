@@ -35,8 +35,6 @@ abstract class FlowViewModel<Intent : Any, State : Any, Signal : Any>(
                 coroutineScope = viewModelScope,
                 intents = mutableIntents,
                 currentState = states::value,
-                states = states,
-                intent = ::intent,
                 signal = ::signal
             )
             .run {
@@ -63,9 +61,9 @@ abstract class FlowViewModel<Intent : Any, State : Any, Signal : Any>(
 
         processor.sideEffects(
             coroutineScope = viewModelScope,
-            currentState = states::value,
             intents = mutableIntents,
             states = states,
+            currentState = states::value,
             signal = ::signal
         )
     }

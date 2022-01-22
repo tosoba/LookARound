@@ -19,8 +19,6 @@ constructor(
         coroutineScope: CoroutineScope,
         intents: Flow<MapSceneIntent>,
         currentState: () -> MapSceneState,
-        states: Flow<MapSceneState>,
-        intent: suspend (MapSceneIntent) -> Unit,
         signal: suspend (MapSceneSignal) -> Unit
     ): Flow<(MapSceneState) -> MapSceneState> =
         merge(
@@ -35,8 +33,8 @@ constructor(
     override fun sideEffects(
         coroutineScope: CoroutineScope,
         intents: Flow<MapSceneIntent>,
-        currentState: () -> MapSceneState,
         states: Flow<MapSceneState>,
+        currentState: () -> MapSceneState,
         signal: suspend (MapSceneSignal) -> Unit
     ) {
         states

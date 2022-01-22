@@ -31,8 +31,6 @@ constructor(
         coroutineScope: CoroutineScope,
         intents: Flow<MainIntent>,
         currentState: () -> MainState,
-        states: Flow<MainState>,
-        intent: suspend (MainIntent) -> Unit,
         signal: suspend (MainSignal) -> Unit
     ): Flow<(MainState) -> MainState> =
         merge(

@@ -23,8 +23,6 @@ constructor(
         coroutineScope: CoroutineScope,
         intents: Flow<RecentSearchesIntent>,
         currentState: () -> RecentSearchesState,
-        states: Flow<RecentSearchesState>,
-        intent: suspend (RecentSearchesIntent) -> Unit,
         signal: suspend (RecentSearchesSignal) -> Unit
     ): Flow<(RecentSearchesState) -> RecentSearchesState> =
         intents
@@ -68,8 +66,8 @@ constructor(
     override fun sideEffects(
         coroutineScope: CoroutineScope,
         intents: Flow<RecentSearchesIntent>,
-        currentState: () -> RecentSearchesState,
         states: Flow<RecentSearchesState>,
+        currentState: () -> RecentSearchesState,
         signal: suspend (RecentSearchesSignal) -> Unit
     ) {
         intents
