@@ -18,18 +18,6 @@ android {
         version = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        renderscriptTargetApi = 31
-        renderscriptSupportModeEnabled = true
-
-//        sourceSets["main"].jniLibs {
-//            srcDir("src/main/libs")
-//        }
-//
-//        ndk {
-//            abiFilters.add("x86")
-//            abiFilters.add("x86_64")
-//        }
     }
 
     buildTypes {
@@ -58,10 +46,6 @@ android {
     }
 
     buildFeatures { viewBinding = true }
-
-    sourceSets["main"].jniLibs {
-        srcDir("src/main/libs")
-    }
 }
 
 kapt { correctErrorTypes = true }
@@ -70,7 +54,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
     implementation(project(":core-android-model"))
-    implementation(project(":hoko-blur"))
     implementation(project(":repo-nominatim"))
     implementation(project(":repo-overpass"))
     implementation(project(":repo-photon"))
@@ -95,6 +78,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-insets:0.20.1")
     implementation("com.google.accompanist:accompanist-coil:0.15.0")
     implementation("biz.laenger.android:vpbs:0.0.6")
+    implementation("io.github.hokofly:hoko-blur:1.3.7")
 
     implementation("androidx.compose.runtime:runtime:1.1.0-beta02")
     implementation("androidx.compose.compiler:compiler:1.1.0-beta02")

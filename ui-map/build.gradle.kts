@@ -28,18 +28,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-
-        renderscriptTargetApi = 31
-        renderscriptSupportModeEnabled = true
-
-//        sourceSets["main"].jniLibs {
-//            srcDir("src/main/libs")
-//        }
-//
-//        ndk {
-//            abiFilters.add("x86")
-//            abiFilters.add("x86_64")
-//        }
     }
 
     buildTypes {
@@ -68,7 +56,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
     implementation(project(":core-android-model"))
-    implementation(project(":hoko-blur"))
     implementation(project(":tangram"))
     implementation(project(":ui-main"))
 

@@ -113,6 +113,7 @@ dependencies {
     implementation("com.google.android.material:material:1.4.0")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
     implementation("biz.laenger.android:vpbs:0.0.6")
+    implementation("io.github.hokofly:hoko-blur:1.3.7")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.4.0")
     implementation("androidx.lifecycle:lifecycle-runtime:2.4.0")

@@ -1,4 +1,4 @@
-package com.lookaround.ui.map
+package com.lookaround.core.android.view
 
 import android.animation.Animator
 import android.animation.ValueAnimator
@@ -24,7 +24,7 @@ class BlurAnimator(
     private val targetRadius: Int,
     private val durationMs: Long = 2_000L,
     private val sampleFactor: Float = 8f,
-    private val scheme: Int = HokoBlur.SCHEME_RENDER_SCRIPT,
+    private val scheme: Int = HokoBlur.SCHEME_OPENGL,
     private val mode: Int = HokoBlur.MODE_GAUSSIAN,
 ) {
     private val mutableAnimationStates = MutableStateFlow(AnimationState(bitmapToBlur, true))
