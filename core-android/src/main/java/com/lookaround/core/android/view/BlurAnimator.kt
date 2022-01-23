@@ -22,7 +22,7 @@ class BlurAnimator(
     bitmapToBlur: Bitmap,
     private val initialRadius: Int,
     private val targetRadius: Int,
-    private val durationMs: Long = 2_000L,
+    private val durationMs: Long = 500L,
     private val sampleFactor: Float = 8f,
     private val scheme: Int = HokoBlur.SCHEME_OPENGL,
     private val mode: Int = HokoBlur.MODE_GAUSSIAN,
@@ -107,7 +107,7 @@ class BlurAnimator(
             context,
             mutableAnimationStates.value.blurredBitmap,
             initialRadius = currentRadius,
-            targetRadius = targetRadius,
+            targetRadius = initialRadius,
             sampleFactor = sampleFactor,
             scheme = scheme,
             mode = mode

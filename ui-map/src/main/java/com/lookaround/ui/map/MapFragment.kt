@@ -296,6 +296,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
 
     private suspend fun showAndBlurMapImage() {
         blurAnimator?.let {
+            it.cancel()
             blurAnimator = it.reversed().apply { animate() }
             return
         }
@@ -303,14 +304,13 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         mapSceneViewModel.awaitSceneLoaded()
         val bitmap = mapController.await().captureFrame(true)
         binding.blurredMapImageView.setImageBitmap(bitmap)
-        blurAnimator = null
-        blurAnimator = BlurAnimator(requireContext(), bitmap, 0, 25).apply { animate() }
+        blurAnimator = BlurAnimator(requireContext(), bitmap, 0, 15).apply { animate() }
     }
 
     private fun reverseBlurAndHideMapImage() {
         blurAnimator?.let {
+            it.cancel()
             blurAnimator = it.reversed().apply { animate() }
-            return
         }
     }
 
