@@ -68,6 +68,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
     implementation(project(":core-android-model"))
+    implementation(project(":hoko-blur"))
     implementation(project(":tangram"))
     implementation(project(":ui-main"))
 
@@ -91,8 +92,6 @@ dependencies {
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
 
     implementation("com.jakewharton.timber:timber:4.7.1")
-
-    implementation("io.github.hokofly:hoko-blur:1.3.7")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

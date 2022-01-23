@@ -70,6 +70,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
     implementation(project(":core-android-model"))
+    implementation(project(":hoko-blur"))
     implementation(project(":repo-nominatim"))
     implementation(project(":repo-overpass"))
     implementation(project(":repo-photon"))
@@ -103,8 +104,6 @@ dependencies {
     implementation("androidx.compose.material:material:1.1.0-beta02")
     implementation("androidx.compose.material:material-icons-core:1.1.0-beta02")
     implementation("androidx.compose.material:material-icons-extended:1.1.0-beta02")
-
-    implementation("io.github.hokofly:hoko-blur:1.3.7")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.3.6")
