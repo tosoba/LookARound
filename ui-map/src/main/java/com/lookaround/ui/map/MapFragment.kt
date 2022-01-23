@@ -3,6 +3,7 @@ package com.lookaround.ui.map
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Rect
+import android.graphics.drawable.BitmapDrawable
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
@@ -14,6 +15,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
@@ -24,6 +26,7 @@ import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.model.WithoutValue
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.*
@@ -53,6 +56,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
 
     private val markerArgument: Marker? by nullableArgument(Arguments.MARKER.name)
     private var currentMarker: Marker? = null
+
+    private var blurAnimator: BlurAnimator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,6 +89,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        initMapImageBlurring(savedInstanceState)
 
         mainViewModel
             .states
@@ -120,6 +127,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     override fun onDestroyView() {
+        blurAnimator?.cancel()
+        blurAnimator = null
         binding.map.onDestroy()
         super.onDestroyView()
     }
@@ -142,6 +151,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     override fun onSaveInstanceState(outState: Bundle) {
         currentMarker?.let { outState.putParcelable(SavedStateKeys.CURRENT_MARKER.name, it) }
         mapController.launch { saveCameraPosition(outState) }
+        blurAnimator?.saveInstanceState(outState)
     }
 
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
@@ -252,6 +262,70 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                     .show()
             }
         }
+    }
+
+    private fun initMapImageBlurring(savedInstanceState: Bundle?) {
+        val blurredMapImageDrawable = binding.blurredMapImageView.drawable
+        if (savedInstanceState != null &&
+                blurredMapImageDrawable is BitmapDrawable &&
+                blurredMapImageDrawable.bitmap != null
+        ) {
+            blurAnimator =
+                BlurAnimator.fromSavedInstanceState(
+                        requireContext(),
+                        blurredMapImageDrawable.bitmap,
+                        savedInstanceState
+                    )
+                    ?.apply { animate() }
+        }
+        mainViewModel
+            .signals
+            .filterIsInstance<MainSignal.BottomSheetStateChanged>()
+            .map(MainSignal.BottomSheetStateChanged::state::get)
+            .drop(1)
+            .onEach { sheetState ->
+                if (sheetState == BottomSheetBehavior.STATE_EXPANDED) {
+                    showAndBlurMapImage()
+                } else if (sheetState == BottomSheetBehavior.STATE_HIDDEN) {
+                    reverseBlurAndHideMapImage()
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    private suspend fun showAndBlurMapImage() {
+        blurAnimator?.let {
+            blurAnimator = it.reversed().apply { animate() }
+            return
+        }
+
+        mapSceneViewModel.awaitSceneLoaded()
+        val bitmap = mapController.await().captureFrame(true)
+        binding.blurredMapImageView.setImageBitmap(bitmap)
+        blurAnimator = null
+        blurAnimator = BlurAnimator(requireContext(), bitmap, 0, 25).apply { animate() }
+    }
+
+    private fun reverseBlurAndHideMapImage() {
+        blurAnimator?.let {
+            blurAnimator = it.reversed().apply { animate() }
+            return
+        }
+    }
+
+    private fun BlurAnimator.animate() {
+        animateIn(viewLifecycleOwner.lifecycleScope)
+        if (animationType == BlurAnimator.AnimationType.BLUR) {
+            binding.blurredMapImageView.visibility = View.VISIBLE
+        }
+        animationStates
+            .onEach {
+                binding.blurredMapImageView.setImageBitmap(it.blurredBitmap)
+                if (animationType == BlurAnimator.AnimationType.REVERSE_BLUR && !it.inProgress) {
+                    binding.blurredMapImageView.visibility = View.GONE
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {

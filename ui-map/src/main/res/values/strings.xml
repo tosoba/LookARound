@@ -3,4 +3,5 @@
     <string name="navigate">Navigate</string>
     <string name="streetview">StreetView</string>
     <string name="unable_to_launch_google_maps_for_navigation">Unable to launch Google Maps for navigation.</string>
+    <string name="blurred_map">blurred map</string>
 </resources>

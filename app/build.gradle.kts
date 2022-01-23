@@ -18,6 +18,18 @@ android {
         version = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        renderscriptTargetApi = 31
+        renderscriptSupportModeEnabled = true
+
+//        sourceSets["main"].jniLibs {
+//            srcDir("src/main/libs")
+//        }
+//
+//        ndk {
+//            abiFilters.add("x86")
+//            abiFilters.add("x86_64")
+//        }
     }
 
     buildTypes {
@@ -46,6 +58,10 @@ android {
     }
 
     buildFeatures { viewBinding = true }
+
+    sourceSets["main"].jniLibs {
+        srcDir("src/main/libs")
+    }
 }
 
 kapt { correctErrorTypes = true }
@@ -87,6 +103,8 @@ dependencies {
     implementation("androidx.compose.material:material:1.1.0-beta02")
     implementation("androidx.compose.material:material-icons-core:1.1.0-beta02")
     implementation("androidx.compose.material:material-icons-extended:1.1.0-beta02")
+
+    implementation("io.github.hokofly:hoko-blur:1.3.7")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.3.6")

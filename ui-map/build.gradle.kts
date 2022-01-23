@@ -28,6 +28,18 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        renderscriptTargetApi = 31
+        renderscriptSupportModeEnabled = true
+
+//        sourceSets["main"].jniLibs {
+//            srcDir("src/main/libs")
+//        }
+//
+//        ndk {
+//            abiFilters.add("x86")
+//            abiFilters.add("x86_64")
+//        }
     }
 
     buildTypes {
@@ -79,6 +91,8 @@ dependencies {
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
 
     implementation("com.jakewharton.timber:timber:4.7.1")
+
+    implementation("io.github.hokofly:hoko-blur:1.3.7")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
