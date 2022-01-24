@@ -189,7 +189,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
             else -> {
                 fragmentTransaction {
                     setSlideInFromBottom()
-                    add(R.id.main_fragment_container, MapFragment.new(marker))
+                    replace(R.id.main_fragment_container, MapFragment.new(marker))
                     addToBackStack(null)
                 }
             }
@@ -247,7 +247,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
                         if (currentTopFragment !is MapFragment) {
                             fragmentTransaction {
                                 setSlideInFromBottom()
-                                add(R.id.main_fragment_container, MapFragment())
+                                replace(R.id.main_fragment_container, MapFragment())
                                 addToBackStack(null)
                             }
                         }
