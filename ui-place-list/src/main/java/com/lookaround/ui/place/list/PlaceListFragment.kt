@@ -347,6 +347,7 @@ class PlaceListFragment :
     }
 
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
+        if (view == null) return
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main.immediate) {
             this@launch.await().block()
         }

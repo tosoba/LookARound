@@ -362,6 +362,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
+        if (view == null) return
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main.immediate) {
             this@launch.await().block()
         }
