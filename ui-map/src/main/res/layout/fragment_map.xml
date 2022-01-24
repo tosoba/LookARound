@@ -15,7 +15,8 @@
         android:id="@+id/blurred_map_image_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:contentDescription="@string/blurred_map" />
+        android:contentDescription="@string/blurred_map"
+        android:visibility="gone" />
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/street_view_fab"
@@ -25,6 +26,7 @@
         android:layout_marginBottom="10dp"
         android:drawableRight="@drawable/ic_baseline_streetview_24"
         android:text="@string/streetview"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/navigate_fab"
         app:layout_constraintRight_toRightOf="parent" />
 
@@ -36,6 +38,7 @@
         android:layout_marginBottom="10dp"
         android:drawableRight="@drawable/ic_baseline_navigation_24"
         android:text="@string/navigate"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation_guideline"
         app:layout_constraintRight_toRightOf="parent" />
 

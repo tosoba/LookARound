@@ -67,6 +67,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        if (currentMarker != null) showFABs() else hideFABs()
+
         mapController.launch {
             setSceneLoadListener(this@MapFragment)
             loadScene(MapScene.BUBBLE_WRAP)
@@ -156,6 +158,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
+        if (view == null) return
+
         if (sceneError == null) {
             viewLifecycleOwner.lifecycleScope.launch {
                 mapSceneViewModel.intent(MapSceneIntent.SceneLoaded)
@@ -168,13 +172,23 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         }
     }
 
-    fun updateMarker(marker: Marker) {
+    fun updateMarker(marker: Marker?) {
         currentMarker = marker
-        mapController.launch {
-            val (_, location) = marker
-            removeAllMarkers()
-            moveCameraPositionTo(location.latitude, location.longitude, MARKER_FOCUSED_ZOOM, 250)
-            addMarker(location)
+        if (marker != null) {
+            showFABs()
+            mapController.launch {
+                val (_, location) = marker
+                removeAllMarkers()
+                moveCameraPositionTo(
+                    location.latitude,
+                    location.longitude,
+                    MARKER_FOCUSED_ZOOM,
+                    250
+                )
+                addMarker(location)
+            }
+        } else {
+            hideFABs()
         }
     }
 
@@ -221,6 +235,16 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                 Rect(1, 1, 1, 1)
             ),
         )
+    }
+
+    private fun showFABs() {
+        binding.streetViewFab.visibility = View.VISIBLE
+        binding.navigateFab.visibility = View.VISIBLE
+    }
+
+    private fun hideFABs() {
+        binding.streetViewFab.visibility = View.GONE
+        binding.navigateFab.visibility = View.GONE
     }
 
     private fun launchGoogleMapsForNavigation() {
@@ -279,6 +303,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                     )
                     ?.apply { animate() }
         }
+
         mainViewModel
             .signals
             .filterIsInstance<MainSignal.BottomSheetStateChanged>()
@@ -295,22 +320,29 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     private suspend fun showAndBlurMapImage() {
-        blurAnimator?.let {
-            it.cancel()
-            blurAnimator = it.reversed().apply { animate() }
+        blurAnimator?.let { currentAnimator ->
+            currentAnimator.cancel()
+            blurAnimator = currentAnimator.reversed(requireContext()).apply { animate() }
             return
         }
 
         mapSceneViewModel.awaitSceneLoaded()
         val bitmap = mapController.await().captureFrame(true)
         binding.blurredMapImageView.setImageBitmap(bitmap)
-        blurAnimator = BlurAnimator(requireContext(), bitmap, 0, 15).apply { animate() }
+        blurAnimator =
+            BlurAnimator(
+                    requireContext(),
+                    bitmapToBlur = bitmap,
+                    initialRadius = 0,
+                    targetRadius = 10
+                )
+                .apply { animate() }
     }
 
     private fun reverseBlurAndHideMapImage() {
-        blurAnimator?.let {
-            it.cancel()
-            blurAnimator = it.reversed().apply { animate() }
+        blurAnimator?.let { currentAnimator ->
+            currentAnimator.cancel()
+            blurAnimator = currentAnimator.reversed(requireContext()).apply { animate() }
         }
     }
 
@@ -320,9 +352,9 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
             binding.blurredMapImageView.visibility = View.VISIBLE
         }
         animationStates
-            .onEach {
-                binding.blurredMapImageView.setImageBitmap(it.blurredBitmap)
-                if (animationType == BlurAnimator.AnimationType.REVERSE_BLUR && !it.inProgress) {
+            .onEach { (blurredBitmap, inProgress) ->
+                binding.blurredMapImageView.setImageBitmap(blurredBitmap)
+                if (animationType == BlurAnimator.AnimationType.REVERSE_BLUR && !inProgress) {
                     binding.blurredMapImageView.visibility = View.GONE
                 }
             }

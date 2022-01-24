@@ -261,6 +261,8 @@ class PlaceListFragment :
     }
 
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
+        if (view == null) return
+
         if (sceneError == null) {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.intent(MapSceneIntent.SceneLoaded)

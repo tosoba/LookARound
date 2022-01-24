@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 class BlurAnimator(
-    private val context: Context,
+    context: Context,
     bitmapToBlur: Bitmap,
     private val initialRadius: Int,
     private val targetRadius: Int,
@@ -38,36 +38,28 @@ class BlurAnimator(
     private var animator: ValueAnimator? = null
     private var currentRadius: Int = initialRadius
 
+    var inProgress = false
+        private set
+
     val animationType: AnimationType
         get() = if (initialRadius < targetRadius) AnimationType.BLUR else AnimationType.REVERSE_BLUR
 
-    var isAnimating = false
-        private set
-
     fun animateIn(scope: CoroutineScope) {
         if (targetRadius == currentRadius) return
-        isAnimating = true
+        inProgress = true
         animator =
             ValueAnimator.ofInt(
-                    (currentRadius.toFloat() / targetRadius.toFloat() * 1_000).toInt(),
-                    if (targetRadius > currentRadius) 1_000 else 0
+                    (currentRadius.toFloat() / targetRadius.toFloat() * ANIMATION_UPDATES_COUNT)
+                        .toInt(),
+                    if (targetRadius > currentRadius) ANIMATION_UPDATES_COUNT else 0
                 )
                 .apply {
                     interpolator = LinearInterpolator()
                     duration = durationMs
                     addUpdateListener {
-                        currentRadius = (it.animatedValue as Int) / 1_000 * targetRadius
-                        animationJob =
-                            scope.launch(Dispatchers.Default) {
-                                val animationState = mutableAnimationStates.value
-                                if (!animationState.inProgress) return@launch
-                                val bitmap = animationState.blurredBitmap
-                                if (!bitmap.isRecycled) {
-                                    processor.radius(currentRadius)
-                                    val blurred = processor.blur(bitmap)
-                                    mutableAnimationStates.value = AnimationState(blurred, true)
-                                }
-                            }
+                        currentRadius =
+                            (it.animatedValue as Int) / ANIMATION_UPDATES_COUNT * targetRadius
+                        animationJob = scope.launch(Dispatchers.Default) { animateBlur() }
                     }
                     addListener(
                         object : Animator.AnimatorListener {
@@ -77,17 +69,11 @@ class BlurAnimator(
                                         mutableAnimationStates.value.blurredBitmap,
                                         false
                                     )
-                                isAnimating = false
+                                inProgress = false
                             }
 
-                            override fun onAnimationEnd(animation: Animator?) {
-                                complete()
-                            }
-
-                            override fun onAnimationCancel(animation: Animator?) {
-                                complete()
-                            }
-
+                            override fun onAnimationEnd(animation: Animator?) = complete()
+                            override fun onAnimationCancel(animation: Animator?) = complete()
                             override fun onAnimationStart(animation: Animator?) = Unit
                             override fun onAnimationRepeat(animation: Animator?) = Unit
                         }
@@ -96,13 +82,7 @@ class BlurAnimator(
                 }
     }
 
-    fun cancel() {
-        if (animator?.isStarted == true) animator?.end()
-        animationJob?.cancel()
-        animationJob = null
-    }
-
-    fun reversed(): BlurAnimator =
+    fun reversed(context: Context): BlurAnimator =
         BlurAnimator(
             context,
             mutableAnimationStates.value.blurredBitmap,
@@ -113,11 +93,17 @@ class BlurAnimator(
             mode = mode
         )
 
+    fun cancel() {
+        if (animator?.isStarted == true) animator?.end()
+        animationJob?.cancel()
+        animationJob = null
+    }
+
     fun saveInstanceState(bundle: Bundle) {
         bundle.putParcelable(
             SAVED_STATE_KEY,
             SavedState(
-                isAnimating = isAnimating,
+                isAnimating = inProgress,
                 targetRadius = targetRadius,
                 currentRadius = currentRadius,
                 sampleFactor = sampleFactor,
@@ -127,7 +113,16 @@ class BlurAnimator(
         )
     }
 
-    class AnimationState(val blurredBitmap: Bitmap, val inProgress: Boolean)
+    private fun animateBlur() {
+        val (bitmap, inProgress) = mutableAnimationStates.value
+        if (!inProgress || bitmap.isRecycled) return
+
+        processor.radius(currentRadius)
+        val blurred = processor.blur(bitmap)
+        mutableAnimationStates.value = AnimationState(blurred, true)
+    }
+
+    data class AnimationState(val blurredBitmap: Bitmap, val inProgress: Boolean)
 
     @Parcelize
     private data class SavedState(
@@ -146,6 +141,7 @@ class BlurAnimator(
 
     companion object {
         private val SAVED_STATE_KEY = BlurAnimator::class.java.name
+        private const val ANIMATION_UPDATES_COUNT = 1_000
 
         fun fromSavedInstanceState(
             context: Context,
@@ -162,7 +158,7 @@ class BlurAnimator(
                     scheme = savedState.scheme,
                     mode = savedState.mode
                 )
-                .apply { isAnimating = savedState.isAnimating }
+                .apply { inProgress = savedState.isAnimating }
         }
     }
 }
