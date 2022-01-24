@@ -67,8 +67,6 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        if (currentMarker != null) showFABs() else hideFABs()
-
         mapController.launch {
             setSceneLoadListener(this@MapFragment)
             loadScene(MapScene.BUBBLE_WRAP)
@@ -161,6 +159,8 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         if (view == null) return
 
         if (sceneError == null) {
+            if (currentMarker != null) showFABs() else hideFABs()
+
             viewLifecycleOwner.lifecycleScope.launch {
                 mapSceneViewModel.intent(MapSceneIntent.SceneLoaded)
             }
@@ -203,6 +203,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     private suspend fun MapController.loadScene(scene: MapScene) {
+        hideFABs()
         binding.blurBackground.visibility = View.VISIBLE
         binding.shimmerLayout.showAndStart()
 
