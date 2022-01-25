@@ -189,6 +189,11 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
 
     @MainThread
     fun setMarkers(markers: Collection<ARMarker>) {
+        if (pagedMarkers.keys.containsAll(markers.map { it.wrapped.id }) &&
+                pagedMarkers.size == markers.size
+        ) {
+            return
+        }
         pagedMarkers.clear()
         markers.forEach { marker -> pagedMarkers[marker.wrapped.id] = PagedMarker(marker) }
         currentPage = 0
