@@ -26,6 +26,7 @@ import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
 import com.lookaround.core.android.camera.OpenGLRenderer
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
+import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
 import com.lookaround.ui.camera.model.*
 import com.lookaround.ui.camera.model.CameraState
@@ -38,11 +39,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
 import kotlin.math.min
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnNeverAskAgain
 import permissions.dispatcher.OnPermissionDenied
@@ -75,6 +73,17 @@ class CameraFragment :
         }
 
     private val openGLRenderer: OpenGLRenderer by lazy(LazyThreadSafetyMode.NONE, ::OpenGLRenderer)
+
+    private val cameraInitializationResult: Deferred<CameraInitializationResult> by
+        lifecycleScope.lazyAsync {
+            requireContext()
+                .initCamera(
+                    lifecycleOwner = this@CameraFragment,
+                    rotation = rotation,
+                    screenSize = requireContext().getScreenSize(),
+                    imageAnalysisResolutionDivisor = 25
+                )
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
@@ -213,14 +222,7 @@ class CameraFragment :
     private fun initCamera() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val (preview, _, imageFlow) =
-                    requireContext()
-                        .initCamera(
-                            lifecycleOwner = this@CameraFragment,
-                            rotation = rotation,
-                            screenSize = requireContext().getScreenSize(),
-                            imageAnalysisResolutionDivisor = 25
-                        )
+                val (preview, _, imageFlow) = cameraInitializationResult.await()
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
                 imageFlow
                     .flowOn(Dispatchers.Default)

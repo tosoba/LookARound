@@ -197,6 +197,7 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
     }
 
     private fun onARLoading() {
+        if (currentTopFragment !is CameraFragment) return
         latestARState = ARState.LOADING
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
