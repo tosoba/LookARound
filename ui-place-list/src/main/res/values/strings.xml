@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="reload">Reload</string>
+    <string name="show_map">Show map</string>
 </resources>

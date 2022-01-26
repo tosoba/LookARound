@@ -303,6 +303,10 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                         savedInstanceState
                     )
                     ?.apply { animate() }
+        } else if (mainViewModel.state.lastLiveBottomSheetState ==
+                BottomSheetBehavior.STATE_EXPANDED
+        ) {
+            viewLifecycleOwner.lifecycleScope.launch { showAndBlurMapImage() }
         }
 
         mainViewModel

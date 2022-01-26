@@ -111,6 +111,9 @@ class PlaceListFragment :
                 reloadBitmapTrigger.send(Unit)
             }
         }
+        binding.showMapFab.setOnClickListener {
+            (activity as? PlaceMapListActionsHandler)?.onShowMapClick()
+        }
 
         val bottomSheetSignalsFlow =
             mainViewModel
@@ -147,7 +150,7 @@ class PlaceListFragment :
                             initial = BottomSheetBehavior.STATE_HIDDEN
                         )
 
-                    binding.reloadMapsFab.visibility =
+                    binding.placeListFabLayout.visibility =
                         if (bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED) {
                             View.VISIBLE
                         } else {
@@ -223,7 +226,7 @@ class PlaceListFragment :
                                                     shape = RoundedCornerShape(12.dp)
                                                 )
                                                 .clickable {
-                                                    (activity as? PlaceMapItemActionsHandler)
+                                                    (activity as? PlaceMapListActionsHandler)
                                                         ?.onPlaceMapItemClick(point)
                                                 },
                                     )

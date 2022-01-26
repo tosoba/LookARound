@@ -34,7 +34,7 @@ import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.list.PlaceListFragment
-import com.lookaround.ui.place.list.PlaceMapItemActionsHandler
+import com.lookaround.ui.place.list.PlaceMapListActionsHandler
 import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
 import com.lookaround.ui.search.composable.SearchBar
@@ -51,7 +51,7 @@ import timber.log.Timber
 @ExperimentalStdlibApi
 @FlowPreview
 @SuppressLint("RtlHardcoded")
-class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
+class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
     private val viewModel: MainViewModel by viewModels()
@@ -196,6 +196,10 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
         }
     }
 
+    override fun onShowMapClick() {
+        showMapFragment()
+    }
+
     private fun onARLoading() {
         if (currentTopFragment !is CameraFragment) return
         latestARState = ARState.LOADING
@@ -244,20 +248,21 @@ class MainActivity : AppCompatActivity(), PlaceMapItemActionsHandler {
         binding.drawerNavigationView.setNavigationItemSelectedListener {
             if (lifecycle.isResumed)
                 when (it.itemId) {
-                    R.id.drawer_nav_map -> {
-                        if (currentTopFragment !is MapFragment) {
-                            fragmentTransaction {
-                                setSlideInFromBottom()
-                                replace(R.id.main_fragment_container, MapFragment())
-                                addToBackStack(null)
-                            }
-                        }
-                    }
+                    R.id.drawer_nav_map -> showMapFragment()
                     R.id.drawer_nav_about -> {}
                     R.id.drawer_nav_settings -> {}
                 }
             binding.mainDrawerLayout.closeDrawer(Gravity.LEFT)
             true
+        }
+    }
+
+    private fun showMapFragment() {
+        if (currentTopFragment is MapFragment) return
+        fragmentTransaction {
+            setSlideInFromBottom()
+            replace(R.id.main_fragment_container, MapFragment())
+            addToBackStack(null)
         }
     }
 
