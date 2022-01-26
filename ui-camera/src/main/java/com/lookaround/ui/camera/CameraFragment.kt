@@ -193,7 +193,7 @@ class CameraFragment :
                     hideARViews()
                 } else {
                     changeRadarViewTopGuideline(View.VISIBLE)
-                    showARViews()
+                    showARViews(showRadar = mainViewModel.state.markers is WithValue)
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -381,7 +381,7 @@ class CameraFragment :
         permissionsViewsGroup.visibility = View.GONE
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.GONE
-        showARViews()
+        showARViews(showRadar = mainViewModel.state.markers is WithValue)
     }
 
     private fun FragmentCameraBinding.onARDisabled(
@@ -514,8 +514,12 @@ class CameraFragment :
         radarViewTopGuideline.layoutParams = radarGuidelineLayoutParams
     }
 
-    private fun FragmentCameraBinding.showARViews() {
-        arViewsGroup.visibility = View.VISIBLE
+    private fun FragmentCameraBinding.showARViews(showRadar: Boolean) {
+        if (showRadar) arViewsGroup.visibility = View.VISIBLE
+        else {
+            arCameraView.visibility = View.VISIBLE
+            arRadarView.visibility = View.GONE
+        }
     }
 
     private fun FragmentCameraBinding.hideARViews() {
