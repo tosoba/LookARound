@@ -17,6 +17,9 @@ import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.*
+import com.lookaround.core.android.map.clustering.ClusterManager
+import com.lookaround.core.android.map.clustering.DefaultClusterItem
+import com.lookaround.core.android.map.ext.LatLon
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
@@ -59,6 +62,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     private var currentMarker: Marker? = null
 
     private var blurAnimator: BlurAnimator? = null
+    private var clusterManager: ClusterManager<DefaultClusterItem>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,9 +106,19 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                 mapController.launch {
                     removeAllMarkers()
                     if (markers !is WithValue) return@launch
-                    markers.value.items.forEach { marker -> addMarker(marker.location) }
                     if (markers.value.items.size > 1) {
                         calculateAndZoomToBoundsOf(markers.value.items.map(Marker::location::get))
+                        clusterManager =
+                            ClusterManager<DefaultClusterItem>(requireContext(), this).apply {
+                                setMapChangeListener(this)
+                                setItems(
+                                    markers.value.items.map {
+                                        DefaultClusterItem(
+                                            LatLon(it.location.latitude, it.location.longitude)
+                                        )
+                                    }
+                                )
+                            }
                     } else if (markers.value.items.size == 1) {
                         val marker = markers.value.items.first()
                         moveCameraPositionTo(
@@ -112,6 +126,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                             marker.location.longitude,
                             MARKER_FOCUSED_ZOOM
                         )
+                        markers.value.items.forEach { addMarker(it.location) }
                     }
                 }
             }
@@ -130,6 +145,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     override fun onDestroyView() {
         blurAnimator?.cancel()
         blurAnimator = null
+        clusterManager = null
         binding.map.onDestroy()
         super.onDestroyView()
     }
