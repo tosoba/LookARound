@@ -5,7 +5,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import androidx.camera.core.*
+import androidx.camera.core.ImageProxy
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -28,7 +28,8 @@ import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
-import com.lookaround.ui.camera.model.*
+import com.lookaround.ui.camera.model.CameraIntent
+import com.lookaround.ui.camera.model.CameraSignal
 import com.lookaround.ui.camera.model.CameraState
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
@@ -37,7 +38,6 @@ import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import java.util.*
 import kotlin.math.min
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
