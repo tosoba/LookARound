@@ -249,7 +249,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
             CameraUpdateFactory.newLngLatBounds(
                 LngLat(west, south),
                 LngLat(east, north),
-                Rect(1, 1, 1, 1)
+                EdgePadding(10, 10, 10, 10)
             ),
         )
     }
