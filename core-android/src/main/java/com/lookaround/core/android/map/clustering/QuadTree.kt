@@ -8,7 +8,7 @@ internal class QuadTree<T : QuadTreePoint>(private val bucketSize: Int) {
     }
 
     fun queryRange(north: Double, west: Double, south: Double, east: Double): List<T> {
-        val points: ArrayList<T> = ArrayList()
+        val points = mutableListOf<T>()
         root.queryRange(QuadTreeRect(north, west, south, east), points)
         return points
     }

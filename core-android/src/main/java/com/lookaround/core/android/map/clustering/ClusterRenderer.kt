@@ -33,8 +33,8 @@ internal class ClusterRenderer<T : ClusterItem>(
     }
 
     fun render(clusters: List<Cluster<T>>) {
-        val clustersToAdd = ArrayList<Cluster<T>>()
-        val clustersToRemove = ArrayList<Cluster<T>>()
+        val clustersToAdd = mutableListOf<Cluster<T>>()
+        val clustersToRemove = mutableListOf<Cluster<T>>()
 
         for (cluster in clusters) {
             if (!markers.containsKey(cluster)) clustersToAdd.add(cluster)

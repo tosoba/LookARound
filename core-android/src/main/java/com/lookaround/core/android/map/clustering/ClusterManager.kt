@@ -3,7 +3,6 @@ package com.lookaround.core.android.map.clustering
 import android.content.Context
 import com.lookaround.core.android.ext.screenAreaToBoundingBox
 import com.lookaround.core.android.map.model.LatLon
-import com.lookaround.core.ext.withLatestFrom
 import com.mapzen.tangram.MapChangeListener
 import com.mapzen.tangram.MapController
 import kotlin.coroutines.CoroutineContext
@@ -15,11 +14,11 @@ import kotlinx.coroutines.flow.*
 class ClusterManager<T : ClusterItem>(
     context: Context,
     private val mapController: MapController,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : MapChangeListener, CoroutineScope {
     private val supervisorJob = SupervisorJob()
     override val coroutineContext: CoroutineContext
-        get() = supervisorJob + defaultDispatcher
+        get() = supervisorJob + dispatcher
 
     private val renderer: ClusterRenderer<T> = ClusterRenderer(context, mapController)
 
@@ -27,25 +26,28 @@ class ClusterManager<T : ClusterItem>(
     private val buildQuadTreeTrigger = MutableSharedFlow<List<T>>()
 
     init {
-        val quadTreeFlow =
-            buildQuadTreeTrigger.mapLatest { clusterItems ->
+        buildQuadTreeTrigger
+            .mapLatest { clusterItems ->
                 val quadTree = QuadTree<T>(QUAD_TREE_BUCKET_CAPACITY)
                 clusterItems.forEach(quadTree::insert)
                 quadTree
             }
-        merge(quadTreeFlow, clusterTrigger.withLatestFrom(quadTreeFlow) { _, quadTree -> quadTree })
-            .mapLatest { quadTree ->
-                val boundingBox = mapController.screenAreaToBoundingBox() ?: return@mapLatest null
-                getClusters(
-                    quadTree,
-                    boundingBox.max,
-                    boundingBox.min,
-                    mapController.cameraPosition.getZoom()
-                )
+            .flatMapLatest { quadTree ->
+                clusterTrigger.mapLatest {
+                    val boundingBox =
+                        mapController.screenAreaToBoundingBox() ?: return@mapLatest null
+                    getClusters(
+                        quadTree,
+                        boundingBox.max,
+                        boundingBox.min,
+                        mapController.cameraPosition.getZoom()
+                    )
+                }
             }
             .filterNotNull()
-            .flowOn(defaultDispatcher)
+            .flowOn(dispatcher)
             .onEach(renderer::render)
+            .flowOn(Dispatchers.Main)
             .launchIn(this)
     }
 
