@@ -2,6 +2,7 @@ package com.lookaround.core.android.map.clustering;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -73,18 +74,13 @@ class ClusterRenderer<T extends ClusterItem> implements MarkerPickListener {
         }
 
         for (Cluster<T> clusterToAdd : clustersToAdd) {
-            Marker markerToAdd;
-
-            Bitmap markerIcon = getMarkerIcon(clusterToAdd);
-
-            markerToAdd = mapController.addMarker();
+            Marker markerToAdd = mapController.addMarker();
             markerToAdd.setPoint(new LngLat(clusterToAdd.getLongitude(), clusterToAdd.getLatitude()));
-            //TODO: setDrawable not working -> only setStylingFromString - see if it's possible to add text with it
-//            markerToAdd.setDrawable(new BitmapDrawable(context.getResources(), markerIcon));
-//            markerToAdd.setDrawable(R.drawable.ic_map_marker);
             markerToAdd.setStylingFromString(
                     "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue}"
             );
+            Bitmap markerIcon = getMarkerIcon(clusterToAdd);
+            markerToAdd.setDrawable(new BitmapDrawable(context.getResources(), markerIcon));
             markerToAdd.setVisible(true);
             markerToAdd.setUserData(clusterToAdd);
 
