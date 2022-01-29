@@ -1,0 +1,228 @@
+package com.lookaround.core.android.map.clustering
+
+import android.content.Context
+import android.graphics.RectF
+import android.os.AsyncTask
+import com.lookaround.core.android.ext.screenAreaToBoundingBox
+import com.lookaround.core.android.map.model.LatLon
+import com.mapzen.tangram.MapChangeListener
+import com.mapzen.tangram.MapController
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
+import kotlin.math.pow
+
+class ClusterManager<T : ClusterItem>(
+    context: Context,
+    private val mapController: MapController,
+) : MapChangeListener {
+    private val quadTree: QuadTree<T> = QuadTree(QUAD_TREE_BUCKET_CAPACITY)
+    private val renderer: ClusterRenderer<T> = ClusterRenderer(context, mapController)
+
+    var callbacks: Callbacks<T>?
+        get() = renderer.callbacks
+        set(value) {
+            renderer.callbacks = value
+        }
+    var minClusterSize = DEFAULT_MIN_CLUSTER_SIZE
+        set(value) {
+            require(value > 0)
+            field = value
+        }
+
+    private val executor: Executor = Executors.newSingleThreadExecutor()
+    private var quadTreeTask: AsyncTask<*, *, *>? = null
+    private var clusterTask: AsyncTask<*, *, *>? = null
+
+    override fun onViewComplete() = Unit
+    override fun onRegionWillChange(b: Boolean) = Unit
+    override fun onRegionIsChanging() = Unit
+    override fun onRegionDidChange(b: Boolean) {
+        cluster()
+    }
+
+    /**
+     * Defines signatures for methods that are called when a cluster or a cluster item is clicked.
+     *
+     * @param <T> the type of an item managed by [ClusterManager]. </T>
+     */
+    interface Callbacks<T : ClusterItem> {
+        /**
+         * Called when a marker representing a cluster has been clicked.
+         *
+         * @param cluster the cluster that has been clicked
+         * @return `true` if the listener has consumed the event (i.e., the default behavior should
+         * not occur); `false` otherwise (i.e., the default behavior should occur). The default
+         * behavior is for the camera to move to the marker and an info window to appear.
+         */
+        fun onClusterClick(cluster: Cluster<T>)
+
+        /**
+         * Called when a marker representing a cluster item has been clicked.
+         *
+         * @param clusterItem the cluster item that has been clicked
+         * @return `true` if the listener has consumed the event (i.e., the default behavior should
+         * not occur); `false` otherwise (i.e., the default behavior should occur). The default
+         * behavior is for the camera to move to the marker and an info window to appear.
+         */
+        fun onClusterItemClick(clusterItem: T)
+    }
+
+    /**
+     * Sets items to be clustered thus replacing the old ones.
+     *
+     * @param clusterItems the items to be clustered
+     */
+    fun setItems(clusterItems: List<T>) {
+        buildQuadTree(clusterItems)
+    }
+
+    private fun buildQuadTree(clusterItems: List<T>) {
+        quadTreeTask?.cancel(true)
+        quadTreeTask = QuadTreeTask(clusterItems).executeOnExecutor(executor)
+    }
+
+    private fun cluster() {
+        clusterTask?.cancel(true)
+        val zoom = mapController.cameraPosition.getZoom()
+        val screenBoundingBox = mapController.screenAreaToBoundingBox(RectF()) ?: return
+        clusterTask =
+            ClusterTask(screenBoundingBox.max, screenBoundingBox.min, zoom)
+                .executeOnExecutor(executor)
+    }
+
+    private fun getClusters(
+        northEast: LatLon,
+        southWest: LatLon,
+        zoomLevel: Float
+    ): List<Cluster<T>> {
+        val clusters: MutableList<Cluster<T>> = ArrayList()
+        val tileCount = (2.0.pow(zoomLevel.toDouble()) * 2).toLong()
+        val startLatitude = northEast.latitude
+        val endLatitude = southWest.latitude
+        val startLongitude = southWest.longitude
+        val endLongitude = northEast.longitude
+        val stepLatitude = 180.0 / tileCount
+        val stepLongitude = 360.0 / tileCount
+        if (startLongitude > endLongitude) { // Longitude +180°/-180° overlap.
+            // [start longitude; 180]
+            getClustersInsideBounds(
+                clusters,
+                startLatitude,
+                endLatitude,
+                startLongitude,
+                180.0,
+                stepLatitude,
+                stepLongitude
+            )
+            // [-180; end longitude]
+            getClustersInsideBounds(
+                clusters,
+                startLatitude,
+                endLatitude,
+                -180.0,
+                endLongitude,
+                stepLatitude,
+                stepLongitude
+            )
+        } else {
+            getClustersInsideBounds(
+                clusters,
+                startLatitude,
+                endLatitude,
+                startLongitude,
+                endLongitude,
+                stepLatitude,
+                stepLongitude
+            )
+        }
+        return clusters
+    }
+
+    private fun getClustersInsideBounds(
+        clusters: MutableList<Cluster<T>>,
+        startLatitude: Double,
+        endLatitude: Double,
+        startLongitude: Double,
+        endLongitude: Double,
+        stepLatitude: Double,
+        stepLongitude: Double
+    ) {
+        val startX = ((startLongitude + 180.0) / stepLongitude).toLong()
+        val startY = ((90.0 - startLatitude) / stepLatitude).toLong()
+        val endX = ((endLongitude + 180.0) / stepLongitude).toLong() + 1
+        val endY = ((90.0 - endLatitude) / stepLatitude).toLong() + 1
+        for (tileX in startX..endX) {
+            for (tileY in startY..endY) {
+                val north = 90.0 - tileY * stepLatitude
+                val west = tileX * stepLongitude - 180.0
+                val south = north - stepLatitude
+                val east = west + stepLongitude
+                val points = quadTree.queryRange(north, west, south, east)
+                if (points.isEmpty()) {
+                    continue
+                }
+                if (points.size >= minClusterSize) {
+                    var totalLatitude = 0.0
+                    var totalLongitude = 0.0
+                    for (point in points) {
+                        totalLatitude += point.latitude
+                        totalLongitude += point.longitude
+                    }
+                    val latitude = totalLatitude / points.size
+                    val longitude = totalLongitude / points.size
+                    clusters.add(Cluster(latitude, longitude, points, north, west, south, east))
+                } else {
+                    for (point in points) {
+                        clusters.add(
+                            Cluster(
+                                point.latitude,
+                                point.longitude,
+                                listOf(point),
+                                north,
+                                west,
+                                south,
+                                east
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private inner class QuadTreeTask(
+        private val clusterItems: List<T>,
+    ) : AsyncTask<Unit, Unit, Unit>() {
+        override fun doInBackground(vararg params: Unit) {
+            quadTree.clear()
+            for (clusterItem in clusterItems) {
+                quadTree.insert(clusterItem)
+            }
+        }
+
+        override fun onPostExecute(aUnit: Unit?) {
+            cluster()
+            quadTreeTask = null
+        }
+    }
+
+    private inner class ClusterTask(
+        private val northEast: LatLon,
+        private val southWest: LatLon,
+        private val zoomLevel: Float
+    ) : AsyncTask<Unit, Unit, List<Cluster<T>>>() {
+        override fun doInBackground(vararg params: Unit): List<Cluster<T>> {
+            return getClusters(northEast, southWest, zoomLevel)
+        }
+
+        override fun onPostExecute(clusters: List<Cluster<T>>) {
+            renderer.render(clusters)
+            clusterTask = null
+        }
+    }
+
+    companion object {
+        private const val QUAD_TREE_BUCKET_CAPACITY = 4
+        private const val DEFAULT_MIN_CLUSTER_SIZE = 1
+    }
+}

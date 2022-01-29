@@ -2,7 +2,6 @@ package com.lookaround.ui.map
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.location.Location
 import android.net.Uri
@@ -19,7 +18,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.clustering.ClusterManager
 import com.lookaround.core.android.map.clustering.DefaultClusterItem
-import com.lookaround.core.android.map.ext.LatLon
+import com.lookaround.core.android.map.model.LatLon
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
