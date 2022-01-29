@@ -225,7 +225,6 @@ class CameraFragment :
                 val (preview, _, imageFlow) = cameraInitializationResult.await()
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
                 imageFlow
-                    .flowOn(Dispatchers.Default)
                     .debounce(1_000L)
                     .map(ImageProxy::bitmap::get)
                     .filterNotNull()
@@ -233,6 +232,7 @@ class CameraFragment :
                     .filterNotNull()
                     .map { swatch -> colorContrastingTo(swatch.rgb) }
                     .distinctUntilChanged()
+                    .flowOn(Dispatchers.Default)
                     .collect { contrastingColor ->
                         openGLRenderer.setContrastingColor(
                             red = Color.red(contrastingColor),

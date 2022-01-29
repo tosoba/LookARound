@@ -8,6 +8,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -23,7 +24,8 @@ suspend fun Context.initCamera(
     lifecycleOwner: LifecycleOwner,
     @RotationValue rotation: Int,
     screenSize: Size,
-    imageAnalysisResolutionDivisor: Int
+    imageAnalysisResolutionDivisor: Int,
+    executor: Executor = Dispatchers.Default.asExecutor()
 ): CameraInitializationResult = suspendCoroutine { continuation ->
     val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
     cameraProviderFuture.addListener(
@@ -39,12 +41,9 @@ suspend fun Context.initCamera(
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
             val imageFlow = MutableSharedFlow<ImageProxy>()
-            imageAnalysis.setAnalyzer(
-                Dispatchers.Default.asExecutor(),
-                { imageProxy ->
-                    lifecycleOwner.lifecycleScope.launchWhenResumed { imageFlow.emit(imageProxy) }
-                }
-            )
+            imageAnalysis.setAnalyzer(executor) { imageProxy ->
+                lifecycleOwner.lifecycleScope.launchWhenResumed { imageFlow.emit(imageProxy) }
+            }
             try {
                 val camera =
                     cameraProviderFuture
