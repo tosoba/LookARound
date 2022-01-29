@@ -33,10 +33,7 @@ class ClusterManager<T : ClusterItem>(
                 clusterItems.forEach(quadTree::insert)
                 quadTree
             }
-        merge(
-                quadTreeFlow.flowOn(defaultDispatcher),
-                clusterTrigger.withLatestFrom(quadTreeFlow) { _, quadTree -> quadTree }
-            )
+        merge(quadTreeFlow, clusterTrigger.withLatestFrom(quadTreeFlow) { _, quadTree -> quadTree })
             .mapLatest { quadTree ->
                 val boundingBox = mapController.screenAreaToBoundingBox() ?: return@mapLatest null
                 getClusters(
@@ -46,9 +43,9 @@ class ClusterManager<T : ClusterItem>(
                     mapController.cameraPosition.getZoom()
                 )
             }
-            .flowOn(defaultDispatcher)
             .filterNotNull()
-            .onEach { clusters -> withContext(Dispatchers.Main) { renderer.render(clusters) } }
+            .flowOn(defaultDispatcher)
+            .onEach(renderer::render)
             .launchIn(this)
     }
 
@@ -121,7 +118,7 @@ class ClusterManager<T : ClusterItem>(
         southWest: LatLon,
         zoomLevel: Float
     ): List<Cluster<T>> {
-        val clusters = ArrayList<Cluster<T>>()
+        val clusters = mutableListOf<Cluster<T>>()
         val tileCount = (2.0.pow(zoomLevel.toDouble()) * 2).toLong()
         val startLatitude = northEast.latitude
         val endLatitude = southWest.latitude
