@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import com.mapzen.tangram.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+@ExperimentalCoroutinesApi
 internal class ClusterRenderer<T : ClusterItem>(
     private val context: Context,
     private val mapController: MapController,
@@ -35,15 +37,11 @@ internal class ClusterRenderer<T : ClusterItem>(
         val clustersToRemove = ArrayList<Cluster<T>>()
 
         for (cluster in clusters) {
-            if (!markers.containsKey(cluster)) {
-                clustersToAdd.add(cluster)
-            }
+            if (!markers.containsKey(cluster)) clustersToAdd.add(cluster)
         }
 
         for (cluster in markers.keys) {
-            if (!clusters.contains(cluster)) {
-                clustersToRemove.add(cluster)
-            }
+            if (!clusters.contains(cluster)) clustersToRemove.add(cluster)
         }
 
         this.clusters.addAll(clustersToAdd)

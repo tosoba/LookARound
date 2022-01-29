@@ -100,7 +100,7 @@ fun MapController.moveCameraPositionTo(lat: Double, lng: Double, zoom: Float, du
     )
 }
 
-fun MapController.screenAreaToBoundingBox(padding: RectF): BoundingBox? {
+fun MapController.screenAreaToBoundingBox(padding: RectF = RectF()): BoundingBox? {
     val view = glViewHolder?.view ?: return null
     val w = view.width
     val h = view.height

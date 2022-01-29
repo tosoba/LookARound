@@ -1,43 +1,70 @@
 package com.lookaround.core.android.map.clustering
 
 import android.content.Context
-import android.graphics.RectF
-import android.os.AsyncTask
 import com.lookaround.core.android.ext.screenAreaToBoundingBox
 import com.lookaround.core.android.map.model.LatLon
+import com.lookaround.core.ext.withLatestFrom
 import com.mapzen.tangram.MapChangeListener
 import com.mapzen.tangram.MapController
-import java.util.concurrent.Executor
-import java.util.concurrent.Executors
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.pow
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 
+@ExperimentalCoroutinesApi
 class ClusterManager<T : ClusterItem>(
     context: Context,
     private val mapController: MapController,
-) : MapChangeListener {
-    private val quadTree: QuadTree<T> = QuadTree(QUAD_TREE_BUCKET_CAPACITY)
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+) : MapChangeListener, CoroutineScope {
+    private val supervisorJob = SupervisorJob()
+    override val coroutineContext: CoroutineContext
+        get() = supervisorJob + defaultDispatcher
+
     private val renderer: ClusterRenderer<T> = ClusterRenderer(context, mapController)
 
-    var callbacks: Callbacks<T>?
-        get() = renderer.callbacks
-        set(value) {
-            renderer.callbacks = value
-        }
+    private val clusterTrigger = MutableSharedFlow<Unit>()
+    private val buildQuadTreeTrigger = MutableSharedFlow<List<T>>()
+
+    init {
+        val quadTreeFlow =
+            buildQuadTreeTrigger.mapLatest { clusterItems ->
+                val quadTree = QuadTree<T>(QUAD_TREE_BUCKET_CAPACITY)
+                clusterItems.forEach(quadTree::insert)
+                quadTree
+            }
+        merge(quadTreeFlow, clusterTrigger.withLatestFrom(quadTreeFlow) { _, quadTree -> quadTree })
+            .onEach { quadTree ->
+                val boundingBox = mapController.screenAreaToBoundingBox() ?: return@onEach
+                val clusters =
+                    getClusters(
+                        quadTree,
+                        boundingBox.max,
+                        boundingBox.min,
+                        mapController.cameraPosition.getZoom()
+                    )
+                withContext(Dispatchers.Main) { renderer.render(clusters) }
+            }
+            .launchIn(this)
+    }
+
     var minClusterSize = DEFAULT_MIN_CLUSTER_SIZE
         set(value) {
             require(value > 0)
             field = value
         }
 
-    private val executor: Executor = Executors.newSingleThreadExecutor()
-    private var quadTreeTask: AsyncTask<*, *, *>? = null
-    private var clusterTask: AsyncTask<*, *, *>? = null
+    var callbacks: Callbacks<T>?
+        get() = renderer.callbacks
+        set(value) {
+            renderer.callbacks = value
+        }
 
     override fun onViewComplete() = Unit
-    override fun onRegionWillChange(b: Boolean) = Unit
+    override fun onRegionWillChange(animated: Boolean) = Unit
     override fun onRegionIsChanging() = Unit
-    override fun onRegionDidChange(b: Boolean) {
-        cluster()
+    override fun onRegionDidChange(animated: Boolean) {
+        launch { clusterTrigger.emit(Unit) }
     }
 
     /**
@@ -76,26 +103,21 @@ class ClusterManager<T : ClusterItem>(
         buildQuadTree(clusterItems)
     }
 
-    private fun buildQuadTree(clusterItems: List<T>) {
-        quadTreeTask?.cancel(true)
-        quadTreeTask = QuadTreeTask(clusterItems).executeOnExecutor(executor)
+    fun cancel() {
+        supervisorJob.cancel()
     }
 
-    private fun cluster() {
-        clusterTask?.cancel(true)
-        val zoom = mapController.cameraPosition.getZoom()
-        val screenBoundingBox = mapController.screenAreaToBoundingBox(RectF()) ?: return
-        clusterTask =
-            ClusterTask(screenBoundingBox.max, screenBoundingBox.min, zoom)
-                .executeOnExecutor(executor)
+    private fun buildQuadTree(clusterItems: List<T>) {
+        launch { buildQuadTreeTrigger.emit(clusterItems) }
     }
 
     private fun getClusters(
+        quadTree: QuadTree<T>,
         northEast: LatLon,
         southWest: LatLon,
         zoomLevel: Float
     ): List<Cluster<T>> {
-        val clusters: MutableList<Cluster<T>> = ArrayList()
+        val clusters = ArrayList<Cluster<T>>()
         val tileCount = (2.0.pow(zoomLevel.toDouble()) * 2).toLong()
         val startLatitude = northEast.latitude
         val endLatitude = southWest.latitude
@@ -106,6 +128,7 @@ class ClusterManager<T : ClusterItem>(
         if (startLongitude > endLongitude) { // Longitude +180°/-180° overlap.
             // [start longitude; 180]
             getClustersInsideBounds(
+                quadTree,
                 clusters,
                 startLatitude,
                 endLatitude,
@@ -116,6 +139,7 @@ class ClusterManager<T : ClusterItem>(
             )
             // [-180; end longitude]
             getClustersInsideBounds(
+                quadTree,
                 clusters,
                 startLatitude,
                 endLatitude,
@@ -126,6 +150,7 @@ class ClusterManager<T : ClusterItem>(
             )
         } else {
             getClustersInsideBounds(
+                quadTree,
                 clusters,
                 startLatitude,
                 endLatitude,
@@ -139,6 +164,7 @@ class ClusterManager<T : ClusterItem>(
     }
 
     private fun getClustersInsideBounds(
+        quadTree: QuadTree<T>,
         clusters: MutableList<Cluster<T>>,
         startLatitude: Double,
         endLatitude: Double,
@@ -158,9 +184,7 @@ class ClusterManager<T : ClusterItem>(
                 val south = north - stepLatitude
                 val east = west + stepLongitude
                 val points = quadTree.queryRange(north, west, south, east)
-                if (points.isEmpty()) {
-                    continue
-                }
+                if (points.isEmpty()) continue
                 if (points.size >= minClusterSize) {
                     var totalLatitude = 0.0
                     var totalLongitude = 0.0
@@ -187,37 +211,6 @@ class ClusterManager<T : ClusterItem>(
                     }
                 }
             }
-        }
-    }
-
-    private inner class QuadTreeTask(
-        private val clusterItems: List<T>,
-    ) : AsyncTask<Unit, Unit, Unit>() {
-        override fun doInBackground(vararg params: Unit) {
-            quadTree.clear()
-            for (clusterItem in clusterItems) {
-                quadTree.insert(clusterItem)
-            }
-        }
-
-        override fun onPostExecute(aUnit: Unit?) {
-            cluster()
-            quadTreeTask = null
-        }
-    }
-
-    private inner class ClusterTask(
-        private val northEast: LatLon,
-        private val southWest: LatLon,
-        private val zoomLevel: Float
-    ) : AsyncTask<Unit, Unit, List<Cluster<T>>>() {
-        override fun doInBackground(vararg params: Unit): List<Cluster<T>> {
-            return getClusters(northEast, southWest, zoomLevel)
-        }
-
-        override fun onPostExecute(clusters: List<Cluster<T>>) {
-            renderer.render(clusters)
-            clusterTask = null
         }
     }
 

@@ -107,6 +107,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                     if (markers !is WithValue) return@launch
                     if (markers.value.items.size > 1) {
                         calculateAndZoomToBoundsOf(markers.value.items.map(Marker::location::get))
+                        clusterManager?.cancel()
                         clusterManager =
                             ClusterManager<DefaultClusterItem>(requireContext(), this).apply {
                                 setMapChangeListener(this)
@@ -144,6 +145,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     override fun onDestroyView() {
         blurAnimator?.cancel()
         blurAnimator = null
+        clusterManager?.cancel()
         clusterManager = null
         binding.map.onDestroy()
         super.onDestroyView()
