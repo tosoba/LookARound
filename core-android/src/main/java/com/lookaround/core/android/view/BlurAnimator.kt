@@ -19,7 +19,7 @@ import kotlinx.parcelize.Parcelize
 
 class BlurAnimator(
     context: Context,
-    bitmapToBlur: Bitmap,
+    initialBitmap: Bitmap,
     private val initialRadius: Int,
     private val targetRadius: Int,
     private val durationMs: Long = 500L,
@@ -27,7 +27,7 @@ class BlurAnimator(
     private val scheme: Int = HokoBlur.SCHEME_OPENGL,
     private val mode: Int = HokoBlur.MODE_GAUSSIAN,
 ) {
-    private val mutableAnimationStates = MutableStateFlow(AnimationState(bitmapToBlur, true))
+    private val mutableAnimationStates = MutableStateFlow(AnimationState(initialBitmap, true))
     val animationStates: Flow<AnimationState>
         get() = mutableAnimationStates
 
@@ -66,7 +66,7 @@ class BlurAnimator(
                             fun complete() {
                                 mutableAnimationStates.value =
                                     AnimationState(
-                                        mutableAnimationStates.value.blurredBitmap,
+                                        mutableAnimationStates.value.currentBitmap,
                                         false
                                     )
                                 inProgress = false
@@ -85,7 +85,7 @@ class BlurAnimator(
     fun reversed(context: Context): BlurAnimator =
         BlurAnimator(
             context,
-            mutableAnimationStates.value.blurredBitmap,
+            mutableAnimationStates.value.currentBitmap,
             initialRadius = currentRadius,
             targetRadius = initialRadius,
             sampleFactor = sampleFactor,
@@ -118,11 +118,10 @@ class BlurAnimator(
         if (!inProgress || bitmap.isRecycled) return
 
         processor.radius(currentRadius)
-        val blurred = processor.blur(bitmap)
-        mutableAnimationStates.value = AnimationState(blurred, true)
+        mutableAnimationStates.value = AnimationState(processor.blur(bitmap), true)
     }
 
-    data class AnimationState(val blurredBitmap: Bitmap, val inProgress: Boolean)
+    data class AnimationState(val currentBitmap: Bitmap, val inProgress: Boolean)
 
     @Parcelize
     private data class SavedState(

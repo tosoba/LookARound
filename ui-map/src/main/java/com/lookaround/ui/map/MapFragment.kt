@@ -309,6 +309,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
 
     private fun initMapImageBlurring(savedInstanceState: Bundle?) {
         val blurredMapImageDrawable = binding.blurredMapImageView.drawable
+        var skipFirstBottomSheetSignal = false
         if (savedInstanceState != null &&
                 blurredMapImageDrawable is BitmapDrawable &&
                 blurredMapImageDrawable.bitmap != null
@@ -320,17 +321,19 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                         savedInstanceState
                     )
                     ?.apply { animate() }
+            skipFirstBottomSheetSignal = true
         } else if (mainViewModel.state.lastLiveBottomSheetState ==
                 BottomSheetBehavior.STATE_EXPANDED
         ) {
             viewLifecycleOwner.lifecycleScope.launch { showAndBlurMapImage() }
+            skipFirstBottomSheetSignal = true
         }
 
         mainViewModel
             .signals
             .filterIsInstance<MainSignal.BottomSheetStateChanged>()
             .map(MainSignal.BottomSheetStateChanged::state::get)
-            .drop(1)
+            .run { if (skipFirstBottomSheetSignal) drop(1) else this }
             .onEach { sheetState ->
                 if (sheetState == BottomSheetBehavior.STATE_EXPANDED) {
                     showAndBlurMapImage()
@@ -342,11 +345,17 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     private suspend fun showAndBlurMapImage() {
-        blurAnimator?.let { currentAnimator ->
-            currentAnimator.cancel()
-            blurAnimator = currentAnimator.reversed(requireContext()).apply { animate() }
-            return
-        }
+        val isReversing =
+            blurAnimator?.let { currentAnimator ->
+                if (currentAnimator.inProgress) {
+                    currentAnimator.cancel()
+                    blurAnimator = currentAnimator.reversed(requireContext()).apply { animate() }
+                    true
+                } else {
+                    false
+                }
+            }
+        if (isReversing == true) return
 
         mapSceneViewModel.awaitSceneLoaded()
         val bitmap = mapController.await().captureFrame(true)
@@ -354,7 +363,7 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
         blurAnimator =
             BlurAnimator(
                     requireContext(),
-                    bitmapToBlur = bitmap,
+                    initialBitmap = bitmap,
                     initialRadius = 0,
                     targetRadius = 10
                 )

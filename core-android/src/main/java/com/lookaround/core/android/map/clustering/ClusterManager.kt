@@ -33,18 +33,22 @@ class ClusterManager<T : ClusterItem>(
                 clusterItems.forEach(quadTree::insert)
                 quadTree
             }
-        merge(quadTreeFlow, clusterTrigger.withLatestFrom(quadTreeFlow) { _, quadTree -> quadTree })
-            .onEach { quadTree ->
-                val boundingBox = mapController.screenAreaToBoundingBox() ?: return@onEach
-                val clusters =
-                    getClusters(
-                        quadTree,
-                        boundingBox.max,
-                        boundingBox.min,
-                        mapController.cameraPosition.getZoom()
-                    )
-                withContext(Dispatchers.Main) { renderer.render(clusters) }
+        merge(
+                quadTreeFlow.flowOn(defaultDispatcher),
+                clusterTrigger.withLatestFrom(quadTreeFlow) { _, quadTree -> quadTree }
+            )
+            .mapLatest { quadTree ->
+                val boundingBox = mapController.screenAreaToBoundingBox() ?: return@mapLatest null
+                getClusters(
+                    quadTree,
+                    boundingBox.max,
+                    boundingBox.min,
+                    mapController.cameraPosition.getZoom()
+                )
             }
+            .flowOn(defaultDispatcher)
+            .filterNotNull()
+            .onEach { clusters -> withContext(Dispatchers.Main) { renderer.render(clusters) } }
             .launchIn(this)
     }
 
