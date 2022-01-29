@@ -1,7 +1,7 @@
 package com.lookaround.core.android.map.clustering
 
 internal class QuadTree<T : QuadTreePoint>(private val bucketSize: Int) {
-    private var root: QuadTreeNode<T>
+    private var root: QuadTreeNode<T> = createRootNode(bucketSize)
 
     fun insert(point: T) {
         root.insert(point)
@@ -19,8 +19,4 @@ internal class QuadTree<T : QuadTreePoint>(private val bucketSize: Int) {
 
     private fun createRootNode(bucketSize: Int): QuadTreeNode<T> =
         QuadTreeNode(90.0, -180.0, -90.0, 180.0, bucketSize)
-
-    init {
-        this.root = createRootNode(bucketSize)
-    }
 }

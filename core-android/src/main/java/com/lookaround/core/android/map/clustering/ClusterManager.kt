@@ -28,26 +28,28 @@ class ClusterManager<T : ClusterItem>(
     init {
         buildQuadTreeTrigger
             .mapLatest { clusterItems ->
-                val quadTree = QuadTree<T>(QUAD_TREE_BUCKET_CAPACITY)
-                clusterItems.forEach(quadTree::insert)
-                quadTree
+                withContext(dispatcher) {
+                    val quadTree = QuadTree<T>(QUAD_TREE_BUCKET_CAPACITY)
+                    clusterItems.forEach(quadTree::insert)
+                    quadTree
+                }
             }
             .flatMapLatest { quadTree ->
-                clusterTrigger.mapLatest {
+                clusterTrigger.onStart { emit(Unit) }.mapLatest {
                     val boundingBox =
                         mapController.screenAreaToBoundingBox() ?: return@mapLatest null
-                    getClusters(
-                        quadTree,
-                        boundingBox.max,
-                        boundingBox.min,
-                        mapController.cameraPosition.getZoom()
-                    )
+                    withContext(dispatcher) {
+                        getClusters(
+                            quadTree,
+                            boundingBox.max,
+                            boundingBox.min,
+                            mapController.cameraPosition.getZoom()
+                        )
+                    }
                 }
             }
             .filterNotNull()
-            .flowOn(dispatcher)
-            .onEach(renderer::render)
-            .flowOn(Dispatchers.Main)
+            .onEach { withContext(Dispatchers.Main) { renderer.render(it) } }
             .launchIn(this)
     }
 
