@@ -28,6 +28,7 @@ import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.camera.CameraFragment
+import com.lookaround.ui.camera.model.CameraARState
 import com.lookaround.ui.main.*
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
@@ -60,7 +61,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         lazy(LazyThreadSafetyMode.NONE) {
             BottomSheetBehavior.from(binding.bottomSheetFragmentContainerView)
         }
-    private var latestARState: ARState = ARState.INITIAL
+    private var latestARState: CameraARState = CameraARState.INITIAL
 
     private val bottomSheetFragments: Map<Class<out Fragment>, Fragment> by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -103,7 +104,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                         else -> throw IllegalArgumentException()
                     }
                 }
-                if (latestARState == ARState.ENABLED) {
+                if (latestARState == CameraARState.ENABLED) {
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
                 }
 
@@ -155,7 +156,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         viewModel
             .signals
             .filterIsInstance<MainSignal.ToggleSearchBarVisibility>()
-            .filter { latestARState == ARState.ENABLED }
+            .filter { latestARState == CameraARState.ENABLED }
             .onEach { (targetVisibility) -> setSearchbarVisibility(targetVisibility) }
             .launchIn(lifecycleScope)
         viewModel
@@ -202,7 +203,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
 
     private fun onARLoading() {
         if (currentTopFragment !is CameraFragment) return
-        latestARState = ARState.LOADING
+        latestARState = CameraARState.LOADING
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
         binding.bottomSheetFragmentContainerView.visibility = View.GONE
@@ -210,7 +211,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     private fun onAREnabled() {
-        latestARState = ARState.ENABLED
+        latestARState = CameraARState.ENABLED
         binding.searchBarView.visibility = View.VISIBLE
         binding.bottomNavigationView.visibility = View.VISIBLE
         binding.bottomSheetFragmentContainerView.visibility = View.VISIBLE
@@ -218,14 +219,14 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     private fun onARDisabled() {
-        if (latestARState == ARState.ENABLED &&
+        if (latestARState == CameraARState.ENABLED &&
                 bottomSheetBehavior.state != BottomSheetBehavior.STATE_SETTLING
         ) {
             lifecycleScope.launch {
                 viewModel.intent(MainIntent.LiveBottomSheetStateChanged(bottomSheetBehavior.state))
             }
         }
-        latestARState = ARState.DISABLED
+        latestARState = CameraARState.DISABLED
 
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
@@ -346,7 +347,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                     when (sheetState) {
                         BottomSheetBehavior.STATE_EXPANDED -> setSearchbarVisibility(View.GONE)
                         BottomSheetBehavior.STATE_HIDDEN -> {
-                            if (latestARState == ARState.ENABLED) {
+                            if (latestARState == CameraARState.ENABLED) {
                                 setSearchbarVisibility(View.VISIBLE)
                             }
                             binding.bottomNavigationView.selectedItemId = R.id.action_unchecked
@@ -388,7 +389,9 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     private fun onBottomSheetStateChanged(@BottomSheetBehavior.State sheetState: Int) {
-        if (latestARState == ARState.ENABLED && sheetState != BottomSheetBehavior.STATE_SETTLING) {
+        if (latestARState == CameraARState.ENABLED &&
+                sheetState != BottomSheetBehavior.STATE_SETTLING
+        ) {
             lifecycleScope.launch {
                 viewModel.intent(MainIntent.LiveBottomSheetStateChanged(sheetState))
             }
@@ -490,12 +493,5 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
 
     private fun signalSnackbarStatusChanged(isShowing: Boolean) {
         lifecycleScope.launch { viewModel.signal(MainSignal.SnackbarStatusChanged(isShowing)) }
-    }
-
-    private enum class ARState {
-        INITIAL,
-        LOADING,
-        ENABLED,
-        DISABLED
     }
 }

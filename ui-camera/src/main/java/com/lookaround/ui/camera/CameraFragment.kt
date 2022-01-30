@@ -31,6 +31,7 @@ import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.camera.databinding.FragmentCameraBinding
+import com.lookaround.ui.camera.model.CameraARState
 import com.lookaround.ui.camera.model.CameraIntent
 import com.lookaround.ui.camera.model.CameraSignal
 import com.lookaround.ui.camera.model.CameraState
@@ -88,6 +89,8 @@ class CameraFragment :
                 )
         }
 
+    private var latestARState: CameraARState = CameraARState.INITIAL
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
 
@@ -101,6 +104,7 @@ class CameraFragment :
                     pitchOutsideLimit = pitchOutsideLimit,
                     initializationFailure = initializationFailure
                 )
+                latestARState = CameraARState.DISABLED
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
@@ -133,6 +137,7 @@ class CameraFragment :
             .onEach {
                 mainViewModel.signal(MainSignal.ARLoading)
                 binding.onLoadingStarted()
+                latestARState = CameraARState.LOADING
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
@@ -142,6 +147,7 @@ class CameraFragment :
             .onEach {
                 mainViewModel.signal(MainSignal.AREnabled)
                 binding.onAREnabled()
+                latestARState = CameraARState.ENABLED
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
@@ -227,6 +233,7 @@ class CameraFragment :
             try {
                 val (preview, _, imageFlow) = cameraInitializationResult.await()
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
+
                 val processor =
                     HokoBlur.with(requireContext())
                         .sampleFactor(8f)
@@ -257,6 +264,7 @@ class CameraFragment :
                             }
                         }
 
+                        if (latestARState != CameraARState.ENABLED) return@onEach
                         launch {
                             val blurredBackground = processor.blur(bitmap)
                             withContext(Dispatchers.Main) {
