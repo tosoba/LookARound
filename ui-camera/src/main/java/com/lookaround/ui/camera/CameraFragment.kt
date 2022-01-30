@@ -2,7 +2,9 @@ package com.lookaround.ui.camera
 
 import android.Manifest
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.View
 import androidx.camera.core.ImageProxy
@@ -17,6 +19,7 @@ import androidx.transition.AutoTransition
 import androidx.transition.Transition
 import androidx.transition.TransitionManager
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.hoko.blur.HokoBlur
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.marker.SimpleARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
@@ -224,22 +227,46 @@ class CameraFragment :
             try {
                 val (preview, _, imageFlow) = cameraInitializationResult.await()
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
+                val processor =
+                    HokoBlur.with(requireContext())
+                        .sampleFactor(8f)
+                        .scheme(HokoBlur.SCHEME_OPENGL)
+                        .mode(HokoBlur.MODE_GAUSSIAN)
+                        .radius(15)
+                        .processor()
+
+                fun getColorContrastingToDominantSwatchOf(bitmap: Bitmap): Int? {
+                    val swatch = Palette.from(bitmap).generate().dominantSwatch ?: return null
+                    return colorContrastingTo(swatch.rgb)
+                }
+
                 imageFlow
-                    .debounce(1_000L)
                     .map(ImageProxy::bitmap::get)
                     .filterNotNull()
-                    .map { bitmap -> Palette.from(bitmap).generate().dominantSwatch }
-                    .filterNotNull()
-                    .map { swatch -> colorContrastingTo(swatch.rgb) }
-                    .distinctUntilChanged()
-                    .flowOn(Dispatchers.Default)
-                    .collect { contrastingColor ->
-                        openGLRenderer.setContrastingColor(
-                            red = Color.red(contrastingColor),
-                            green = Color.green(contrastingColor),
-                            blue = Color.blue(contrastingColor)
-                        )
+                    .onEach { bitmap ->
+                        launch {
+                            val contrastingColor = getColorContrastingToDominantSwatchOf(bitmap)
+                            if (contrastingColor != null) {
+                                withContext(Dispatchers.Main) {
+                                    openGLRenderer.setContrastingColor(
+                                        red = Color.red(contrastingColor),
+                                        green = Color.green(contrastingColor),
+                                        blue = Color.blue(contrastingColor)
+                                    )
+                                }
+                            }
+                        }
+
+                        launch {
+                            val blurredBackground = processor.blur(bitmap)
+                            withContext(Dispatchers.Main) {
+                                binding.blurBackground.background =
+                                    BitmapDrawable(resources, blurredBackground)
+                            }
+                        }
                     }
+                    .flowOn(Dispatchers.Default)
+                    .launchIn(this)
             } catch (ex: Exception) {
                 Timber.tag("CAMERA_INIT").e(ex)
                 cameraViewModel.intent(CameraIntent.CameraInitializationFailed)

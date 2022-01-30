@@ -66,7 +66,7 @@ suspend fun Context.initCamera(
 data class CameraInitializationResult(
     val preview: Preview,
     val camera: Camera,
-    val imageFlow: Flow<ImageProxy>
+    val imageProxyFlow: Flow<ImageProxy>
 )
 
 private fun aspectRatio(width: Int, height: Int): Int {
