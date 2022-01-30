@@ -15,6 +15,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.hoko.blur.HokoBlur
+import com.hoko.blur.processor.BlurProcessor
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.clustering.ClusterManager
 import com.lookaround.core.android.map.clustering.DefaultClusterItem
@@ -46,7 +48,8 @@ import timber.log.Timber
 @ExperimentalCoroutinesApi
 @AndroidEntryPoint
 @WithFragmentBindings
-class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadListener {
+class MapFragment :
+    Fragment(R.layout.fragment_map), MapController.SceneLoadListener, MapChangeListener {
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
 
     private val mapSceneViewModel: MapSceneViewModel by viewModels()
@@ -63,6 +66,16 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     private var blurAnimator: BlurAnimator? = null
     private var clusterManager: ClusterManager<DefaultClusterItem>? = null
 
+    private val blurProcessor: BlurProcessor by
+        lazy(LazyThreadSafetyMode.NONE) {
+            HokoBlur.with(requireContext())
+                .sampleFactor(8f)
+                .scheme(HokoBlur.SCHEME_OPENGL)
+                .mode(HokoBlur.MODE_GAUSSIAN)
+                .radius(10)
+                .processor()
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         currentMarker =
@@ -70,8 +83,13 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        mainViewModel.state.bitmapCache.get(javaClass.name)?.let { blurredBackground ->
+            binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
+        }
+
         mapController.launch {
             setSceneLoadListener(this@MapFragment)
+            setMapChangeListener(this@MapFragment)
             loadScene(MapScene.BUBBLE_WRAP)
             initCameraPosition(savedInstanceState)
             currentMarker?.location?.let { addMarker(it) }
@@ -110,7 +128,6 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
                         clusterManager?.cancel()
                         clusterManager =
                             ClusterManager<DefaultClusterItem>(requireContext(), this).apply {
-                                setMapChangeListener(this)
                                 setItems(
                                     markers.value.items.map {
                                         DefaultClusterItem(
@@ -186,6 +203,20 @@ class MapFragment : Fragment(R.layout.fragment_map), MapController.SceneLoadList
             binding.blurBackground.visibility = View.GONE
         } else {
             Timber.e("Failed to load scene: $sceneId. Scene error: $sceneError")
+        }
+    }
+
+    override fun onViewComplete() = Unit
+    override fun onRegionWillChange(animated: Boolean) = Unit
+    override fun onRegionIsChanging() = Unit
+    override fun onRegionDidChange(animated: Boolean) {
+        clusterManager?.onRegionDidChange(animated)
+        viewLifecycleOwner.lifecycleScope.launch {
+            mapSceneViewModel.awaitSceneLoaded()
+            val bitmap = mapController.await().captureFrame(true)
+            val blurredBackground = withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
+            binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
+            mainViewModel.state.bitmapCache.put(this@MapFragment.javaClass.name, blurredBackground)
         }
     }
 

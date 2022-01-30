@@ -92,6 +92,10 @@ class CameraFragment :
     private var latestARState: CameraARState = CameraARState.INITIAL
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        mainViewModel.state.bitmapCache.get(javaClass.name)?.let { blurredBackground ->
+            binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
+        }
+
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
 
         arDisabledUpdates(mainViewModel, cameraViewModel)
@@ -234,7 +238,7 @@ class CameraFragment :
                 val (preview, _, imageFlow) = cameraInitializationResult.await()
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
 
-                val processor =
+                val blurProcessor =
                     HokoBlur.with(requireContext())
                         .sampleFactor(8f)
                         .scheme(HokoBlur.SCHEME_OPENGL)
@@ -266,7 +270,11 @@ class CameraFragment :
 
                         if (latestARState != CameraARState.ENABLED) return@onEach
                         launch {
-                            val blurredBackground = processor.blur(bitmap)
+                            val blurredBackground = blurProcessor.blur(bitmap)
+                            mainViewModel.state.bitmapCache.put(
+                                this@CameraFragment.javaClass.name,
+                                blurredBackground
+                            )
                             withContext(Dispatchers.Main) {
                                 binding.blurBackground.background =
                                     BitmapDrawable(resources, blurredBackground)

@@ -72,6 +72,7 @@ dependencies {
     implementation("com.google.android.material:material:1.4.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
+    implementation("io.github.hokofly:hoko-blur:1.3.7")
 
     implementation("com.google.dagger:hilt-android:2.40")
     kapt("com.google.dagger:hilt-android-compiler:2.40")

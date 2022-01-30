@@ -9,12 +9,9 @@ import android.os.Parcelable
 import android.view.animation.LinearInterpolator
 import com.hoko.blur.HokoBlur
 import com.hoko.blur.processor.BlurProcessor
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 class BlurAnimator(
@@ -26,6 +23,7 @@ class BlurAnimator(
     private val sampleFactor: Float = 8f,
     private val scheme: Int = HokoBlur.SCHEME_OPENGL,
     private val mode: Int = HokoBlur.MODE_GAUSSIAN,
+    private val blurDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
     private val mutableAnimationStates = MutableStateFlow(AnimationState(initialBitmap, true))
     val animationStates: Flow<AnimationState>
@@ -59,7 +57,7 @@ class BlurAnimator(
                     addUpdateListener {
                         currentRadius =
                             (it.animatedValue as Int) / ANIMATION_UPDATES_COUNT * targetRadius
-                        animationJob = scope.launch(Dispatchers.Default) { animateBlur() }
+                        animationJob = scope.launch(blurDispatcher) { animateBlur() }
                     }
                     addListener(
                         object : Animator.AnimatorListener {
