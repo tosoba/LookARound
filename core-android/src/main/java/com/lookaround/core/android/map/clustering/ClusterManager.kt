@@ -23,10 +23,11 @@ class ClusterManager<T : ClusterItem>(
     private val renderer: ClusterRenderer<T> = ClusterRenderer(context, mapController)
 
     private val clusterTrigger = MutableSharedFlow<Unit>()
-    private val buildQuadTreeTrigger = MutableSharedFlow<List<T>>()
+    private val buildQuadTreeTrigger = MutableStateFlow<List<T>>(emptyList())
 
     init {
         buildQuadTreeTrigger
+            .filterNot(Collection<*>::isEmpty)
             .mapLatest { clusterItems ->
                 withContext(dispatcher) {
                     val quadTree = QuadTree<T>(QUAD_TREE_BUCKET_CAPACITY)
