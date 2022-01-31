@@ -3,6 +3,7 @@ package com.lookaround.core.android.ext
 import android.graphics.Bitmap
 import android.graphics.PointF
 import android.graphics.RectF
+import android.location.Location
 import android.os.Bundle
 import com.lookaround.core.android.map.model.BoundingBox
 import com.lookaround.core.android.map.model.LatLon
@@ -127,11 +128,16 @@ fun MapController.screenAreaToBoundingBox(padding: RectF = RectF()): BoundingBox
 }
 
 fun MapController.screenPositionToLatLon(screenPosition: PointF): LatLon? =
-    screenPositionToLngLat(screenPosition)?.toLatLon()
+    screenPositionToLngLat(screenPosition)?.latLon
 
-fun LngLat.toLatLon(): LatLon = LatLon(latitude, longitude)
+val LngLat.latLon: LatLon
+    get() = LatLon(latitude, longitude)
 
-fun LatLon.toLngLat(): LngLat = LngLat(longitude, latitude)
+val LatLon.lngLat: LngLat
+    get() = LngLat(longitude, latitude)
+
+val Location.latLon: LatLon
+    get() = LatLon(latitude, longitude)
 
 fun Iterable<LatLon>.enclosingBoundingBox(): BoundingBox {
     val it = iterator()

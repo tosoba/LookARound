@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -20,7 +21,6 @@ import com.hoko.blur.processor.BlurProcessor
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.clustering.ClusterManager
 import com.lookaround.core.android.map.clustering.DefaultClusterItem
-import com.lookaround.core.android.map.model.LatLon
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
@@ -39,6 +39,7 @@ import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -87,13 +88,20 @@ class MapFragment :
             binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
         }
 
+        lifecycleScope.launchWhenResumed {
+            mainViewModel.signal(MainSignal.ToggleSearchBarVisibility(View.VISIBLE))
+        }
+
         mapController.launch {
             setSceneLoadListener(this@MapFragment)
             setMapChangeListener(this@MapFragment)
             loadScene(MapScene.BUBBLE_WRAP)
+
+            zoomOnDoubleTap()
+            toggleSearchBarVisibilityOnTap()
+
             initCameraPosition(savedInstanceState)
             currentMarker?.location?.let { addMarker(it) }
-            zoomOnDoubleTap()
         }
 
         mainViewModel
@@ -104,9 +112,9 @@ class MapFragment :
             .onEach { location ->
                 mapController.launch {
                     moveCameraPositionTo(
-                        location.value.latitude,
-                        location.value.longitude,
-                        MARKER_FOCUSED_ZOOM
+                        lat = location.value.latitude,
+                        lng = location.value.longitude,
+                        zoom = MARKER_FOCUSED_ZOOM
                     )
                 }
             }
@@ -118,32 +126,24 @@ class MapFragment :
             .states
             .map(MainState::markers::get)
             .distinctUntilChanged()
-            .onEach { markers ->
+            .onEach { loadable ->
                 mapSceneViewModel.awaitSceneLoaded()
                 mapController.launch {
                     removeAllMarkers()
-                    if (markers !is WithValue) return@launch
-                    if (markers.value.items.size > 1) {
-                        calculateAndZoomToBoundsOf(markers.value.items.map(Marker::location::get))
-                        clusterManager?.cancel()
-                        clusterManager =
-                            ClusterManager<DefaultClusterItem>(requireContext(), this).apply {
-                                setItems(
-                                    markers.value.items.map {
-                                        DefaultClusterItem(
-                                            LatLon(it.location.latitude, it.location.longitude)
-                                        )
-                                    }
-                                )
-                            }
-                    } else if (markers.value.items.size == 1) {
-                        val marker = markers.value.items.first()
+                    if (loadable !is WithValue) return@launch
+
+                    val markers = loadable.value.items
+                    if (markers.size > 1) {
+                        calculateAndZoomToBoundsOf(markers.map(Marker::location::get))
+                        addMarkerClusters(markers)
+                    } else if (markers.size == 1) {
+                        val marker = markers.first()
                         moveCameraPositionTo(
-                            marker.location.latitude,
-                            marker.location.longitude,
-                            MARKER_FOCUSED_ZOOM
+                            lat = marker.location.latitude,
+                            lng = marker.location.longitude,
+                            zoom = MARKER_FOCUSED_ZOOM
                         )
-                        markers.value.items.forEach { addMarker(it.location) }
+                        markers.forEach { addMarker(it.location) }
                     }
                 }
             }
@@ -211,13 +211,7 @@ class MapFragment :
     override fun onRegionIsChanging() = Unit
     override fun onRegionDidChange(animated: Boolean) {
         clusterManager?.onRegionDidChange(animated)
-        viewLifecycleOwner.lifecycleScope.launch {
-            mapSceneViewModel.awaitSceneLoaded()
-            val bitmap = mapController.await().captureFrame(true)
-            val blurredBackground = withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
-            binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
-            mainViewModel.state.bitmapCache.put(this@MapFragment.javaClass.name, blurredBackground)
-        }
+        if (!isRunningOnEmulator()) updateBlurBackground()
     }
 
     fun updateMarker(marker: Marker?) {
@@ -228,10 +222,10 @@ class MapFragment :
                 val (_, location) = marker
                 removeAllMarkers()
                 moveCameraPositionTo(
-                    location.latitude,
-                    location.longitude,
-                    MARKER_FOCUSED_ZOOM,
-                    250
+                    lat = location.latitude,
+                    lng = location.longitude,
+                    zoom = MARKER_FOCUSED_ZOOM,
+                    durationMs = 250
                 )
                 addMarker(location)
             }
@@ -245,7 +239,11 @@ class MapFragment :
             restoreCameraPosition(savedInstanceState)
         } else {
             currentMarker?.let { (_, location) ->
-                moveCameraPositionTo(location.latitude, location.longitude, MARKER_FOCUSED_ZOOM)
+                moveCameraPositionTo(
+                    lat = location.latitude,
+                    lng = location.longitude,
+                    zoom = MARKER_FOCUSED_ZOOM
+                )
             }
         }
     }
@@ -272,6 +270,17 @@ class MapFragment :
         }
     }
 
+    private fun MapController.addMarkerClusters(markers: SortedSet<Marker>) {
+        val clusterItems = markers.map { DefaultClusterItem(it.location.latLon) }
+        clusterManager?.setItems(clusterItems)
+            ?: run {
+                clusterManager =
+                    ClusterManager<DefaultClusterItem>(requireContext(), this).apply {
+                        setItems(clusterItems)
+                    }
+            }
+    }
+
     private fun MapController.calculateAndZoomToBoundsOf(locations: Iterable<Location>) {
         val north = locations.maxOf(Location::getLatitude)
         val south = locations.minOf(Location::getLatitude)
@@ -296,43 +305,44 @@ class MapFragment :
         binding.navigateFab.visibility = View.GONE
     }
 
-    private fun launchGoogleMapsForNavigation() {
-        currentMarker?.let { marker ->
-            val mapIntent =
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse(
-                        "google.navigation:q=${marker.location.latitude},${marker.location.longitude}"
-                    )
-                )
-            mapIntent.setPackage("com.google.android.apps.maps")
-            try {
-                startActivity(mapIntent)
-            } catch (ex: ActivityNotFoundException) {
-                Toast.makeText(
-                        requireContext(),
-                        getString(R.string.unable_to_launch_google_maps_for_navigation),
-                        Toast.LENGTH_SHORT
-                    )
-                    .show()
+    private fun MapController.toggleSearchBarVisibilityOnTap() {
+        touchInput.setTapResponder(
+            object : TouchInput.TapResponder {
+                override fun onSingleTapUp(x: Float, y: Float): Boolean = false
+                override fun onSingleTapConfirmed(x: Float, y: Float): Boolean {
+                    val targetVisibility = binding.visibilityToggleView.toggleVisibility()
+                    viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                        mainViewModel.signal(MainSignal.ToggleSearchBarVisibility(targetVisibility))
+                    }
+                    return true
+                }
             }
-        }
+        )
+    }
+
+    private fun launchGoogleMapsForNavigation() {
+        launchGoogleMapForCurrentMarker(
+            failureMsgRes = R.string.unable_to_launch_google_maps_for_navigation
+        ) { "google.navigation:q=${location.latitude},${location.longitude}" }
     }
 
     private fun launchGoogleMapsForStreetView() {
+        launchGoogleMapForCurrentMarker(failureMsgRes = R.string.unable_to_launch_street_view) {
+            "google.streetview:cbll=${location.latitude},${location.longitude}"
+        }
+    }
+
+    private fun launchGoogleMapForCurrentMarker(
+        @StringRes failureMsgRes: Int,
+        uriString: Marker.() -> String
+    ) {
         currentMarker?.let { marker ->
-            val mapIntent =
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse(
-                        "google.streetview:cbll=${marker.location.latitude},${marker.location.longitude}"
-                    )
-                )
+            val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(marker.uriString()))
             mapIntent.setPackage("com.google.android.apps.maps")
             try {
                 startActivity(mapIntent)
             } catch (ex: ActivityNotFoundException) {
-                Toast.makeText(requireContext(), "Unable to launch StreetView", Toast.LENGTH_SHORT)
+                Toast.makeText(requireContext(), getString(failureMsgRes), Toast.LENGTH_SHORT)
                     .show()
             }
         }
@@ -423,6 +433,16 @@ class MapFragment :
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    private fun updateBlurBackground() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            mapSceneViewModel.awaitSceneLoaded()
+            val bitmap = mapController.await().captureFrame(true)
+            val blurredBackground = withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
+            binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
+            mainViewModel.state.bitmapCache.put(this@MapFragment.javaClass.name, blurredBackground)
+        }
     }
 
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {

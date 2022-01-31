@@ -129,9 +129,12 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        makeFullScreenWithTransparentBars()
+        setFullScreenWithTransparentBars()
 
-        supportFragmentManager.addOnBackStackChangedListener { signalTopFragmentChanged(false) }
+        supportFragmentManager.addOnBackStackChangedListener {
+            signalTopFragmentChanged(false)
+            setSearchbarVisibility(View.VISIBLE)
+        }
 
         initNavigationDrawer()
         initSearch()
@@ -156,7 +159,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         viewModel
             .signals
             .filterIsInstance<MainSignal.ToggleSearchBarVisibility>()
-            .filter { latestARState == CameraARState.ENABLED }
+            .filter { latestARState == CameraARState.ENABLED || currentTopFragment is MapFragment }
             .onEach { (targetVisibility) -> setSearchbarVisibility(targetVisibility) }
             .launchIn(lifecycleScope)
         viewModel
@@ -385,6 +388,8 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                     menu.findItem(R.id.action_recent_searches).isVisible = isVisible
                 }
                 .launchIn(lifecycleScope)
+
+            if (currentTopFragment !is CameraFragment) visibility = View.VISIBLE
         }
     }
 

@@ -5,7 +5,7 @@ import android.graphics.Color
 import android.view.View
 import android.view.WindowManager
 
-fun Activity.makeFullScreenWithTransparentBars() {
+fun Activity.setFullScreenWithTransparentBars() {
     window.statusBarColor = Color.TRANSPARENT
     window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
     window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
