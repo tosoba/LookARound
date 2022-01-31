@@ -284,7 +284,9 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                 LookARoundTheme {
                     val searchFocused = searchFocusedFlow.collectAsState(initial = false)
                     val cameraFragmentVisible =
-                        cameraFragmentVisibleFlow.collectAsState(initial = true)
+                        cameraFragmentVisibleFlow.collectAsState(
+                            initial = currentTopFragment is CameraFragment
+                        )
                     SearchBar(
                         query = viewModel.state.autocompleteSearchQuery,
                         focused = searchFocused.value,
