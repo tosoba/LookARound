@@ -268,7 +268,10 @@ class CameraFragment :
                             }
                         }
 
-                        if (latestARState != CameraARState.ENABLED) return@onEach
+                        if (latestARState != CameraARState.ENABLED || isRunningOnEmulator()) {
+                            return@onEach
+                        }
+
                         launch {
                             val blurredBackground = blurProcessor.blur(bitmap)
                             mainViewModel.state.bitmapCache.put(

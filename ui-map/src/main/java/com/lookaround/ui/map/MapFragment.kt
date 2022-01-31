@@ -339,6 +339,8 @@ class MapFragment :
     }
 
     private fun initMapImageBlurring(savedInstanceState: Bundle?) {
+        if (isRunningOnEmulator()) return
+
         val blurredMapImageDrawable = binding.blurredMapImageView.drawable
         var skipFirstBottomSheetSignal = false
         if (savedInstanceState != null &&
