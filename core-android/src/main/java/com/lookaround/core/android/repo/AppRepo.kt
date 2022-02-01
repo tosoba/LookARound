@@ -16,6 +16,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import ru.beryukhov.reactivenetwork.Connectivity
 import ru.beryukhov.reactivenetwork.ReactiveNetwork
 
 @ExperimentalCoroutinesApi
@@ -28,7 +29,8 @@ constructor(
 ) : IAppRepo {
     override val isConnectedFlow: Flow<Boolean>
         @SuppressLint("MissingPermission")
-        get() = reactiveNetwork.observeNetworkConnectivity(context).map { it.available }
+        get() =
+            reactiveNetwork.observeNetworkConnectivity(context).map(Connectivity::available::get)
 
     override val isLocationAvailable: Boolean
         get() =

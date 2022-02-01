@@ -44,7 +44,7 @@ val MainViewModel.locationReadyUpdates: Flow<Location>
         states
             .map(MainState::locationState::get)
             .filterIsInstance<WithValue<Location>>()
-            .map { it.value }
+            .map(WithValue<Location>::value::get)
             .distinctUntilChangedBy { Objects.hash(it.latitude, it.longitude) }
 
 @FlowPreview
