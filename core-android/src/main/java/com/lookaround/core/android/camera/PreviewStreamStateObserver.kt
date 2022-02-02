@@ -6,7 +6,6 @@ import androidx.annotation.MainThread
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.Logger
 import androidx.camera.core.impl.*
-import androidx.camera.core.impl.Observable
 import androidx.camera.core.impl.utils.executor.CameraXExecutors
 import androidx.camera.core.impl.utils.futures.FutureCallback
 import androidx.camera.core.impl.utils.futures.FutureChain
@@ -15,8 +14,8 @@ import androidx.camera.view.PreviewView.StreamState
 import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.lifecycle.MutableLiveData
 import com.google.common.util.concurrent.ListenableFuture
-import java.util.*
 
+@SuppressLint("RestrictedApi")
 internal class PreviewStreamStateObserver(
     private val cameraInfoInternal: CameraInfoInternal,
     private val previewStreamStateLiveData: MutableLiveData<StreamState>,

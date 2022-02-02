@@ -22,13 +22,13 @@ internal class ClusterRenderer<T : ClusterItem>(
 
     override fun onMarkerPickComplete(markerPickResult: MarkerPickResult?) {
         if (markerPickResult == null || markerPickResult.marker == null) return
-        val cluster = markerPickResult.marker.userData as? Cluster<T>
-        if (cluster != null) {
-            val clusterItems = cluster.items
-            callbacks?.let {
-                if (clusterItems.size > 1) it.onClusterClick(cluster)
-                else it.onClusterItemClick(clusterItems[0])
-            }
+
+        @Suppress("UNCHECKED_CAST")
+        val cluster = markerPickResult.marker.userData as? Cluster<T> ?: return
+        val clusterItems = cluster.items
+        callbacks?.let {
+            if (clusterItems.size > 1) it.onClusterClick(cluster)
+            else it.onClusterItemClick(clusterItems[0])
         }
     }
 
