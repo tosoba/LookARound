@@ -29,7 +29,10 @@ import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.lookaround.core.android.ext.*
+import com.lookaround.core.android.ext.captureFrame
+import com.lookaround.core.android.ext.dpToPx
+import com.lookaround.core.android.ext.init
+import com.lookaround.core.android.ext.pxToDp
 import com.lookaround.core.android.map.MapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
@@ -43,6 +46,7 @@ import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.locationReadyUpdates
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.databinding.FragmentPlaceListBinding
 import com.lookaround.ui.search.composable.SearchBar
@@ -51,7 +55,6 @@ import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -112,7 +115,12 @@ class PlaceListFragment :
             }
         }
         binding.showMapFab.setOnClickListener {
-            (activity as? PlaceMapListActionsHandler)?.onShowMapClick()
+            (activity as? PlaceMapListActionsHandler)?.let {
+                it.onShowMapClick()
+                viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                    mainViewModel.signal(MainSignal.HideBottomSheet)
+                }
+            }
         }
 
         val bottomSheetSignalsFlow =

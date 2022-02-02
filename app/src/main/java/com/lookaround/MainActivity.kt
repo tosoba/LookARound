@@ -360,6 +360,12 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                     }
                 }
                 .launchIn(lifecycleScope)
+
+            viewModel
+                .signals
+                .filterIsInstance<MainSignal.HideBottomSheet>()
+                .onEach { state = BottomSheetBehavior.STATE_HIDDEN }
+                .launchIn(lifecycleScope)
         }
     }
 

@@ -7,6 +7,7 @@ sealed interface MainSignal {
     object UnableToLoadPlacesWithoutConnection : MainSignal
     data class TopFragmentChanged(val cameraObscured: Boolean, val onResume: Boolean) : MainSignal
     data class BottomSheetStateChanged(@BottomSheetBehavior.State val state: Int) : MainSignal
+    object HideBottomSheet : MainSignal
     data class PlacesLoadingFailed(val throwable: Throwable) : MainSignal
     data class SnackbarStatusChanged(val isShowing: Boolean) : MainSignal
     object ARLoading : MainSignal

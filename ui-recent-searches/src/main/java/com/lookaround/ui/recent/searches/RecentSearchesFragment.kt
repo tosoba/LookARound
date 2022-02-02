@@ -43,6 +43,7 @@ import com.lookaround.core.model.SearchType
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.MainIntent
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.recent.searches.databinding.FragmentRecentSearchesBinding
 import com.lookaround.ui.search.composable.SearchBar
@@ -173,6 +174,7 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                                         MainIntent.LoadSearchAutocompleteResults(recentSearch.id)
                                 }
                             )
+                            mainViewModel.signal(MainSignal.HideBottomSheet)
                         }
                     }
         ) {

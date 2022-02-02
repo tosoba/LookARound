@@ -28,6 +28,7 @@ import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.MainIntent
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.place.types.composable.PlaceTypeGroupItem
 import com.lookaround.ui.place.types.databinding.FragmentPlaceTypesBinding
 import com.lookaround.ui.place.types.model.PlaceType
@@ -120,6 +121,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                                 ) { placeType ->
                                     lifecycleScope.launch {
                                         mainViewModel.intent(MainIntent.GetPlacesOfType(placeType))
+                                        mainViewModel.signal(MainSignal.HideBottomSheet)
                                     }
                                 }
                             }
