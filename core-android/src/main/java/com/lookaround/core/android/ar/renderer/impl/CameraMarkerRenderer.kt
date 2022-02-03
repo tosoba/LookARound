@@ -15,8 +15,6 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 import com.lookaround.core.android.ext.*
 import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -75,6 +73,9 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     val drawnRectsFlow: Flow<List<RectF>>
         get() = drawnRectsStateFlow
 
+    var disabled: Boolean = false
+        @MainThread set
+
     private val pagedMarkers = HashMap<UUID, PagedMarker>()
     private val pagedMarkerPositions = TreeMap<Float, MutableSet<PagedPosition>>()
 
@@ -120,6 +121,8 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
             )
 
     override fun draw(markers: List<ARMarker>, canvas: Canvas, orientation: Orientation) {
+        if (disabled) return
+
         pagedMarkerPositions.clear()
         val drawnRects = mutableListOf<RectF>()
         val drawnMarkerIds = HashSet<UUID>()

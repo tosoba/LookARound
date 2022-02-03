@@ -20,6 +20,7 @@ import androidx.transition.Transition
 import androidx.transition.TransitionManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.hoko.blur.HokoBlur
+import com.hoko.blur.processor.BlurProcessor
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.marker.SimpleARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
@@ -91,6 +92,16 @@ class CameraFragment :
 
     private var latestARState: CameraARState = CameraARState.INITIAL
 
+    private val blurProcessor: BlurProcessor by
+        lazy(LazyThreadSafetyMode.NONE) {
+            HokoBlur.with(requireContext())
+                .sampleFactor(8f)
+                .scheme(HokoBlur.SCHEME_OPENGL)
+                .mode(HokoBlur.MODE_GAUSSIAN)
+                .radius(15)
+                .processor()
+        }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainViewModel.state.bitmapCache.get(javaClass.name)?.let { blurredBackground ->
             binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
@@ -112,9 +123,9 @@ class CameraFragment :
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
-        cameraTouchUpdates(mainViewModel, cameraViewModel)
-            .onEach { binding.onCameraTouch() }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            cameraTouchUpdates(mainViewModel, cameraViewModel).collect { binding.onCameraTouch() }
+        }
 
         initARWithPermissionCheck()
 
@@ -168,38 +179,37 @@ class CameraFragment :
             .onEach { cameraViewModel.intent(CameraIntent.CameraStreamStateChanged(it)) }
             .launchIn(lifecycleScope)
 
-        combine(
-                cameraMarkerRenderer.markersDrawnFlow,
-                cameraViewModel.states.map(CameraState::firstMarkerIndex::get),
-                mainViewModel
-                    .states
-                    .map(MainState::markers::get)
-                    .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
-                    .map { it.value.size },
-                cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
-            ) { markersDrawn, firstMarkerIndex, markersSize, cameraObscured ->
-                val (currentPage, maxPage) = markersDrawn
-                CameraMarkersDrawnViewUpdate(
-                    firstMarkerIndex = firstMarkerIndex,
-                    markersSize = markersSize,
-                    currentPage = currentPage,
-                    maxPage = maxPage,
-                    cameraObscured = cameraObscured
-                )
-            }
-            .distinctUntilChanged()
-            .onEach { onMarkersDrawn(it) }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-
-        cameraMarkerRenderer
-            .drawnRectsFlow
-            .onEach(openGLRenderer::setMarkerRects)
-            .launchIn(lifecycleScope)
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            val markersDrawnUpdates =
+                combine(
+                    cameraMarkerRenderer.markersDrawnFlow,
+                    cameraViewModel.states.map(CameraState::firstMarkerIndex::get),
+                    mainViewModel
+                        .states
+                        .map(MainState::markers::get)
+                        .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
+                        .map { it.value.size },
+                    cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
+                ) { markersDrawn, firstMarkerIndex, markersSize, cameraObscured ->
+                    val (currentPage, maxPage) = markersDrawn
+                    CameraMarkersDrawnViewUpdate(
+                        firstMarkerIndex = firstMarkerIndex,
+                        markersSize = markersSize,
+                        currentPage = currentPage,
+                        maxPage = maxPage,
+                        cameraObscured = cameraObscured
+                    )
+                }
+            markersDrawnUpdates.distinctUntilChanged().collect { onMarkersDrawn(it) }
+        }
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            cameraMarkerRenderer.drawnRectsFlow.collect(openGLRenderer::setMarkerRects)
+        }
         openGLRenderer.otherRects =
             listOf(RoundedRectF(requireContext().bottomNavigationViewRectF, 0f))
 
-        cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
-            .onEach { obscured ->
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            cameraViewObscuredUpdates(mainViewModel, cameraViewModel).collect { obscured ->
                 openGLRenderer.setBlurEnabled(obscured, true)
                 if (obscured) {
                     changeRadarViewTopGuideline(View.GONE)
@@ -209,7 +219,7 @@ class CameraFragment :
                     showARViews(showRadar = mainViewModel.state.markers is WithValue)
                 }
             }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+        }
 
         arCameraView.onMarkerPressed = ::onMarkerPressed
         arCameraView.onTouch = ::signalCameraTouch
@@ -222,14 +232,18 @@ class CameraFragment :
                 cameraViewModel.intent(CameraIntent.ToggleRadarEnlarged)
             }
         }
-        cameraViewModel
-            .radarEnlargedUpdates
-            .onEach { enlarged -> toggleRadarEnlarged(enlarged) }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
 
-        markerUpdates(mainViewModel, cameraViewModel)
-            .onEach { (markers, firstMarkerIndex) -> updateARMarkers(markers, firstMarkerIndex) }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            cameraViewModel.radarEnlargedUpdates.collect { enlarged ->
+                toggleRadarEnlarged(enlarged)
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            markerUpdates(mainViewModel, cameraViewModel).collect { (markers, firstMarkerIndex) ->
+                updateARMarkers(markers, firstMarkerIndex)
+            }
+        }
     }
 
     private fun initCamera() {
@@ -237,14 +251,6 @@ class CameraFragment :
             try {
                 val (preview, _, imageFlow) = cameraInitializationResult.await()
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
-
-                val blurProcessor =
-                    HokoBlur.with(requireContext())
-                        .sampleFactor(8f)
-                        .scheme(HokoBlur.SCHEME_OPENGL)
-                        .mode(HokoBlur.MODE_GAUSSIAN)
-                        .radius(15)
-                        .processor()
 
                 fun getColorContrastingToDominantSwatchOf(bitmap: Bitmap): Int? {
                     val swatch = Palette.from(bitmap).generate().dominantSwatch ?: return null
@@ -254,9 +260,13 @@ class CameraFragment :
                 imageFlow
                     .map(ImageProxy::bitmap::get)
                     .filterNotNull()
-                    .onEach { bitmap ->
+                    .flowOn(Dispatchers.Default)
+                    .collect { bitmap ->
                         launch {
-                            val contrastingColor = getColorContrastingToDominantSwatchOf(bitmap)
+                            val contrastingColor =
+                                withContext(Dispatchers.Default) {
+                                    getColorContrastingToDominantSwatchOf(bitmap)
+                                }
                             if (contrastingColor != null) {
                                 withContext(Dispatchers.Main) {
                                     openGLRenderer.setContrastingColor(
@@ -269,23 +279,18 @@ class CameraFragment :
                         }
 
                         if (latestARState != CameraARState.ENABLED || isRunningOnEmulator()) {
-                            return@onEach
+                            return@collect
                         }
 
-                        launch {
-                            val blurredBackground = blurProcessor.blur(bitmap)
-                            mainViewModel.state.bitmapCache.put(
-                                this@CameraFragment.javaClass.name,
-                                blurredBackground
-                            )
-                            withContext(Dispatchers.Main) {
-                                binding.blurBackground.background =
-                                    BitmapDrawable(resources, blurredBackground)
-                            }
-                        }
+                        val blurredBackground =
+                            withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
+                        mainViewModel.state.bitmapCache.put(
+                            this@CameraFragment.javaClass.name,
+                            blurredBackground
+                        )
+                        binding.blurBackground.background =
+                            BitmapDrawable(resources, blurredBackground)
                     }
-                    .flowOn(Dispatchers.Default)
-                    .launchIn(this)
             } catch (ex: Exception) {
                 Timber.tag("CAMERA_INIT").e(ex)
                 cameraViewModel.intent(CameraIntent.CameraInitializationFailed)
@@ -327,10 +332,9 @@ class CameraFragment :
             }
         }
 
-        mainViewModel
-            .signals
-            .filterIsInstance<MainSignal.SnackbarStatusChanged>()
-            .onEach { (isShowing) ->
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            mainViewModel.signals.filterIsInstance<MainSignal.SnackbarStatusChanged>().collect {
+                (isShowing) ->
                 val pageGroupGuidelineLayoutParams =
                     arCameraViewsGroupBottomGuideline.layoutParams as ConstraintLayout.LayoutParams
                 pageGroupGuidelineLayoutParams.guideEnd =
@@ -338,7 +342,7 @@ class CameraFragment :
                     else requireContext().dpToPx(56f).toInt()
                 arCameraViewsGroupBottomGuideline.layoutParams = pageGroupGuidelineLayoutParams
             }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+        }
     }
 
     private fun FragmentCameraBinding.updateARMarkers(
@@ -428,6 +432,8 @@ class CameraFragment :
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.GONE
         showARViews(showRadar = mainViewModel.state.markers is WithValue)
+        openGLRenderer.markerRectsDisabled = false
+        cameraMarkerRenderer.disabled = false
     }
 
     private fun FragmentCameraBinding.onARDisabled(
@@ -469,6 +475,9 @@ class CameraFragment :
     }
 
     override fun onPause() {
+        binding.blurBackground.visibility = View.VISIBLE
+        cameraMarkerRenderer.disabled = true
+        openGLRenderer.markerRectsDisabled = true
         binding.hideARViews()
         orientationManager.stopSensor()
         super.onPause()
@@ -561,8 +570,9 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.showARViews(showRadar: Boolean) {
-        if (showRadar) arViewsGroup.visibility = View.VISIBLE
-        else {
+        if (showRadar) {
+            arViewsGroup.visibility = View.VISIBLE
+        } else {
             arCameraView.visibility = View.VISIBLE
             arRadarView.visibility = View.GONE
         }

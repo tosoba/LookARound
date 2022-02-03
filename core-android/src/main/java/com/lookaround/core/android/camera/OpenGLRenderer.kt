@@ -70,6 +70,7 @@ class OpenGLRenderer {
             field = value.take(MARKER_RECTS_MAX_SIZE)
         }
     var otherRects: List<RoundedRectF> = emptyList()
+    var markerRectsDisabled: Boolean = false
 
     private val rectsCoordinates: FloatArray
         get() {
@@ -88,12 +89,13 @@ class OpenGLRenderer {
                 }
             }
 
-            fillCoordinatesOf(markerRects)
+            if (!markerRectsDisabled) fillCoordinatesOf(markerRects)
             fillCoordinatesOf(otherRects)
             return coordinates
         }
 
     fun setMarkerRects(rects: Iterable<RectF>) {
+        if (markerRectsDisabled) return
         markerRects = rects.map { RoundedRectF(it, MARKER_RECT_CORNER_RADIUS) }
     }
 
