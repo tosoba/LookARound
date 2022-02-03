@@ -7,7 +7,10 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.renderer.MarkerRenderer
 
 class RadarMarkerRenderer : MarkerRenderer {
+    var disabled: Boolean = false
+
     override fun draw(markers: List<ARMarker>, canvas: Canvas, orientation: Orientation) {
+        if (disabled) return
         markers.forEach { marker ->
             val paint = Paint(Paint.ANTI_ALIAS_FLAG)
             paint.color = 0x44FFFFFF

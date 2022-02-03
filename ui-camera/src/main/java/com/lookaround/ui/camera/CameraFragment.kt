@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.camera.core.ImageProxy
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -27,6 +28,7 @@ import com.lookaround.core.android.ar.orientation.Orientation
 import com.lookaround.core.android.ar.orientation.OrientationManager
 import com.lookaround.core.android.ar.renderer.impl.CameraMarkerRenderer
 import com.lookaround.core.android.ar.renderer.impl.RadarMarkerRenderer
+import com.lookaround.core.android.ar.view.ARRadarView
 import com.lookaround.core.android.camera.OpenGLRenderer
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
@@ -434,6 +436,7 @@ class CameraFragment :
         showARViews(showRadar = mainViewModel.state.markers is WithValue)
         openGLRenderer.markerRectsDisabled = false
         cameraMarkerRenderer.disabled = false
+        radarMarkerRenderer.disabled = false
     }
 
     private fun FragmentCameraBinding.onARDisabled(
@@ -477,6 +480,7 @@ class CameraFragment :
     override fun onPause() {
         binding.blurBackground.visibility = View.VISIBLE
         cameraMarkerRenderer.disabled = true
+        radarMarkerRenderer.disabled = true
         openGLRenderer.markerRectsDisabled = true
         binding.hideARViews()
         orientationManager.stopSensor()
@@ -572,15 +576,27 @@ class CameraFragment :
     private fun FragmentCameraBinding.showARViews(showRadar: Boolean) {
         if (showRadar) {
             arViewsGroup.visibility = View.VISIBLE
+            arRadarView.background =
+                ContextCompat.getDrawable(requireContext(), R.drawable.radar_background)
+            arRadarView.rotableBackground = R.drawable.radar_arrow
+            arRadarView.disabled = false
         } else {
             arCameraView.visibility = View.VISIBLE
             arRadarView.visibility = View.GONE
+            arRadarView.disableARRadarView()
         }
     }
 
     private fun FragmentCameraBinding.hideARViews() {
         arViewsGroup.visibility = View.GONE
+        arRadarView.disableARRadarView()
         arCameraPageViewsGroup.visibility = View.GONE
+    }
+
+    private fun ARRadarView.disableARRadarView() {
+        background = null
+        rotableBackground = -1
+        disabled = true
     }
 
     private fun FragmentCameraBinding.onCameraTouch() {

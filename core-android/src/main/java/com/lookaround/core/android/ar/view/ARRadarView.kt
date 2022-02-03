@@ -11,7 +11,8 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class ARRadarView : ARView<RadarMarkerRenderer> {
-    var rotableBackground: Int = 0
+    var disabled: Boolean = false
+    var rotableBackground: Int = -1
         set(value) {
             field = value
             rotableBackgroundBitmap = BitmapFactory.decodeResource(resources, value)
@@ -49,11 +50,13 @@ class ARRadarView : ARView<RadarMarkerRenderer> {
     }
 
     override fun preDraw(canvas: Canvas, location: Location) {
+        if (disabled) return
         drawBackground(canvas)
         compassAngle = orientation.azimuth.toDouble()
     }
 
     override fun postDraw(canvas: Canvas, location: Location) {
+        if (disabled) return
         val markerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         markerPaint.color = -0xff5f2e
         canvas.drawCircle(center, center, 5f, markerPaint)
