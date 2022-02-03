@@ -21,6 +21,9 @@ class ARRadarView : ARView<RadarMarkerRenderer> {
     private var rotableBackgroundBitmap: Bitmap? = null
     private var compassAngle: Double = 0.0
 
+    private val centerPaint: Paint by
+        lazy(LazyThreadSafetyMode.NONE) { Paint(Paint.ANTI_ALIAS_FLAG).apply { color = -0xff5f2e } }
+
     override val ARMarker.shouldBeDrawn: Boolean
         get() = distance < maxRange
 
@@ -57,9 +60,7 @@ class ARRadarView : ARView<RadarMarkerRenderer> {
 
     override fun postDraw(canvas: Canvas, location: Location) {
         if (disabled) return
-        val markerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        markerPaint.color = -0xff5f2e
-        canvas.drawCircle(center, center, 5f, markerPaint)
+        canvas.drawCircle(center, center, 5f, centerPaint)
     }
 
     private fun getAngleBetween(marker: ARMarker, location: Location): Double =
