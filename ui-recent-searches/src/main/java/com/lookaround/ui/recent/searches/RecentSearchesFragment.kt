@@ -41,7 +41,6 @@ import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
 import com.lookaround.core.model.SearchType
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
@@ -70,18 +69,16 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val bottomSheetSignalsFlow =
             mainViewModel
-                .bottomSheetStateUpdates
+                .filterSignals(MainSignal.BottomSheetStateChanged::state)
                 .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
                 .distinctUntilChanged()
         val locationFlow =
             mainViewModel
-                .states
-                .map(MainState::locationState::get)
+                .mapStates(MainState::locationState)
                 .filterIsInstance<WithValue<Location>>()
         val recentSearchesFlow =
             recentSearchesViewModel
-                .states
-                .map(RecentSearchesState::searches::get)
+                .mapStates(RecentSearchesState::searches)
                 .filterIsInstance<WithValue<ParcelableList<RecentSearchModel>>>()
                 .map(WithValue<ParcelableList<RecentSearchModel>>::value::get)
                 .distinctUntilChanged()

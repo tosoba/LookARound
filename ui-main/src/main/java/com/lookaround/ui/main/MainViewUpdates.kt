@@ -3,7 +3,6 @@ package com.lookaround.ui.main
 import android.location.Location
 import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.model.*
-import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -14,18 +13,9 @@ import kotlinx.coroutines.flow.*
 @ExperimentalCoroutinesApi
 val MainViewModel.locationUpdateFailureUpdates: Flow<Unit>
     get() =
-        states
-            .map(MainState::locationState::get)
+        mapStates(MainState::locationState)
             .filter { (it as? Failed)?.error is LocationUpdateFailureException }
             .map {}
-
-@FlowPreview
-@ExperimentalCoroutinesApi
-val MainViewModel.bottomSheetStateUpdates: Flow<Int>
-    get() =
-        signals
-            .filterIsInstance<MainSignal.BottomSheetStateChanged>()
-            .map(MainSignal.BottomSheetStateChanged::state::get)
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -41,8 +31,7 @@ val MainViewModel.recentSearchesBottomNavItemVisibilityUpdates: Flow<Boolean>
 @ExperimentalCoroutinesApi
 val MainViewModel.locationReadyUpdates: Flow<Location>
     get() =
-        states
-            .map(MainState::locationState::get)
+        mapStates(MainState::locationState)
             .filterIsInstance<WithValue<Location>>()
             .map(WithValue<Location>::value::get)
             .distinctUntilChangedBy { Objects.hash(it.latitude, it.longitude) }
@@ -50,4 +39,4 @@ val MainViewModel.locationReadyUpdates: Flow<Location>
 @FlowPreview
 @ExperimentalCoroutinesApi
 val MainViewModel.markerUpdates: Flow<Loadable<ParcelableSortedSet<Marker>>>
-    get() = states.map(MainState::markers::get).distinctUntilChanged()
+    get() = mapStates(MainState::markers).distinctUntilChanged()

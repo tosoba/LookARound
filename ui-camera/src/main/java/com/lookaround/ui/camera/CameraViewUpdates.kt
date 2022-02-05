@@ -22,9 +22,9 @@ internal fun arEnabledUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<Unit> =
     combine(
-        mainViewModel.states.map(MainState::locationState::get),
-        cameraViewModel.states.map(CameraState::previewState::get),
-        cameraViewModel.signals.filterIsInstance<CameraSignal.PitchChanged>(),
+        mainViewModel.mapStates(MainState::locationState),
+        cameraViewModel.mapStates(CameraState::previewState),
+        cameraViewModel.filterSignals<CameraSignal.PitchChanged>(),
         cameraViewObscuredUpdates(mainViewModel, cameraViewModel).onStart {
             emit(CameraObscuredUpdate(obscuredByFragment = false, obscuredByBottomSheet = false))
         },
@@ -54,9 +54,8 @@ internal fun loadingStartedUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<Unit> =
     mainViewModel
-        .states
-        .map(MainState::locationState::get)
-        .combine(cameraViewModel.states.map(CameraState::previewState::get)) {
+        .mapStates(MainState::locationState)
+        .combine(cameraViewModel.mapStates(CameraState::previewState)) {
             locationState,
             previewState ->
             locationState !is Failed && (locationState is Loading || previewState.isLoading)
@@ -72,9 +71,9 @@ internal fun arDisabledUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<CameraARDisabledViewUpdate> =
     combine(
-        mainViewModel.states.map(MainState::locationState::get),
-        cameraViewModel.states.map(CameraState::previewState::get),
-        cameraViewModel.signals.filterIsInstance<CameraSignal.PitchChanged>(),
+        mainViewModel.mapStates(MainState::locationState),
+        cameraViewModel.mapStates(CameraState::previewState),
+        cameraViewModel.filterSignals<CameraSignal.PitchChanged>(),
         cameraViewObscuredUpdates(mainViewModel, cameraViewModel),
         mainViewModel.states.map { it.markers is WithValue }
     ) {
@@ -112,17 +111,10 @@ internal fun cameraViewObscuredUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<CameraObscuredUpdate> =
     combine(
-            mainViewModel
-                .signals
-                .filterIsInstance<MainSignal.TopFragmentChanged>()
-                .map(MainSignal.TopFragmentChanged::cameraObscured::get),
-            mainViewModel
-                .signals
-                .filterIsInstance<MainSignal.BottomSheetStateChanged>()
-                .map(MainSignal.BottomSheetStateChanged::state::get),
+            mainViewModel.filterSignals(MainSignal.TopFragmentChanged::cameraObscured),
+            mainViewModel.filterSignals(MainSignal.BottomSheetStateChanged::state),
             cameraViewModel
-                .states
-                .map(CameraState::previewState::get)
+                .mapStates(CameraState::previewState)
                 .filter(CameraPreviewState::isLive::get)
         ) { obscured, sheetState, _ ->
             CameraObscuredUpdate(
@@ -143,8 +135,7 @@ internal fun cameraTouchUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<Unit> =
     cameraViewModel
-        .signals
-        .filterIsInstance<CameraSignal.CameraTouch>()
+        .filterSignals<CameraSignal.CameraTouch>()
         .filter {
             mainViewModel.state.locationState is Ready && cameraViewModel.state.previewState.isLive
         }
@@ -158,9 +149,8 @@ internal fun markerUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<Pair<Loadable<ParcelableSortedSet<Marker>>, Int>> =
     mainViewModel
-        .states
-        .map(MainState::markers::get)
-        .combine(cameraViewModel.states.map(CameraState::firstMarkerIndex::get)) {
+        .mapStates(MainState::markers)
+        .combine(cameraViewModel.mapStates(CameraState::firstMarkerIndex)) {
             markers,
             firstMarkerIndex ->
             markers to firstMarkerIndex
@@ -170,7 +160,7 @@ internal fun markerUpdates(
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal val CameraViewModel.radarEnlargedUpdates: Flow<Boolean>
-    get() = states.map(CameraState::radarEnlarged::get).distinctUntilChanged().debounce(250L)
+    get() = mapStates(CameraState::radarEnlarged).distinctUntilChanged().debounce(250L)
 
 internal data class CameraMarkersDrawnViewUpdate(
     val firstMarkerIndex: Int,

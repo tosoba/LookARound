@@ -4,7 +4,9 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -26,7 +28,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.place.types.composable.PlaceTypeGroupItem
@@ -36,7 +37,10 @@ import com.lookaround.ui.place.types.model.PlaceTypeGroup
 import com.lookaround.ui.search.composable.SearchBar
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 @FlowPreview
@@ -57,7 +61,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val bottomSheetSignalsFlow =
             mainViewModel
-                .bottomSheetStateUpdates
+                .filterSignals(MainSignal.BottomSheetStateChanged::state)
                 .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
                 .distinctUntilChanged()
 

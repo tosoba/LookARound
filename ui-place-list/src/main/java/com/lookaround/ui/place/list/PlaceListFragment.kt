@@ -41,7 +41,6 @@ import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.ui.main.bottomSheetStateUpdates
 import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
@@ -96,9 +95,9 @@ class PlaceListFragment :
         }
 
         viewModel
-            .signals
-            .filterIsInstance<MapSceneSignal.RetryLoadScene>()
-            .onEach { (scene) -> mapController.await().loadScene(scene) }
+            .onEachSignal<MapSceneSignal.RetryLoadScene> { (scene) ->
+                mapController.await().loadScene(scene)
+            }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         val mapLayoutParams = getMapLayoutParams()
@@ -122,7 +121,7 @@ class PlaceListFragment :
 
         val bottomSheetSignalsFlow =
             mainViewModel
-                .bottomSheetStateUpdates
+                .filterSignals(MainSignal.BottomSheetStateChanged::state)
                 .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
                 .distinctUntilChanged()
 
@@ -130,8 +129,7 @@ class PlaceListFragment :
 
         val markersFlow =
             mainViewModel
-                .states
-                .map(MainState::markers::get)
+                .mapStates(MainState::markers)
                 .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
                 .distinctUntilChanged()
                 .combine(searchQueryFlow.map { it.trim().lowercase() }.distinctUntilChanged()) {

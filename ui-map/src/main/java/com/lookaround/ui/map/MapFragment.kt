@@ -123,8 +123,7 @@ class MapFragment :
         initMapImageBlurring(savedInstanceState)
 
         mainViewModel
-            .states
-            .map(MainState::markers::get)
+            .mapStates(MainState::markers)
             .distinctUntilChanged()
             .onEach { loadable ->
                 mapSceneViewModel.awaitSceneLoaded()
@@ -150,9 +149,9 @@ class MapFragment :
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         mapSceneViewModel
-            .signals
-            .filterIsInstance<MapSceneSignal.RetryLoadScene>()
-            .onEach { (scene) -> mapController.await().loadScene(scene) }
+            .onEachSignal<MapSceneSignal.RetryLoadScene> { (scene) ->
+                mapController.await().loadScene(scene)
+            }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         binding.navigateFab.setOnClickListener { launchGoogleMapsForNavigation() }
@@ -363,9 +362,7 @@ class MapFragment :
         }
 
         mainViewModel
-            .signals
-            .filterIsInstance<MainSignal.BottomSheetStateChanged>()
-            .map(MainSignal.BottomSheetStateChanged::state::get)
+            .filterSignals(MainSignal.BottomSheetStateChanged::state)
             .run { if (skipFirstBottomSheetSignal) drop(1) else this }
             .onEach { sheetState ->
                 if (sheetState == BottomSheetBehavior.STATE_EXPANDED) {

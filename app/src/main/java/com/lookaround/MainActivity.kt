@@ -141,24 +141,11 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         initBottomSheet()
         initBottomNavigationView()
 
+        viewModel.onEachSignal<MainSignal.ARLoading> { onARLoading() }.launchIn(lifecycleScope)
+        viewModel.onEachSignal<MainSignal.AREnabled> { onAREnabled() }.launchIn(lifecycleScope)
+        viewModel.onEachSignal<MainSignal.ARDisabled> { onARDisabled() }.launchIn(lifecycleScope)
         viewModel
-            .signals
-            .filterIsInstance<MainSignal.ARLoading>()
-            .onEach { onARLoading() }
-            .launchIn(lifecycleScope)
-        viewModel
-            .signals
-            .filterIsInstance<MainSignal.AREnabled>()
-            .onEach { onAREnabled() }
-            .launchIn(lifecycleScope)
-        viewModel
-            .signals
-            .filterIsInstance<MainSignal.ARDisabled>()
-            .onEach { onARDisabled() }
-            .launchIn(lifecycleScope)
-        viewModel
-            .signals
-            .filterIsInstance<MainSignal.ToggleSearchBarVisibility>()
+            .filterSignals<MainSignal.ToggleSearchBarVisibility>()
             .filter { latestARState == CameraARState.ENABLED || currentTopFragment is MapFragment }
             .onEach { (targetVisibility) -> setSearchbarVisibility(targetVisibility) }
             .launchIn(lifecycleScope)
@@ -272,12 +259,10 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     private fun initSearch() {
-        val searchFocusedFlow =
-            viewModel.states.map(MainState::searchFocused::get).distinctUntilChanged()
+        val searchFocusedFlow = viewModel.mapStates(MainState::searchFocused).distinctUntilChanged()
         val cameraFragmentVisibleFlow =
             viewModel
-                .signals
-                .filterIsInstance<MainSignal.TopFragmentChanged>()
+                .filterSignals<MainSignal.TopFragmentChanged>()
                 .map { !it.cameraObscured }
                 .distinctUntilChanged()
         binding.searchBarView.setContent {
@@ -348,8 +333,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
             )
 
             viewModel
-                .bottomSheetStateUpdates
-                .onEach { sheetState ->
+                .onEachSignal(MainSignal.BottomSheetStateChanged::state) { sheetState ->
                     when (sheetState) {
                         BottomSheetBehavior.STATE_EXPANDED -> setSearchbarVisibility(View.GONE)
                         BottomSheetBehavior.STATE_HIDDEN -> {
@@ -363,9 +347,9 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                 .launchIn(lifecycleScope)
 
             viewModel
-                .signals
-                .filterIsInstance<MainSignal.HideBottomSheet>()
-                .onEach { state = BottomSheetBehavior.STATE_HIDDEN }
+                .onEachSignal<MainSignal.HideBottomSheet> {
+                    state = BottomSheetBehavior.STATE_HIDDEN
+                }
                 .launchIn(lifecycleScope)
         }
     }
@@ -419,9 +403,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
 
     private fun launchPlacesLoadingSnackbarUpdates() {
         viewModel
-            .signals
-            .filterIsInstance<MainSignal.PlacesLoadingFailed>()
-            .onEach {
+            .onEachSignal<MainSignal.PlacesLoadingFailed> {
                 placesStatusLoadingSnackbar =
                     showPlacesLoadingStatusSnackbar(
                         getString(R.string.loading_places_failed),
@@ -431,9 +413,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
             .launchIn(lifecycleScope)
 
         viewModel
-            .signals
-            .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutLocation>()
-            .onEach {
+            .onEachSignal<MainSignal.UnableToLoadPlacesWithoutLocation> {
                 placesStatusLoadingSnackbar =
                     showPlacesLoadingStatusSnackbar(
                         getString(R.string.location_unavailable),
@@ -443,9 +423,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
             .launchIn(lifecycleScope)
 
         viewModel
-            .signals
-            .filterIsInstance<MainSignal.UnableToLoadPlacesWithoutConnection>()
-            .onEach {
+            .onEachSignal<MainSignal.UnableToLoadPlacesWithoutConnection> {
                 placesStatusLoadingSnackbar =
                     showPlacesLoadingStatusSnackbar(
                         getString(R.string.no_internet_connection),
@@ -471,9 +449,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
             .launchIn(lifecycleScope)
 
         viewModel
-            .signals
-            .filterIsInstance<MainSignal.NoPlacesFound>()
-            .onEach {
+            .onEachSignal<MainSignal.NoPlacesFound>() {
                 placesStatusLoadingSnackbar =
                     showPlacesLoadingStatusSnackbar(
                         getString(R.string.no_places_found),

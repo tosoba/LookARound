@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lookaround.core.android.BuildConfig
+import kotlin.reflect.KProperty1
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -18,6 +19,15 @@ abstract class FlowViewModel<Intent : Any, State : Any, Signal : Any>(
     val signals: Flow<Signal>
         get() = mutableSignals
     suspend fun signal(signal: Signal) = mutableSignals.emit(signal)
+    inline fun <reified S : Signal> filterSignals(): Flow<S> = signals.filterIsInstance()
+    inline fun <reified S : Signal, V> filterSignals(property: KProperty1<S, V>): Flow<V> =
+        filterSignals<S>().map(property::get)
+    inline fun <reified S : Signal> onEachSignal(noinline block: suspend (S) -> Unit): Flow<S> =
+        signals.filterIsInstance<S>().onEach(block)
+    inline fun <reified S : Signal, V> onEachSignal(
+        property: KProperty1<S, V>,
+        noinline block: suspend (V) -> Unit
+    ): Flow<V> = filterSignals<S>().map(property::get).onEach(block)
 
     private val mutableIntents: MutableSharedFlow<Intent> = MutableSharedFlow()
     suspend fun intent(intent: Intent) = mutableIntents.emit(intent)
@@ -28,6 +38,7 @@ abstract class FlowViewModel<Intent : Any, State : Any, Signal : Any>(
     var state: State
         private set(value) = value.let(mutableStates::value::set)
         get() = mutableStates.value
+    fun <V> mapStates(property: KProperty1<State, V>): Flow<V> = states.map(property::get)
 
     init {
         processor

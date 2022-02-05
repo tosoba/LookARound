@@ -184,10 +184,9 @@ class CameraFragment :
             val markersDrawnUpdates =
                 combine(
                     cameraMarkerRenderer.markersDrawnFlow,
-                    cameraViewModel.states.map(CameraState::firstMarkerIndex::get),
+                    cameraViewModel.mapStates(CameraState::firstMarkerIndex),
                     mainViewModel
-                        .states
-                        .map(MainState::markers::get)
+                        .mapStates(MainState::markers)
                         .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
                         .map { it.value.size },
                     cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
@@ -340,8 +339,7 @@ class CameraFragment :
         }
 
         viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-            mainViewModel.signals.filterIsInstance<MainSignal.SnackbarStatusChanged>().collect {
-                (isShowing) ->
+            mainViewModel.filterSignals<MainSignal.SnackbarStatusChanged>().collect { (isShowing) ->
                 val pageGroupGuidelineLayoutParams =
                     arCameraViewsGroupBottomGuideline.layoutParams as ConstraintLayout.LayoutParams
                 pageGroupGuidelineLayoutParams.guideEnd =
