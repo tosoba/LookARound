@@ -25,7 +25,9 @@ internal fun arEnabledUpdates(
         mainViewModel.states.map(MainState::locationState::get),
         cameraViewModel.states.map(CameraState::previewState::get),
         cameraViewModel.signals.filterIsInstance<CameraSignal.PitchChanged>(),
-        cameraViewObscuredUpdates(mainViewModel, cameraViewModel),
+        cameraViewObscuredUpdates(mainViewModel, cameraViewModel).onStart {
+            emit(CameraObscuredUpdate(obscuredByFragment = false, obscuredByBottomSheet = false))
+        },
         mainViewModel.states.map { it.markers is WithValue }
     ) { locationState, previewState, (pitchWithinLimit), (obscuredByFragment), showingAnyMarkers ->
         (locationState is Ready) &&
