@@ -192,14 +192,18 @@ class CameraFragment :
                         .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
                         .map { it.value.size },
                     cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
-                ) { markersDrawn, firstMarkerIndex, markersSize, cameraObscured ->
+                ) {
+                    markersDrawn,
+                    firstMarkerIndex,
+                    markersSize,
+                    (cameraObscuredByFragment, cameraObscuredByBottomSheet) ->
                     val (currentPage, maxPage) = markersDrawn
                     CameraMarkersDrawnViewUpdate(
                         firstMarkerIndex = firstMarkerIndex,
                         markersSize = markersSize,
                         currentPage = currentPage,
                         maxPage = maxPage,
-                        cameraObscured = cameraObscured
+                        cameraObscured = cameraObscuredByFragment || cameraObscuredByBottomSheet
                     )
                 }
             markersDrawnUpdates.distinctUntilChanged().collect { onMarkersDrawn(it) }
@@ -211,8 +215,11 @@ class CameraFragment :
             listOf(RoundedRectF(requireContext().bottomNavigationViewRectF, 0f))
 
         viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-            cameraViewObscuredUpdates(mainViewModel, cameraViewModel).collect { obscured ->
-                openGLRenderer.setBlurEnabled(obscured, true)
+            cameraViewObscuredUpdates(mainViewModel, cameraViewModel).collectIndexed {
+                index,
+                (obscuredByFragment, obscuredByBottomSheet) ->
+                val obscured = obscuredByFragment || obscuredByBottomSheet
+                openGLRenderer.setBlurEnabled(enabled = obscured, animated = index > 0)
                 if (obscured) {
                     changeRadarViewTopGuideline(View.GONE)
                     hideARViews()

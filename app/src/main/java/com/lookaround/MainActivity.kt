@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         setFullScreenWithTransparentBars()
 
         supportFragmentManager.addOnBackStackChangedListener {
-            signalTopFragmentChanged(false)
+            lifecycleScope.launchWhenResumed { signalTopFragmentChanged(false) }
             setSearchbarVisibility(View.VISIBLE)
         }
 
@@ -172,7 +172,10 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
 
     override fun onResume() {
         super.onResume()
-        signalTopFragmentChanged(true)
+        lifecycleScope.launchWhenResumed {
+            signalTopFragmentChanged(true)
+            viewModel.signal(MainSignal.BottomSheetStateChanged(bottomSheetBehavior.state))
+        }
     }
 
     override fun onBackPressed() {
@@ -237,15 +240,13 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
-    private fun signalTopFragmentChanged(onResume: Boolean) {
-        lifecycleScope.launch {
-            viewModel.signal(
-                MainSignal.TopFragmentChanged(
-                    cameraObscured = currentTopFragment !is CameraFragment,
-                    onResume
-                )
+    private suspend fun signalTopFragmentChanged(onResume: Boolean) {
+        viewModel.signal(
+            MainSignal.TopFragmentChanged(
+                cameraObscured = currentTopFragment !is CameraFragment,
+                onResume
             )
-        }
+        )
     }
 
     private fun initNavigationDrawer() {
