@@ -54,16 +54,17 @@ internal class ClusterRenderer<T : ClusterItem>(
         }
 
         for (clusterToAdd in clustersToAdd) {
-            val markerToAdd = mapController.addMarker()
-            markerToAdd.setPoint(LngLat(clusterToAdd.longitude, clusterToAdd.latitude))
-            markerToAdd.setStylingFromString(
-                "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue}"
-            )
-            val markerIcon = getMarkerIcon(clusterToAdd)
-            markerToAdd.setDrawable(BitmapDrawable(context.resources, markerIcon))
-            markerToAdd.isVisible = true
-            markerToAdd.userData = clusterToAdd
-            markers[clusterToAdd] = markerToAdd
+            markers[clusterToAdd] =
+                mapController.addMarker().apply {
+                    setPoint(LngLat(clusterToAdd.longitude, clusterToAdd.latitude))
+                    setStylingFromString(
+                        "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue}"
+                    )
+                    val markerIcon = getMarkerIcon(clusterToAdd)
+                    setDrawable(BitmapDrawable(context.resources, markerIcon))
+                    isVisible = true
+                    userData = clusterToAdd
+                }
         }
     }
 

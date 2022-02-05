@@ -101,7 +101,7 @@ class MapFragment :
             toggleSearchBarVisibilityOnTap()
 
             initCameraPosition(savedInstanceState)
-            currentMarker?.location?.let { addMarker(it) }
+            currentMarker?.location?.let { addMarkerFor(it) }
         }
 
         mainViewModel
@@ -143,7 +143,7 @@ class MapFragment :
                             lng = marker.location.longitude,
                             zoom = MARKER_FOCUSED_ZOOM
                         )
-                        markers.forEach { addMarker(it.location) }
+                        markers.forEach { addMarkerFor(it.location) }
                     }
                 }
             }
@@ -227,7 +227,7 @@ class MapFragment :
                     zoom = MARKER_FOCUSED_ZOOM,
                     durationMs = 250
                 )
-                addMarker(location)
+                addMarkerFor(location)
             }
         } else {
             hideFABs()
@@ -258,16 +258,6 @@ class MapFragment :
             scene.url,
             listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
         )
-    }
-
-    private fun MapController.addMarker(location: Location) {
-        addMarker().apply {
-            setPoint(LngLat(location.longitude, location.latitude))
-            isVisible = true
-            setStylingFromString(
-                "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue}"
-            )
-        }
     }
 
     private fun MapController.addMarkerClusters(markers: SortedSet<Marker>) {

@@ -5,6 +5,8 @@ import android.graphics.PointF
 import android.graphics.RectF
 import android.location.Location
 import android.os.Bundle
+import androidx.annotation.DrawableRes
+import com.lookaround.core.android.R
 import com.lookaround.core.android.map.model.BoundingBox
 import com.lookaround.core.android.map.model.LatLon
 import com.mapzen.tangram.*
@@ -129,6 +131,20 @@ fun MapController.screenAreaToBoundingBox(padding: RectF = RectF()): BoundingBox
 
 fun MapController.screenPositionToLatLon(screenPosition: PointF): LatLon? =
     screenPositionToLngLat(screenPosition)?.latLon
+
+fun MapController.addMarkerFor(
+    location: Location,
+    stylingString: String =
+        "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue}",
+    @DrawableRes drawableId: Int = R.drawable.ic_map_marker
+) {
+    addMarker().apply {
+        setPoint(LngLat(location.longitude, location.latitude))
+        isVisible = true
+        setStylingFromString(stylingString)
+        setDrawable(drawableId)
+    }
+}
 
 val LngLat.latLon: LatLon
     get() = LatLon(latitude, longitude)

@@ -29,10 +29,7 @@ import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.lookaround.core.android.ext.captureFrame
-import com.lookaround.core.android.ext.dpToPx
-import com.lookaround.core.android.ext.init
-import com.lookaround.core.android.ext.pxToDp
+import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.MapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
@@ -337,6 +334,8 @@ class PlaceListFragment :
                     15f
                 )
             )
+            removeAllMarkers()
+            addMarkerFor(location)
             captureFrame(true)
         }
 
