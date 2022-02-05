@@ -12,13 +12,13 @@ import androidx.camera.core.impl.utils.futures.FutureChain
 import androidx.camera.core.impl.utils.futures.Futures
 import androidx.camera.view.PreviewView.StreamState
 import androidx.concurrent.futures.CallbackToFutureAdapter
-import androidx.lifecycle.MutableLiveData
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @SuppressLint("RestrictedApi")
 internal class PreviewStreamStateObserver(
     private val cameraInfoInternal: CameraInfoInternal,
-    private val previewStreamStateLiveData: MutableLiveData<StreamState>,
+    private val previewStreamStateFlow: MutableStateFlow<StreamState>,
     private val renderSurface: IRenderSurface
 ) : Observable.Observer<CameraInternal.State?> {
     @GuardedBy("this") private var previewStreamState: StreamState? = null
@@ -26,7 +26,7 @@ internal class PreviewStreamStateObserver(
     private var hasStartedPreviewStreamFlow = false
 
     init {
-        synchronized(this) { previewStreamState = previewStreamStateLiveData.value }
+        synchronized(this) { previewStreamState = previewStreamStateFlow.value }
     }
 
     @MainThread
@@ -113,7 +113,7 @@ internal class PreviewStreamStateObserver(
             previewStreamState = streamState
         }
         Logger.d(TAG, "Update Preview stream state to $streamState")
-        previewStreamStateLiveData.postValue(streamState)
+        previewStreamStateFlow.value = streamState
     }
 
     /**

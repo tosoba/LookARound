@@ -449,7 +449,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
             .launchIn(lifecycleScope)
 
         viewModel
-            .onEachSignal<MainSignal.NoPlacesFound>() {
+            .onEachSignal<MainSignal.NoPlacesFound> {
                 placesStatusLoadingSnackbar =
                     showPlacesLoadingStatusSnackbar(
                         getString(R.string.no_places_found),

@@ -15,7 +15,6 @@ import androidx.camera.core.SurfaceRequest
 import androidx.camera.view.PreviewView.StreamState
 import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.MutableLiveData
 import com.google.common.util.concurrent.ListenableFuture
 import com.lookaround.core.android.ext.shouldUseTextureView
 import com.lookaround.core.android.model.RoundedRectF
@@ -25,6 +24,8 @@ import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import timber.log.Timber
 
 class OpenGLRenderer {
@@ -63,7 +64,9 @@ class OpenGLRenderer {
     private var frameUpdateListener: Pair<Executor, (Long) -> Unit>? = null
 
     private val activeStreamStateObserver = AtomicReference<PreviewStreamStateObserver?>()
-    val previewStreamStateLiveData = MutableLiveData(StreamState.IDLE)
+    private val previewStreamStateFlow = MutableStateFlow(StreamState.IDLE)
+    val previewStreamStates: Flow<StreamState>
+        get() = previewStreamStateFlow
 
     private var markerRects: List<RoundedRectF> = emptyList()
         set(value) {
@@ -143,7 +146,7 @@ class OpenGLRenderer {
             val streamStateObserver =
                 PreviewStreamStateObserver(
                     camera.cameraInfoInternal,
-                    previewStreamStateLiveData,
+                    previewStreamStateFlow,
                     renderSurface
                 )
             camera.cameraState.addObserver(

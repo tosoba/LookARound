@@ -13,7 +13,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import androidx.transition.AutoTransition
 import androidx.transition.Transition
@@ -143,9 +142,9 @@ class CameraFragment :
 
         mainViewModel
             .locationReadyUpdates
-            .onEach {
-                binding.arCameraView.povLocation = it
-                binding.arRadarView.povLocation = it
+            .onEach { location ->
+                binding.arCameraView.povLocation = location
+                binding.arRadarView.povLocation = location
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
@@ -174,8 +173,7 @@ class CameraFragment :
         initCamera()
 
         openGLRenderer
-            .previewStreamStateLiveData
-            .asFlow()
+            .previewStreamStates
             .distinctUntilChanged()
             .onEach { cameraViewModel.intent(CameraIntent.CameraStreamStateChanged(it)) }
             .launchIn(lifecycleScope)

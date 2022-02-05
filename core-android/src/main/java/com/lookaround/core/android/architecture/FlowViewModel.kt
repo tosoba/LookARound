@@ -19,15 +19,6 @@ abstract class FlowViewModel<Intent : Any, State : Any, Signal : Any>(
     val signals: Flow<Signal>
         get() = mutableSignals
     suspend fun signal(signal: Signal) = mutableSignals.emit(signal)
-    inline fun <reified S : Signal> filterSignals(): Flow<S> = signals.filterIsInstance()
-    inline fun <reified S : Signal, V> filterSignals(property: KProperty1<S, V>): Flow<V> =
-        filterSignals<S>().map(property::get)
-    inline fun <reified S : Signal> onEachSignal(noinline block: suspend (S) -> Unit): Flow<S> =
-        signals.filterIsInstance<S>().onEach(block)
-    inline fun <reified S : Signal, V> onEachSignal(
-        property: KProperty1<S, V>,
-        noinline block: suspend (V) -> Unit
-    ): Flow<V> = filterSignals<S>().map(property::get).onEach(block)
 
     private val mutableIntents: MutableSharedFlow<Intent> = MutableSharedFlow()
     suspend fun intent(intent: Intent) = mutableIntents.emit(intent)
@@ -78,4 +69,17 @@ abstract class FlowViewModel<Intent : Any, State : Any, Signal : Any>(
             signal = ::signal
         )
     }
+
+    inline fun <reified S : Signal> filterSignals(): Flow<S> = signals.filterIsInstance()
+
+    inline fun <reified S : Signal, V> filterSignals(property: KProperty1<S, V>): Flow<V> =
+        filterSignals<S>().map(property::get)
+
+    inline fun <reified S : Signal> onEachSignal(noinline block: suspend (S) -> Unit): Flow<S> =
+        filterSignals<S>().onEach(block)
+
+    inline fun <reified S : Signal, V> onEachSignal(
+        property: KProperty1<S, V>,
+        noinline block: suspend (V) -> Unit
+    ): Flow<V> = filterSignals<S>().map(property::get).onEach(block)
 }
