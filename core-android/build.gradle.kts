@@ -98,6 +98,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.1.0-beta02")
     implementation("androidx.compose.material:material-icons-core:1.1.0-beta02")
     implementation("androidx.compose.material:material-icons-extended:1.1.0-beta02")
+    implementation("androidx.palette:palette:1.0.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 

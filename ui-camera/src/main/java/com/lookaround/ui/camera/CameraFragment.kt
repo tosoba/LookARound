@@ -15,7 +15,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
-import androidx.palette.graphics.Palette
 import androidx.transition.AutoTransition
 import androidx.transition.Transition
 import androidx.transition.TransitionManager
@@ -261,55 +260,48 @@ class CameraFragment :
                 val (preview, _, imageFlow) = cameraInitializationResult.await()
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
 
-                fun Bitmap.getDominantSwatch(): Palette.Swatch? =
-                    Palette.from(this).generate().dominantSwatch
-
                 imageFlow
                     .map(ImageProxy::bitmap::get)
                     .filterNotNull()
                     .flowOn(Dispatchers.Default)
                     .collect { bitmap ->
-                        launch {
-                            val dominantSwatch =
-                                withContext(Dispatchers.Default) { bitmap.getDominantSwatch() }
-                            if (dominantSwatch != null) {
-                                val contrastingColor = colorContrastingTo(dominantSwatch.rgb)
-                                withContext(Dispatchers.Main) {
-                                    openGLRenderer.setContrastingColor(
-                                        red = Color.red(contrastingColor),
-                                        green = Color.green(contrastingColor),
-                                        blue = Color.blue(contrastingColor)
-                                    )
-                                }
-                            }
-                        }
-
+                        launch { updateContrastingColorUsing(bitmap) }
                         if (latestARState != CameraARState.ENABLED || isRunningOnEmulator()) {
                             return@collect
                         }
-
-                        val blurred =
-                            withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
-                        val blurredDominantSwatch =
-                            withContext(Dispatchers.Default) { blurred.getDominantSwatch() }
-                        mainViewModel.state.bitmapCache.put(
-                            this@CameraFragment.javaClass.name,
-                            blurred
-                        )
-                        with(binding) {
-                            blurBackground.background = BitmapDrawable(resources, blurred)
-                            val textColor = blurredDominantSwatch?.bodyTextColor ?: return@collect
-                            locationDisabledTextView.setTextColor(textColor)
-                            permissionsRequiredTextView.setTextColor(textColor)
-                            pitchOutsideLimitTextView.setTextColor(textColor)
-                            cameraInitializationFailureTextView.setTextColor(textColor)
-                            loadingTextView.setTextColor(textColor)
-                        }
+                        blurAndUpdateViewsUsing(bitmap)
                     }
             } catch (ex: Exception) {
                 Timber.tag("CAMERA_INIT").e(ex)
                 cameraViewModel.intent(CameraIntent.CameraInitializationFailed)
             }
+        }
+    }
+
+    private suspend fun updateContrastingColorUsing(bitmap: Bitmap) {
+        val dominantSwatch = withContext(Dispatchers.Default) { bitmap.dominantSwatch } ?: return
+        val contrastingColor = colorContrastingTo(dominantSwatch.rgb)
+        withContext(Dispatchers.Main) {
+            openGLRenderer.setContrastingColor(
+                red = Color.red(contrastingColor),
+                green = Color.green(contrastingColor),
+                blue = Color.blue(contrastingColor)
+            )
+        }
+    }
+
+    private suspend fun blurAndUpdateViewsUsing(bitmap: Bitmap) {
+        val blurred = withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
+        val blurredDominantSwatch = withContext(Dispatchers.Default) { blurred.dominantSwatch }
+        mainViewModel.state.bitmapCache.put(this@CameraFragment.javaClass.name, blurred)
+        with(binding) {
+            blurBackground.background = BitmapDrawable(resources, blurred)
+            val textColor = blurredDominantSwatch?.bodyTextColor ?: return
+            locationDisabledTextView.setTextColor(textColor)
+            permissionsRequiredTextView.setTextColor(textColor)
+            pitchOutsideLimitTextView.setTextColor(textColor)
+            cameraInitializationFailureTextView.setTextColor(textColor)
+            loadingTextView.setTextColor(textColor)
         }
     }
 

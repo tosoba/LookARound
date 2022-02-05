@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.*
 import android.media.Image
 import androidx.camera.core.ImageProxy
+import androidx.palette.graphics.Palette
 import java.io.ByteArrayOutputStream
 import java.nio.ReadOnlyBufferException
 import kotlin.experimental.inv
@@ -105,3 +106,6 @@ private fun nv21BytesToBitmap(
     }
     return bitmap
 }
+
+val Bitmap.dominantSwatch: Palette.Swatch?
+    get() = Palette.from(this).generate().dominantSwatch
