@@ -95,7 +95,7 @@ class MapFragment :
         mapController.launch {
             setSceneLoadListener(this@MapFragment)
             setMapChangeListener(this@MapFragment)
-            loadScene(MapScene.BUBBLE_WRAP)
+            loadScene(MapScene.WALKABOUT)
 
             zoomOnDoubleTap()
             toggleSearchBarVisibilityOnTap()

@@ -5,7 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class MapSceneState(
-    val scene: MapScene = MapScene.BUBBLE_WRAP,
+    val scene: MapScene = MapScene.WALKABOUT,
     val sceneLoaded: Boolean = false,
     val sceneLoadingTimeoutOccurred: Boolean = false
 ) : Parcelable

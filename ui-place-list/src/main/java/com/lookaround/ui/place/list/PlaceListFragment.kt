@@ -91,7 +91,7 @@ class PlaceListFragment :
         mapController.launch {
             setSceneLoadListener(this@PlaceListFragment)
             setMapChangeListener(this@PlaceListFragment)
-            loadScene(MapScene.BUBBLE_WRAP)
+            loadScene(MapScene.WALKABOUT)
         }
 
         viewModel
