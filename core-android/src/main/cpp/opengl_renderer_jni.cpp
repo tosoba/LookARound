@@ -1136,6 +1136,8 @@ JNIEXPORT void JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_setBlurEnabled(
         JNIEnv *env, jobject clazz, jlong context, jboolean enabled, jboolean animated) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
+    if (nativeContext->blurEnabled == enabled) return;
+
     nativeContext->blurEnabled = enabled;
     if (enabled && nativeContext->currentLodAnimationFrame == -1) {
         if (animated) {

@@ -215,7 +215,7 @@ class CameraFragment :
                 index,
                 (obscuredByFragment, obscuredByBottomSheet) ->
                 val obscured = obscuredByFragment || obscuredByBottomSheet
-                openGLRenderer.setBlurEnabled(enabled = obscured, animated = index > 0)
+                openGLRenderer.setBlurEnabled(enabled = obscured, animated = !obscured || index > 0)
                 if (obscured) {
                     changeRadarViewTopGuideline(View.GONE)
                     hideARViews()
