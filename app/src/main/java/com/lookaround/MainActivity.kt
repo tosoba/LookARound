@@ -34,8 +34,8 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
-import com.lookaround.ui.place.list.PlaceListFragment
-import com.lookaround.ui.place.list.PlaceMapListActionsHandler
+import com.lookaround.ui.place.map.list.PlaceMapListFragment
+import com.lookaround.ui.place.map.list.PlaceMapListActionsHandler
 import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
 import com.lookaround.ui.search.composable.SearchBar
@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
             val bottomSheetFragmentClasses =
                 listOf(
                     PlaceTypesFragment::class.java,
-                    PlaceListFragment::class.java,
+                    PlaceMapListFragment::class.java,
                     RecentSearchesFragment::class.java
                 )
             buildMap {
@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                 fragmentTransaction {
                     when (menuItem.itemId) {
                         R.id.action_place_types -> showBottomSheetFragment<PlaceTypesFragment>()
-                        R.id.action_place_list -> showBottomSheetFragment<PlaceListFragment>()
+                        R.id.action_place_list -> showBottomSheetFragment<PlaceMapListFragment>()
                         R.id.action_recent_searches ->
                             showBottomSheetFragment<RecentSearchesFragment>()
                         else -> throw IllegalArgumentException()

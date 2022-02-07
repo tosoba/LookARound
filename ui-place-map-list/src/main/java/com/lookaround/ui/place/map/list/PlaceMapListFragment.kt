@@ -1,4 +1,4 @@
-package com.lookaround.ui.place.list
+package com.lookaround.ui.place.map.list
 
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -44,7 +44,9 @@ import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
-import com.lookaround.ui.place.list.databinding.FragmentPlaceListBinding
+import com.lookaround.ui.place.list.BuildConfig
+import com.lookaround.ui.place.list.R
+import com.lookaround.ui.place.list.databinding.FragmentMapPlaceListBinding
 import com.lookaround.ui.search.composable.SearchBar
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
@@ -63,9 +65,10 @@ import uk.co.senab.bitmapcache.CacheableBitmapDrawable
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
 @FlowPreview
-class PlaceListFragment :
-    Fragment(R.layout.fragment_place_list), MapController.SceneLoadListener, MapChangeListener {
-    private val binding: FragmentPlaceListBinding by viewBinding(FragmentPlaceListBinding::bind)
+class PlaceMapListFragment :
+    Fragment(R.layout.fragment_map_place_list), MapController.SceneLoadListener, MapChangeListener {
+    private val binding: FragmentMapPlaceListBinding by
+        viewBinding(FragmentMapPlaceListBinding::bind)
 
     private val mainViewModel: MainViewModel by activityViewModels()
     private val viewModel: MapSceneViewModel by viewModels()
@@ -89,8 +92,8 @@ class PlaceListFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mapController.launch {
-            setSceneLoadListener(this@PlaceListFragment)
-            setMapChangeListener(this@PlaceListFragment)
+            setSceneLoadListener(this@PlaceMapListFragment)
+            setMapChangeListener(this@PlaceMapListFragment)
             loadScene(MapScene.WALKABOUT)
         }
 
@@ -189,7 +192,7 @@ class PlaceListFragment :
                                     onSearchFocusChange = searchFocused::value::set,
                                     onTextFieldValueChange = {
                                         searchQueryFlow.value = it.text
-                                        this@PlaceListFragment.searchQuery = it.text
+                                        this@PlaceMapListFragment.searchQuery = it.text
                                     }
                                 )
                             }
@@ -208,7 +211,7 @@ class PlaceListFragment :
                                     PlaceMapListItem(
                                         point = point,
                                         userLocationFlow = mainViewModel.locationReadyUpdates,
-                                        getPlaceBitmap = this@PlaceListFragment::getBitmapFor,
+                                        getPlaceBitmap = this@PlaceMapListFragment::getBitmapFor,
                                         reloadBitmapTrigger = reloadBitmapTrigger.receiveAsFlow(),
                                         bitmapDimension =
                                             requireContext()
