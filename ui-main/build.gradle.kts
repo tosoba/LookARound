@@ -32,7 +32,7 @@ android {
 
     buildFeatures { compose = true }
 
-    composeOptions { kotlinCompilerExtensionVersion = "1.1.0-beta02" }
+    composeOptions { kotlinCompilerExtensionVersion = "1.2.0-alpha02" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -55,14 +55,14 @@ dependencies {
     implementation("com.google.android.material:material:1.4.0")
     implementation("biz.laenger.android:vpbs:0.0.6")
 
-    implementation("androidx.compose.runtime:runtime:1.1.0-beta02")
-    implementation("androidx.compose.compiler:compiler:1.1.0-beta02")
-    implementation("androidx.compose.ui:ui:1.1.0-beta02")
-    implementation("androidx.compose.ui:ui-tooling:1.1.0-beta02")
-    implementation("androidx.compose.foundation:foundation:1.1.0-beta02")
-    implementation("androidx.compose.material:material:1.1.0-beta02")
-    implementation("androidx.compose.material:material-icons-core:1.1.0-beta02")
-    implementation("androidx.compose.material:material-icons-extended:1.1.0-beta02")
+    implementation("androidx.compose.runtime:runtime:1.2.0-alpha02")
+    implementation("androidx.compose.compiler:compiler:1.2.0-alpha02")
+    implementation("androidx.compose.ui:ui:1.2.0-alpha02")
+    implementation("androidx.compose.ui:ui-tooling:1.2.0-alpha02")
+    implementation("androidx.compose.foundation:foundation:1.2.0-alpha02")
+    implementation("androidx.compose.material:material:1.2.0-alpha02")
+    implementation("androidx.compose.material:material-icons-core:1.2.0-alpha02")
+    implementation("androidx.compose.material:material-icons-extended:1.2.0-alpha02")
 
     implementation("com.google.dagger:hilt-android:2.40")
     kapt("com.google.dagger:hilt-android-compiler:2.40")

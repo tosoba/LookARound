@@ -22,7 +22,8 @@ constructor(
         signal: suspend (MapSceneSignal) -> Unit
     ): Flow<(MapSceneState) -> MapSceneState> =
         merge(
-            intents.filterIsInstance<MapSceneIntent.LoadingScene>().transformLatest {
+            intents.filterIsInstance<MapSceneIntent.LoadingScene>().transformLatest<
+                    MapSceneIntent.LoadingScene, (MapSceneState) -> MapSceneState> {
                 emit(LoadingSceneUpdate(it.scene))
                 delay(SCENE_LOADING_TIME_LIMIT_MS)
                 if (!currentState().sceneLoaded) emit(SceneLoadingTimeoutUpdate)

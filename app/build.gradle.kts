@@ -34,7 +34,7 @@ android {
 
     buildFeatures { compose = true }
 
-    composeOptions { kotlinCompilerExtensionVersion = "1.1.0-beta02" }
+    composeOptions { kotlinCompilerExtensionVersion = "1.2.0-alpha02" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -80,14 +80,14 @@ dependencies {
     implementation("biz.laenger.android:vpbs:0.0.6")
     implementation("io.github.hokofly:hoko-blur:1.3.7")
 
-    implementation("androidx.compose.runtime:runtime:1.1.0-beta02")
-    implementation("androidx.compose.compiler:compiler:1.1.0-beta02")
-    implementation("androidx.compose.ui:ui:1.1.0-beta02")
-    implementation("androidx.compose.ui:ui-tooling:1.1.0-beta02")
-    implementation("androidx.compose.foundation:foundation:1.1.0-beta02")
-    implementation("androidx.compose.material:material:1.1.0-beta02")
-    implementation("androidx.compose.material:material-icons-core:1.1.0-beta02")
-    implementation("androidx.compose.material:material-icons-extended:1.1.0-beta02")
+    implementation("androidx.compose.runtime:runtime:1.2.0-alpha02")
+    implementation("androidx.compose.compiler:compiler:1.2.0-alpha02")
+    implementation("androidx.compose.ui:ui:1.2.0-alpha02")
+    implementation("androidx.compose.ui:ui-tooling:1.2.0-alpha02")
+    implementation("androidx.compose.foundation:foundation:1.2.0-alpha02")
+    implementation("androidx.compose.material:material:1.2.0-alpha02")
+    implementation("androidx.compose.material:material-icons-core:1.2.0-alpha02")
+    implementation("androidx.compose.material:material-icons-extended:1.2.0-alpha02")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.3.6")
@@ -110,7 +110,7 @@ dependencies {
 
     implementation("com.jakewharton.timber:timber:4.7.1")
 
-    implementation("com.dropbox.mobile.store:store4:4.0.2-KT15")
+    implementation("com.dropbox.mobile.store:store4:4.0.4-KT15")
     implementation("com.google.code.gson:gson:2.8.6")
     implementation("androidx.room:room-runtime:2.3.0")
     kapt("androidx.room:room-compiler:2.3.0")

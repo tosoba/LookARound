@@ -53,7 +53,7 @@ dependencies {
 
     implementation("nice.fontaine:overpass-wrapper:0.0.1")
 
-    implementation("com.dropbox.mobile.store:store4:4.0.2-KT15")
+    implementation("com.dropbox.mobile.store:store4:4.0.4-KT15")
     implementation("com.google.code.gson:gson:2.8.6")
     implementation("androidx.room:room-runtime:2.3.0")
     kapt("androidx.room:room-compiler:2.3.0")

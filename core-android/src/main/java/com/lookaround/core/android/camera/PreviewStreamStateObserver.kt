@@ -31,6 +31,7 @@ internal class PreviewStreamStateObserver(
 
     @MainThread
     override fun onNewData(value: CameraInternal.State?) {
+        if (value == null) return
         when (value) {
             CameraInternal.State.CLOSING,
             CameraInternal.State.CLOSED,

@@ -60,7 +60,7 @@ dependencies {
     testImplementation("com.google.dagger:dagger:2.40")
     kaptTest("com.google.dagger:dagger-compiler:2.40")
 
-    implementation("com.dropbox.mobile.store:store4:4.0.2-KT15")
+    implementation("com.dropbox.mobile.store:store4:4.0.4-KT15")
     implementation("androidx.room:room-runtime:2.3.0")
     kapt("androidx.room:room-compiler:2.3.0")
     implementation("androidx.room:room-ktx:2.3.0")
