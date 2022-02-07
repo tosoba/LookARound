@@ -573,11 +573,11 @@ void main() {
         void DrawScissoredRectsInStencil(const GLfloat *vertTransformArray,
                                          const GLfloat *texTransformArray,
                                          GLfloat *rectsCoordinates,
-                                         jint jrectsLength,
+                                         GLuint rectsCount,
                                          GLfloat width,
                                          GLfloat height) const {
             GLfloat *rectCoordinate = rectsCoordinates;
-            for (uint i = 0; i < jrectsLength; ++i) {
+            for (GLuint i = 0; i < rectsCount; ++i) {
                 auto rectLeftX = *rectCoordinate;
                 ++rectCoordinate;
                 auto rectBottomY = height - *rectCoordinate;
@@ -682,12 +682,12 @@ void main() {
         void DrawBlurredRects(const GLfloat *vertTransformArray,
                               const GLfloat *texTransformArray,
                               GLfloat *rectsCoordinates,
-                              jint jrectsLength,
+                              GLuint rectsCount,
                               GLfloat width,
                               GLfloat height) {
             PrepareStencilForDrawingRects();
             DrawScissoredRectsInStencil(vertTransformArray, texTransformArray,
-                                        rectsCoordinates, jrectsLength,
+                                        rectsCoordinates, rectsCount,
                                         width, height);
             DrawBlurredRects(vertTransformArray, texTransformArray, width, height);
         }
@@ -1061,7 +1061,7 @@ JNIEXPORT jboolean JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
         JNIEnv *env, jobject clazz, jlong context, jlong timestampNs,
         jfloatArray jvertTransformArray, jfloatArray jtexTransformArray,
-        jfloatArray jrectsCoordinates, jint jrectsLength) {
+        jfloatArray jrectsCoordinates, jint jallRectsCount, jint jotherRectsCount) {
     auto *nativeContext = reinterpret_cast<NativeContext *>(context);
     auto nativeWindow = nativeContext->windowSurface.first;
 
@@ -1086,7 +1086,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
     }
 
     GLfloat *rectsCoordinates =
-            jrectsLength == 0
+            jallRectsCount == 0
             ? nullptr
             : env->GetFloatArrayElements(jrectsCoordinates, nullptr);
     if (rectsCoordinates != nullptr) {
@@ -1094,8 +1094,11 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
             nativeContext->AnimateContrastingColor();
         }
 
+        const GLuint rectsCount = !nativeContext->blurEnabled ||
+                                  nativeContext->IsAnimatingLod()
+                                  ? jallRectsCount : jotherRectsCount;
         nativeContext->DrawBlurredRects(vertTransformArray, texTransformArray,
-                                        rectsCoordinates, jrectsLength,
+                                        rectsCoordinates, rectsCount,
                                         (GLfloat) width, (GLfloat) height);
         env->ReleaseFloatArrayElements(jrectsCoordinates, rectsCoordinates,
                                        JNI_ABORT);

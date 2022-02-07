@@ -92,8 +92,8 @@ class OpenGLRenderer {
                 }
             }
 
-            if (!markerRectsDisabled) fillCoordinatesOf(markerRects)
             fillCoordinatesOf(otherRects)
+            if (!markerRectsDisabled) fillCoordinatesOf(markerRects)
             return coordinates
         }
 
@@ -106,7 +106,9 @@ class OpenGLRenderer {
     fun setBlurEnabled(enabled: Boolean, animated: Boolean) {
         if (isShutdown || nativeContext == 0L) return
         try {
-            executor.execute { setBlurEnabled(nativeContext, enabled, animated) }
+            executor.execute {
+                setBlurEnabled(nativeContext, enabled = enabled, animated = animated)
+            }
         } catch (e: RejectedExecutionException) {
             Timber.tag("OGL").i("Renderer already shutting down. Ignore.")
         }
@@ -301,12 +303,13 @@ class OpenGLRenderer {
         val coordinates = rectsCoordinates
         val success =
             renderTexture(
-                nativeContext,
-                timestampNs,
-                surfaceTransform,
-                previewTransform,
-                coordinates,
-                coordinates.size / COORDINATES_PER_RECT
+                nativeContext = nativeContext,
+                timestampNs = timestampNs,
+                vertexTransform = surfaceTransform,
+                textureTransform = previewTransform,
+                rectsCoordinates = coordinates,
+                allRectsCount = markerRects.size + otherRects.size,
+                otherRectsCount = otherRects.size
             )
         if (!success) return
 
@@ -521,7 +524,8 @@ class OpenGLRenderer {
         vertexTransform: FloatArray,
         textureTransform: FloatArray,
         rectsCoordinates: FloatArray,
-        rectsLength: Int
+        allRectsCount: Int,
+        otherRectsCount: Int
     ): Boolean
 
     @WorkerThread private external fun closeContext(nativeContext: Long)
