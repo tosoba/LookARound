@@ -220,6 +220,7 @@ uniform float height;
 uniform float lod;
 uniform float minLod;
 uniform vec3 contrastingColor;
+uniform float contrastingColorMix;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -245,7 +246,7 @@ void main() {
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), lod);
         if (contrastingColor != vec3(-1.)) {
-            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.03), blurred.a);
+            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, contrastingColorMix), blurred.a);
         } else {
             fragColor = blurred;
         }
@@ -264,6 +265,7 @@ uniform float height;
 uniform float lod;
 uniform float minLod;
 uniform vec3 contrastingColor;
+uniform float contrastingColorMix;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -288,7 +290,7 @@ void main() {
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, texCoord, vec2(0., exp2(lod) / height), lod);
         if (contrastingColor != vec3(-1.)) {
-            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.03), blurred.a);
+            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, contrastingColorMix), blurred.a);
         } else {
             fragColor = blurred;
         }
@@ -307,6 +309,7 @@ uniform float width;
 uniform float lod;
 uniform float minLod;
 uniform vec3 contrastingColor;
+uniform float contrastingColorMix;
 
 in vec2 texCoord;
 out vec4 fragColor;
@@ -331,7 +334,7 @@ void main() {
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, texCoord, vec2(exp2(lod) / width, 0.), lod);
         if (contrastingColor != vec3(-1.)) {
-            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.03), blurred.a);
+            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, contrastingColorMix), blurred.a);
         } else {
             fragColor = blurred;
         }
@@ -368,6 +371,7 @@ void main() {
         GLint lodHandleVOES = -1;
         GLint minLodHandleVOES = -1;
         GLint contrastingColorHandleVOES = -1;
+        GLint contrastingColorMixHandleVOES = -1;
 
         GLuint programH = -1;
         GLint positionHandleH = -1;
@@ -376,6 +380,7 @@ void main() {
         GLint lodHandleH = -1;
         GLint minLodHandleH = -1;
         GLint contrastingColorHandleH = -1;
+        GLint contrastingColorMixHandleH = -1;
 
         GLuint programV2D = -1;
         GLint positionHandleV2D = -1;
@@ -384,6 +389,7 @@ void main() {
         GLint lodHandleV2D = -1;
         GLint minLodHandleV2D = -1;
         GLint contrastingColorHandleV2D = -1;
+        GLint contrastingColorMixHandleV2D = -1;
 
         GLuint inputTextureId = -1;
         GLuint pass1TextureId = -1;
@@ -403,7 +409,9 @@ void main() {
 
         GLboolean blurEnabled = GL_FALSE;
         GLfloat lod = MIN_LOD;
-        GLint currentLodAnimationFrame = -1;
+        GLint currentBlurAnimationFrame = -1;
+
+        GLfloat contrastingColorMix = MAX_CONTRASTING_COLOR_MIX;
 
         GLint currentContrastingColorAnimationFrame
                 = NativeContext::CONTRASTING_COLOR_ANIMATION_FRAMES;
@@ -437,13 +445,20 @@ void main() {
         //                          |       |     \_
         //                          +-------+-------+-->
         //                       (-1,-1)  (1,-1)  (3,-1)
-        static constexpr GLfloat VERTICES[] = {-1.0f, -1.0f, 3.0f, -1.0f, -1.0f, 3.0f};
+        static constexpr GLfloat VERTICES[] = {-1.f, -1.f, 3.f, -1.f, -1.f, 3.f};
 
         static constexpr GLfloat MAX_LOD = 3.f;
         static constexpr GLfloat MIN_LOD = -3.f;
-        static constexpr GLint LOD_ANIMATION_FRAMES = 18;
+        static constexpr GLint BLUR_ANIMATION_FRAMES = 18;
         static constexpr GLfloat LOD_INCREMENT = (NativeContext::MAX_LOD - NativeContext::MIN_LOD) /
-                                                 (GLfloat) NativeContext::LOD_ANIMATION_FRAMES;
+                                                 (GLfloat) NativeContext::BLUR_ANIMATION_FRAMES;
+
+        static constexpr GLfloat MAX_CONTRASTING_COLOR_MIX = 0.03f;
+        static constexpr GLfloat MIN_CONTRASTING_COLOR_MIX = 0.f;
+        static constexpr GLfloat CONTRASTING_COLOR_MIX_INCREMENT =
+                (NativeContext::MAX_CONTRASTING_COLOR_MIX -
+                 NativeContext::MIN_CONTRASTING_COLOR_MIX) /
+                (GLfloat) NativeContext::BLUR_ANIMATION_FRAMES;
 
         static constexpr GLint CONTRASTING_COLOR_ANIMATION_FRAMES = 60;
 
@@ -507,8 +522,10 @@ void main() {
             if (mixContrastingColor) {
                 CHECK_GL(glUniform3f(contrastingColorHandleVOES,
                                      contrastingRed, contrastingGreen, contrastingBlue));
+                CHECK_GL(glUniform1f(contrastingColorMixHandleVOES, contrastingColorMix));
             } else {
                 CHECK_GL(glUniform3f(contrastingColorHandleVOES, -1.f, -1.f, -1.f));
+                CHECK_GL(glUniform1f(contrastingColorMixHandleVOES, 0.f));
             }
         }
 
@@ -525,8 +542,10 @@ void main() {
             if (mixContrastingColor) {
                 CHECK_GL(glUniform3f(contrastingColorHandleV2D,
                                      contrastingRed, contrastingGreen, contrastingBlue));
+                CHECK_GL(glUniform1f(contrastingColorMixHandleV2D, contrastingColorMix));
             } else {
                 CHECK_GL(glUniform3f(contrastingColorHandleV2D, -1.f, -1.f, -1.f));
+                CHECK_GL(glUniform1f(contrastingColorMixHandleV2D, 0.f));
             }
         }
 
@@ -543,8 +562,10 @@ void main() {
             if (mixContrastingColor) {
                 CHECK_GL(glUniform3f(contrastingColorHandleH,
                                      contrastingRed, contrastingGreen, contrastingBlue));
+                CHECK_GL(glUniform1f(contrastingColorMixHandleH, contrastingColorMix));
             } else {
                 CHECK_GL(glUniform3f(contrastingColorHandleH, -1.f, -1.f, -1.f));
+                CHECK_GL(glUniform1f(contrastingColorMixHandleH, 0.f));
             }
         }
 
@@ -614,17 +635,28 @@ void main() {
         }
 
         [[nodiscard]] GLboolean IsAnimatingLod() const {
-            return currentLodAnimationFrame > -1 &&
-                   currentLodAnimationFrame < NativeContext::LOD_ANIMATION_FRAMES;
+            return currentBlurAnimationFrame > -1 &&
+                   currentBlurAnimationFrame < NativeContext::BLUR_ANIMATION_FRAMES;
         }
 
         void AnimateLod() {
             if (blurEnabled) {
-                if (lod < NativeContext::MAX_LOD) lod += NativeContext::LOD_INCREMENT;
-                ++currentLodAnimationFrame;
+                if (lod < NativeContext::MAX_LOD) {
+                    lod += NativeContext::LOD_INCREMENT;
+                }
+                if (contrastingColorMix > NativeContext::MIN_CONTRASTING_COLOR_MIX) {
+                    contrastingColorMix -= CONTRASTING_COLOR_MIX_INCREMENT;
+                }
+                ++currentBlurAnimationFrame;
             } else {
-                if (lod > NativeContext::MIN_LOD) lod -= NativeContext::LOD_INCREMENT;
-                --currentLodAnimationFrame;
+                if (lod > NativeContext::MIN_LOD) {
+                    lod -= NativeContext::LOD_INCREMENT;
+                }
+                if (contrastingColorMix <
+                    NativeContext::MAX_CONTRASTING_COLOR_MIX) {
+                    contrastingColorMix += NativeContext::CONTRASTING_COLOR_MIX_INCREMENT;
+                }
+                --currentBlurAnimationFrame;
             }
         }
 
@@ -930,6 +962,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->contrastingColorHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "contrastingColor"));
     assert(nativeContext->contrastingColorHandleVOES != -1);
+    nativeContext->contrastingColorMixHandleVOES =
+            CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "contrastingColorMix"));
+    assert(nativeContext->contrastingColorMixHandleVOES != -1);
     nativeContext->texTransformHandleVOES =
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "texTransform"));
     assert(nativeContext->texTransformHandleVOES != -1);
@@ -955,6 +990,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->contrastingColorHandleH =
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "contrastingColor"));
     assert(nativeContext->contrastingColorHandleH != -1);
+    nativeContext->contrastingColorMixHandleH =
+            CHECK_GL(glGetUniformLocation(nativeContext->programH, "contrastingColorMix"));
+    assert(nativeContext->contrastingColorMixHandleH != -1);
 
     nativeContext->programV2D = CreateGlProgram(VERTEX_SHADER_SRC_NO_TRANSFORM,
                                                 FRAGMENT_SHADER_SRC_V_2D);
@@ -977,6 +1015,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->contrastingColorHandleV2D =
             CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "contrastingColor"));
     assert(nativeContext->contrastingColorHandleV2D != -1);
+    nativeContext->contrastingColorMixHandleV2D =
+            CHECK_GL(glGetUniformLocation(nativeContext->programV2D, "contrastingColorMix"));
+    assert(nativeContext->contrastingColorMixHandleV2D != -1);
 
     CHECK_GL(glGenTextures(1, &(nativeContext->inputTextureId)));
 
@@ -1142,20 +1183,22 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setBlurEnabled(
     if (nativeContext->blurEnabled == enabled) return;
 
     nativeContext->blurEnabled = enabled;
-    if (enabled && nativeContext->currentLodAnimationFrame == -1) {
+    if (enabled && nativeContext->currentBlurAnimationFrame == -1) {
         if (animated) {
-            nativeContext->currentLodAnimationFrame = 0;
+            nativeContext->currentBlurAnimationFrame = 0;
         } else {
-            nativeContext->currentLodAnimationFrame = NativeContext::LOD_ANIMATION_FRAMES;
+            nativeContext->currentBlurAnimationFrame = NativeContext::BLUR_ANIMATION_FRAMES;
             nativeContext->lod = NativeContext::MAX_LOD;
+            nativeContext->contrastingColorMix = NativeContext::MIN_CONTRASTING_COLOR_MIX;
         }
     } else if (!enabled &&
-               nativeContext->currentLodAnimationFrame == NativeContext::LOD_ANIMATION_FRAMES) {
+               nativeContext->currentBlurAnimationFrame == NativeContext::BLUR_ANIMATION_FRAMES) {
         if (animated) {
-            nativeContext->currentLodAnimationFrame = NativeContext::LOD_ANIMATION_FRAMES - 1;
+            nativeContext->currentBlurAnimationFrame = NativeContext::BLUR_ANIMATION_FRAMES - 1;
         } else {
-            nativeContext->currentLodAnimationFrame = -1;
+            nativeContext->currentBlurAnimationFrame = -1;
             nativeContext->lod = NativeContext::MIN_LOD;
+            nativeContext->contrastingColorMix = NativeContext::MAX_CONTRASTING_COLOR_MIX;
         }
     }
 }

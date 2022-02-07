@@ -300,14 +300,13 @@ class OpenGLRenderer {
         if (surfaceSize == null) return
 
         calculateSurfaceTransform()
-        val coordinates = rectsCoordinates
         val success =
             renderTexture(
                 nativeContext = nativeContext,
                 timestampNs = timestampNs,
                 vertexTransform = surfaceTransform,
                 textureTransform = previewTransform,
-                rectsCoordinates = coordinates,
+                rectsCoordinates = rectsCoordinates,
                 allRectsCount = markerRects.size + otherRects.size,
                 otherRectsCount = otherRects.size
             )
