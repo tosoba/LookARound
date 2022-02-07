@@ -245,7 +245,7 @@ void main() {
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, transTexCoord, vec2(0., exp2(lod) / height), lod);
         if (contrastingColor != vec3(-1.)) {
-            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.02), blurred.a);
+            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.03), blurred.a);
         } else {
             fragColor = blurred;
         }
@@ -288,7 +288,7 @@ void main() {
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, texCoord, vec2(0., exp2(lod) / height), lod);
         if (contrastingColor != vec3(-1.)) {
-            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.02), blurred.a);
+            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.03), blurred.a);
         } else {
             fragColor = blurred;
         }
@@ -331,7 +331,7 @@ void main() {
     if (lod > minLod) {
         vec4 blurred = gaussBlur(sampler, texCoord, vec2(exp2(lod) / width, 0.), lod);
         if (contrastingColor != vec3(-1.)) {
-            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.02), blurred.a);
+            fragColor = vec4(mix(vec3(blurred.rgb), contrastingColor, 0.03), blurred.a);
         } else {
             fragColor = blurred;
         }
@@ -563,8 +563,8 @@ void main() {
 
         void DrawBlurredRects(const GLfloat *vertTransformArray,
                               const GLfloat *texTransformArray,
-                              int32_t width,
-                              int32_t height) const {
+                              GLfloat width,
+                              GLfloat height) const {
             CHECK_GL(glStencilFunc(GL_EQUAL, 1, 0xFF));
             CHECK_GL(glScissor(0, 0, width, height));
             DrawBlur(vertTransformArray, texTransformArray, width, height, true, true);
@@ -574,8 +574,8 @@ void main() {
                                          const GLfloat *texTransformArray,
                                          GLfloat *rectsCoordinates,
                                          jint jrectsLength,
-                                         int32_t width,
-                                         int32_t height) const {
+                                         GLfloat width,
+                                         GLfloat height) const {
             GLfloat *rectCoordinate = rectsCoordinates;
             for (uint i = 0; i < jrectsLength; ++i) {
                 auto rectLeftX = *rectCoordinate;
@@ -591,7 +591,7 @@ void main() {
                 CHECK_GL(glScissor(rectLeftX, rectBottomY, rectWidth, rectHeight));
                 DrawNoBlur(vertTransformArray, texTransformArray,
                            rectWidth, rectHeight,
-                           rectLeftX, rectBottomY,
+                           (GLint) rectLeftX, (GLint) rectBottomY,
                            cornerRadius);
             }
         }
@@ -683,8 +683,8 @@ void main() {
                               const GLfloat *texTransformArray,
                               GLfloat *rectsCoordinates,
                               jint jrectsLength,
-                              int32_t width,
-                              int32_t height) {
+                              GLfloat width,
+                              GLfloat height) {
             PrepareStencilForDrawingRects();
             DrawScissoredRectsInStencil(vertTransformArray, texTransformArray,
                                         rectsCoordinates, jrectsLength,
@@ -1078,27 +1078,27 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_renderTexture(
 
     if (nativeContext->blurEnabled || nativeContext->IsAnimatingLod()) {
         if (nativeContext->IsAnimatingLod()) nativeContext->AnimateLod();
-        nativeContext->DrawBlur(vertTransformArray, texTransformArray, width, height);
+        nativeContext->DrawBlur(vertTransformArray, texTransformArray, (GLfloat) width,
+                                (GLfloat) height);
     } else {
-        nativeContext->DrawNoBlur(vertTransformArray, texTransformArray, width, height, 0, 0, .0f);
+        nativeContext->DrawNoBlur(vertTransformArray, texTransformArray, (GLfloat) width,
+                                  (GLfloat) height, 0, 0, .0f);
     }
 
-    if (!nativeContext->blurEnabled || nativeContext->IsAnimatingLod()) {
-        GLfloat *rectsCoordinates =
-                jrectsLength == 0
-                ? nullptr
-                : env->GetFloatArrayElements(jrectsCoordinates, nullptr);
-        if (rectsCoordinates != nullptr) {
-            if (nativeContext->IsAnimatingContrastingColor()) {
-                nativeContext->AnimateContrastingColor();
-            }
-
-            nativeContext->DrawBlurredRects(vertTransformArray, texTransformArray,
-                                            rectsCoordinates, jrectsLength,
-                                            width, height);
-            env->ReleaseFloatArrayElements(jrectsCoordinates, rectsCoordinates,
-                                           JNI_ABORT);
+    GLfloat *rectsCoordinates =
+            jrectsLength == 0
+            ? nullptr
+            : env->GetFloatArrayElements(jrectsCoordinates, nullptr);
+    if (rectsCoordinates != nullptr) {
+        if (nativeContext->IsAnimatingContrastingColor()) {
+            nativeContext->AnimateContrastingColor();
         }
+
+        nativeContext->DrawBlurredRects(vertTransformArray, texTransformArray,
+                                        rectsCoordinates, jrectsLength,
+                                        (GLfloat) width, (GLfloat) height);
+        env->ReleaseFloatArrayElements(jrectsCoordinates, rectsCoordinates,
+                                       JNI_ABORT);
     }
 
     env->ReleaseFloatArrayElements(jvertTransformArray, vertTransformArray, JNI_ABORT);
