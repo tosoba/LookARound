@@ -157,8 +157,20 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         launchPlacesLoadingSnackbarUpdates()
     }
 
+    override fun onPause() {
+        binding.bottomNavigationView.visibility = View.GONE
+        binding.searchBarView.visibility = View.GONE
+        super.onPause()
+    }
+
     override fun onResume() {
         super.onResume()
+
+        if (latestARState == CameraARState.ENABLED || currentTopFragment !is CameraFragment) {
+            binding.bottomNavigationView.visibility = View.VISIBLE
+            binding.searchBarView.visibility = View.VISIBLE
+        }
+
         lifecycleScope.launchWhenResumed {
             signalTopFragmentChanged(true)
             viewModel.signal(MainSignal.BottomSheetStateChanged(bottomSheetBehavior.state))
