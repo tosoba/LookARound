@@ -101,7 +101,6 @@ class MapFragment :
             toggleSearchBarVisibilityOnTap()
 
             initCameraPosition(savedInstanceState)
-            currentMarker?.location?.let { addMarkerFor(it) }
         }
 
         mainViewModel
@@ -219,14 +218,12 @@ class MapFragment :
             showFABs()
             mapController.launch {
                 val (_, location) = marker
-                removeAllMarkers()
                 moveCameraPositionTo(
                     lat = location.latitude,
                     lng = location.longitude,
                     zoom = MARKER_FOCUSED_ZOOM,
                     durationMs = 250
                 )
-                addMarkerFor(location)
             }
         } else {
             hideFABs()
