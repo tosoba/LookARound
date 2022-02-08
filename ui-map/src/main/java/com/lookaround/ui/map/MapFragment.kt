@@ -258,12 +258,10 @@ class MapFragment :
 
     private fun MapController.addMarkerClusters(markers: SortedSet<Marker>) {
         val clusterItems = markers.map { DefaultClusterItem(it.location.latLon) }
-        clusterManager?.setItems(clusterItems)
-            ?: run {
-                clusterManager =
-                    ClusterManager<DefaultClusterItem>(requireContext(), this).apply {
-                        setItems(clusterItems)
-                    }
+        clusterManager?.cancel()
+        clusterManager =
+            ClusterManager<DefaultClusterItem>(requireContext(), this).apply {
+                setItems(clusterItems)
             }
     }
 
