@@ -43,8 +43,7 @@ class ClusterManager<T : ClusterItem>(
                     )
                 }
                 .filterNotNull()
-                .onEach { withContext(Dispatchers.Main) { renderer.render(it) } }
-                .launchIn(this)
+                .collect { withContext(Dispatchers.Main) { renderer.render(it) } }
         }
     }
 
