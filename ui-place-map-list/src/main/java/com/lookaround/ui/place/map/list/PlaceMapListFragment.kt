@@ -288,12 +288,12 @@ class PlaceMapListFragment :
             return
         }
 
-        getLocationBitmapFlow
-            .onEach { (location, deferred) ->
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            getLocationBitmapFlow.collect { (location, deferred) ->
                 val bitmap = captureBitmapAndCacheBitmap(location)
                 deferred.complete(bitmap)
             }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+        }
         mapReady.complete(Unit)
     }
 
