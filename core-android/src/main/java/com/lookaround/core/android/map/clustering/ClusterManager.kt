@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.*
 class ClusterManager<T : ClusterItem>(
     context: Context,
     private val mapController: MapController,
+    private val clusterItems: Iterable<T> = emptyList(),
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : MapChangeListener, CoroutineScope {
     private val supervisorJob = SupervisorJob()
@@ -23,35 +24,28 @@ class ClusterManager<T : ClusterItem>(
     private val renderer: ClusterRenderer<T> = ClusterRenderer(context, mapController)
 
     private val clusterTrigger = MutableSharedFlow<Unit>()
-    private val buildQuadTreeTrigger = MutableStateFlow<List<T>>(emptyList())
 
     init {
-        buildQuadTreeTrigger
-            .filterNot(Collection<*>::isEmpty)
-            .mapLatest { clusterItems ->
-                withContext(dispatcher) {
-                    val quadTree = QuadTree<T>(QUAD_TREE_BUCKET_CAPACITY)
-                    clusterItems.forEach(quadTree::insert)
-                    quadTree
-                }
-            }
-            .flatMapLatest { quadTree ->
-                clusterTrigger.onStart { emit(Unit) }.mapLatest {
+        launch {
+            val quadTree = QuadTree<T>(QUAD_TREE_BUCKET_CAPACITY)
+            clusterItems.forEach(quadTree::insert)
+
+            clusterTrigger
+                .onStart { emit(Unit) }
+                .mapLatest {
                     val boundingBox =
                         mapController.screenAreaToBoundingBox() ?: return@mapLatest null
-                    withContext(dispatcher) {
-                        getClusters(
-                            quadTree,
-                            boundingBox.max,
-                            boundingBox.min,
-                            mapController.cameraPosition.getZoom()
-                        )
-                    }
+                    getClusters(
+                        quadTree = quadTree,
+                        northEast = boundingBox.max,
+                        southWest = boundingBox.min,
+                        zoomLevel = mapController.cameraPosition.getZoom()
+                    )
                 }
-            }
-            .filterNotNull()
-            .onEach { withContext(Dispatchers.Main) { renderer.render(it) } }
-            .launchIn(this)
+                .filterNotNull()
+                .onEach { withContext(Dispatchers.Main) { renderer.render(it) } }
+                .launchIn(this)
+        }
     }
 
     var minClusterSize = DEFAULT_MIN_CLUSTER_SIZE
@@ -100,21 +94,8 @@ class ClusterManager<T : ClusterItem>(
         fun onClusterItemClick(clusterItem: T)
     }
 
-    /**
-     * Sets items to be clustered thus replacing the old ones.
-     *
-     * @param clusterItems the items to be clustered
-     */
-    fun setItems(clusterItems: List<T>) {
-        buildQuadTree(clusterItems)
-    }
-
     fun cancel() {
         supervisorJob.cancel()
-    }
-
-    private fun buildQuadTree(clusterItems: List<T>) {
-        launch { buildQuadTreeTrigger.emit(clusterItems) }
     }
 
     private fun getClusters(
