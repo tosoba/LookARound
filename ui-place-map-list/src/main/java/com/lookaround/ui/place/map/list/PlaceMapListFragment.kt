@@ -177,7 +177,7 @@ class PlaceMapListFragment :
                     val orientation = LocalConfiguration.current.orientation
                     LazyColumn(
                         state = lazyListState,
-                        modifier = Modifier.padding(horizontal = 10.dp),
+                        modifier = Modifier.padding(horizontal = 10.dp).fillMaxHeight(),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED) {

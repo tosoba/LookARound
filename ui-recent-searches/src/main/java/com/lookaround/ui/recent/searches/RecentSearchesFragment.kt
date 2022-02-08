@@ -108,7 +108,7 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                         (lazyListState.firstVisibleItemIndex != 0 ||
                             lazyListState.firstVisibleItemScrollOffset != 0) &&
                             bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED
-                    LazyColumn(state = lazyListState) {
+                    LazyColumn(state = lazyListState, modifier = Modifier.fillMaxHeight()) {
                         if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED) {
                             item { Spacer(Modifier.height(112.dp)) }
                         } else {

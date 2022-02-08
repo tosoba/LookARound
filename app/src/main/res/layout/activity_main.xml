@@ -21,7 +21,7 @@
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/bottom_sheet_fragment_container_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:paddingBottom="56dp"
             android:visibility="gone"
             app:behavior_hideable="true"

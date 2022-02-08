@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
@@ -95,7 +96,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                         (lazyListState.firstVisibleItemIndex != 0 ||
                             lazyListState.firstVisibleItemScrollOffset != 0) &&
                             bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED
-                    LazyColumn(state = lazyListState) {
+                    LazyColumn(state = lazyListState, modifier = Modifier.fillMaxHeight()) {
                         if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED) {
                             item { Spacer(Modifier.height(112.dp)) }
                         } else {
