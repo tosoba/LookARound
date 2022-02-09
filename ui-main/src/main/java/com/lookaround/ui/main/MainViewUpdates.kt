@@ -22,7 +22,7 @@ val MainViewModel.locationUpdateFailureUpdates: Flow<Unit>
 @FlowPreview
 @ExperimentalCoroutinesApi
 val MainViewModel.placesBottomNavItemVisibilityUpdates: Flow<Boolean>
-    get() = states.map { it.markers is WithValue }.distinctUntilChanged()
+    get() = states.map { it.markers.hasValue }.distinctUntilChanged()
 
 @FlowPreview
 @ExperimentalCoroutinesApi

@@ -434,7 +434,7 @@ class CameraFragment :
         permissionsViewsGroup.visibility = View.GONE
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.GONE
-        showARViews(showRadar = mainViewModel.state.markers is WithValue)
+        showARViews(showRadar = mainViewModel.state.markers.hasValue)
         openGLRenderer.markerRectsDisabled = false
         cameraMarkerRenderer.disabled = false
         radarMarkerRenderer.disabled = false

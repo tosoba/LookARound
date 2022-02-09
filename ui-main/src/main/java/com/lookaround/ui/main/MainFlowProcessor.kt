@@ -66,6 +66,38 @@ constructor(
         savedStateHandle[MainState::class.java.simpleName] = nextState
     }
 
+    private val locationStateUpdatesFlow: Flow<(MainState) -> MainState>
+        get() =
+            locationDataFlow(LOCATION_UPDATES_INTERVAL_MILLIS)
+                .distinctUntilChangedBy { it::class }
+                .transformLatest {
+                    when (it) {
+                        is LocationDataDTO.Failure -> {
+                            if (!isLocationAvailable()) {
+                                emit(LocationDisabledUpdate)
+                                do {
+                                    delay(LOCATION_UPDATES_INTERVAL_MILLIS)
+                                } while (!isLocationAvailable())
+                                emit(LoadingLocationUpdate)
+                            } else {
+                                emit(FailedToUpdateLocationUpdate)
+                            }
+                        }
+                        is LocationDataDTO.Success -> {
+                            emit(
+                                LocationLoadedUpdate(
+                                    LocationFactory.create(
+                                        latitude = it.lat,
+                                        longitude = it.lng,
+                                        altitude = it.alt
+                                    )
+                                )
+                            )
+                        }
+                    }
+                }
+                .onStart { if (!isLocationAvailable()) emit(LocationDisabledUpdate) }
+
     private fun Flow<MainIntent.GetPlacesOfType>.placesOfTypeAroundUpdates(
         currentState: () -> MainState,
         signal: suspend (MainSignal) -> Unit
@@ -105,38 +137,6 @@ constructor(
                     signal(MainSignal.PlacesLoadingFailed(throwable))
                 }
             }
-
-    private val locationStateUpdatesFlow: Flow<(MainState) -> MainState>
-        get() =
-            locationDataFlow(LOCATION_UPDATES_INTERVAL_MILLIS)
-                .distinctUntilChangedBy { it::class }
-                .transformLatest {
-                    when (it) {
-                        is LocationDataDTO.Failure -> {
-                            if (!isLocationAvailable()) {
-                                emit(LocationDisabledUpdate)
-                                do {
-                                    delay(LOCATION_UPDATES_INTERVAL_MILLIS)
-                                } while (!isLocationAvailable())
-                                emit(LoadingLocationUpdate)
-                            } else {
-                                emit(FailedToUpdateLocationUpdate)
-                            }
-                        }
-                        is LocationDataDTO.Success -> {
-                            emit(
-                                LocationLoadedUpdate(
-                                    LocationFactory.create(
-                                        latitude = it.lat,
-                                        longitude = it.lng,
-                                        altitude = it.alt
-                                    )
-                                )
-                            )
-                        }
-                    }
-                }
-                .onStart { if (!isLocationAvailable()) emit(LocationDisabledUpdate) }
 
     private fun Flow<MainIntent.SearchQueryChanged>.autocompleteSearchUpdates(
         currentState: () -> MainState,

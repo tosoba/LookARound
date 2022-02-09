@@ -174,7 +174,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
 
         if (latestARState == CameraARState.ENABLED || currentTopFragment !is CameraFragment) {
             binding.bottomAppBar.visibility = View.VISIBLE
-            if (viewModel.state.markers !is WithValue) {
+            if (!viewModel.state.markers.hasValue) {
                 binding.nearMeFab.visibility = View.VISIBLE
             }
             binding.searchBarView.visibility = View.VISIBLE
