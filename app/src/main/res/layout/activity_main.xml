@@ -56,7 +56,9 @@
             android:contentDescription="@string/app_name"
             android:src="@drawable/ic_baseline_near_me_24"
             android:visibility="gone"
-            app:layout_anchor="@id/bottom_app_bar" />
+            android:layout_gravity="center_horizontal|bottom"
+            android:layout_marginBottom="28dp"
+            android:layout_marginHorizontal="15dp"/>
 
         <androidx.compose.ui.platform.ComposeView
             android:id="@+id/search_bar_view"

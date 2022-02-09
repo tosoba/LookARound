@@ -15,13 +15,13 @@ import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.iterator
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
-import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
@@ -417,10 +417,17 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     private fun BottomNavigationView.updateBottomAppBarFabAlignment() {
-        if (menu.iterator().asSequence().filter(MenuItem::isVisible).count() == 1) {
-            binding.bottomAppBar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_END
-        } else {
-            binding.bottomAppBar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
+        binding.nearMeFab.hide()
+        val params = binding.nearMeFab.layoutParams as CoordinatorLayout.LayoutParams
+        params.gravity =
+            if (menu.iterator().asSequence().filter(MenuItem::isVisible).count() == 1) {
+                Gravity.BOTTOM or Gravity.RIGHT
+            } else {
+                Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            }
+        binding.nearMeFab.layoutParams = params
+        if (latestARState == CameraARState.ENABLED && !viewModel.state.markers.hasValue) {
+            binding.nearMeFab.show()
         }
     }
 

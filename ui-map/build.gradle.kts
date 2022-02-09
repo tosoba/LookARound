@@ -69,7 +69,7 @@ dependencies {
 
     implementation("androidx.appcompat:appcompat:1.4.0-rc01")
     implementation("androidx.constraintlayout:constraintlayout:2.1.1")
-    implementation("com.google.android.material:material:1.4.0")
+    implementation("com.google.android.material:material:1.5.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
     implementation("io.github.hokofly:hoko-blur:1.3.7")

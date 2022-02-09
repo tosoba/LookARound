@@ -17,6 +17,9 @@ sealed interface Loadable<out T : Parcelable> : Parcelable {
 
 inline fun <reified E> Loadable<*>.isFailedWith(): Boolean = (this as? Failed)?.error is E
 
+val <T : Parcelable> Loadable<T>.hasValue: Boolean
+    get() = this is WithValue<T>
+
 sealed interface WithValue<T : Parcelable> : Loadable<T> {
     val value: T
 }

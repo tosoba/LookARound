@@ -66,7 +66,7 @@ dependencies {
     implementation(kotlin("stdlib", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
     implementation("androidx.appcompat:appcompat:1.4.0-rc01")
     implementation("androidx.constraintlayout:constraintlayout:2.1.1")
-    implementation("com.google.android.material:material:1.4.0")
+    implementation("com.google.android.material:material:1.5.0")
     implementation("com.google.accompanist:accompanist-insets:0.20.1")
     implementation("com.google.accompanist:accompanist-coil:0.15.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")

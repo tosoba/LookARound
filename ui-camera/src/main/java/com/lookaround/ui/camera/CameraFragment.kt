@@ -221,7 +221,7 @@ class CameraFragment :
                     hideARViews()
                 } else {
                     changeRadarViewTopGuideline(View.VISIBLE)
-                    showARViews(showRadar = mainViewModel.state.markers is WithValue)
+                    showARViews(showRadar = mainViewModel.state.markers.hasValue)
                 }
             }
         }

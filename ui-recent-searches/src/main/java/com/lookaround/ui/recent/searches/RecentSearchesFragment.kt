@@ -17,10 +17,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -82,11 +79,26 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                 .filterIsInstance<WithValue<ParcelableList<RecentSearchModel>>>()
                 .map(WithValue<ParcelableList<RecentSearchModel>>::value::get)
                 .distinctUntilChanged()
+        val emptyRecentSearchesFlow =
+            recentSearchesViewModel
+                .mapStates(RecentSearchesState::searches)
+                .map { loadable ->
+                    loadable is WithoutValue ||
+                        (loadable is WithValue<ParcelableList<RecentSearchModel>> &&
+                            loadable.value.isEmpty())
+                }
+                .distinctUntilChanged()
 
         binding.recentSearchesList.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
                     val scope = rememberCoroutineScope()
+
+                    val emptyRecentSearches =
+                        emptyRecentSearchesFlow.collectAsState(initial = false)
+                    if (emptyRecentSearches.value) {
+                        LaunchedEffect(true) { mainViewModel.signal(MainSignal.HideBottomSheet) }
+                    }
 
                     val bottomSheetState =
                         bottomSheetSignalsFlow.collectAsState(
