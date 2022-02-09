@@ -3,6 +3,7 @@ package com.lookaround
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.Gravity
+import android.view.MenuItem
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -14,11 +15,14 @@ import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
+import androidx.core.view.iterator
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.android.material.bottomappbar.BottomAppBar
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.snackbar.BaseTransientBottomBar
@@ -34,8 +38,8 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
-import com.lookaround.ui.place.map.list.PlaceMapListFragment
 import com.lookaround.ui.place.map.list.PlaceMapListActionsHandler
+import com.lookaround.ui.place.map.list.PlaceMapListFragment
 import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
 import com.lookaround.ui.search.composable.SearchBar
@@ -140,6 +144,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         initSearch()
         initBottomSheet()
         initBottomNavigationView()
+        initNearMeFab()
 
         viewModel.onEachSignal<MainSignal.ARLoading> { onARLoading() }.launchIn(lifecycleScope)
         viewModel.onEachSignal<MainSignal.AREnabled> { onAREnabled() }.launchIn(lifecycleScope)
@@ -158,7 +163,8 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     override fun onPause() {
-        binding.bottomNavigationView.visibility = View.GONE
+        binding.bottomAppBar.visibility = View.GONE
+        binding.nearMeFab.visibility = View.GONE
         binding.searchBarView.visibility = View.GONE
         super.onPause()
     }
@@ -167,7 +173,10 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         super.onResume()
 
         if (latestARState == CameraARState.ENABLED || currentTopFragment !is CameraFragment) {
-            binding.bottomNavigationView.visibility = View.VISIBLE
+            binding.bottomAppBar.visibility = View.VISIBLE
+            if (viewModel.state.markers !is WithValue) {
+                binding.nearMeFab.visibility = View.VISIBLE
+            }
             binding.searchBarView.visibility = View.VISIBLE
         }
 
@@ -210,7 +219,8 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         if (currentTopFragment !is CameraFragment) return
         latestARState = CameraARState.LOADING
         binding.searchBarView.visibility = View.GONE
-        binding.bottomNavigationView.visibility = View.GONE
+        binding.bottomAppBar.visibility = View.GONE
+        binding.nearMeFab.visibility = View.GONE
         binding.bottomSheetFragmentContainerView.visibility = View.GONE
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
@@ -218,7 +228,10 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     private fun onAREnabled() {
         latestARState = CameraARState.ENABLED
         binding.searchBarView.visibility = View.VISIBLE
-        binding.bottomNavigationView.visibility = View.VISIBLE
+        binding.bottomAppBar.visibility = View.VISIBLE
+        if (viewModel.state.markers !is WithValue) {
+            binding.nearMeFab.visibility = View.VISIBLE
+        }
         binding.bottomSheetFragmentContainerView.visibility = View.VISIBLE
         bottomSheetBehavior.state = viewModel.state.lastLiveBottomSheetState
     }
@@ -234,7 +247,8 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         latestARState = CameraARState.DISABLED
 
         binding.searchBarView.visibility = View.GONE
-        binding.bottomNavigationView.visibility = View.GONE
+        binding.bottomAppBar.visibility = View.GONE
+        binding.nearMeFab.visibility = View.GONE
         binding.bottomSheetFragmentContainerView.visibility = View.GONE
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
@@ -384,18 +398,40 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
 
             viewModel
                 .placesBottomNavItemVisibilityUpdates
-                .onEach { isVisible -> menu.findItem(R.id.action_place_list).isVisible = isVisible }
+                .onEach { isVisible ->
+                    menu.findItem(R.id.action_place_list).isVisible = isVisible
+                    updateBottomAppBarFabAlignment()
+                }
                 .launchIn(lifecycleScope)
 
             viewModel
                 .recentSearchesBottomNavItemVisibilityUpdates
                 .onEach { isVisible ->
                     menu.findItem(R.id.action_recent_searches).isVisible = isVisible
+                    updateBottomAppBarFabAlignment()
                 }
                 .launchIn(lifecycleScope)
 
             if (currentTopFragment !is CameraFragment) visibility = View.VISIBLE
         }
+    }
+
+    private fun BottomNavigationView.updateBottomAppBarFabAlignment() {
+        if (menu.iterator().asSequence().filter(MenuItem::isVisible).count() == 1) {
+            binding.bottomAppBar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_END
+        } else {
+            binding.bottomAppBar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
+        }
+    }
+
+    private fun initNearMeFab() {
+        viewModel
+            .nearMeFabVisibilityUpdates
+            .filter { latestARState == CameraARState.ENABLED }
+            .onEach { visible ->
+                binding.nearMeFab.fadeSetVisibility(if (visible) View.VISIBLE else View.GONE)
+            }
+            .launchIn(lifecycleScope)
     }
 
     private fun onBottomSheetStateChanged(@BottomSheetBehavior.State sheetState: Int) {

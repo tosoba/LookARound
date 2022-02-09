@@ -1,8 +1,10 @@
 package com.lookaround.ui.main
 
 import android.location.Location
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.model.*
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -40,3 +42,18 @@ val MainViewModel.locationReadyUpdates: Flow<Location>
 @ExperimentalCoroutinesApi
 val MainViewModel.markerUpdates: Flow<Loadable<ParcelableSortedSet<Marker>>>
     get() = mapStates(MainState::markers).distinctUntilChanged()
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+val MainViewModel.nearMeFabVisibilityUpdates: Flow<Boolean>
+    get() =
+        combine(
+                filterSignals(MainSignal.BottomSheetStateChanged::state),
+                states.map { it.markers is WithoutValue }
+            ) { sheetState, noMarkers ->
+                noMarkers &&
+                    sheetState != BottomSheetBehavior.STATE_EXPANDED &&
+                    sheetState != BottomSheetBehavior.STATE_DRAGGING &&
+                    sheetState != BottomSheetBehavior.STATE_SETTLING
+            }
+            .distinctUntilChanged()

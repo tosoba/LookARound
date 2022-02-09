@@ -28,16 +28,35 @@
             app:behavior_skipCollapsed="true"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" />
 
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottom_navigation_view"
+        <com.google.android.material.bottomappbar.BottomAppBar
+            android:id="@+id/bottom_app_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:background="@android:color/transparent"
+            android:backgroundTint="@android:color/transparent"
             android:visibility="gone"
-            app:elevation="0dp"
-            app:itemHorizontalTranslationEnabled="false"
-            app:menu="@menu/main_bottom_nav_menu" />
+            app:elevation="0dp">
+
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/bottom_navigation_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="bottom"
+                android:background="@android:color/transparent"
+                app:elevation="0dp"
+                app:itemHorizontalTranslationEnabled="false"
+                app:menu="@menu/main_bottom_nav_menu" />
+
+        </com.google.android.material.bottomappbar.BottomAppBar>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/near_me_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_baseline_near_me_24"
+            android:visibility="gone"
+            app:layout_anchor="@id/bottom_app_bar" />
 
         <androidx.compose.ui.platform.ComposeView
             android:id="@+id/search_bar_view"
