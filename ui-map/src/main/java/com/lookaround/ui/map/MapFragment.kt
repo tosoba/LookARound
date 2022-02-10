@@ -28,6 +28,7 @@ import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.model.WithoutValue
+import com.lookaround.core.android.model.hasNoValue
 import com.lookaround.core.android.view.BlurAnimator
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
@@ -105,7 +106,7 @@ class MapFragment :
 
         mainViewModel
             .states
-            .filter { it.markers is WithoutValue }
+            .filter { it.markers.hasNoValue }
             .map(MainState::locationState::get)
             .filterIsInstance<WithValue<Location>>()
             .onEach { location ->

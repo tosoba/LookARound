@@ -49,7 +49,7 @@ val MainViewModel.nearMeFabVisibilityUpdates: Flow<Boolean>
     get() =
         combine(
                 filterSignals(MainSignal.BottomSheetStateChanged::state),
-                states.map { it.markers is WithoutValue }
+                states.map { it.markers.hasNoValue }
             ) { sheetState, noMarkers ->
                 noMarkers &&
                     sheetState != BottomSheetBehavior.STATE_EXPANDED &&

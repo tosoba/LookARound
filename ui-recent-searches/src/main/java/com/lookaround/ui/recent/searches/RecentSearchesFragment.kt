@@ -81,12 +81,8 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                 .distinctUntilChanged()
         val emptyRecentSearchesFlow =
             recentSearchesViewModel
-                .mapStates(RecentSearchesState::searches)
-                .map { loadable ->
-                    loadable is WithoutValue ||
-                        (loadable is WithValue<ParcelableList<RecentSearchModel>> &&
-                            loadable.value.isEmpty())
-                }
+                .states
+                .map { it.searches.hasNoValueOrEmpty() }
                 .distinctUntilChanged()
 
         binding.recentSearchesList.setContent {

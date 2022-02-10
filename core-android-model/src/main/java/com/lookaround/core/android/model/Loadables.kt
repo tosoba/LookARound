@@ -20,6 +20,18 @@ inline fun <reified E> Loadable<*>.isFailedWith(): Boolean = (this as? Failed)?.
 val <T : Parcelable> Loadable<T>.hasValue: Boolean
     get() = this is WithValue<T>
 
+val <T : Parcelable> Loadable<T>.hasNoValue: Boolean
+    get() = this is WithoutValue
+
+inline fun <reified T : Parcelable> Loadable<T>.hasNoValueOrEmpty(): Boolean =
+    when (this) {
+        is WithoutValue -> true
+        is WithValue<T> -> {
+            val v = value
+            if (v is Collection<*>) v.isNullOrEmpty() else false
+        }
+    }
+
 sealed interface WithValue<T : Parcelable> : Loadable<T> {
     val value: T
 }

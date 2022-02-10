@@ -160,23 +160,18 @@ constructor(
                 }
 
                 emit(LoadingSearchResultsUpdate)
+
                 try {
+                    fun Double.roundTo3DecimalPlaces(): Double = roundToDecimalPlaces(3).toDouble()
+
                     val places =
                         withTimeout(PLACES_LOADING_TIMEOUT_MILLIS) {
                             autocompleteSearch(
                                 query = query,
                                 priorityLat =
-                                    currentLocation
-                                        .value
-                                        .latitude
-                                        .roundToDecimalPlaces(3)
-                                        .toDouble(),
+                                    currentLocation.value.latitude.roundTo3DecimalPlaces(),
                                 priorityLon =
-                                    currentLocation
-                                        .value
-                                        .longitude
-                                        .roundToDecimalPlaces(3)
-                                        .toDouble()
+                                    currentLocation.value.longitude.roundTo3DecimalPlaces()
                             )
                         }
                     if (places.isEmpty()) {
