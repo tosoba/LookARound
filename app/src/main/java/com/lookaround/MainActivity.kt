@@ -144,7 +144,10 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         setFullScreenWithTransparentBars()
 
         supportFragmentManager.addOnBackStackChangedListener {
-            lifecycleScope.launchWhenResumed { signalTopFragmentChanged(false) }
+            lifecycleScope.launchWhenResumed {
+                signalTopFragmentChanged(false)
+                viewModel.signal(MainSignal.BottomSheetStateChanged(bottomSheetBehavior.state))
+            }
             setSearchbarVisibility(View.VISIBLE)
         }
 
