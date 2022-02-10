@@ -87,6 +87,14 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
             }
         }
 
+    private val shouldUpdateLastLiveBottomSheetState: Boolean
+        get() =
+            viewsInteractionEnabled &&
+                bottomSheetBehavior.state != BottomSheetBehavior.STATE_SETTLING
+
+    private val viewsInteractionEnabled: Boolean
+        get() = currentTopFragment !is CameraFragment || latestARState == CameraARState.ENABLED
+
     private var placesStatusLoadingSnackbar: Snackbar? = null
 
     private val onBottomNavItemSelectedListener by
@@ -108,7 +116,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                         else -> throw IllegalArgumentException()
                     }
                 }
-                if (latestARState == CameraARState.ENABLED) {
+                if (viewsInteractionEnabled) {
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
                 }
 
@@ -151,7 +159,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         viewModel.onEachSignal<MainSignal.ARDisabled> { onARDisabled() }.launchIn(lifecycleScope)
         viewModel
             .filterSignals<MainSignal.ToggleSearchBarVisibility>()
-            .filter { latestARState == CameraARState.ENABLED || currentTopFragment is MapFragment }
+            .filter { viewsInteractionEnabled }
             .onEach { (targetVisibility) -> setSearchbarVisibility(targetVisibility) }
             .launchIn(lifecycleScope)
         viewModel
@@ -172,7 +180,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     override fun onResume() {
         super.onResume()
 
-        if (latestARState == CameraARState.ENABLED || currentTopFragment !is CameraFragment) {
+        if (viewsInteractionEnabled) {
             binding.bottomAppBar.visibility = View.VISIBLE
             if (!viewModel.state.markers.hasValue) {
                 binding.nearMeFab.visibility = View.VISIBLE
@@ -237,9 +245,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     private fun onARDisabled() {
-        if (latestARState == CameraARState.ENABLED &&
-                bottomSheetBehavior.state != BottomSheetBehavior.STATE_SETTLING
-        ) {
+        if (shouldUpdateLastLiveBottomSheetState) {
             lifecycleScope.launch {
                 viewModel.intent(MainIntent.LiveBottomSheetStateChanged(bottomSheetBehavior.state))
             }
@@ -363,9 +369,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                     when (sheetState) {
                         BottomSheetBehavior.STATE_EXPANDED -> setSearchbarVisibility(View.GONE)
                         BottomSheetBehavior.STATE_HIDDEN -> {
-                            if (latestARState == CameraARState.ENABLED) {
-                                setSearchbarVisibility(View.VISIBLE)
-                            }
+                            if (viewsInteractionEnabled) setSearchbarVisibility(View.VISIBLE)
                             binding.bottomNavigationView.selectedItemId = R.id.action_unchecked
                         }
                     }
@@ -426,7 +430,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                 Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
             }
         binding.nearMeFab.layoutParams = params
-        if (latestARState == CameraARState.ENABLED && !viewModel.state.markers.hasValue) {
+        if (viewsInteractionEnabled && !viewModel.state.markers.hasValue) {
             binding.nearMeFab.show()
         }
     }
@@ -434,7 +438,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     private fun initNearMeFab() {
         viewModel
             .nearMeFabVisibilityUpdates
-            .filter { latestARState == CameraARState.ENABLED }
+            .filter { viewsInteractionEnabled }
             .onEach { visible ->
                 binding.nearMeFab.fadeSetVisibility(if (visible) View.VISIBLE else View.GONE)
             }
@@ -442,9 +446,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     private fun onBottomSheetStateChanged(@BottomSheetBehavior.State sheetState: Int) {
-        if (latestARState == CameraARState.ENABLED &&
-                sheetState != BottomSheetBehavior.STATE_SETTLING
-        ) {
+        if (sheetState != BottomSheetBehavior.STATE_SETTLING && viewsInteractionEnabled) {
             lifecycleScope.launch {
                 viewModel.intent(MainIntent.LiveBottomSheetStateChanged(sheetState))
             }
