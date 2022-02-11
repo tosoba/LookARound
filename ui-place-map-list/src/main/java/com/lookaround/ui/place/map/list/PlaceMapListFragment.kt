@@ -55,7 +55,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import uk.co.senab.bitmapcache.CacheableBitmapDrawable
@@ -106,11 +105,11 @@ class PlaceMapListFragment :
         val mapLayoutParams = getMapLayoutParams()
         binding.map.layoutParams = mapLayoutParams
 
-        val reloadBitmapTrigger = Channel<Unit>()
+        val reloadBitmapTrigger = MutableSharedFlow<Unit>()
         binding.reloadMapsFab.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 withContext(Dispatchers.IO) { mapCaptureCache.clear() }
-                reloadBitmapTrigger.send(Unit)
+                reloadBitmapTrigger.emit(Unit)
             }
         }
         binding.showMapFab.setOnClickListener {
@@ -212,7 +211,7 @@ class PlaceMapListFragment :
                                         point = point,
                                         userLocationFlow = mainViewModel.locationReadyUpdates,
                                         getPlaceBitmap = this@PlaceMapListFragment::getBitmapFor,
-                                        reloadBitmapTrigger = reloadBitmapTrigger.receiveAsFlow(),
+                                        reloadBitmapTrigger = reloadBitmapTrigger,
                                         bitmapDimension =
                                             requireContext()
                                                 .pxToDp(mapLayoutParams.width.toFloat())
