@@ -29,9 +29,7 @@ interface SystemUiController {
     )
 }
 
-fun SystemUiController(window: Window): SystemUiController {
-    return SystemUiControllerImpl(window)
-}
+fun SystemUiController(window: Window): SystemUiController = SystemUiControllerImpl(window)
 
 /**
  * A helper class for setting the navigation and status bar colors for a [Window], gracefully
@@ -55,22 +53,19 @@ private class SystemUiControllerImpl(private val window: Window) : SystemUiContr
         transformColorForLightContent: (Color) -> Color
     ) {
         val statusBarColor =
-            when {
-                darkIcons && Build.VERSION.SDK_INT < 23 -> transformColorForLightContent(color)
-                else -> color
-            }
+            if (darkIcons && Build.VERSION.SDK_INT < 23) transformColorForLightContent(color)
+            else color
         window.statusBarColor = statusBarColor.toArgb()
 
         if (Build.VERSION.SDK_INT >= 23) {
             @Suppress("DEPRECATION")
-            if (darkIcons) {
-                window.decorView.systemUiVisibility =
+            window.decorView.systemUiVisibility =
+                if (darkIcons) {
                     window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            } else {
-                window.decorView.systemUiVisibility =
+                } else {
                     window.decorView.systemUiVisibility and
                         View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
-            }
+                }
         }
     }
 
@@ -101,14 +96,13 @@ private class SystemUiControllerImpl(private val window: Window) : SystemUiContr
 
         if (Build.VERSION.SDK_INT >= 26) {
             @Suppress("DEPRECATION")
-            if (darkIcons) {
-                window.decorView.systemUiVisibility =
+            window.decorView.systemUiVisibility =
+                if (darkIcons) {
                     window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-            } else {
-                window.decorView.systemUiVisibility =
+                } else {
                     window.decorView.systemUiVisibility and
                         View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
-            }
+                }
         }
     }
 

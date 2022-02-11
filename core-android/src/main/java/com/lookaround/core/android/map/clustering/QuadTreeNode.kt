@@ -16,9 +16,7 @@ internal class QuadTreeNode<T : QuadTreePoint>(
 
     fun insert(point: T): Boolean {
         // Ignore objects that do not belong in this quad tree.
-        if (!bounds.contains(point.latitude, point.longitude)) {
-            return false
-        }
+        if (!bounds.contains(point.latitude, point.longitude)) return false
 
         // If there is space in this quad tree, add the object here.
         if (points.size < bucketSize) {

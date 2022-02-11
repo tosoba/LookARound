@@ -341,8 +341,7 @@ class CameraFragment :
                 val pageGroupGuidelineLayoutParams =
                     arCameraViewsGroupBottomGuideline.layoutParams as ConstraintLayout.LayoutParams
                 pageGroupGuidelineLayoutParams.guideEnd =
-                    if (isShowing) requireContext().dpToPx(56f + 48f).toInt()
-                    else requireContext().dpToPx(56f).toInt()
+                    requireContext().dpToPx(if (isShowing) 56f + 48f else 56f).toInt()
                 arCameraViewsGroupBottomGuideline.layoutParams = pageGroupGuidelineLayoutParams
             }
         }
@@ -553,7 +552,7 @@ class CameraFragment :
     }
 
     private val Orientation.pitchWithinLimit: Boolean
-        get() = pitch >= -PITCH_LIMIT_RADIANS && pitch <= PITCH_LIMIT_RADIANS
+        get() = pitch in -PITCH_LIMIT_RADIANS..PITCH_LIMIT_RADIANS
 
     private fun signalCameraTouch() {
         viewLifecycleOwner.lifecycleScope.launch {
