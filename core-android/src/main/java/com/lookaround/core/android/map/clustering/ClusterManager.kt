@@ -1,6 +1,8 @@
 package com.lookaround.core.android.map.clustering
 
 import android.content.Context
+import com.lookaround.core.android.ext.MarkerPickResult
+import com.lookaround.core.android.ext.TangramMarkerPickResult
 import com.lookaround.core.android.ext.screenAreaToBoundingBox
 import com.lookaround.core.android.map.model.LatLon
 import com.mapzen.tangram.MapChangeListener
@@ -53,44 +55,14 @@ class ClusterManager<T : ClusterItem>(
             field = value
         }
 
-    var callbacks: Callbacks<T>?
-        get() = renderer.callbacks
-        set(value) {
-            renderer.callbacks = value
-        }
+    fun onMarkerPickComplete(markerPickResult: TangramMarkerPickResult?): MarkerPickResult? =
+        renderer.onMarkerPickComplete(markerPickResult)
 
     override fun onViewComplete() = Unit
     override fun onRegionWillChange(animated: Boolean) = Unit
     override fun onRegionIsChanging() = Unit
     override fun onRegionDidChange(animated: Boolean) {
         launch { clusterTrigger.emit(Unit) }
-    }
-
-    /**
-     * Defines signatures for methods that are called when a cluster or a cluster item is clicked.
-     *
-     * @param <T> the type of an item managed by [ClusterManager]. </T>
-     */
-    interface Callbacks<T : ClusterItem> {
-        /**
-         * Called when a marker representing a cluster has been clicked.
-         *
-         * @param cluster the cluster that has been clicked
-         * @return `true` if the listener has consumed the event (i.e., the default behavior should
-         * not occur); `false` otherwise (i.e., the default behavior should occur). The default
-         * behavior is for the camera to move to the marker and an info window to appear.
-         */
-        fun onClusterClick(cluster: Cluster<T>)
-
-        /**
-         * Called when a marker representing a cluster item has been clicked.
-         *
-         * @param clusterItem the cluster item that has been clicked
-         * @return `true` if the listener has consumed the event (i.e., the default behavior should
-         * not occur); `false` otherwise (i.e., the default behavior should occur). The default
-         * behavior is for the camera to move to the marker and an info window to appear.
-         */
-        fun onClusterItemClick(clusterItem: T)
     }
 
     fun cancel() {

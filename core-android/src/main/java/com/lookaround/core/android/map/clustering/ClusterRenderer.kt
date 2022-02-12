@@ -3,32 +3,37 @@ package com.lookaround.core.android.map.clustering
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
-import com.mapzen.tangram.*
+import com.lookaround.core.android.ext.MarkerPickResult
+import com.lookaround.core.android.ext.TangramMarkerPickResult
+import com.lookaround.core.android.ext.latLon
+import com.lookaround.core.android.map.model.LatLon
+import com.mapzen.tangram.LngLat
+import com.mapzen.tangram.MapController
+import com.mapzen.tangram.Marker
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import timber.log.Timber
 
 @ExperimentalCoroutinesApi
 internal class ClusterRenderer<T : ClusterItem>(
     private val context: Context,
     private val mapController: MapController,
     private val iconGenerator: IconGenerator<T> = DefaultIconGenerator(context)
-) : MarkerPickListener {
+) {
     private val clusters: MutableList<Cluster<T>> = ArrayList()
     private val markers: MutableMap<Cluster<T>, Marker> = HashMap()
-    var callbacks: ClusterManager.Callbacks<T>? = null
 
-    init {
-        mapController.setMarkerPickListener(this)
-    }
-
-    override fun onMarkerPickComplete(markerPickResult: MarkerPickResult?) {
-        if (markerPickResult == null || markerPickResult.marker == null) return
-
-        @Suppress("UNCHECKED_CAST")
-        val cluster = markerPickResult.marker.userData as? Cluster<T> ?: return
+    fun onMarkerPickComplete(markerPickResult: TangramMarkerPickResult?): MarkerPickResult? {
+        val marker = markerPickResult?.marker ?: return null
+        @Suppress("UNCHECKED_CAST") val cluster = marker.userData as? Cluster<T> ?: return null
         val clusterItems = cluster.items
-        callbacks?.let {
-            if (clusterItems.size > 1) it.onClusterClick(cluster)
-            else it.onClusterItemClick(clusterItems[0])
+        return if (clusterItems.size > 1) {
+            MarkerPickResult(marker, markerPickResult.coordinates.latLon, true)
+        } else {
+            MarkerPickResult(
+                marker,
+                LatLon(clusterItems[0].latitude, clusterItems[0].longitude),
+                false
+            )
         }
     }
 
@@ -50,7 +55,11 @@ internal class ClusterRenderer<T : ClusterItem>(
         for (clusterToRemove in clustersToRemove) {
             val markerToRemove = markers[clusterToRemove] ?: continue
             mapController.removeMarker(markerToRemove)
-            markers.remove(clusterToRemove)
+            try {
+                markers.remove(clusterToRemove)
+            } catch (throwable: Throwable) {
+                Timber.e(throwable)
+            }
         }
 
         for (clusterToAdd in clustersToAdd) {
@@ -58,7 +67,7 @@ internal class ClusterRenderer<T : ClusterItem>(
                 mapController.addMarker().apply {
                     setPoint(LngLat(clusterToAdd.longitude, clusterToAdd.latitude))
                     setStylingFromString(
-                        "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue}"
+                        "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue, interactive: true}"
                     )
                     val markerIcon = getMarkerIcon(clusterToAdd)
                     setDrawable(BitmapDrawable(context.resources, markerIcon))

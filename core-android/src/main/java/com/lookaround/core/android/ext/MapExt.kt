@@ -142,16 +142,15 @@ fun MapController.screenPositionToLatLon(screenPosition: PointF): LatLon? =
 fun MapController.addMarkerFor(
     location: Location,
     stylingString: String =
-        "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue}",
+        "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue, interactive: true}",
     @DrawableRes drawableId: Int = R.drawable.ic_map_marker
-) {
+): Marker =
     addMarker().apply {
         setPoint(LngLat(location.longitude, location.latitude))
         isVisible = true
         setStylingFromString(stylingString)
         setDrawable(drawableId)
     }
-}
 
 val LngLat.latLon: LatLon
     get() = LatLon(latitude, longitude)
@@ -194,3 +193,9 @@ fun normalizeLongitude(lon: Double): Double {
     if (result > 180) result -= 360 // lon is now -180..180
     return result
 }
+
+class MarkerPickResult(val marker: Marker, val position: LatLon, val isCluster: Boolean = false)
+
+typealias TangramMarker = Marker
+
+typealias TangramMarkerPickResult = com.mapzen.tangram.MarkerPickResult

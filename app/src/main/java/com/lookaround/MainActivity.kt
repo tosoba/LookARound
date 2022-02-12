@@ -211,7 +211,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     override fun onPlaceMapItemClick(marker: Marker) {
         if (!lifecycle.isResumed) return
         when (val topFragment = currentTopFragment) {
-            is MapFragment -> topFragment.updateMarker(marker)
+            is MapFragment -> topFragment.updateCurrentMarker(marker)
             else -> {
                 fragmentTransaction {
                     setSlideInFromBottom()

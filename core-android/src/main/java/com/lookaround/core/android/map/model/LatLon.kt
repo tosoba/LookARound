@@ -1,6 +1,10 @@
 package com.lookaround.core.android.map.model
 
-data class LatLon(val latitude: Double, val longitude: Double) {
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+data class LatLon(val latitude: Double, val longitude: Double) : Parcelable {
     init {
         checkValidity(latitude, longitude)
     }

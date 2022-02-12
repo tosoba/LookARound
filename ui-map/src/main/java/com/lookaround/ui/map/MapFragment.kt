@@ -19,8 +19,10 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.hoko.blur.HokoBlur
 import com.hoko.blur.processor.BlurProcessor
 import com.lookaround.core.android.ext.*
+import com.lookaround.core.android.ext.MarkerPickResult
 import com.lookaround.core.android.map.clustering.ClusterManager
 import com.lookaround.core.android.map.clustering.DefaultClusterItem
+import com.lookaround.core.android.map.model.LatLon
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
@@ -40,7 +42,10 @@ import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 import javax.inject.Inject
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -50,7 +55,10 @@ import timber.log.Timber
 @AndroidEntryPoint
 @WithFragmentBindings
 class MapFragment :
-    Fragment(R.layout.fragment_map), MapController.SceneLoadListener, MapChangeListener {
+    Fragment(R.layout.fragment_map),
+    MapController.SceneLoadListener,
+    MarkerPickListener,
+    MapChangeListener {
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
 
     private val mapSceneViewModel: MapSceneViewModel by viewModels()
@@ -62,10 +70,13 @@ class MapFragment :
         lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
 
     private val markerArgument: Marker? by nullableArgument(Arguments.MARKER.name)
-    private var currentMarker: Marker? = null
+    private var currentMarkerPosition: LatLon? = null
 
     private var blurAnimator: BlurAnimator? = null
     private var clusterManager: ClusterManager<DefaultClusterItem>? = null
+
+    private val markers = mutableMapOf<Long, TangramMarker>()
+    private val markerPickContinuations = ConcurrentLinkedQueue<Continuation<MarkerPickResult?>>()
 
     private val blurProcessor: BlurProcessor by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -79,8 +90,9 @@ class MapFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        currentMarker =
-            savedInstanceState?.getParcelable(SavedStateKeys.CURRENT_MARKER.name) ?: markerArgument
+        currentMarkerPosition =
+            savedInstanceState?.getParcelable(SavedStateKeys.CURRENT_MARKER_POSITION.name)
+                ?: markerArgument?.location?.latLon
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -95,11 +107,10 @@ class MapFragment :
         mapController.launch {
             setSceneLoadListener(this@MapFragment)
             setMapChangeListener(this@MapFragment)
-            loadScene(MapScene.WALKABOUT)
-
+            setMarkerPickListener(this@MapFragment)
+            setSingleTapResponder()
             zoomOnDoubleTap()
-            toggleSearchBarVisibilityOnTap()
-
+            loadScene(MapScene.WALKABOUT)
             initCameraPosition(savedInstanceState)
         }
 
@@ -114,7 +125,7 @@ class MapFragment :
                     moveCameraPositionTo(
                         lat = location.value.latitude,
                         lng = location.value.longitude,
-                        zoom = MARKER_FOCUSED_ZOOM
+                        zoom = LOCATION_FOCUSED_ZOOM
                     )
                 }
             }
@@ -140,7 +151,7 @@ class MapFragment :
                         moveCameraPositionTo(
                             lat = marker.location.latitude,
                             lng = marker.location.longitude,
-                            zoom = MARKER_FOCUSED_ZOOM
+                            zoom = LOCATION_FOCUSED_ZOOM
                         )
                         markers.forEach { addMarkerFor(it.location) }
                     }
@@ -183,7 +194,9 @@ class MapFragment :
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        currentMarker?.let { outState.putParcelable(SavedStateKeys.CURRENT_MARKER.name, it) }
+        currentMarkerPosition?.let {
+            outState.putParcelable(SavedStateKeys.CURRENT_MARKER_POSITION.name, it)
+        }
         mapController.launch { saveCameraPosition(outState) }
         blurAnimator?.saveInstanceState(outState)
     }
@@ -192,7 +205,7 @@ class MapFragment :
         if (view == null) return
 
         if (sceneError == null) {
-            if (currentMarker != null) showFABs() else hideFABs()
+            if (currentMarkerPosition != null) showFABs() else hideFABs()
 
             viewLifecycleOwner.lifecycleScope.launch {
                 mapSceneViewModel.intent(MapSceneIntent.SceneLoaded)
@@ -213,17 +226,42 @@ class MapFragment :
         if (!isRunningOnEmulator()) updateBlurBackground()
     }
 
-    fun updateMarker(marker: Marker?) {
-        currentMarker = marker
-        if (marker != null) {
+    override fun onMarkerPickComplete(result: TangramMarkerPickResult?) {
+        val markerPickResult =
+            clusterManager?.onMarkerPickComplete(result)
+                ?: result?.marker?.markerId?.let { markerId ->
+                    val marker = markers[markerId]
+                    if (marker != null) MarkerPickResult(marker, result.coordinates.latLon)
+                    else null
+                }
+        markerPickContinuations.poll()?.resume(markerPickResult)
+    }
+
+    private suspend fun pickMarker(posX: Float, posY: Float): MarkerPickResult? =
+            suspendCancellableCoroutine { continuation ->
+        markerPickContinuations.offer(continuation)
+        continuation.invokeOnCancellation { markerPickContinuations.remove(continuation) }
+        mapController.launch { pickMarker(posX, posY) }
+    }
+
+    fun updateCurrentMarker(marker: Marker?) {
+        updateCurrentMarkerPosition(position = marker?.location?.latLon)
+    }
+
+    private fun updateCurrentMarkerPosition(position: LatLon?) {
+        if (position != null) {
             showFABs()
+            if (currentMarkerPosition == position) return
+            currentMarkerPosition = position
             mapController.launch {
-                val (_, location) = marker
+                val currentZoom = cameraPosition.zoom
                 moveCameraPositionTo(
-                    lat = location.latitude,
-                    lng = location.longitude,
-                    zoom = MARKER_FOCUSED_ZOOM,
-                    durationMs = 250
+                    lat = position.latitude,
+                    lng = position.longitude,
+                    zoom =
+                        if (currentZoom > LOCATION_FOCUSED_ZOOM) currentZoom + 1f
+                        else LOCATION_FOCUSED_ZOOM,
+                    durationMs = CAMERA_POSITION_ANIMATION_DURATION_MS
                 )
             }
         } else {
@@ -235,12 +273,8 @@ class MapFragment :
         if (savedInstanceState != null) {
             restoreCameraPosition(savedInstanceState)
         } else {
-            currentMarker?.let { (_, location) ->
-                moveCameraPositionTo(
-                    lat = location.latitude,
-                    lng = location.longitude,
-                    zoom = MARKER_FOCUSED_ZOOM
-                )
+            currentMarkerPosition?.let { (latitude, longitude) ->
+                moveCameraPositionTo(lat = latitude, lng = longitude, zoom = LOCATION_FOCUSED_ZOOM)
             }
         }
     }
@@ -287,14 +321,30 @@ class MapFragment :
         binding.navigateFab.visibility = View.GONE
     }
 
-    private fun MapController.toggleSearchBarVisibilityOnTap() {
+    private fun MapController.setSingleTapResponder() {
         touchInput.setTapResponder(
             object : TouchInput.TapResponder {
                 override fun onSingleTapUp(x: Float, y: Float): Boolean = false
                 override fun onSingleTapConfirmed(x: Float, y: Float): Boolean {
-                    val targetVisibility = binding.visibilityToggleView.toggleVisibility()
                     viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                        mainViewModel.signal(MainSignal.ToggleSearchBarVisibility(targetVisibility))
+                        val pickResult = this@MapFragment.pickMarker(posX = x, posY = y)
+                        if (pickResult != null) {
+                            if (!pickResult.isCluster) {
+                                updateCurrentMarkerPosition(pickResult.position)
+                            } else {
+                                moveCameraPositionTo(
+                                    lat = pickResult.position.latitude,
+                                    lng = pickResult.position.longitude,
+                                    zoom = mapController.await().cameraPosition.zoom + 1f,
+                                    durationMs = CAMERA_POSITION_ANIMATION_DURATION_MS
+                                )
+                            }
+                        } else {
+                            val targetVisibility = binding.visibilityToggleView.toggleVisibility()
+                            mainViewModel.signal(
+                                MainSignal.ToggleSearchBarVisibility(targetVisibility)
+                            )
+                        }
                     }
                     return true
                 }
@@ -305,21 +355,22 @@ class MapFragment :
     private fun launchGoogleMapsForNavigation() {
         launchGoogleMapForCurrentMarker(
             failureMsgRes = R.string.unable_to_launch_google_maps_for_navigation
-        ) { "google.navigation:q=${location.latitude},${location.longitude}" }
+        ) { (latitude, longitude) -> "google.navigation:q=${latitude},${longitude}" }
     }
 
     private fun launchGoogleMapsForStreetView() {
         launchGoogleMapForCurrentMarker(failureMsgRes = R.string.unable_to_launch_street_view) {
-            "google.streetview:cbll=${location.latitude},${location.longitude}"
+            (latitude, longitude) ->
+            "google.streetview:cbll=${latitude},${longitude}"
         }
     }
 
     private fun launchGoogleMapForCurrentMarker(
         @StringRes failureMsgRes: Int,
-        uriString: Marker.() -> String
+        uriStringFor: (LatLon) -> String
     ) {
-        currentMarker?.let { marker ->
-            val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(marker.uriString()))
+        currentMarkerPosition?.let { position ->
+            val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(uriStringFor(position)))
             mapIntent.setPackage("com.google.android.apps.maps")
             try {
                 startActivity(mapIntent)
@@ -433,10 +484,11 @@ class MapFragment :
     }
 
     companion object {
-        private const val MARKER_FOCUSED_ZOOM = 15f
+        private const val LOCATION_FOCUSED_ZOOM = 15f
+        private const val CAMERA_POSITION_ANIMATION_DURATION_MS = 150
 
         enum class SavedStateKeys {
-            CURRENT_MARKER
+            CURRENT_MARKER_POSITION
         }
 
         enum class Arguments {
