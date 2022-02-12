@@ -49,9 +49,11 @@ val MainViewModel.nearMeFabVisibilityUpdates: Flow<Boolean>
     get() =
         combine(
                 filterSignals(MainSignal.BottomSheetStateChanged::state),
+                filterSignals(MainSignal.SnackbarStatusChanged::isShowing).onStart { emit(false) },
                 states.map { it.markers.hasNoValue }
-            ) { sheetState, noMarkers ->
+            ) { sheetState, isSnackbarShowing, noMarkers ->
                 noMarkers &&
+                    !isSnackbarShowing &&
                     sheetState != BottomSheetBehavior.STATE_EXPANDED &&
                     sheetState != BottomSheetBehavior.STATE_DRAGGING &&
                     sheetState != BottomSheetBehavior.STATE_SETTLING
