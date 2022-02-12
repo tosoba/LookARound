@@ -55,9 +55,8 @@ internal fun loadingStartedUpdates(
 ): Flow<Unit> =
     mainViewModel
         .mapStates(MainState::locationState)
-        .combine(cameraViewModel.mapStates(CameraState::previewState)) {
-            locationState,
-            previewState ->
+        .combine(cameraViewModel.mapStates(CameraState::previewState)) { locationState, previewState
+            ->
             locationState !is Failed && (locationState is Loading || previewState.isLoading)
         }
         .distinctUntilChanged()
@@ -80,7 +79,7 @@ internal fun arDisabledUpdates(
         locationState,
         previewState,
         (pitchWithinLimit),
-        (cameraObscuredByFragment),
+        (cameraObscuredByFragment, obscuredByBottomSheet),
         showingAnyMarkers ->
         CameraARDisabledViewUpdate(
             anyPermissionDenied =
@@ -88,7 +87,10 @@ internal fun arDisabledUpdates(
                     previewState is CameraPreviewState.PermissionDenied,
             locationDisabled = locationState.isFailedWith<LocationDisabledException>(),
             pitchOutsideRequiredLimit =
-                !pitchWithinLimit && !cameraObscuredByFragment && showingAnyMarkers,
+                !pitchWithinLimit &&
+                    !cameraObscuredByFragment &&
+                    !obscuredByBottomSheet &&
+                    showingAnyMarkers,
             cameraInitializationFailure = previewState is CameraPreviewState.InitializationFailure
         )
     }

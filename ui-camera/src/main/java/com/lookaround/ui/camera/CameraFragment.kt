@@ -119,7 +119,6 @@ class CameraFragment :
                     pitchOutsideLimit = pitchOutsideLimit,
                     initializationFailure = initializationFailure
                 )
-                latestARState = CameraARState.DISABLED
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
@@ -460,6 +459,7 @@ class CameraFragment :
         pitchOutsideLimitTextView.visibility =
             if (!anyPermissionDenied && !locationDisabled && pitchOutsideLimit) View.VISIBLE
             else View.GONE
+        latestARState = CameraARState.DISABLED
     }
 
     private fun FragmentCameraBinding.onMarkersDrawn(update: CameraMarkersDrawnViewUpdate) {
