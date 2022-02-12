@@ -13,7 +13,9 @@ import uk.co.senab.bitmapcache.BitmapLruCache
 import uk.co.senab.bitmapcache.CacheableBitmapDrawable
 
 @Singleton
-class MapCaptureCache @Inject constructor(@ApplicationContext private val context: Context) {
+class LocationBitmapCaptureCache
+@Inject
+constructor(@ApplicationContext private val context: Context) {
     private var cache: BitmapLruCache? = initCache(context)
 
     val isEnabled: Boolean
@@ -52,7 +54,7 @@ class MapCaptureCache @Inject constructor(@ApplicationContext private val contex
         }
 
     companion object {
-        private const val BITMAP_CACHE_DIR = "bitmap_cache"
+        private const val BITMAP_CACHE_DIR = "location_bitmap_cache"
         private const val LOG_TAG = "CACHE"
     }
 }

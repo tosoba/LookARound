@@ -30,7 +30,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.*
-import com.lookaround.core.android.map.MapCaptureCache
+import com.lookaround.core.android.map.LocationBitmapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
@@ -77,11 +77,11 @@ class PlaceMapListFragment :
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by
         lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
-
-    @Inject internal lateinit var mapCaptureCache: MapCaptureCache
-    private val getLocationBitmapFlow =
-        MutableSharedFlow<Pair<Location, CompletableDeferred<Bitmap>>>()
     private val mapReady = CompletableDeferred<Unit>()
+
+    @Inject internal lateinit var locationBitmapCaptureCache: LocationBitmapCaptureCache
+    private var currentGetLocationBitmapIncrement = 0L
+    private val getLocationBitmapFlow = MutableSharedFlow<GetLocationBitmapRequest>()
 
     private var searchQuery: String = ""
 
@@ -108,8 +108,9 @@ class PlaceMapListFragment :
 
         val reloadBitmapTrigger = MutableSharedFlow<Unit>()
         binding.reloadMapsFab.setOnClickListener {
+            ++currentGetLocationBitmapIncrement
             viewLifecycleOwner.lifecycleScope.launch {
-                withContext(Dispatchers.IO) { mapCaptureCache.clear() }
+                withContext(Dispatchers.IO) { locationBitmapCaptureCache.clear() }
                 reloadBitmapTrigger.emit(Unit)
             }
         }
@@ -297,10 +298,12 @@ class PlaceMapListFragment :
         }
 
         viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-            getLocationBitmapFlow.collect { (location, deferred) ->
-                val bitmap = captureBitmapAndCacheBitmap(location)
-                deferred.complete(bitmap)
-            }
+            getLocationBitmapFlow
+                .filter { it.increment == currentGetLocationBitmapIncrement }
+                .collect { (location, deferred, _) ->
+                    val bitmap = captureBitmapAndCacheBitmap(location)
+                    deferred.complete(bitmap)
+                }
         }
         mapReady.complete(Unit)
     }
@@ -324,8 +327,11 @@ class PlaceMapListFragment :
         if (cached != null) return cached.bitmap
 
         mapReady.await()
+
         val deferredBitmap = CompletableDeferred<Bitmap>()
-        getLocationBitmapFlow.emit(location to deferredBitmap)
+        getLocationBitmapFlow.emit(
+            GetLocationBitmapRequest(location, deferredBitmap, currentGetLocationBitmapIncrement)
+        )
         return deferredBitmap.await()
     }
 
@@ -349,12 +355,13 @@ class PlaceMapListFragment :
         }
 
     private suspend fun getCachedBitmap(location: Location): CacheableBitmapDrawable? =
-        if (mapCaptureCache.isEnabled) withContext(Dispatchers.IO) { mapCaptureCache[location] }
+        if (locationBitmapCaptureCache.isEnabled)
+            withContext(Dispatchers.IO) { locationBitmapCaptureCache[location] }
         else null
 
     private suspend fun cacheBitmap(location: Location, bitmap: Bitmap) {
-        if (!mapCaptureCache.isEnabled) return
-        withContext(Dispatchers.IO) { mapCaptureCache[location] = bitmap }
+        if (!locationBitmapCaptureCache.isEnabled) return
+        withContext(Dispatchers.IO) { locationBitmapCaptureCache[location] = bitmap }
     }
 
     private suspend fun MapController.loadScene(scene: MapScene) {
@@ -379,4 +386,10 @@ class PlaceMapListFragment :
     private enum class SavedStateKey {
         SEARCH_QUERY
     }
+
+    private data class GetLocationBitmapRequest(
+        val location: Location,
+        val deferredBitmap: CompletableDeferred<Bitmap>,
+        val increment: Long = 0L
+    )
 }
