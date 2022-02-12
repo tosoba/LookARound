@@ -382,6 +382,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
             viewModel
                 .onEachSignal<MainSignal.HideBottomSheet> {
                     state = BottomSheetBehavior.STATE_HIDDEN
+                    binding.bottomNavigationView.selectedItemId = R.id.action_unchecked
                 }
                 .launchIn(lifecycleScope)
         }

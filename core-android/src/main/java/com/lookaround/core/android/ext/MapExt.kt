@@ -91,6 +91,13 @@ fun MapController.restoreCameraPosition(savedInstanceState: Bundle) {
 }
 
 fun MapController.moveCameraPositionTo(lat: Double, lng: Double, zoom: Float, durationMs: Int = 0) {
+    if (cameraPosition.latitude == lat &&
+            cameraPosition.longitude == lng &&
+            cameraPosition.zoom == zoom
+    ) {
+        return
+    }
+
     updateCameraPosition(
         CameraUpdateFactory.newCameraPosition(
             CameraPosition().also {

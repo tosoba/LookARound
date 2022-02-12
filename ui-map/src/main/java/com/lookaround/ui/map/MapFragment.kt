@@ -27,7 +27,6 @@ import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.WithValue
-import com.lookaround.core.android.model.WithoutValue
 import com.lookaround.core.android.model.hasNoValue
 import com.lookaround.core.android.view.BlurAnimator
 import com.lookaround.core.delegate.lazyAsync
@@ -109,6 +108,7 @@ class MapFragment :
             .filter { it.markers.hasNoValue }
             .map(MainState::locationState::get)
             .filterIsInstance<WithValue<Location>>()
+            .distinctUntilChangedBy { Objects.hash(it.value.latitude, it.value.longitude) }
             .onEach { location ->
                 mapController.launch {
                     moveCameraPositionTo(
