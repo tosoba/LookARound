@@ -4,6 +4,7 @@
     <string name="search_3_dots">Search…</string>
     <string name="back">Back</string>
     <string name="clear">Clear</string>
+    <string name="clear_all">Clear all</string>
     <string name="search_places_nearby">Search for places nearby.</string>
     <string name="search_query_too_short">Search query is too short.</string>
     <string name="places_loading_error_occurred">Places loading error occurred.</string>

@@ -42,11 +42,12 @@ import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
+import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.BuildConfig
 import com.lookaround.ui.place.list.R
-import com.lookaround.ui.place.list.databinding.FragmentMapPlaceListBinding
+import com.lookaround.ui.place.list.databinding.FragmentPlaceMapListBinding
 import com.lookaround.ui.search.composable.SearchBar
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
@@ -65,9 +66,9 @@ import uk.co.senab.bitmapcache.CacheableBitmapDrawable
 @ExperimentalFoundationApi
 @FlowPreview
 class PlaceMapListFragment :
-    Fragment(R.layout.fragment_map_place_list), MapController.SceneLoadListener, MapChangeListener {
-    private val binding: FragmentMapPlaceListBinding by
-        viewBinding(FragmentMapPlaceListBinding::bind)
+    Fragment(R.layout.fragment_place_map_list), MapController.SceneLoadListener, MapChangeListener {
+    private val binding: FragmentPlaceMapListBinding by
+        viewBinding(FragmentPlaceMapListBinding::bind)
 
     private val mainViewModel: MainViewModel by activityViewModels()
     private val viewModel: MapSceneViewModel by viewModels()
@@ -112,12 +113,20 @@ class PlaceMapListFragment :
                 reloadBitmapTrigger.emit(Unit)
             }
         }
+
         binding.showMapFab.setOnClickListener {
             (activity as? PlaceMapListActionsHandler)?.let {
                 it.onShowMapClick()
                 viewLifecycleOwner.lifecycleScope.launchWhenResumed {
                     mainViewModel.signal(MainSignal.HideBottomSheet)
                 }
+            }
+        }
+
+        binding.clearAllFab.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                mainViewModel.intent(MainIntent.ClearMarkers)
+                mainViewModel.signal(MainSignal.HideBottomSheet)
             }
         }
 

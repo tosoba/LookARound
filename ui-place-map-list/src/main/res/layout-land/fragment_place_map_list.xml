@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/disallow_intercept_touch_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:animateLayoutChanges="true">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="170dp"
+        android:layout_height="250dp"
+        android:layout_marginLeft="-2000dp"
+        android:elevation="5dp"
+        android:padding="10dp"
+        app:cardCornerRadius="25dp"
+        app:cardElevation="5dp"
+        app:cardUseCompatPadding="true">
+
+        <com.mapzen.tangram.MapView
+            android:id="@+id/map"
+            android:name="com.mapzen.tangram.MapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/place_map_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <HorizontalScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_marginBottom="10dp">
+
+        <LinearLayout
+            android:id="@+id/place_list_fab_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp">
+
+            <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                android:id="@+id/reload_maps_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="5dp"
+                android:contentDescription="@string/reload_maps"
+                android:text="@string/reload_maps"
+                app:icon="@drawable/ic_baseline_refresh_24" />
+
+            <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                android:id="@+id/clear_all_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="5dp"
+                android:text="@string/clear_all"
+                app:icon="@drawable/ic_baseline_clear_all_24" />
+
+            <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                android:id="@+id/show_map_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="5dp"
+                android:text="@string/show_map"
+                app:icon="@drawable/ic_baseline_map_24" />
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
+
+</com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout>

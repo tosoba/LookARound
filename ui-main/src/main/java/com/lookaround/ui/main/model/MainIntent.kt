@@ -2,6 +2,7 @@ package com.lookaround.ui.main.model
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
+import com.lookaround.core.android.model.Empty
 import com.lookaround.core.model.IPlaceType
 
 sealed interface MainIntent {
@@ -44,4 +45,8 @@ sealed interface MainIntent {
     data class LoadSearchAroundResults(val searchId: Long) : MainIntent
 
     data class LoadSearchAutocompleteResults(val searchId: Long) : MainIntent
+
+    object ClearMarkers : MainIntent, (MainState) -> MainState {
+        override fun invoke(state: MainState): MainState = state.copy(markers = Empty)
+    }
 }
