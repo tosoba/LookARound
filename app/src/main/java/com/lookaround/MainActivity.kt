@@ -174,7 +174,9 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     override fun onPause() {
-        binding.bottomAppBar.visibility = View.GONE
+        if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) {
+            binding.bottomAppBar.visibility = View.GONE
+        }
         binding.nearMeFab.visibility = View.GONE
         binding.searchBarView.visibility = View.GONE
         super.onPause()
