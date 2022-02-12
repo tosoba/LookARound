@@ -22,18 +22,26 @@ internal fun arEnabledUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<Unit> =
     combine(
-        mainViewModel.mapStates(MainState::locationState),
-        cameraViewModel.mapStates(CameraState::previewState),
-        cameraViewModel.filterSignals<CameraSignal.PitchChanged>(),
-        cameraViewObscuredUpdates(mainViewModel, cameraViewModel).onStart {
-            emit(CameraObscuredUpdate(obscuredByFragment = false, obscuredByBottomSheet = false))
-        },
-        mainViewModel.states.map { it.markers.hasValue }
-    ) { locationState, previewState, (pitchWithinLimit), (obscuredByFragment), showingAnyMarkers ->
-        (locationState is Ready) &&
+            mainViewModel.mapStates(MainState::locationState),
+            cameraViewModel.mapStates(CameraState::previewState),
+            cameraViewModel.filterSignals<CameraSignal.PitchChanged>(),
+            cameraViewObscuredUpdates(mainViewModel, cameraViewModel).onStart {
+                emit(
+                    CameraObscuredUpdate(obscuredByFragment = false, obscuredByBottomSheet = false)
+                )
+            },
+            mainViewModel.states.map { it.markers.hasValue }
+        ) {
+        locationState,
+        previewState,
+        (pitchWithinLimit),
+        (obscuredByFragment, obscuredByBottomSheet),
+        showingAnyMarkers ->
+        locationState is Ready &&
             previewState.isLive &&
             (!showingAnyMarkers || pitchWithinLimit) &&
-            !obscuredByFragment
+            !obscuredByFragment &&
+            !obscuredByBottomSheet
     }
         .distinctUntilChanged()
         .filter { it }
@@ -70,12 +78,12 @@ internal fun arDisabledUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<CameraARDisabledViewUpdate> =
     combine(
-        mainViewModel.mapStates(MainState::locationState),
-        cameraViewModel.mapStates(CameraState::previewState),
-        cameraViewModel.filterSignals<CameraSignal.PitchChanged>(),
-        cameraViewObscuredUpdates(mainViewModel, cameraViewModel),
-        mainViewModel.states.map { it.markers.hasValue }
-    ) {
+            mainViewModel.mapStates(MainState::locationState),
+            cameraViewModel.mapStates(CameraState::previewState),
+            cameraViewModel.filterSignals<CameraSignal.PitchChanged>(),
+            cameraViewObscuredUpdates(mainViewModel, cameraViewModel),
+            mainViewModel.states.map { it.markers.hasValue }
+        ) {
         locationState,
         previewState,
         (pitchWithinLimit),
@@ -113,7 +121,9 @@ internal fun cameraViewObscuredUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<CameraObscuredUpdate> =
     combine(
-            mainViewModel.filterSignals(MainSignal.TopFragmentChanged::cameraObscured),
+            mainViewModel.filterSignals(MainSignal.TopFragmentChanged::cameraObscured).onStart {
+                emit(false)
+            },
             mainViewModel.filterSignals(MainSignal.BottomSheetStateChanged::state),
             cameraViewModel
                 .mapStates(CameraState::previewState)
