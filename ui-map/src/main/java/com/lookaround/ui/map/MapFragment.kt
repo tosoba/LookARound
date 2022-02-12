@@ -259,8 +259,7 @@ class MapFragment :
                     lat = position.latitude,
                     lng = position.longitude,
                     zoom =
-                        if (currentZoom > LOCATION_FOCUSED_ZOOM) currentZoom + 1f
-                        else LOCATION_FOCUSED_ZOOM,
+                        if (currentZoom < LOCATION_FOCUSED_ZOOM) currentZoom + 1f else currentZoom,
                     durationMs = CAMERA_POSITION_ANIMATION_DURATION_MS
                 )
             }
