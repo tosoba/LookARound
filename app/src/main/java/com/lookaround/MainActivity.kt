@@ -1,6 +1,7 @@
 package com.lookaround
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Gravity
 import android.view.MenuItem
@@ -8,12 +9,18 @@ import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.iterator
@@ -30,6 +37,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.core.model.SearchType
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.camera.CameraFragment
 import com.lookaround.ui.camera.model.CameraARState
@@ -41,6 +49,7 @@ import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.map.list.PlaceMapListActionsHandler
 import com.lookaround.ui.place.map.list.PlaceMapListFragment
 import com.lookaround.ui.place.types.PlaceTypesFragment
+import com.lookaround.ui.recent.searches.RecentSearchesChipList
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
 import com.lookaround.ui.search.composable.SearchBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -53,6 +62,7 @@ import timber.log.Timber
 @AndroidEntryPoint
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
+@ExperimentalMaterialApi
 @ExperimentalStdlibApi
 @FlowPreview
 @SuppressLint("RtlHardcoded")
@@ -296,67 +306,98 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     private fun initSearch() {
-        val searchFocusedFlow = viewModel.mapStates(MainState::searchFocused).distinctUntilChanged()
-        val cameraFragmentVisibleFlow =
+        binding.searchBarView.setContent {
+            ProvideWindowInsets {
+                LookARoundTheme {
+                    val orientation = LocalConfiguration.current.orientation
+                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                        PlacesAutocompleteSearchBar()
+                    } else {
+                        val scope = rememberCoroutineScope()
+                        Column {
+                            PlacesAutocompleteSearchBar()
+                            RecentSearchesChipList(
+                                onMoreClicked = {
+                                    binding.bottomNavigationView.selectedItemId =
+                                        R.id.action_recent_searches
+                                }
+                            ) { recentSearch ->
+                                scope.launch {
+                                    viewModel.intent(
+                                        when (recentSearch.type) {
+                                            SearchType.AROUND ->
+                                                MainIntent.LoadSearchAroundResults(recentSearch.id)
+                                            SearchType.AUTOCOMPLETE ->
+                                                MainIntent.LoadSearchAutocompleteResults(
+                                                    recentSearch.id
+                                                )
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun PlacesAutocompleteSearchBar() {
+        val searchFocusedFlow = remember {
+            viewModel.mapStates(MainState::searchFocused).distinctUntilChanged()
+        }
+        val cameraFragmentVisibleFlow = remember {
             viewModel
                 .filterSignals<MainSignal.TopFragmentChanged>()
                 .map { !it.cameraObscured }
                 .distinctUntilChanged()
-        binding.searchBarView.setContent {
-            ProvideWindowInsets {
-                LookARoundTheme {
-                    val searchFocused = searchFocusedFlow.collectAsState(initial = false)
-                    val cameraFragmentVisible =
-                        cameraFragmentVisibleFlow.collectAsState(
-                            initial = currentTopFragment is CameraFragment
-                        )
-                    SearchBar(
-                        query = viewModel.state.autocompleteSearchQuery,
-                        focused = searchFocused.value,
-                        onBackPressedDispatcher = onBackPressedDispatcher,
-                        leadingUnfocused = {
-                            if (cameraFragmentVisible.value) {
-                                IconButton(
-                                    onClick = {
-                                        with(binding.mainDrawerLayout) {
-                                            if (isDrawerOpen(Gravity.LEFT)) {
-                                                closeDrawer(Gravity.LEFT)
-                                            } else {
-                                                openDrawer(Gravity.LEFT)
-                                            }
-                                        }
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Menu,
-                                        tint = LookARoundTheme.colors.iconPrimary,
-                                        contentDescription = stringResource(R.string.navigation)
-                                    )
+        }
+        val searchFocused = searchFocusedFlow.collectAsState(initial = false)
+        val cameraFragmentVisible =
+            cameraFragmentVisibleFlow.collectAsState(initial = currentTopFragment is CameraFragment)
+        SearchBar(
+            query = viewModel.state.autocompleteSearchQuery,
+            focused = searchFocused.value,
+            onBackPressedDispatcher = onBackPressedDispatcher,
+            leadingUnfocused = {
+                if (cameraFragmentVisible.value) {
+                    IconButton(
+                        onClick = {
+                            with(binding.mainDrawerLayout) {
+                                if (isDrawerOpen(Gravity.LEFT)) {
+                                    closeDrawer(Gravity.LEFT)
+                                } else {
+                                    openDrawer(Gravity.LEFT)
                                 }
-                            } else {
-                                IconButton(onClick = ::onBackPressed) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.ArrowBack,
-                                        tint = LookARoundTheme.colors.iconPrimary,
-                                        contentDescription = stringResource(R.string.back)
-                                    )
-                                }
-                            }
-                        },
-                        onSearchFocusChange = { focused ->
-                            lifecycleScope.launch {
-                                viewModel.intent(MainIntent.SearchFocusChanged(focused))
-                            }
-                        },
-                        onTextFieldValueChange = { textValue ->
-                            lifecycleScope.launch {
-                                viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
                             }
                         }
-                    )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Menu,
+                            tint = LookARoundTheme.colors.iconPrimary,
+                            contentDescription = stringResource(R.string.navigation)
+                        )
+                    }
+                } else {
+                    IconButton(onClick = ::onBackPressed) {
+                        Icon(
+                            imageVector = Icons.Outlined.ArrowBack,
+                            tint = LookARoundTheme.colors.iconPrimary,
+                            contentDescription = stringResource(R.string.back)
+                        )
+                    }
+                }
+            },
+            onSearchFocusChange = { focused ->
+                lifecycleScope.launch { viewModel.intent(MainIntent.SearchFocusChanged(focused)) }
+            },
+            onTextFieldValueChange = { textValue ->
+                lifecycleScope.launch {
+                    viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
                 }
             }
-        }
+        )
     }
 
     private fun initBottomSheet() {
