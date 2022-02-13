@@ -215,10 +215,8 @@ class CameraFragment :
                 val obscured = obscuredByFragment || obscuredByBottomSheet
                 openGLRenderer.setBlurEnabled(enabled = obscured, animated = !obscured || index > 0)
                 if (obscured) {
-                    changeRadarViewTopGuideline(View.GONE)
                     hideARViews()
                 } else {
-                    changeRadarViewTopGuideline(View.VISIBLE)
                     showARViews(showRadar = mainViewModel.state.markers.hasValue)
                 }
             }
@@ -376,20 +374,20 @@ class CameraFragment :
         ) {
             if (enlarged) {
                 radarViewLayoutParams.width = 0
-                radarViewLayoutParams.leftToLeft = binding.radarViewEnlargedLeftGuideline!!.id
+                radarViewLayoutParams.rightToLeft = binding.radarViewEnlargedRightGuideline!!.id
             } else {
                 radarViewLayoutParams.width =
                     requireContext().dpToPx(RADAR_VIEW_DIMENSION_DP).toInt()
-                radarViewLayoutParams.leftToLeft = -1
+                radarViewLayoutParams.rightToLeft = -1
             }
         } else {
             if (enlarged) {
                 radarViewLayoutParams.height = 0
-                radarViewLayoutParams.bottomToBottom = binding.radarViewEnlargedBottomGuideline!!.id
+                radarViewLayoutParams.topToTop = binding.radarViewEnlargedTopGuideline!!.id
             } else {
                 radarViewLayoutParams.height =
                     requireContext().dpToPx(RADAR_VIEW_DIMENSION_DP).toInt()
-                radarViewLayoutParams.bottomToBottom = -1
+                radarViewLayoutParams.topToTop = -1
             }
         }
 
@@ -564,14 +562,6 @@ class CameraFragment :
             .d("Pressed marker with id: ${marker.wrapped.id}; name: ${marker.wrapped.name}")
     }
 
-    private fun FragmentCameraBinding.changeRadarViewTopGuideline(targetVisibility: Int) {
-        val radarGuidelineLayoutParams =
-            radarViewTopGuideline.layoutParams as ConstraintLayout.LayoutParams
-        radarGuidelineLayoutParams.guideBegin =
-            if (targetVisibility == View.GONE) 0 else requireContext().dpToPx(56f).toInt()
-        radarViewTopGuideline.layoutParams = radarGuidelineLayoutParams
-    }
-
     private fun FragmentCameraBinding.showARViews(showRadar: Boolean) {
         if (showRadar) {
             arViewsGroup.visibility = View.VISIBLE
@@ -600,7 +590,6 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.onCameraTouch() {
         val targetVisibility = visibilityToggleView.toggleVisibility()
-        changeRadarViewTopGuideline(targetVisibility)
         lifecycleScope.launch {
             mainViewModel.signal(MainSignal.ToggleSearchBarVisibility(targetVisibility))
         }
