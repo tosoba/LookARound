@@ -442,6 +442,10 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     private fun initNearMeFab() {
+        binding.nearMeFab.setOnClickListener {
+            lifecycleScope.launch { viewModel.intent(MainIntent.GetAttractions) }
+        }
+
         viewModel
             .nearMeFabVisibilityUpdates
             .filter { viewsInteractionEnabled }

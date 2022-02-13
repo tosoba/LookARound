@@ -18,14 +18,15 @@ import kotlinx.coroutines.flow.*
 class MainFlowProcessor
 @Inject
 constructor(
-    private val getPlacesOfTypeAround: GetPlacesOfTypeAround,
     private val isLocationAvailable: IsLocationAvailable,
     private val locationDataFlow: LocationDataFlow,
     private val isConnectedFlow: IsConnectedFlow,
     private val totalSearchesCountFlow: TotalSearchesCountFlow,
+    private val getPlacesOfTypeAround: GetPlacesOfTypeAround,
+    private val getAttractionsAround: GetAttractionsAround,
+    private val autocompleteSearch: AutocompleteSearch,
     private val getSearchAroundResults: GetSearchAroundResults,
     private val getAutocompleteSearchResults: GetAutocompleteSearchResults,
-    private val autocompleteSearch: AutocompleteSearch,
 ) : FlowProcessor<MainIntent, MainState, MainSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
@@ -37,6 +38,9 @@ constructor(
             intents
                 .filterIsInstance<MainIntent.GetPlacesOfType>()
                 .placesOfTypeAroundUpdates(currentState, signal),
+            intents
+                .filterIsInstance<MainIntent.GetAttractions>()
+                .attractionsAroundUpdates(currentState, signal),
             intents.filterIsInstance<MainIntent.LocationPermissionGranted>().take(1).flatMapLatest {
                 locationStateUpdatesFlow
             },
@@ -115,28 +119,41 @@ constructor(
                     return@transformLatest
                 }
 
-                emit(LoadingSearchResultsUpdate)
-                try {
-                    val places =
-                        withTimeout(PLACES_LOADING_TIMEOUT_MILLIS) {
-                            getPlacesOfTypeAround(
-                                placeType = placeType,
-                                lat = currentLocation.value.latitude,
-                                lng = currentLocation.value.longitude,
-                                radiusInMeters = PLACES_LOADING_RADIUS_METERS
-                            )
-                        }
-                    if (places.isEmpty()) {
-                        signal(MainSignal.NoPlacesFound)
-                        emit(NoPlacesFoundUpdate)
-                    } else {
-                        emit(SearchAroundResultsLoadedUpdate(places))
-                    }
-                } catch (throwable: Throwable) {
-                    emit(SearchErrorUpdate(throwable))
-                    signal(MainSignal.PlacesLoadingFailed(throwable))
+                emitPlacesUpdates(signal, ::SearchAroundResultsLoadedUpdate) {
+                    getPlacesOfTypeAround(
+                        placeType = placeType,
+                        lat = currentLocation.value.latitude,
+                        lng = currentLocation.value.longitude,
+                        radiusInMeters = PLACES_LOADING_RADIUS_METERS
+                    )
                 }
             }
+
+    private fun Flow<MainIntent.GetAttractions>.attractionsAroundUpdates(
+        currentState: () -> MainState,
+        signal: suspend (MainSignal) -> Unit
+    ): Flow<(MainState) -> MainState> =
+        withLatestFrom(isConnectedFlow()) { _, isConnected -> isConnected }.transformLatest {
+            isConnected ->
+            val currentLocation = currentState().locationState
+            if (currentLocation !is WithValue) {
+                signal(MainSignal.UnableToLoadPlacesWithoutLocation)
+                return@transformLatest
+            }
+
+            if (!isConnected) {
+                signal(MainSignal.UnableToLoadPlacesWithoutConnection)
+                return@transformLatest
+            }
+
+            emitPlacesUpdates(signal, ::SearchAroundResultsLoadedUpdate) {
+                getAttractionsAround(
+                    lat = currentLocation.value.latitude,
+                    lng = currentLocation.value.longitude,
+                    radiusInMeters = PLACES_LOADING_RADIUS_METERS
+                )
+            }
+        }
 
     private fun Flow<MainIntent.SearchQueryChanged>.autocompleteSearchUpdates(
         currentState: () -> MainState,
@@ -159,36 +176,40 @@ constructor(
                     return@transformLatest
                 }
 
-                emit(LoadingSearchResultsUpdate)
-
-                try {
-                    fun Double.roundTo3DecimalPlaces(): Double = roundToDecimalPlaces(3).toDouble()
-
-                    val places =
-                        withTimeout(PLACES_LOADING_TIMEOUT_MILLIS) {
-                            autocompleteSearch(
-                                query = query,
-                                priorityLat =
-                                    currentLocation.value.latitude.roundTo3DecimalPlaces(),
-                                priorityLon =
-                                    currentLocation.value.longitude.roundTo3DecimalPlaces()
-                            )
-                        }
-                    if (places.isEmpty()) {
-                        emit(NoPlacesFoundUpdate)
-                        signal(MainSignal.NoPlacesFound)
-                    } else {
-                        emit(AutocompleteSearchResultsLoadedUpdate(places))
-                    }
-                } catch (throwable: Throwable) {
-                    emit(SearchErrorUpdate(throwable))
-                    signal(MainSignal.PlacesLoadingFailed(throwable))
+                emitPlacesUpdates(signal, ::AutocompleteSearchResultsLoadedUpdate) {
+                    autocompleteSearch(
+                        query = query,
+                        priorityLat = currentLocation.value.latitude.roundTo3DecimalPlaces(),
+                        priorityLon = currentLocation.value.longitude.roundTo3DecimalPlaces()
+                    )
                 }
             }
+
+    private suspend fun <T> FlowCollector<(MainState) -> MainState>.emitPlacesUpdates(
+        signal: suspend (MainSignal) -> Unit,
+        placesLoadedUpdate: (Iterable<T>) -> (MainState) -> MainState,
+        getPlaces: suspend () -> Collection<T>
+    ) {
+        emit(LoadingSearchResultsUpdate)
+        try {
+            val places = withTimeout(PLACES_LOADING_TIMEOUT_MILLIS) { getPlaces() }
+            if (places.isEmpty()) {
+                signal(MainSignal.NoPlacesFound)
+                emit(NoPlacesFoundUpdate)
+            } else {
+                emit(placesLoadedUpdate(places))
+            }
+        } catch (throwable: Throwable) {
+            emit(SearchErrorUpdate(throwable))
+            signal(MainSignal.PlacesLoadingFailed(throwable))
+        }
+    }
 
     companion object {
         private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L
         private const val PLACES_LOADING_TIMEOUT_MILLIS = 10_000L
         private const val PLACES_LOADING_RADIUS_METERS = 5_000f
+
+        private fun Double.roundTo3DecimalPlaces(): Double = roundToDecimalPlaces(3).toDouble()
     }
 }

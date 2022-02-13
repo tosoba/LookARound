@@ -19,7 +19,7 @@ data class SearchErrorUpdate(private val throwable: Throwable) : (MainState) -> 
 }
 
 data class SearchAroundResultsLoadedUpdate(
-    private val nodes: List<NodeDTO>,
+    private val nodes: Iterable<NodeDTO>,
 ) : (MainState) -> MainState {
     override fun invoke(state: MainState): MainState =
         state.copy(
@@ -33,7 +33,7 @@ data class SearchAroundResultsLoadedUpdate(
 }
 
 data class AutocompleteSearchResultsLoadedUpdate(
-    private val points: List<PointDTO>,
+    private val points: Iterable<PointDTO>,
 ) : (MainState) -> MainState {
     override fun invoke(state: MainState): MainState =
         state.copy(

@@ -49,4 +49,6 @@ sealed interface MainIntent {
     object ClearMarkers : MainIntent, (MainState) -> MainState {
         override fun invoke(state: MainState): MainState = state.copy(markers = Empty)
     }
+
+    object GetAttractions : MainIntent
 }
