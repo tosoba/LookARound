@@ -29,7 +29,6 @@ import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.WithValue
-import com.lookaround.core.android.model.hasNoValue
 import com.lookaround.core.android.view.BlurAnimator
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
@@ -114,50 +113,8 @@ class MapFragment :
             initCameraPosition(savedInstanceState)
         }
 
-        mainViewModel
-            .states
-            .filter { it.markers.hasNoValue }
-            .map(MainState::locationState::get)
-            .filterIsInstance<WithValue<Location>>()
-            .distinctUntilChangedBy { Objects.hash(it.value.latitude, it.value.longitude) }
-            .onEach { location ->
-                mapController.launch {
-                    moveCameraPositionTo(
-                        lat = location.value.latitude,
-                        lng = location.value.longitude,
-                        zoom = LOCATION_FOCUSED_ZOOM
-                    )
-                }
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-
         initMapImageBlurring(savedInstanceState)
-
-        mainViewModel
-            .mapStates(MainState::markers)
-            .distinctUntilChanged()
-            .onEach { loadable ->
-                mapSceneViewModel.awaitSceneLoaded()
-                mapController.launch {
-                    removeAllMarkers()
-                    if (loadable !is WithValue) return@launch
-
-                    val markers = loadable.value.items
-                    if (markers.size > 1) {
-                        calculateAndZoomToBoundsOf(markers.map(Marker::location::get))
-                        addMarkerClusters(markers)
-                    } else if (markers.size == 1) {
-                        val marker = markers.first()
-                        moveCameraPositionTo(
-                            lat = marker.location.latitude,
-                            lng = marker.location.longitude,
-                            zoom = LOCATION_FOCUSED_ZOOM
-                        )
-                        markers.forEach { addMarkerFor(it.location) }
-                    }
-                }
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+        syncMarkerChangesWithMap()
 
         mapSceneViewModel
             .onEachSignal<MapSceneSignal.RetryLoadScene> { (scene) ->
@@ -349,6 +306,52 @@ class MapFragment :
                 }
             }
         )
+    }
+
+    private fun syncMarkerChangesWithMap() {
+        mainViewModel
+            .mapStates(MainState::markers)
+            .distinctUntilChanged()
+            .onEach { loadable ->
+                mapSceneViewModel.awaitSceneLoaded()
+                mapController.launch {
+                    removeAllMarkers()
+                    if (loadable !is WithValue) return@launch
+
+                    val markers = loadable.value.items
+                    if (markers.size > 1) {
+                        calculateAndZoomToBoundsOf(markers.map(Marker::location::get))
+                        addMarkerClusters(markers)
+                    } else if (markers.size == 1) {
+                        val marker = markers.first()
+                        moveCameraPositionTo(
+                            lat = marker.location.latitude,
+                            lng = marker.location.longitude,
+                            zoom = LOCATION_FOCUSED_ZOOM
+                        )
+                        markers.forEach { addMarkerFor(it.location) }
+                    }
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    private fun followUserLocation() {
+        mainViewModel
+            .states
+            .map(MainState::locationState::get)
+            .filterIsInstance<WithValue<Location>>()
+            .distinctUntilChangedBy { Objects.hash(it.value.latitude, it.value.longitude) }
+            .onEach { location ->
+                mapController.launch {
+                    moveCameraPositionTo(
+                        lat = location.value.latitude,
+                        lng = location.value.longitude,
+                        zoom = LOCATION_FOCUSED_ZOOM
+                    )
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun launchGoogleMapsForNavigation() {
