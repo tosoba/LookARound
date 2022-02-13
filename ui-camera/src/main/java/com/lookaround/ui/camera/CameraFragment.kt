@@ -158,9 +158,9 @@ class CameraFragment :
         binding.initARViews()
 
         arEnabledUpdates(mainViewModel, cameraViewModel)
-            .onEach {
+            .onEach { showingAnyMarkers ->
                 mainViewModel.signal(MainSignal.AREnabled)
-                binding.onAREnabled()
+                binding.onAREnabled(showingAnyMarkers)
                 latestARState = CameraARState.ENABLED
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -185,7 +185,7 @@ class CameraFragment :
                     mainViewModel.mapStates(MainState::markers).distinctUntilChanged().map {
                         if (it is WithValue) it.value.size else 0
                     },
-                    cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
+                    cameraObscuredUpdates(mainViewModel, cameraViewModel)
                 ) {
                     markersDrawn,
                     firstMarkerIndex,
@@ -211,14 +211,10 @@ class CameraFragment :
         viewLifecycleOwner.lifecycleScope.launchWhenResumed {
             cameraViewObscuredUpdates(mainViewModel, cameraViewModel).collectIndexed {
                 index,
-                (obscuredByFragment, obscuredByBottomSheet) ->
+                (obscuredByFragment, obscuredByBottomSheet, showingAnyMarkers) ->
                 val obscured = obscuredByFragment || obscuredByBottomSheet
                 openGLRenderer.setBlurEnabled(enabled = obscured, animated = !obscured || index > 0)
-                if (obscured) {
-                    hideARViews()
-                } else {
-                    showARViews(showRadar = mainViewModel.state.markers.hasValue)
-                }
+                if (obscured) hideARViews() else showARViews(showRadar = showingAnyMarkers)
             }
         }
 
@@ -367,6 +363,7 @@ class CameraFragment :
             cameraMarkerRenderer.setMarkers(arMarkers)
             arCameraView.markers = arMarkers
             arRadarView.markers = markers.value.map(::SimpleARMarker).take(lastMarkerIndexExclusive)
+            showARViews(showRadar = true)
         }
     }
 
@@ -425,14 +422,14 @@ class CameraFragment :
         loadingShimmerLayout.showAndStart()
     }
 
-    private fun FragmentCameraBinding.onAREnabled() {
+    private fun FragmentCameraBinding.onAREnabled(showingAnyMarkers: Boolean) {
         cameraInitializationFailureTextView.visibility = View.GONE
         pitchOutsideLimitTextView.visibility = View.GONE
         locationDisabledTextView.visibility = View.GONE
         permissionsViewsGroup.visibility = View.GONE
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.GONE
-        showARViews(showRadar = mainViewModel.state.markers.hasValue)
+        showARViews(showRadar = showingAnyMarkers)
         openGLRenderer.markerRectsDisabled = false
         cameraMarkerRenderer.disabled = false
         radarMarkerRenderer.disabled = false
