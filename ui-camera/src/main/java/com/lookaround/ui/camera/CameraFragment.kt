@@ -182,10 +182,9 @@ class CameraFragment :
                 combine(
                     cameraMarkerRenderer.markersDrawnFlow,
                     cameraViewModel.mapStates(CameraState::firstMarkerIndex),
-                    mainViewModel
-                        .mapStates(MainState::markers)
-                        .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
-                        .map { it.value.size },
+                    mainViewModel.mapStates(MainState::markers).distinctUntilChanged().map {
+                        if (it is WithValue) it.value.size else 0
+                    },
                     cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
                 ) {
                     markersDrawn,
