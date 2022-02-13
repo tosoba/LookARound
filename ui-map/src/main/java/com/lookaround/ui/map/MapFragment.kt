@@ -228,10 +228,21 @@ class MapFragment :
     private fun MapController.initCameraPosition(savedInstanceState: Bundle?) {
         if (savedInstanceState != null) {
             restoreCameraPosition(savedInstanceState)
-        } else {
-            currentMarkerPosition?.let { (latitude, longitude) ->
-                moveCameraPositionTo(lat = latitude, lng = longitude, zoom = LOCATION_FOCUSED_ZOOM)
-            }
+            return
+        }
+
+        currentMarkerPosition?.let { (latitude, longitude) ->
+            moveCameraPositionTo(lat = latitude, lng = longitude, zoom = LOCATION_FOCUSED_ZOOM)
+            return
+        }
+
+        val location = mainViewModel.state.locationState
+        if (location is WithValue<Location>) {
+            moveCameraPositionTo(
+                lat = location.value.latitude,
+                lng = location.value.longitude,
+                zoom = LOCATION_FOCUSED_ZOOM
+            )
         }
     }
 
