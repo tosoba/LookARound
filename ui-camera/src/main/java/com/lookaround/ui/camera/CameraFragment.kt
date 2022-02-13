@@ -333,13 +333,16 @@ class CameraFragment :
         }
 
         viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-            mainViewModel.filterSignals<MainSignal.SnackbarStatusChanged>().collect { (isShowing) ->
-                val pageGroupGuidelineLayoutParams =
-                    arCameraViewsGroupBottomGuideline.layoutParams as ConstraintLayout.LayoutParams
-                pageGroupGuidelineLayoutParams.guideEnd =
-                    requireContext().dpToPx(if (isShowing) 56f + 48f else 56f).toInt()
-                arCameraViewsGroupBottomGuideline.layoutParams = pageGroupGuidelineLayoutParams
-            }
+            mainViewModel
+                .filterSignals(MainSignal.SnackbarStatusChanged::isShowing)
+                .distinctUntilChanged()
+                .collectLatest { isShowing ->
+                    val bottomViewsGuidelineLayoutParams =
+                        bottomViewsGuideline.layoutParams as ConstraintLayout.LayoutParams
+                    bottomViewsGuidelineLayoutParams.guideEnd =
+                        requireContext().dpToPx(if (isShowing) 56f + 48f else 56f).toInt()
+                    bottomViewsGuideline.layoutParams = bottomViewsGuidelineLayoutParams
+                }
         }
     }
 

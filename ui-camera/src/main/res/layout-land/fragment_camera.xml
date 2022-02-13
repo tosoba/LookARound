@@ -32,13 +32,6 @@
         android:visibility="gone" />
 
     <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/radar_view_bottom_guideline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_end="56dp" />
-
-    <androidx.constraintlayout.widget.Guideline
         android:id="@+id/radar_view_enlarged_top_guideline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -53,7 +46,7 @@
         android:layout_marginHorizontal="10dp"
         android:layout_marginVertical="10dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/radar_view_bottom_guideline"
+        app:layout_constraintBottom_toBottomOf="@id/bottom_views_guideline"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintLeft_toLeftOf="parent" />
 
@@ -83,11 +76,11 @@
         android:contentDescription="@string/page_down"
         android:src="@drawable/minus"
         app:fabSize="mini"
-        app:layout_constraintBottom_toBottomOf="@id/ar_camera_views_group_bottom_guideline"
+        app:layout_constraintBottom_toBottomOf="@id/bottom_views_guideline"
         app:layout_constraintRight_toRightOf="parent" />
 
     <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/ar_camera_views_group_bottom_guideline"
+        android:id="@+id/bottom_views_guideline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"

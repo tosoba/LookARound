@@ -549,9 +549,8 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                             getString(R.string.loading_places_in_progress),
                             Snackbar.LENGTH_INDEFINITE
                         )
-                } else if (markers is Ready) {
+                } else {
                     placesStatusLoadingSnackbar?.dismiss()
-                    signalSnackbarStatusChanged(isShowing = false)
                 }
             }
             .launchIn(lifecycleScope)
@@ -576,17 +575,14 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
             .apply {
                 addCallback(
                     object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                        override fun onShown(transientBottomBar: Snackbar?) {
-                            transientBottomBar?.let {
-                                signalSnackbarStatusChanged(isShowing = true)
-                            }
-                        }
+                        override fun onShown(transientBottomBar: Snackbar?) = Unit
                         override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                             signalSnackbarStatusChanged(isShowing = false)
                         }
                     }
                 )
                 show()
+                signalSnackbarStatusChanged(isShowing = true)
             }
 
     private fun signalSnackbarStatusChanged(isShowing: Boolean) {
