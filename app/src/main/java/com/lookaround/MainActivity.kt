@@ -175,7 +175,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
 
     override fun onPause() {
         if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) {
-            binding.bottomAppBar.visibility = View.GONE
+            binding.bottomNavigationView.visibility = View.GONE
         }
         binding.nearMeFab.visibility = View.GONE
         binding.searchBarView.visibility = View.GONE
@@ -186,7 +186,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         super.onResume()
 
         if (viewsInteractionEnabled) {
-            binding.bottomAppBar.visibility = View.VISIBLE
+            binding.bottomNavigationView.visibility = View.VISIBLE
             if (!viewModel.state.markers.hasValue) {
                 binding.nearMeFab.visibility = View.VISIBLE
             }
@@ -232,7 +232,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         if (currentTopFragment !is CameraFragment) return
         latestARState = CameraARState.LOADING
         binding.searchBarView.visibility = View.GONE
-        binding.bottomAppBar.visibility = View.GONE
+        binding.bottomNavigationView.visibility = View.GONE
         binding.nearMeFab.visibility = View.GONE
         binding.bottomSheetFragmentContainerView.visibility = View.GONE
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
@@ -241,7 +241,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     private fun onAREnabled() {
         latestARState = CameraARState.ENABLED
         binding.searchBarView.visibility = View.VISIBLE
-        binding.bottomAppBar.visibility = View.VISIBLE
+        binding.bottomNavigationView.visibility = View.VISIBLE
         if (viewModel.state.markers !is WithValue) {
             binding.nearMeFab.visibility = View.VISIBLE
         }
@@ -258,7 +258,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         latestARState = CameraARState.DISABLED
 
         binding.searchBarView.visibility = View.GONE
-        binding.bottomAppBar.visibility = View.GONE
+        binding.bottomNavigationView.visibility = View.GONE
         binding.nearMeFab.visibility = View.GONE
         binding.bottomSheetFragmentContainerView.visibility = View.GONE
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
