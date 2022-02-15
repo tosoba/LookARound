@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.ext.formattedDistanceTo
@@ -27,11 +28,18 @@ fun ItemDistanceText(location1: Location, location2: Location, modifier: Modifie
 }
 
 @Composable
-fun ItemNameText(name: String, modifier: Modifier = Modifier) {
+fun ItemNameText(
+    name: String,
+    modifier: Modifier = Modifier,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         text = name,
         style = MaterialTheme.typography.subtitle1,
         color = LookARoundTheme.colors.textPrimary,
+        maxLines = maxLines,
+        overflow = overflow,
         modifier = Modifier.heightIn(min = 20.dp).wrapContentHeight() then modifier
     )
 }

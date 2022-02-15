@@ -228,18 +228,6 @@ class PlaceMapListFragment :
                                                 .toInt(),
                                         modifier =
                                             Modifier.weight(1f, fill = false)
-                                                .border(
-                                                    width = 2.dp,
-                                                    brush =
-                                                        Brush.horizontalGradient(
-                                                            colors =
-                                                                listOf(
-                                                                    Color.Transparent,
-                                                                    Color.LightGray
-                                                                )
-                                                        ),
-                                                    shape = RoundedCornerShape(12.dp)
-                                                )
                                                 .clickable {
                                                     (activity as? PlaceMapListActionsHandler)
                                                         ?.onPlaceMapItemClick(point)

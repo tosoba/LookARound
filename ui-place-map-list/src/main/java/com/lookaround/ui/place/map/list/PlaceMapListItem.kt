@@ -6,11 +6,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.model.INamedLocation
 import com.lookaround.core.android.view.composable.ItemDistanceText
@@ -43,28 +46,35 @@ internal fun PlaceMapListItem(
     val userLocationState = userLocationFlow.collectAsState(initial = null)
 
     LookARoundCard(
-        backgroundColor = Color.White.copy(alpha = .85f),
+        backgroundColor = Color.White.copy(alpha = .55f),
         elevation = 0.dp,
+        shape = RoundedCornerShape(20.dp),
         modifier = modifier
     ) {
-        Column {
-            val bitmapModifier = Modifier.size(bitmapDimension.dp)
-            if (bitmap != null) MapImage(bitmap!!, bitmapModifier)
-            else ShimmerAnimation(bitmapModifier)
-            ItemNameText(point.name, modifier = Modifier.padding(5.dp))
+        Column(modifier = Modifier.padding(10.dp)) {
+            Card(
+                elevation = 3.dp,
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.size(bitmapDimension.dp),
+            ) {
+                val currentBitmap = bitmap
+                if (currentBitmap != null) MapImage(currentBitmap) else ShimmerAnimation()
+            }
+            ItemNameText(
+                point.name,
+                modifier = Modifier.padding(vertical = 5.dp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
             userLocationState.value?.let { userLocation ->
-                ItemDistanceText(
-                    location1 = point.location,
-                    location2 = userLocation,
-                    modifier = Modifier.padding(5.dp)
-                )
+                ItemDistanceText(location1 = point.location, location2 = userLocation)
             }
         }
     }
 }
 
 @Composable
-private fun MapImage(bitmap: Bitmap, modifier: Modifier) {
+private fun MapImage(bitmap: Bitmap, modifier: Modifier = Modifier) {
     Image(
         bitmap = bitmap.asImageBitmap(),
         contentDescription = null,
