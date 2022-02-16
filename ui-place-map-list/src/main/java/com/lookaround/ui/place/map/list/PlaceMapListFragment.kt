@@ -16,7 +16,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -35,7 +34,6 @@ import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.WithValue
-import com.lookaround.core.android.view.composable.coloredShadow
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
@@ -225,19 +223,10 @@ class PlaceMapListFragment :
                                                 .pxToDp(mapLayoutParams.width.toFloat())
                                                 .toInt(),
                                         modifier =
-                                            Modifier.weight(1f, fill = false)
-                                                .coloredShadow(
-                                                    Color.DarkGray,
-                                                    shadowRadius = 3.dp,
-                                                    borderRadius = 20.dp,
-                                                    offsetY = 2.dp,
-                                                    offsetX = 2.dp,
-                                                    alpha = .25f
-                                                )
-                                                .clickable {
-                                                    (activity as? PlaceMapListActionsHandler)
-                                                        ?.onPlaceMapItemClick(point)
-                                                },
+                                            Modifier.weight(1f, fill = false).clickable {
+                                                (activity as? PlaceMapListActionsHandler)
+                                                    ?.onPlaceMapItemClick(point)
+                                            },
                                     )
                                 }
                             }

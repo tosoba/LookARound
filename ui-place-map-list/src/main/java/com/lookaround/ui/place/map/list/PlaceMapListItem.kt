@@ -3,6 +3,7 @@ package com.lookaround.ui.place.map.list
 import android.graphics.Bitmap
 import android.location.Location
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -10,6 +11,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -18,8 +21,9 @@ import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.model.INamedLocation
 import com.lookaround.core.android.view.composable.ItemDistanceText
 import com.lookaround.core.android.view.composable.ItemNameText
-import com.lookaround.core.android.view.composable.LookARoundCard
 import com.lookaround.core.android.view.composable.ShimmerAnimation
+import com.lookaround.core.android.view.theme.Ocean0
+import com.lookaround.core.android.view.theme.Ocean2
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -45,11 +49,18 @@ internal fun PlaceMapListItem(
     }
     val userLocationState = userLocationFlow.collectAsState(initial = null)
 
-    LookARoundCard(
-        backgroundColor = Color.White.copy(alpha = .55f),
+    Card(
         elevation = 0.dp,
         shape = RoundedCornerShape(20.dp),
-        modifier = modifier
+        backgroundColor = Color.Transparent,
+        modifier =
+            Modifier.background(
+                    brush = Brush.horizontalGradient(colors = listOf(Ocean2, Ocean0)),
+                    shape = RoundedCornerShape(20.dp),
+                    alpha = .55f
+                )
+                .clip(RoundedCornerShape(20.dp))
+                .then(modifier),
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Card(
