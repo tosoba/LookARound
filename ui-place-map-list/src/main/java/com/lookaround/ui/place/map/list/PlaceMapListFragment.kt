@@ -338,9 +338,11 @@ class PlaceMapListFragment :
         }
 
     private suspend fun getCachedBitmap(location: Location): CacheableBitmapDrawable? =
-        if (locationBitmapCaptureCache.isEnabled)
+        if (locationBitmapCaptureCache.isEnabled) {
             withContext(Dispatchers.IO) { locationBitmapCaptureCache[location] }
-        else null
+        } else {
+            null
+        }
 
     private suspend fun cacheBitmap(location: Location, bitmap: Bitmap) {
         if (!locationBitmapCaptureCache.isEnabled) return

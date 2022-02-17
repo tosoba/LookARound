@@ -7,6 +7,7 @@ import android.view.Gravity
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.viewModels
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
@@ -510,67 +511,58 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     private fun launchPlacesLoadingSnackbarUpdates() {
-        viewModel
-            .onEachSignal<MainSignal.PlacesLoadingFailed> {
-                placesStatusLoadingSnackbar =
-                    showPlacesLoadingStatusSnackbar(
-                        getString(R.string.loading_places_failed),
-                        Snackbar.LENGTH_SHORT
-                    )
-            }
-            .launchIn(lifecycleScope)
-
-        viewModel
-            .onEachSignal<MainSignal.UnableToLoadPlacesWithoutLocation> {
-                placesStatusLoadingSnackbar =
-                    showPlacesLoadingStatusSnackbar(
-                        getString(R.string.location_unavailable),
-                        Snackbar.LENGTH_SHORT
-                    )
-            }
-            .launchIn(lifecycleScope)
-
-        viewModel
-            .onEachSignal<MainSignal.UnableToLoadPlacesWithoutConnection> {
-                placesStatusLoadingSnackbar =
-                    showPlacesLoadingStatusSnackbar(
-                        getString(R.string.no_internet_connection),
-                        Snackbar.LENGTH_SHORT
-                    )
-            }
-            .launchIn(lifecycleScope)
-
-        viewModel
-            .markerUpdates
-            .onEach { markers ->
-                if (markers is Loading) {
-                    placesStatusLoadingSnackbar =
-                        showPlacesLoadingStatusSnackbar(
-                            getString(R.string.loading_places_in_progress),
-                            Snackbar.LENGTH_INDEFINITE
-                        )
-                } else {
-                    placesStatusLoadingSnackbar?.dismiss()
+        merge(
+                viewModel
+                    .markerUpdates
+                    .map { loadable ->
+                        when (loadable) {
+                            is Loading -> {
+                                SnackbarUpdate.Show(
+                                    R.string.loading_places_in_progress,
+                                    Snackbar.LENGTH_INDEFINITE
+                                )
+                            }
+                            is Ready -> SnackbarUpdate.Dismiss
+                            else -> null
+                        }
+                    }
+                    .filterNotNull(),
+                viewModel.signals.filterIsInstance<MainSignal.PlacesLoadingFailed>().map {
+                    SnackbarUpdate.Show(R.string.loading_places_failed, Snackbar.LENGTH_SHORT)
+                },
+                viewModel.signals.filterIsInstance<MainSignal.UnableToLoadPlacesWithoutLocation>()
+                    .map {
+                        SnackbarUpdate.Show(R.string.location_unavailable, Snackbar.LENGTH_SHORT)
+                    },
+                viewModel.signals.filterIsInstance<MainSignal.UnableToLoadPlacesWithoutConnection>()
+                    .map {
+                        SnackbarUpdate.Show(R.string.no_internet_connection, Snackbar.LENGTH_SHORT)
+                    },
+                viewModel.signals.filterIsInstance<MainSignal.NoPlacesFound>().map {
+                    SnackbarUpdate.Show(R.string.no_places_found, Snackbar.LENGTH_SHORT)
                 }
-            }
-            .launchIn(lifecycleScope)
-
-        viewModel
-            .onEachSignal<MainSignal.NoPlacesFound> {
-                placesStatusLoadingSnackbar =
-                    showPlacesLoadingStatusSnackbar(
-                        getString(R.string.no_places_found),
-                        Snackbar.LENGTH_SHORT
-                    )
+            )
+            .debounce(500L)
+            .onEach {
+                when (it) {
+                    is SnackbarUpdate.Show -> {
+                        placesStatusLoadingSnackbar =
+                            showPlacesLoadingStatusSnackbar(it.msgRes, it.length)
+                        signalSnackbarStatusChanged(isShowing = true)
+                    }
+                    is SnackbarUpdate.Dismiss -> {
+                        placesStatusLoadingSnackbar?.dismiss()
+                    }
+                }
             }
             .launchIn(lifecycleScope)
     }
 
     private fun showPlacesLoadingStatusSnackbar(
-        message: String,
+        @StringRes msgRes: Int,
         @BaseTransientBottomBar.Duration length: Int
     ): Snackbar =
-        Snackbar.make(binding.mainCoordinatorLayout, message, length)
+        Snackbar.make(binding.mainCoordinatorLayout, getString(msgRes), length)
             .setAnchorView(binding.bottomNavigationView)
             .apply {
                 addCallback(
@@ -582,10 +574,18 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                     }
                 )
                 show()
-                signalSnackbarStatusChanged(isShowing = true)
             }
 
     private fun signalSnackbarStatusChanged(isShowing: Boolean) {
         lifecycleScope.launch { viewModel.signal(MainSignal.SnackbarStatusChanged(isShowing)) }
+    }
+
+    private sealed interface SnackbarUpdate {
+        data class Show(
+            @StringRes val msgRes: Int,
+            @BaseTransientBottomBar.Duration val length: Int
+        ) : SnackbarUpdate
+
+        object Dismiss : SnackbarUpdate
     }
 }
