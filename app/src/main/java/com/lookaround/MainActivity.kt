@@ -313,12 +313,10 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         binding.searchBarView.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
-                    val orientation = LocalConfiguration.current.orientation
-                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Column {
                         PlacesAutocompleteSearchBar()
-                    } else {
-                        Column {
-                            PlacesAutocompleteSearchBar()
+                        val orientation = LocalConfiguration.current.orientation
+                        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
                             RecentSearchesChipList()
                         }
                     }
