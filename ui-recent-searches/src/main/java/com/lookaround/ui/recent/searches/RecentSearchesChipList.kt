@@ -1,8 +1,8 @@
 package com.lookaround.ui.recent.searches
 
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.map
 @ExperimentalMaterialApi
 @Composable
 fun RecentSearchesChipList(
+    modifier: Modifier = Modifier,
     recentSearchesViewModel: RecentSearchesViewModel = hiltViewModel(),
     onMoreClicked: () -> Unit,
     onSearchClicked: (RecentSearchModel) -> Unit
@@ -45,7 +46,8 @@ fun RecentSearchesChipList(
     if (recentSearches.value.isEmpty()) return
 
     val lazyListState = rememberLazyListState()
-    LazyRow(state = lazyListState, modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
+    LazyRow(state = lazyListState, modifier = modifier) {
+        item { Box(modifier = Modifier.size(10.dp)) }
         items(recentSearches.value) { recentSearch ->
             Chip(
                 onClick = { onSearchClicked(recentSearch) },
@@ -65,5 +67,6 @@ fun RecentSearchesChipList(
                 modifier = Modifier.padding(horizontal = 2.dp)
             ) { Text(text = "More...", color = LookARoundTheme.colors.textLink) }
         }
+        item { Box(modifier = Modifier.size(10.dp)) }
     }
 }

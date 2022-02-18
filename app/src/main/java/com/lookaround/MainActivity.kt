@@ -11,6 +11,8 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -21,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -314,28 +317,9 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                     if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                         PlacesAutocompleteSearchBar()
                     } else {
-                        val scope = rememberCoroutineScope()
                         Column {
                             PlacesAutocompleteSearchBar()
-                            RecentSearchesChipList(
-                                onMoreClicked = {
-                                    binding.bottomNavigationView.selectedItemId =
-                                        R.id.action_recent_searches
-                                }
-                            ) { recentSearch ->
-                                scope.launch {
-                                    viewModel.intent(
-                                        when (recentSearch.type) {
-                                            SearchType.AROUND ->
-                                                MainIntent.LoadSearchAroundResults(recentSearch.id)
-                                            SearchType.AUTOCOMPLETE ->
-                                                MainIntent.LoadSearchAutocompleteResults(
-                                                    recentSearch.id
-                                                )
-                                        }
-                                    )
-                                }
-                            }
+                            RecentSearchesChipList()
                         }
                     }
                 }
@@ -357,6 +341,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         val searchFocused = searchFocusedFlow.collectAsState(initial = false)
         val cameraFragmentVisible =
             cameraFragmentVisibleFlow.collectAsState(initial = currentTopFragment is CameraFragment)
+        val scope = rememberCoroutineScope()
         SearchBar(
             query = viewModel.state.autocompleteSearchQuery,
             focused = searchFocused.value,
@@ -366,11 +351,8 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                     IconButton(
                         onClick = {
                             with(binding.mainDrawerLayout) {
-                                if (isDrawerOpen(Gravity.LEFT)) {
-                                    closeDrawer(Gravity.LEFT)
-                                } else {
-                                    openDrawer(Gravity.LEFT)
-                                }
+                                if (isDrawerOpen(Gravity.LEFT)) closeDrawer(Gravity.LEFT)
+                                else openDrawer(Gravity.LEFT)
                             }
                         }
                     ) {
@@ -391,14 +373,32 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                 }
             },
             onSearchFocusChange = { focused ->
-                lifecycleScope.launch { viewModel.intent(MainIntent.SearchFocusChanged(focused)) }
+                scope.launch { viewModel.intent(MainIntent.SearchFocusChanged(focused)) }
             },
             onTextFieldValueChange = { textValue ->
-                lifecycleScope.launch {
-                    viewModel.intent(MainIntent.SearchQueryChanged(textValue.text))
-                }
+                scope.launch { viewModel.intent(MainIntent.SearchQueryChanged(textValue.text)) }
             }
         )
+    }
+
+    @Composable
+    private fun RecentSearchesChipList() {
+        val scope = rememberCoroutineScope()
+        RecentSearchesChipList(
+            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+            onMoreClicked = {
+                binding.bottomNavigationView.selectedItemId = R.id.action_recent_searches
+            }
+        ) { (id, _, type) ->
+            scope.launch {
+                viewModel.intent(
+                    when (type) {
+                        SearchType.AROUND -> MainIntent.LoadSearchAroundResults(id)
+                        SearchType.AUTOCOMPLETE -> MainIntent.LoadSearchAutocompleteResults(id)
+                    }
+                )
+            }
+        }
     }
 
     private fun initBottomSheet() {
