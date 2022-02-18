@@ -1,7 +1,10 @@
 package com.lookaround.ui.main
 
 import android.location.Location
+import androidx.annotation.StringRes
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
 import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.model.*
 import com.lookaround.ui.main.model.MainSignal
@@ -59,3 +62,46 @@ val MainViewModel.nearMeFabVisibilityUpdates: Flow<Boolean>
                     sheetState != BottomSheetBehavior.STATE_SETTLING
             }
             .distinctUntilChanged()
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+val MainViewModel.snackbarUpdates: Flow<SnackbarUpdate>
+    get() =
+        merge(
+                markerUpdates
+                    .map { loadable ->
+                        when (loadable) {
+                            is Loading -> {
+                                SnackbarUpdate.Show(
+                                    R.string.loading_places_in_progress,
+                                    Snackbar.LENGTH_INDEFINITE
+                                )
+                            }
+                            is Ready -> SnackbarUpdate.Dismiss
+                            else -> null
+                        }
+                    }
+                    .filterNotNull(),
+                signals.filterIsInstance<MainSignal.PlacesLoadingFailed>().map {
+                    SnackbarUpdate.Show(R.string.loading_places_failed, Snackbar.LENGTH_SHORT)
+                },
+                signals.filterIsInstance<MainSignal.UnableToLoadPlacesWithoutLocation>().map {
+                    SnackbarUpdate.Show(R.string.location_unavailable, Snackbar.LENGTH_SHORT)
+                },
+                signals.filterIsInstance<MainSignal.UnableToLoadPlacesWithoutConnection>().map {
+                    SnackbarUpdate.Show(R.string.no_internet_connection, Snackbar.LENGTH_SHORT)
+                },
+                signals.filterIsInstance<MainSignal.NoPlacesFound>().map {
+                    SnackbarUpdate.Show(R.string.no_places_found, Snackbar.LENGTH_SHORT)
+                }
+            )
+            .debounce(250L)
+
+sealed interface SnackbarUpdate {
+    data class Show(
+        @StringRes val msgRes: Int,
+        @BaseTransientBottomBar.Duration val length: Int,
+    ) : SnackbarUpdate
+
+    object Dismiss : SnackbarUpdate
+}

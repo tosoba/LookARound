@@ -5,9 +5,4 @@
     <string name="back">Back</string>
     <string name="clear">Clear</string>
     <string name="clear_all">Clear all</string>
-    <string name="search_places_nearby">Search for places nearby.</string>
-    <string name="search_query_too_short">Search query is too short.</string>
-    <string name="places_loading_error_occurred">Places loading error occurred.</string>
-    <string name="no_places_found">No places found.</string>
-    <string name="search_no_location_priority_warning">WARNING - Search performed with no location priority.</string>
 </resources>

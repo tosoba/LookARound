@@ -4,4 +4,9 @@
     <string name="places">Places</string>
     <string name="recent">Recent</string>
     <string name="unchecked">Unchecked</string>
+    <string name="loading_places_in_progress">Loading places in progress…</string>
+    <string name="loading_places_failed">Loading places failed.</string>
+    <string name="location_unavailable">Location is unavailable.</string>
+    <string name="no_internet_connection">No internet connection.</string>
+    <string name="no_places_found">No places found.</string>
 </resources>

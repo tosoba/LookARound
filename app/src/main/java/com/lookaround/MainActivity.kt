@@ -511,38 +511,8 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
     }
 
     private fun launchPlacesLoadingSnackbarUpdates() {
-        merge(
-                viewModel
-                    .markerUpdates
-                    .map { loadable ->
-                        when (loadable) {
-                            is Loading -> {
-                                SnackbarUpdate.Show(
-                                    R.string.loading_places_in_progress,
-                                    Snackbar.LENGTH_INDEFINITE
-                                )
-                            }
-                            is Ready -> SnackbarUpdate.Dismiss
-                            else -> null
-                        }
-                    }
-                    .filterNotNull(),
-                viewModel.signals.filterIsInstance<MainSignal.PlacesLoadingFailed>().map {
-                    SnackbarUpdate.Show(R.string.loading_places_failed, Snackbar.LENGTH_SHORT)
-                },
-                viewModel.signals.filterIsInstance<MainSignal.UnableToLoadPlacesWithoutLocation>()
-                    .map {
-                        SnackbarUpdate.Show(R.string.location_unavailable, Snackbar.LENGTH_SHORT)
-                    },
-                viewModel.signals.filterIsInstance<MainSignal.UnableToLoadPlacesWithoutConnection>()
-                    .map {
-                        SnackbarUpdate.Show(R.string.no_internet_connection, Snackbar.LENGTH_SHORT)
-                    },
-                viewModel.signals.filterIsInstance<MainSignal.NoPlacesFound>().map {
-                    SnackbarUpdate.Show(R.string.no_places_found, Snackbar.LENGTH_SHORT)
-                }
-            )
-            .debounce(500L)
+        viewModel
+            .snackbarUpdates
             .onEach {
                 when (it) {
                     is SnackbarUpdate.Show -> {
@@ -577,14 +547,5 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
 
     private fun signalSnackbarStatusChanged(isShowing: Boolean) {
         lifecycleScope.launch { viewModel.signal(MainSignal.SnackbarStatusChanged(isShowing)) }
-    }
-
-    private sealed interface SnackbarUpdate {
-        data class Show(
-            @StringRes val msgRes: Int,
-            @BaseTransientBottomBar.Duration val length: Int
-        ) : SnackbarUpdate
-
-        object Dismiss : SnackbarUpdate
     }
 }
