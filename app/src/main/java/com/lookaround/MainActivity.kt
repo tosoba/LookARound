@@ -548,11 +548,8 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
                     is SnackbarUpdate.Show -> {
                         placesStatusLoadingSnackbar =
                             showPlacesLoadingStatusSnackbar(it.msgRes, it.length)
-                        signalSnackbarStatusChanged(isShowing = true)
                     }
-                    is SnackbarUpdate.Dismiss -> {
-                        placesStatusLoadingSnackbar?.dismiss()
-                    }
+                    is SnackbarUpdate.Dismiss -> placesStatusLoadingSnackbar?.dismiss()
                 }
             }
             .launchIn(lifecycleScope)
@@ -567,7 +564,9 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
             .apply {
                 addCallback(
                     object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                        override fun onShown(transientBottomBar: Snackbar?) = Unit
+                        override fun onShown(transientBottomBar: Snackbar?) {
+                            signalSnackbarStatusChanged(isShowing = true)
+                        }
                         override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                             signalSnackbarStatusChanged(isShowing = false)
                         }
