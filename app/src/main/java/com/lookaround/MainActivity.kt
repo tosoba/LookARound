@@ -50,8 +50,8 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
-import com.lookaround.ui.place.map.list.PlaceMapListActionsHandler
 import com.lookaround.ui.place.map.list.PlaceMapListFragment
+import com.lookaround.ui.place.map.list.PlaceMapListHost
 import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.recent.searches.RecentSearchesChipList
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
@@ -70,7 +70,7 @@ import timber.log.Timber
 @ExperimentalStdlibApi
 @FlowPreview
 @SuppressLint("RtlHardcoded")
-class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
+class MainActivity : AppCompatActivity(), PlaceMapListHost {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
     private val viewModel: MainViewModel by viewModels()
@@ -224,6 +224,11 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         }
     }
 
+    override val initialItemBackground: PlaceMapListHost.ItemBackground
+        get() =
+            if (currentTopFragment is CameraFragment) PlaceMapListHost.ItemBackground.TRANSPARENT
+            else PlaceMapListHost.ItemBackground.OPAQUE
+
     override fun onPlaceMapItemClick(marker: Marker) {
         if (!lifecycle.isResumed) return
         when (val topFragment = currentTopFragment) {
@@ -333,7 +338,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListActionsHandler {
         val cameraFragmentVisibleFlow = remember {
             viewModel
                 .filterSignals<MainSignal.TopFragmentChanged>()
-                .map { !it.cameraObscured }
+                .map { (cameraObscured) -> !cameraObscured }
                 .distinctUntilChanged()
         }
         val searchFocused = searchFocusedFlow.collectAsState(initial = false)

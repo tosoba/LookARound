@@ -7,15 +7,21 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -35,6 +41,8 @@ import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.core.android.view.theme.Ocean0
+import com.lookaround.core.android.view.theme.Ocean2
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
@@ -78,6 +86,7 @@ class PlaceMapListFragment :
     @Inject internal lateinit var locationBitmapCaptureCache: LocationBitmapCaptureCache
     private var currentGetLocationBitmapIncrement = 0L
     private val getLocationBitmapFlow = MutableSharedFlow<GetLocationBitmapRequest>()
+    private val reloadBitmapTrigger = MutableSharedFlow<Unit>()
 
     private var searchQuery: String = ""
 
@@ -102,7 +111,6 @@ class PlaceMapListFragment :
         val mapLayoutParams = getMapLayoutParams()
         binding.map.layoutParams = mapLayoutParams
 
-        val reloadBitmapTrigger = MutableSharedFlow<Unit>()
         binding.reloadMapsFab.setOnClickListener {
             ++currentGetLocationBitmapIncrement
             viewLifecycleOwner.lifecycleScope.launch {
@@ -112,7 +120,7 @@ class PlaceMapListFragment :
         }
 
         binding.showMapFab.setOnClickListener {
-            (activity as? PlaceMapListActionsHandler)?.let {
+            (activity as? PlaceMapListHost)?.let {
                 it.onShowMapClick()
                 viewLifecycleOwner.lifecycleScope.launchWhenResumed {
                     mainViewModel.signal(MainSignal.HideBottomSheet)
@@ -172,6 +180,21 @@ class PlaceMapListFragment :
                     val searchQuery = searchQueryFlow.collectAsState(initial = "")
                     val searchFocused = rememberSaveable { mutableStateOf(false) }
 
+                    val itemBackgroundFlow = remember {
+                        mainViewModel
+                            .filterSignals<MainSignal.TopFragmentChanged>()
+                            .map { (cameraObscured) ->
+                                if (cameraObscured) PlaceMapListHost.ItemBackground.OPAQUE
+                                else PlaceMapListHost.ItemBackground.TRANSPARENT
+                            }
+                            .distinctUntilChanged()
+                    }
+                    val itemBackground =
+                        itemBackgroundFlow.collectAsState(
+                            initial = (activity as? PlaceMapListHost)?.initialItemBackground
+                                    ?: PlaceMapListHost.ItemBackground.TRANSPARENT
+                        )
+
                     val lazyListState = rememberLazyListState()
                     binding
                         .disallowInterceptTouchContainer
@@ -212,6 +235,8 @@ class PlaceMapListFragment :
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 modifier = Modifier.wrapContentHeight()
                             ) {
+                                val opaqueBackground =
+                                    itemBackground.value == PlaceMapListHost.ItemBackground.OPAQUE
                                 chunk.forEach { point ->
                                     PlaceMapListItem(
                                         point = point,
@@ -222,11 +247,31 @@ class PlaceMapListFragment :
                                             requireContext()
                                                 .pxToDp(mapLayoutParams.width.toFloat())
                                                 .toInt(),
+                                        elevation = if (opaqueBackground) 5.dp else 0.dp,
+                                        backgroundColor =
+                                            if (opaqueBackground) Color.White
+                                            else Color.Transparent,
                                         modifier =
-                                            Modifier.weight(1f, fill = false).clickable {
-                                                (activity as? PlaceMapListActionsHandler)
-                                                    ?.onPlaceMapItemClick(point)
-                                            },
+                                            Modifier.weight(1f, fill = false)
+                                                .clickable {
+                                                    (activity as? PlaceMapListHost)
+                                                        ?.onPlaceMapItemClick(point)
+                                                }
+                                                .clip(RoundedCornerShape(20.dp))
+                                                .run {
+                                                    if (!opaqueBackground) {
+                                                        background(
+                                                            brush =
+                                                                Brush.horizontalGradient(
+                                                                    colors = listOf(Ocean2, Ocean0)
+                                                                ),
+                                                            shape = RoundedCornerShape(20.dp),
+                                                            alpha = .55f
+                                                        )
+                                                    } else {
+                                                        this
+                                                    }
+                                                }
                                     )
                                 }
                             }
