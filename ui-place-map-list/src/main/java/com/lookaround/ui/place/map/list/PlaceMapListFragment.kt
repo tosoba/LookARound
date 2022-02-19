@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -247,30 +248,38 @@ class PlaceMapListFragment :
                                             requireContext()
                                                 .pxToDp(mapLayoutParams.width.toFloat())
                                                 .toInt(),
-                                        elevation = if (opaqueBackground) 5.dp else 0.dp,
-                                        backgroundColor =
-                                            if (opaqueBackground) Color.White
-                                            else Color.Transparent,
+                                        elevation = 0.dp,
+                                        backgroundColor = Color.Transparent,
                                         modifier =
-                                            Modifier.weight(1f, fill = false)
-                                                .clickable {
-                                                    (activity as? PlaceMapListHost)
-                                                        ?.onPlaceMapItemClick(point)
-                                                }
-                                                .clip(RoundedCornerShape(20.dp))
-                                                .run {
-                                                    if (!opaqueBackground) {
-                                                        background(
+                                            Modifier.run {
+                                                if (!opaqueBackground) {
+                                                    background(
+                                                        brush =
+                                                            Brush.horizontalGradient(
+                                                                colors = listOf(Ocean2, Ocean0)
+                                                            ),
+                                                        shape = RoundedCornerShape(20.dp),
+                                                        alpha = .55f
+                                                    )
+                                                } else {
+                                                    background(
                                                             brush =
                                                                 Brush.horizontalGradient(
                                                                     colors = listOf(Ocean2, Ocean0)
                                                                 ),
                                                             shape = RoundedCornerShape(20.dp),
-                                                            alpha = .55f
                                                         )
-                                                    } else {
-                                                        this
-                                                    }
+                                                        .shadow(
+                                                            elevation = 0.dp,
+                                                            shape = RoundedCornerShape(20.dp)
+                                                        )
+                                                }
+                                            }
+                                                .clip(RoundedCornerShape(20.dp))
+                                                .weight(1f, fill = false)
+                                                .clickable {
+                                                    (activity as? PlaceMapListHost)
+                                                        ?.onPlaceMapItemClick(point)
                                                 }
                                     )
                                 }
