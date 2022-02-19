@@ -180,27 +180,33 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                         listOf(
                             PlaceType(
                                 wrapped = Amenity.PARKING,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/car-car-park_1150-8889.jpg?t=st=1645276573~exp=1645277173~hmac=5d7fb6b1d778177ffc8072f3c3968a254448667a186cc4f18bf634f1028c613c&w=1380"
                             ),
                             PlaceType(
                                 wrapped = Amenity.FUEL,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/human-hand-is-holding-electric-car-charging-connect-electric-car_1153-5059.jpg?t=st=1645276688~exp=1645277288~hmac=1ddf286a149a974d56062acb6e65af9cabad0319b7dd85d7446cd44728a95b62&w=1060"
                             ),
                             PlaceType(
                                 wrapped = Amenity.CAR_WASH,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/car-wash-detailing-station_1303-22319.jpg?t=st=1645276744~exp=1645277344~hmac=f183a10e0ce27050893f715f3c102c2e80df85c2b420a215252cc686be6f3ba7&w=1060"
                             ),
                             PlaceType(
                                 wrapped = Amenity.ATM,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/woman-using-banking-machine-close-up_1391-333.jpg?t=st=1645276967~exp=1645277567~hmac=483c746658a75b8c3c01e2231a8d6191ddec90477bd2584f2ef3754573faa514&w=1060"
                             ),
                             PlaceType(
                                 wrapped = Amenity.POST_OFFICE,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/woman-picking-up-mail_53876-144800.jpg?t=st=1645277132~exp=1645277732~hmac=e84cd046c5729d9878c73229363631b974d81ba91dd2c4a4f398fe61aed7e6dc&w=1060"
                             ),
                             PlaceType(
                                 wrapped = Amenity.TOILETS,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/public-toilet_1417-1759.jpg?t=st=1645277208~exp=1645277808~hmac=db8cad1e258edbaeaae14bebb99375e61f94c87741e3b8eae915d9751c8309b7&w=1060"
                             )
                         )
                 ),
@@ -210,27 +216,33 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                         listOf(
                             PlaceType(
                                 wrapped = Amenity.RESTAURANT,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/restaurant-hall-with-red-brick-walls-wooden-tables-pipes-ceiling_140725-8504.jpg?t=st=1645276062~exp=1645276662~hmac=0600602b99ce087adda48f8d65a5a631ccca58b72c6400c44aebb22fc65c1db6&w=996"
                             ),
                             PlaceType(
                                 wrapped = Amenity.CAFE,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/high-angle-shot-coffee-beans-jars-breakfast-table-with-some-pastry_181624-5864.jpg?t=st=1645277441~exp=1645278041~hmac=0c22a95763841682df547c0af33aff67bcbad4a5c377c1066d169d16d3261aca&w=1060"
                             ),
                             PlaceType(
                                 wrapped = Amenity.FAST_FOOD,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/top-view-fast-food-mix-hamburger-doner-sandwich-chicken-nuggets-rice-vegetable-salad-chicken-sticks-caesar-salad-mushrooms-pizza-chicken-ragout-french-fries-mayo_141793-3997.jpg?t=st=1645277467~exp=1645278067~hmac=5e6dd13eda7deb1679acd6b2744da5aea0a87273c3986096b196b642d98d8270&w=1380"
                             ),
                             PlaceType(
                                 wrapped = Amenity.BAR,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/mid-section-bar-tender-filling-beer-from-bar-pump_107420-65356.jpg?t=st=1645277884~exp=1645278484~hmac=212ec528f36fed9d94c18c4e8b75e66b9df0f2e9751f259d10024326d5a102db&w=1060"
                             ),
                             PlaceType(
                                 wrapped = Amenity.PUB,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/happy-friends-drinking-beer-counter-pub_155003-10075.jpg?t=st=1645278037~exp=1645278637~hmac=964d598b21c15ad12183c960ebbed99e18c15bf85ed6b860786a48fe24de42e2&w=1060"
                             ),
                             PlaceType(
                                 wrapped = Amenity.ICE_CREAM,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/ice-cream-cone_144627-41497.jpg?t=st=1645278067~exp=1645278667~hmac=33459dd8cd68596483b9ad47ee256cb1abde93eb5f3cedec9a179925b177ae47&w=1060"
                             )
                         )
                 ),
@@ -240,24 +252,19 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                         listOf(
                             PlaceType(
                                 wrapped = Amenity.BUS_STATION,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/buses-bus-terminal-valletta_1398-182.jpg?t=st=1645278550~exp=1645279150~hmac=2f3b3e6ccb22f0940f46398ca3d8c14bc8d4484c62ed47cf77869c964c888766&w=1060"
                             ),
                             PlaceType(
                                 wrapped = Amenity.TAXI,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/selective-focus-shot-yellow-taxi-sign-traffic-jam_181624-42635.jpg?t=st=1645278606~exp=1645279206~hmac=e497136e0237d5ac9329129b1aaef508c474578c962e81a04aac7240cc662d8c&w=1060"
                             ),
                             PlaceType(
                                 wrapped = Amenity.CAR_RENTAL,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                                imageUrl =
+                                    "https://img.freepik.com/free-photo/stylish-black-woman-car-salon_1157-21402.jpg?t=st=1645278660~exp=1645279260~hmac=236139a96d6071919c72d77c2c9d1d0278d43e975058360c03e648bca6ff01cf&w=1060"
                             ),
-                            PlaceType(
-                                wrapped = Amenity.CAR_SHARING,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
-                            ),
-                            PlaceType(
-                                wrapped = Amenity.BICYCLE_RENTAL,
-                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
-                            )
                         )
                 ),
                 PlaceTypeGroup(
