@@ -27,6 +27,9 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.model.Amenity
+import com.lookaround.core.android.model.Leisure
+import com.lookaround.core.android.model.Shop
+import com.lookaround.core.android.model.Tourism
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainIntent
@@ -87,7 +90,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                     val searchQuery = searchQueryFlow.collectAsState(initial = "")
                     val searchFocused = rememberSaveable { mutableStateOf(false) }
                     val placeTypeGroups =
-                        placeTypeGroupsFlow.collectAsState(initial = allPlaceTypeGroups)
+                        placeTypeGroupsFlow.collectAsState(initial = placeTypeGroups)
 
                     val lazyListState = rememberLazyListState()
                     binding
@@ -151,7 +154,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
     }
 
     private fun placeTypeGroupsMatching(query: String): List<PlaceTypeGroup> =
-        allPlaceTypeGroups
+        placeTypeGroups
             .map {
                 PlaceTypeGroup(
                     name = it.name,
@@ -169,8 +172,38 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
     }
 
     companion object {
-        private val allPlaceTypeGroups =
+        private val placeTypeGroups =
             listOf(
+                PlaceTypeGroup(
+                    name = "General",
+                    placeTypes =
+                        listOf(
+                            PlaceType(
+                                wrapped = Amenity.PARKING,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.FUEL,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.CAR_WASH,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.ATM,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.POST_OFFICE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.TOILETS,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            )
+                        )
+                ),
                 PlaceTypeGroup(
                     name = "Food & drinks",
                     placeTypes =
@@ -202,6 +235,144 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                         )
                 ),
                 PlaceTypeGroup(
+                    name = "Transport",
+                    placeTypes =
+                        listOf(
+                            PlaceType(
+                                wrapped = Amenity.BUS_STATION,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.TAXI,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.CAR_RENTAL,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.CAR_SHARING,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.BICYCLE_RENTAL,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            )
+                        )
+                ),
+                PlaceTypeGroup(
+                    name = "Shop",
+                    placeTypes =
+                        listOf(
+                            PlaceType(
+                                wrapped = Shop.CONVENIENCE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.SUPERMARKET,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.MALL,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.CLOTHES,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.SHOES,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.KIOSK,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.ALCOHOL,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.HAIRDRESSER,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.CAR,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.HARDWARE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.ELECTRONICS,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.BOOKS,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Shop.SPORTS,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                        )
+                ),
+                PlaceTypeGroup(
+                    name = "Tourism",
+                    placeTypes =
+                        listOf(
+                            PlaceType(
+                                wrapped = Tourism.HOTEL,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Tourism.ATTRACTION,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Tourism.INFORMATION,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Tourism.VIEWPOINT,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Tourism.MUSEUM,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Tourism.GALLERY,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Tourism.HOSTEL,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Tourism.MOTEL,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Tourism.CAMP_SITE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Tourism.THEME_PARK,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Leisure.NATURE_RESERVE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Tourism.ZOO,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                        )
+                ),
+                PlaceTypeGroup(
                     name = "Entertainment",
                     placeTypes =
                         listOf(
@@ -228,7 +399,71 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                             PlaceType(
                                 wrapped = Amenity.EVENTS_VENUE,
                                 imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.CASINO,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.LIBRARY,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
                             )
+                        )
+                ),
+                PlaceTypeGroup(
+                    name = "Leisure",
+                    placeTypes =
+                        listOf(
+                            PlaceType(
+                                wrapped = Leisure.PARK,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Leisure.GARDEN,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Leisure.PLAYGROUND,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Leisure.PITCH,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Leisure.SPORTS_CENTRE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Leisure.SWIMMING_POOL,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Leisure.GOLF_COURSE,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            )
+                        )
+                ),
+                PlaceTypeGroup(
+                    name = "Health",
+                    placeTypes =
+                        listOf(
+                            PlaceType(
+                                wrapped = Amenity.PHARMACY,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.HOSPITAL,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.DOCTORS,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
+                            PlaceType(
+                                wrapped = Amenity.VETERINARY,
+                                imageUrl = "https://source.unsplash.com/SfP1PtM9Qa8"
+                            ),
                         )
                 )
             )

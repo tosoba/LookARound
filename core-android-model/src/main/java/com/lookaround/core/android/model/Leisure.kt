@@ -63,5 +63,10 @@ enum class Leisure(
     HORSE_RIDING(
         "A facility where people practise horse riding, usually in their spare time, e.g. a riding centre. For a riding arena use tag:leisure=pitch + tag:sport=equestrian.",
         14655
-    );
+    ),
+    WATER_PARK(
+        "An amusement park with features like water slides, recreational pools (e.g. wave pools) or lazy rivers.",
+        11929
+    ),
+    ICE_RINK("A place where you can skate and play bandy or ice hockey.", 7466),
 }
