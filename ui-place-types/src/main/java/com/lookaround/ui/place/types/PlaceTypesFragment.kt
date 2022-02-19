@@ -4,12 +4,9 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Text
 import androidx.compose.runtime.collectAsState
@@ -24,6 +21,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
+import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.model.Amenity
@@ -47,9 +45,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
-@FlowPreview
+@ExperimentalCoilApi
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
+@FlowPreview
 class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
     private val binding: FragmentPlaceTypesBinding by viewBinding(FragmentPlaceTypesBinding::bind)
 
@@ -99,7 +98,11 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                         (lazyListState.firstVisibleItemIndex != 0 ||
                             lazyListState.firstVisibleItemScrollOffset != 0) &&
                             bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED
-                    LazyColumn(state = lazyListState, modifier = Modifier.fillMaxHeight()) {
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = Modifier.padding(horizontal = 5.dp).fillMaxHeight(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
                         if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED) {
                             item { Spacer(Modifier.height(112.dp)) }
                         } else {
@@ -121,12 +124,8 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                         if (placeTypeGroups.value.isNotEmpty()) {
                             val columns =
                                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
-                            itemsIndexed(placeTypeGroups.value) { index, group ->
-                                PlaceTypeGroupItem(
-                                    group = group,
-                                    index = index,
-                                    columns = columns
-                                ) { placeType ->
+                            items(placeTypeGroups.value) { group ->
+                                PlaceTypeGroupItem(group = group, columns = columns) { placeType ->
                                     lifecycleScope.launch {
                                         mainViewModel.intent(MainIntent.GetPlacesOfType(placeType))
                                         mainViewModel.signal(MainSignal.HideBottomSheet)
