@@ -20,9 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -248,34 +246,16 @@ class PlaceMapListFragment :
                                             requireContext()
                                                 .pxToDp(mapLayoutParams.width.toFloat())
                                                 .toInt(),
-                                        elevation = 0.dp,
-                                        backgroundColor = Color.Transparent,
                                         modifier =
-                                            Modifier.run {
-                                                if (!opaqueBackground) {
-                                                    background(
-                                                        brush =
-                                                            Brush.horizontalGradient(
-                                                                colors = listOf(Ocean2, Ocean0)
-                                                            ),
-                                                        shape = RoundedCornerShape(20.dp),
-                                                        alpha = .55f
-                                                    )
-                                                } else {
-                                                    background(
-                                                            brush =
-                                                                Brush.horizontalGradient(
-                                                                    colors = listOf(Ocean2, Ocean0)
-                                                                ),
-                                                            shape = RoundedCornerShape(20.dp),
-                                                        )
-                                                        .shadow(
-                                                            elevation = 0.dp,
-                                                            shape = RoundedCornerShape(20.dp)
-                                                        )
-                                                }
-                                            }
-                                                .clip(RoundedCornerShape(20.dp))
+                                            Modifier.clip(placeMapListItemShape)
+                                                .background(
+                                                    brush =
+                                                        Brush.horizontalGradient(
+                                                            colors = listOf(Ocean2, Ocean0)
+                                                        ),
+                                                    shape = placeMapListItemShape,
+                                                    alpha = if (opaqueBackground) .95f else .55f,
+                                                )
                                                 .weight(1f, fill = false)
                                                 .clickable {
                                                     (activity as? PlaceMapListHost)

@@ -3,6 +3,7 @@ package com.lookaround.ui.place.map.list
 import android.graphics.Bitmap
 import android.location.Location
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -10,11 +11,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.model.INamedLocation
 import com.lookaround.core.android.view.composable.ItemDistanceText
@@ -24,6 +23,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
+internal val placeMapListItemShape = RoundedCornerShape(20.dp)
+
 @Composable
 internal fun PlaceMapListItem(
     point: INamedLocation,
@@ -31,8 +32,6 @@ internal fun PlaceMapListItem(
     getPlaceBitmap: suspend (Location) -> Bitmap,
     reloadBitmapTrigger: Flow<Unit>,
     bitmapDimension: Int,
-    elevation: Dp,
-    backgroundColor: Color,
     modifier: Modifier = Modifier,
 ) {
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -45,18 +44,14 @@ internal fun PlaceMapListItem(
             }
             .launchIn(this)
     }
+
     val userLocationState = userLocationFlow.collectAsState(initial = null)
 
-    Card(
-        elevation = elevation,
-        shape = RoundedCornerShape(20.dp),
-        backgroundColor = backgroundColor,
-        modifier = modifier,
-    ) {
+    Box(modifier = modifier, propagateMinConstraints = true) {
         Column(modifier = Modifier.padding(10.dp)) {
             Card(
                 elevation = 3.dp,
-                shape = RoundedCornerShape(20.dp),
+                shape = placeMapListItemShape,
                 modifier = Modifier.size(bitmapDimension.dp),
             ) {
                 val currentBitmap = bitmap
