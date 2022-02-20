@@ -332,7 +332,6 @@ class CameraFragment :
             mainViewModel
                 .filterSignals(MainSignal.SnackbarStatusChanged::isShowing)
                 .distinctUntilChanged()
-                .debounce(250L)
                 .collectLatest { isShowing ->
                     val bottomViewsGuidelineLayoutParams =
                         bottomViewsGuideline.layoutParams as ConstraintLayout.LayoutParams
