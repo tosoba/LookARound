@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +29,7 @@ import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.LocationBitmapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
@@ -44,6 +44,7 @@ import com.lookaround.core.android.view.theme.Ocean0
 import com.lookaround.core.android.view.theme.Ocean2
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.listFragmentItemBackgroundUpdates
 import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
@@ -119,7 +120,7 @@ class PlaceMapListFragment :
         }
 
         binding.showMapFab.setOnClickListener {
-            (activity as? PlaceMapListHost)?.let {
+            (activity as? PlaceMapListFragmentHost)?.let {
                 it.onShowMapClick()
                 viewLifecycleOwner.lifecycleScope.launchWhenResumed {
                     mainViewModel.signal(MainSignal.HideBottomSheet)
@@ -180,19 +181,10 @@ class PlaceMapListFragment :
                     val searchFocused = rememberSaveable { mutableStateOf(false) }
 
                     val itemBackgroundFlow = remember {
-                        mainViewModel
-                            .filterSignals<MainSignal.TopFragmentChanged>()
-                            .map { (cameraObscured) ->
-                                if (cameraObscured) PlaceMapListHost.ItemBackground.OPAQUE
-                                else PlaceMapListHost.ItemBackground.TRANSPARENT
-                            }
-                            .distinctUntilChanged()
+                        mainViewModel.listFragmentItemBackgroundUpdates
                     }
                     val itemBackground =
-                        itemBackgroundFlow.collectAsState(
-                            initial = (activity as? PlaceMapListHost)?.initialItemBackground
-                                    ?: PlaceMapListHost.ItemBackground.TRANSPARENT
-                        )
+                        itemBackgroundFlow.collectAsState(initial = listItemBackground)
 
                     val lazyListState = rememberLazyListState()
                     binding
@@ -235,7 +227,7 @@ class PlaceMapListFragment :
                                 modifier = Modifier.wrapContentHeight()
                             ) {
                                 val opaqueBackground =
-                                    itemBackground.value == PlaceMapListHost.ItemBackground.OPAQUE
+                                    itemBackground.value == ListFragmentHost.ItemBackground.OPAQUE
                                 chunk.forEach { point ->
                                     PlaceMapListItem(
                                         point = point,
@@ -258,7 +250,7 @@ class PlaceMapListFragment :
                                                 )
                                                 .weight(1f, fill = false)
                                                 .clickable {
-                                                    (activity as? PlaceMapListHost)
+                                                    (activity as? PlaceMapListFragmentHost)
                                                         ?.onPlaceMapItemClick(point)
                                                 }
                                     )

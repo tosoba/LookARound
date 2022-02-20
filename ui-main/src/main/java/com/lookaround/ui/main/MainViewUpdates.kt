@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.model.*
 import com.lookaround.ui.main.model.MainSignal
@@ -105,3 +106,14 @@ sealed interface SnackbarUpdate {
 
     object Dismiss : SnackbarUpdate
 }
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+val MainViewModel.listFragmentItemBackgroundUpdates: Flow<ListFragmentHost.ItemBackground>
+    get() =
+        filterSignals<MainSignal.TopFragmentChanged>()
+            .map { (cameraObscured) ->
+                if (cameraObscured) ListFragmentHost.ItemBackground.OPAQUE
+                else ListFragmentHost.ItemBackground.TRANSPARENT
+            }
+            .distinctUntilChanged()

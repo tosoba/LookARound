@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Text
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -24,12 +25,14 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.lookaround.core.android.ext.listItemBackground
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
 import com.lookaround.core.android.model.Tourism
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.listFragmentItemBackgroundUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.place.types.composable.PlaceTypeGroupItem
@@ -90,6 +93,12 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                     val searchFocused = rememberSaveable { mutableStateOf(false) }
                     val placeTypeGroups =
                         placeTypeGroupsFlow.collectAsState(initial = placeTypeGroups)
+
+                    val itemBackgroundFlow = remember {
+                        mainViewModel.listFragmentItemBackgroundUpdates
+                    }
+                    val itemBackground =
+                        itemBackgroundFlow.collectAsState(initial = listItemBackground)
 
                     val lazyListState = rememberLazyListState()
                     binding

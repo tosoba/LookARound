@@ -38,6 +38,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
@@ -51,7 +52,7 @@ import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.map.list.PlaceMapListFragment
-import com.lookaround.ui.place.map.list.PlaceMapListHost
+import com.lookaround.ui.place.map.list.PlaceMapListFragmentHost
 import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.recent.searches.RecentSearchesChipList
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
@@ -70,7 +71,7 @@ import timber.log.Timber
 @ExperimentalStdlibApi
 @FlowPreview
 @SuppressLint("RtlHardcoded")
-class MainActivity : AppCompatActivity(), PlaceMapListHost {
+class MainActivity : AppCompatActivity(), PlaceMapListFragmentHost {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
     private val viewModel: MainViewModel by viewModels()
@@ -224,10 +225,10 @@ class MainActivity : AppCompatActivity(), PlaceMapListHost {
         }
     }
 
-    override val initialItemBackground: PlaceMapListHost.ItemBackground
+    override val itemBackground: ListFragmentHost.ItemBackground
         get() =
-            if (currentTopFragment is CameraFragment) PlaceMapListHost.ItemBackground.TRANSPARENT
-            else PlaceMapListHost.ItemBackground.OPAQUE
+            if (currentTopFragment is CameraFragment) ListFragmentHost.ItemBackground.TRANSPARENT
+            else ListFragmentHost.ItemBackground.OPAQUE
 
     override fun onPlaceMapItemClick(marker: Marker) {
         if (!lifecycle.isResumed) return

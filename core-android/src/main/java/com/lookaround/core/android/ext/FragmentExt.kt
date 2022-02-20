@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
 import com.lookaround.core.android.R
+import com.lookaround.core.android.architecture.ListFragmentHost
 import kotlin.properties.ReadOnlyProperty
 
 fun FragmentTransaction.setSlideInFromBottom() {
@@ -46,3 +47,8 @@ val Fragment.rotation: Int
         } else {
             requireActivity().windowManager.defaultDisplay.rotation
         }
+
+val Fragment.listItemBackground: ListFragmentHost.ItemBackground
+    get() =
+        (activity as? ListFragmentHost)?.itemBackground
+            ?: ListFragmentHost.ItemBackground.TRANSPARENT
