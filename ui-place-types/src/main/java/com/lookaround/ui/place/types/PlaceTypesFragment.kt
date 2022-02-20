@@ -4,6 +4,8 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,30 +14,37 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.ext.listItemBackground
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
 import com.lookaround.core.android.model.Tourism
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.core.android.view.theme.Ocean0
+import com.lookaround.core.android.view.theme.Ocean2
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.listFragmentItemBackgroundUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
-import com.lookaround.ui.place.types.composable.PlaceTypeGroupItem
+import com.lookaround.ui.place.types.composable.PlaceType
+import com.lookaround.ui.place.types.composable.PlaceTypeGroupHeader
+import com.lookaround.ui.place.types.composable.placeTypeShape
 import com.lookaround.ui.place.types.databinding.FragmentPlaceTypesBinding
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
@@ -133,13 +142,66 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                         if (placeTypeGroups.value.isNotEmpty()) {
                             val columns =
                                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
-                            items(placeTypeGroups.value) { group ->
-                                PlaceTypeGroupItem(group = group, columns = columns) { placeType ->
-                                    lifecycleScope.launch {
-                                        mainViewModel.intent(MainIntent.GetPlacesOfType(placeType))
-                                        mainViewModel.signal(MainSignal.HideBottomSheet)
+                            val opaqueBackground =
+                                itemBackground.value == ListFragmentHost.ItemBackground.OPAQUE
+
+                            placeTypeGroups.value.forEach { group ->
+                                item {
+                                    PlaceTypeGroupHeader(
+                                        group,
+                                        modifier =
+                                            Modifier.background(
+                                                brush =
+                                                    Brush.horizontalGradient(
+                                                        colors = listOf(Ocean2, Ocean0)
+                                                    ),
+                                                shape = placeTypeShape,
+                                                alpha = if (opaqueBackground) .95f else .55f,
+                                            )
+                                    )
+                                }
+
+                                items(group.placeTypes.chunked(columns)) { chunk ->
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                        modifier =
+                                            Modifier.padding(horizontal = 5.dp, vertical = 2.5.dp)
+                                                .wrapContentHeight()
+                                    ) {
+                                        val scope = rememberCoroutineScope()
+                                        chunk.forEach { placeType ->
+                                            PlaceType(
+                                                placeType = placeType,
+                                                modifier =
+                                                    Modifier.clip(placeTypeShape)
+                                                        .background(
+                                                            brush =
+                                                                Brush.horizontalGradient(
+                                                                    colors = listOf(Ocean2, Ocean0)
+                                                                ),
+                                                            shape = placeTypeShape,
+                                                            alpha =
+                                                                if (opaqueBackground) .95f
+                                                                else .55f,
+                                                        )
+                                                        .clickable {
+                                                            scope.launch {
+                                                                mainViewModel.intent(
+                                                                    MainIntent.GetPlacesOfType(
+                                                                        placeType.wrapped
+                                                                    )
+                                                                )
+                                                                mainViewModel.signal(
+                                                                    MainSignal.HideBottomSheet
+                                                                )
+                                                            }
+                                                        }
+                                                        .weight(1f, fill = false),
+                                            )
+                                        }
                                     }
                                 }
+                                item { Spacer(Modifier.height(4.dp)) }
                             }
                         } else {
                             item {

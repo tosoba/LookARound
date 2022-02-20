@@ -217,6 +217,8 @@ class PlaceMapListFragment :
                             }
                         }
 
+                        val opaqueBackground =
+                            itemBackground.value == ListFragmentHost.ItemBackground.OPAQUE
                         items(
                             markers.value.chunked(
                                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
@@ -226,8 +228,6 @@ class PlaceMapListFragment :
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 modifier = Modifier.wrapContentHeight()
                             ) {
-                                val opaqueBackground =
-                                    itemBackground.value == ListFragmentHost.ItemBackground.OPAQUE
                                 chunk.forEach { point ->
                                     PlaceMapListItem(
                                         point = point,
