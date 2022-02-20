@@ -140,10 +140,9 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                         }
 
                         if (placeTypeGroups.value.isNotEmpty()) {
-                            val columns =
-                                if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
                             val opaqueBackground =
                                 itemBackground.value == ListFragmentHost.ItemBackground.OPAQUE
+                            val itemBackgroundAlpha = if (opaqueBackground) .95f else .55f
 
                             placeTypeGroups.value.forEach { group ->
                                 item {
@@ -156,12 +155,17 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                                                         colors = listOf(Ocean2, Ocean0)
                                                     ),
                                                 shape = placeTypeShape,
-                                                alpha = if (opaqueBackground) .95f else .55f,
+                                                alpha = itemBackgroundAlpha,
                                             )
                                     )
                                 }
 
-                                items(group.placeTypes.chunked(columns)) { chunk ->
+                                items(
+                                    group.placeTypes.chunked(
+                                        if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4
+                                        else 2
+                                    )
+                                ) { chunk ->
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                         modifier =
@@ -173,18 +177,17 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                                             PlaceType(
                                                 placeType = placeType,
                                                 modifier =
-                                                    Modifier.clip(placeTypeShape)
-                                                        .padding(horizontal = 1.dp)
+                                                    Modifier.padding(horizontal = 1.dp)
+                                                        .clip(placeTypeShape)
                                                         .background(
                                                             brush =
                                                                 Brush.horizontalGradient(
                                                                     colors = listOf(Ocean2, Ocean0)
                                                                 ),
                                                             shape = placeTypeShape,
-                                                            alpha =
-                                                                if (opaqueBackground) .95f
-                                                                else .55f,
+                                                            alpha = itemBackgroundAlpha,
                                                         )
+                                                        .weight(1f, fill = false)
                                                         .clickable {
                                                             scope.launch {
                                                                 mainViewModel.intent(
@@ -196,8 +199,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                                                                     MainSignal.HideBottomSheet
                                                                 )
                                                             }
-                                                        }
-                                                        .weight(1f, fill = false),
+                                                        },
                                             )
                                         }
                                     }

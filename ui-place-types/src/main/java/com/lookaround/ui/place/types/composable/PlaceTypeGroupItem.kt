@@ -1,6 +1,5 @@
 package com.lookaround.ui.place.types.composable
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -13,10 +12,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
-import coil.compose.rememberImagePainter
 import com.lookaround.core.android.view.composable.ItemNameText
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
+import com.skydoves.landscapist.ShimmerParams
+import com.skydoves.landscapist.coil.CoilImage
 
 @Composable
 internal fun PlaceTypeGroupHeader(group: PlaceTypeGroup, modifier: Modifier = Modifier) {
@@ -26,7 +26,7 @@ internal fun PlaceTypeGroupHeader(group: PlaceTypeGroup, modifier: Modifier = Mo
     ) {
         Text(
             group.name,
-            style = MaterialTheme.typography.subtitle2,
+            style = MaterialTheme.typography.h6,
             color = Color.Blue,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
         )
@@ -45,10 +45,18 @@ internal fun PlaceType(placeType: PlaceType, modifier: Modifier = Modifier) {
                 shape = placeTypeShape,
                 modifier = Modifier.wrapContentWidth().aspectRatio(1.5f)
             ) {
-                Image(
-                    painter = rememberImagePainter(placeType.imageUrl),
+                CoilImage(
+                    imageModel = placeType.imageUrl,
                     contentDescription = null,
                     contentScale = ContentScale.FillBounds,
+                    shimmerParams =
+                        ShimmerParams(
+                            baseColor = Color.LightGray.copy(0.9f),
+                            highlightColor = Color.LightGray.copy(0.2f),
+                            durationMillis = 350,
+                            dropOff = 0.65f,
+                            tilt = 20f
+                        ),
                     modifier = Modifier.fillMaxSize()
                 )
             }

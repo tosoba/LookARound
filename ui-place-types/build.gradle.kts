@@ -59,6 +59,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-insets:0.20.1")
     implementation("com.google.accompanist:accompanist-coil:0.15.0")
     implementation("io.coil-kt:coil-compose:1.4.0")
+    implementation("com.github.skydoves:landscapist-coil:1.4.8")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
 
     implementation("androidx.core:core-ktx:1.7.0")
