@@ -165,7 +165,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                         modifier =
-                                            Modifier.padding(horizontal = 5.dp, vertical = 2.5.dp)
+                                            Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
                                                 .wrapContentHeight()
                                     ) {
                                         val scope = rememberCoroutineScope()
@@ -174,6 +174,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                                                 placeType = placeType,
                                                 modifier =
                                                     Modifier.clip(placeTypeShape)
+                                                        .padding(horizontal = 1.dp)
                                                         .background(
                                                             brush =
                                                                 Brush.horizontalGradient(
