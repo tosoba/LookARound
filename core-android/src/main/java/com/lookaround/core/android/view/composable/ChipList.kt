@@ -13,11 +13,11 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.lookaround.core.android.R
 import com.lookaround.core.android.view.theme.LookARoundTheme
-import com.lookaround.core.android.view.theme.Ocean8
 import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +29,7 @@ fun <I> ChipList(
     itemsFlow: Flow<List<I>>,
     label: (I) -> String,
     modifier: Modifier = Modifier,
+    chipModifier: Modifier = Modifier,
     onMoreClicked: (() -> Unit)? = null,
     onItemClicked: (I) -> Unit
 ) {
@@ -41,8 +42,8 @@ fun <I> ChipList(
         items(items.value) { item ->
             Chip(
                 onClick = { onItemClicked(item) },
-                colors = ChipDefaults.chipColors(backgroundColor = Ocean8),
-                modifier = Modifier.padding(horizontal = 2.dp)
+                colors = ChipDefaults.chipColors(backgroundColor = Color.Transparent),
+                modifier = Modifier.padding(horizontal = 2.dp).then(chipModifier)
             ) {
                 Text(
                     text = label(item).titleCaseWithSpacesInsteadOfUnderscores,
@@ -54,7 +55,7 @@ fun <I> ChipList(
             item {
                 Chip(
                     onClick = onMoreClicked,
-                    colors = ChipDefaults.chipColors(backgroundColor = Ocean8),
+                    colors = ChipDefaults.chipColors(backgroundColor = Color.Transparent),
                     modifier = Modifier.padding(horizontal = 2.dp)
                 ) {
                     Text(

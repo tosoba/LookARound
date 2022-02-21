@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -130,6 +131,12 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                         val rowItemsCount =
                             if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
 
+                        val opaqueBackground =
+                            itemBackground.value == ListFragmentHost.ItemBackground.OPAQUE
+                        val itemBackgroundAlpha = if (opaqueBackground) .95f else .55f
+                        val backgroundGradientBrush =
+                            Brush.horizontalGradient(colors = listOf(Ocean2, Ocean0))
+
                         if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED) {
                             item { Spacer(Modifier.height(112.dp)) }
                         } else {
@@ -155,8 +162,16 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                     )
                                     if (orientation == Configuration.ORIENTATION_PORTRAIT) {
                                         val scope = rememberCoroutineScope()
-                                        ChipList(placeCategoriesFlow, PlaceCategory::name::get) {
-                                            category ->
+                                        ChipList(
+                                            itemsFlow = placeCategoriesFlow,
+                                            label = PlaceCategory::name::get,
+                                            chipModifier =
+                                                Modifier.background(
+                                                    brush = backgroundGradientBrush,
+                                                    shape = RoundedCornerShape(20.dp),
+                                                    alpha = itemBackgroundAlpha,
+                                                )
+                                        ) { category ->
                                             scope.launch {
                                                 val placeCategoryIndex =
                                                     placeCategories.value.indexOfFirst {
@@ -197,11 +212,6 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                         }
 
                         if (placeCategories.value.isNotEmpty()) {
-                            val opaqueBackground =
-                                itemBackground.value == ListFragmentHost.ItemBackground.OPAQUE
-                            val itemBackgroundAlpha = if (opaqueBackground) .95f else .55f
-                            val backgroundGradientBrush =
-                                Brush.horizontalGradient(colors = listOf(Ocean2, Ocean0))
                             val itemWidth =
                                 requireContext().pxToDp(getListItemDimensionPx()).toInt()
 
