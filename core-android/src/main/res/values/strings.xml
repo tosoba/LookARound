@@ -3,4 +3,10 @@
     <string name="loading">Loading…</string>
     <string name="expand">expand</string>
     <string name="refresh">Refresh</string>
+    <string name="perform_search">Perform search</string>
+    <string name="search_3_dots">Search…</string>
+    <string name="back">Back</string>
+    <string name="clear">Clear</string>
+    <string name="clear_all">Clear all</string>
+    <string name="more">More…</string>
 </resources>

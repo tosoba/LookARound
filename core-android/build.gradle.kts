@@ -99,6 +99,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.2.0-alpha02")
     implementation("androidx.compose.material:material-icons-extended:1.2.0-alpha02")
     implementation("androidx.palette:palette:1.0.0")
+    implementation("com.google.accompanist:accompanist-insets:0.20.1")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 

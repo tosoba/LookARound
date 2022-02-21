@@ -48,7 +48,7 @@ import com.lookaround.ui.place.types.composable.placeTypeShape
 import com.lookaround.ui.place.types.databinding.FragmentPlaceTypesBinding
 import com.lookaround.ui.place.types.model.PlaceType
 import com.lookaround.ui.place.types.model.PlaceTypeGroup
-import com.lookaround.ui.search.composable.SearchBar
+import com.lookaround.core.android.view.composable.SearchBar
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow

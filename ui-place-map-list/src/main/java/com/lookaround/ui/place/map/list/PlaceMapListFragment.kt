@@ -52,7 +52,7 @@ import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.BuildConfig
 import com.lookaround.ui.place.list.R
 import com.lookaround.ui.place.list.databinding.FragmentPlaceMapListBinding
-import com.lookaround.ui.search.composable.SearchBar
+import com.lookaround.core.android.view.composable.SearchBar
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory

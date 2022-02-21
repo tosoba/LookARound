@@ -64,7 +64,6 @@ dependencies {
     implementation(project(":ui-place-map-list"))
     implementation(project(":ui-place-types"))
     implementation(project(":ui-recent-searches"))
-    implementation(project(":ui-search"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))

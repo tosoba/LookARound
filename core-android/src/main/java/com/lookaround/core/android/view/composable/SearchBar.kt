@@ -1,4 +1,4 @@
-package com.lookaround.ui.search.composable
+package com.lookaround.core.android.view.composable
 
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
@@ -28,9 +28,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.insets.statusBarsPadding
-import com.lookaround.core.android.view.composable.LookARoundSurface
+import com.lookaround.core.android.R
 import com.lookaround.core.android.view.theme.LookARoundTheme
-import com.lookaround.ui.search.R
 
 @Composable
 fun SearchBar(

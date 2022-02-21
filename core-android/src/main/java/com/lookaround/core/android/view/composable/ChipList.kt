@@ -13,7 +13,9 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.lookaround.core.android.R
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.android.view.theme.Ocean8
 import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
@@ -53,7 +55,9 @@ fun <I> ChipList(
                 onClick = onMoreClicked,
                 colors = ChipDefaults.chipColors(backgroundColor = Ocean8),
                 modifier = Modifier.padding(horizontal = 2.dp)
-            ) { Text(text = "More...", color = LookARoundTheme.colors.textLink) }
+            ) {
+                Text(text = stringResource(R.string.more), color = LookARoundTheme.colors.textLink)
+            }
         }
         item { Box(modifier = Modifier.size(10.dp)) }
     }

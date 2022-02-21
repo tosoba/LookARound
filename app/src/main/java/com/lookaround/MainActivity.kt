@@ -57,7 +57,7 @@ import com.lookaround.ui.place.map.list.PlaceMapListFragmentHost
 import com.lookaround.ui.place.types.PlaceTypesFragment
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
 import com.lookaround.ui.recent.searches.composable.RecentSearchesChipList
-import com.lookaround.ui.search.composable.SearchBar
+import com.lookaround.core.android.view.composable.SearchBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview

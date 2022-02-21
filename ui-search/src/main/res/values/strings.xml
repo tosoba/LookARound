@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="perform_search">Perform search</string>
-    <string name="search_3_dots">Search…</string>
-    <string name="back">Back</string>
-    <string name="clear">Clear</string>
-    <string name="clear_all">Clear all</string>
-</resources>
