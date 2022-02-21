@@ -1,4 +1,4 @@
-package com.lookaround.ui.recent.searches
+package com.lookaround.core.android.view.composable
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -12,50 +12,38 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.android.view.theme.Ocean8
 import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.Flow
 
 @ExperimentalCoroutinesApi
 @ExperimentalMaterialApi
 @Composable
-fun RecentSearchesChipList(
+fun <I> ChipList(
+    itemsFlow: Flow<List<I>>,
+    label: (I) -> String,
     modifier: Modifier = Modifier,
-    recentSearchesViewModel: RecentSearchesViewModel = hiltViewModel(),
     onMoreClicked: () -> Unit,
-    onSearchClicked: (RecentSearchModel) -> Unit
+    onItemClicked: (I) -> Unit
 ) {
-    val recentSearchesFlow = remember {
-        recentSearchesViewModel
-            .states
-            .map { (searches) ->
-                if (searches is WithValue) searches.value.take(10) else emptyList()
-            }
-            .distinctUntilChanged()
-    }
-
-    val recentSearches = recentSearchesFlow.collectAsState(initial = emptyList())
-    if (recentSearches.value.isEmpty()) return
+    val items = itemsFlow.collectAsState(initial = emptyList())
+    if (items.value.isEmpty()) return
 
     val lazyListState = rememberLazyListState()
     LazyRow(state = lazyListState, modifier = modifier) {
         item { Box(modifier = Modifier.size(10.dp)) }
-        items(recentSearches.value) { recentSearch ->
+        items(items.value) { item ->
             Chip(
-                onClick = { onSearchClicked(recentSearch) },
+                onClick = { onItemClicked(item) },
                 colors = ChipDefaults.chipColors(backgroundColor = Ocean8),
                 modifier = Modifier.padding(horizontal = 2.dp)
             ) {
                 Text(
-                    text = recentSearch.label.titleCaseWithSpacesInsteadOfUnderscores,
+                    text = label(item).titleCaseWithSpacesInsteadOfUnderscores,
                     color = LookARoundTheme.colors.textLink
                 )
             }

@@ -44,6 +44,9 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.recent.searches.databinding.FragmentRecentSearchesBinding
+import com.lookaround.ui.recent.searches.model.RecentSearchModel
+import com.lookaround.ui.recent.searches.model.RecentSearchesIntent
+import com.lookaround.ui.recent.searches.model.RecentSearchesState
 import com.lookaround.ui.search.composable.SearchBar
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings

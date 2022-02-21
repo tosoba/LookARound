@@ -6,6 +6,7 @@ import com.lookaround.core.android.model.Ready
 import com.lookaround.core.usecase.DeleteSearch
 import com.lookaround.core.usecase.GetSearchesCount
 import com.lookaround.core.usecase.RecentSearchesFlow
+import com.lookaround.ui.recent.searches.model.*
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi

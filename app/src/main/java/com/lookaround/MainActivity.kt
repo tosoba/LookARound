@@ -32,6 +32,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
+import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -54,8 +55,8 @@ import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.map.list.PlaceMapListFragment
 import com.lookaround.ui.place.map.list.PlaceMapListFragmentHost
 import com.lookaround.ui.place.types.PlaceTypesFragment
-import com.lookaround.ui.recent.searches.RecentSearchesChipList
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
+import com.lookaround.ui.recent.searches.composable.RecentSearchesChipList
 import com.lookaround.ui.search.composable.SearchBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -65,6 +66,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @AndroidEntryPoint
+@ExperimentalCoilApi
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
@@ -323,7 +325,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListFragmentHost {
                         PlacesAutocompleteSearchBar()
                         val orientation = LocalConfiguration.current.orientation
                         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                            RecentSearchesChipList()
+                            RecentSearchesList()
                         }
                     }
                 }
@@ -386,7 +388,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListFragmentHost {
     }
 
     @Composable
-    private fun RecentSearchesChipList() {
+    private fun RecentSearchesList() {
         val scope = rememberCoroutineScope()
         RecentSearchesChipList(
             modifier = Modifier.fillMaxWidth().wrapContentHeight(),

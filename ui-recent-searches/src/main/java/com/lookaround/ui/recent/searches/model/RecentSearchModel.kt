@@ -1,4 +1,4 @@
-package com.lookaround.ui.recent.searches
+package com.lookaround.ui.recent.searches.model
 
 import android.location.Location
 import android.os.Parcelable

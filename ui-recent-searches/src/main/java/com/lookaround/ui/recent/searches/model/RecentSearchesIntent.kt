@@ -1,4 +1,4 @@
-package com.lookaround.ui.recent.searches
+package com.lookaround.ui.recent.searches.model
 
 import com.lookaround.core.model.SearchType
 
