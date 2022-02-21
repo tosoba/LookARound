@@ -29,7 +29,7 @@ fun <I> ChipList(
     itemsFlow: Flow<List<I>>,
     label: (I) -> String,
     modifier: Modifier = Modifier,
-    onMoreClicked: () -> Unit,
+    onMoreClicked: (() -> Unit)? = null,
     onItemClicked: (I) -> Unit
 ) {
     val items = itemsFlow.collectAsState(initial = emptyList())
@@ -50,13 +50,18 @@ fun <I> ChipList(
                 )
             }
         }
-        item {
-            Chip(
-                onClick = onMoreClicked,
-                colors = ChipDefaults.chipColors(backgroundColor = Ocean8),
-                modifier = Modifier.padding(horizontal = 2.dp)
-            ) {
-                Text(text = stringResource(R.string.more), color = LookARoundTheme.colors.textLink)
+        if (onMoreClicked != null) {
+            item {
+                Chip(
+                    onClick = onMoreClicked,
+                    colors = ChipDefaults.chipColors(backgroundColor = Ocean8),
+                    modifier = Modifier.padding(horizontal = 2.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.more),
+                        color = LookARoundTheme.colors.textLink
+                    )
+                }
             }
         }
         item { Box(modifier = Modifier.size(10.dp)) }

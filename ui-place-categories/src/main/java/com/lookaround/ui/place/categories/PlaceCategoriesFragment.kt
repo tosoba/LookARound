@@ -10,15 +10,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +29,7 @@ import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.architecture.ListFragmentHost
+import com.lookaround.core.android.ext.dpToPx
 import com.lookaround.core.android.ext.getListItemDimensionPx
 import com.lookaround.core.android.ext.listItemBackground
 import com.lookaround.core.android.ext.pxToDp
@@ -37,6 +37,7 @@ import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
 import com.lookaround.core.android.model.Tourism
+import com.lookaround.core.android.view.composable.ChipList
 import com.lookaround.core.android.view.composable.SearchBar
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.android.view.theme.Ocean0
@@ -62,6 +63,7 @@ import kotlinx.coroutines.launch
 @ExperimentalCoilApi
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
+@ExperimentalMaterialApi
 @FlowPreview
 class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     private val binding: FragmentPlaceCategoriesBinding by
@@ -119,26 +121,78 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                         (lazyListState.firstVisibleItemIndex != 0 ||
                             lazyListState.firstVisibleItemScrollOffset != 0) &&
                             bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED
+
                     LazyColumn(
                         state = lazyListState,
                         modifier = Modifier.padding(horizontal = 5.dp).fillMaxHeight(),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
+                        val rowItemsCount =
+                            if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
+
                         if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED) {
                             item { Spacer(Modifier.height(112.dp)) }
                         } else {
                             stickyHeader {
-                                SearchBar(
-                                    query = searchQuery.value,
-                                    focused = searchFocused.value,
-                                    onBackPressedDispatcher =
-                                        requireActivity().onBackPressedDispatcher,
-                                    onSearchFocusChange = searchFocused::value::set,
-                                    onTextFieldValueChange = {
-                                        searchQueryFlow.value = it.text
-                                        this@PlaceCategoriesFragment.searchQuery = it.text
+                                val headerPaddingBottomPx = requireContext().dpToPx(10f).toInt()
+                                var headerHeightPx by remember { mutableStateOf(0) }
+                                Column(
+                                    modifier =
+                                        Modifier.onSizeChanged {
+                                            headerHeightPx = it.height + headerPaddingBottomPx
+                                        }
+                                ) {
+                                    SearchBar(
+                                        query = searchQuery.value,
+                                        focused = searchFocused.value,
+                                        onBackPressedDispatcher =
+                                            requireActivity().onBackPressedDispatcher,
+                                        onSearchFocusChange = searchFocused::value::set,
+                                        onTextFieldValueChange = {
+                                            searchQueryFlow.value = it.text
+                                            this@PlaceCategoriesFragment.searchQuery = it.text
+                                        }
+                                    )
+                                    if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                                        val scope = rememberCoroutineScope()
+                                        ChipList(placeCategoriesFlow, PlaceCategory::name::get) {
+                                            category ->
+                                            scope.launch {
+                                                val placeCategoryIndex =
+                                                    placeCategories.value.indexOfFirst {
+                                                        it.name == category.name
+                                                    }
+                                                val placeItemsCount =
+                                                    if (placeCategoryIndex == 0) {
+                                                        0
+                                                    } else {
+                                                        placeCategories.value.take(
+                                                                placeCategoryIndex
+                                                            )
+                                                            .sumOf {
+                                                                val useExtraRowIncrement =
+                                                                    if (it.placeTypes.size %
+                                                                            rowItemsCount == 0
+                                                                    ) {
+                                                                        0
+                                                                    } else {
+                                                                        1
+                                                                    }
+                                                                it.placeTypes.size / rowItemsCount +
+                                                                    useExtraRowIncrement
+                                                            }
+                                                    }
+                                                lazyListState.scrollToItem(
+                                                    index =
+                                                        placeCategoryIndex * 2 +
+                                                            placeItemsCount +
+                                                            1,
+                                                    scrollOffset = -headerHeightPx
+                                                )
+                                            }
+                                        }
                                     }
-                                )
+                                }
                             }
                         }
 
@@ -163,49 +217,13 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                             )
                                     )
                                 }
-
-                                items(
-                                    group.placeTypes.chunked(
-                                        if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4
-                                        else 2
+                                items(group.placeTypes.chunked(rowItemsCount)) { chunk ->
+                                    PlaceTypesRow(
+                                        placeTypes = chunk,
+                                        itemWidth = itemWidth,
+                                        backgroundGradientBrush = backgroundGradientBrush,
+                                        itemBackgroundAlpha = itemBackgroundAlpha
                                     )
-                                ) { chunk ->
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                        modifier =
-                                            Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
-                                                .fillMaxWidth()
-                                                .wrapContentHeight()
-                                    ) {
-                                        val scope = rememberCoroutineScope()
-                                        chunk.forEach { placeType ->
-                                            PlaceType(
-                                                placeType = placeType,
-                                                modifier =
-                                                    Modifier.padding(horizontal = 1.dp)
-                                                        .width(itemWidth.dp)
-                                                        .clip(placeTypeShape)
-                                                        .background(
-                                                            brush = backgroundGradientBrush,
-                                                            shape = placeTypeShape,
-                                                            alpha = itemBackgroundAlpha,
-                                                        )
-                                                        .weight(1f, fill = false)
-                                                        .clickable {
-                                                            scope.launch {
-                                                                mainViewModel.intent(
-                                                                    MainIntent.GetPlacesOfType(
-                                                                        placeType.wrapped
-                                                                    )
-                                                                )
-                                                                mainViewModel.signal(
-                                                                    MainSignal.HideBottomSheet
-                                                                )
-                                                            }
-                                                        },
-                                            )
-                                        }
-                                    }
                                 }
                                 item { Spacer(Modifier.height(4.dp)) }
                             }
@@ -221,6 +239,47 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    @Composable
+    private fun PlaceTypesRow(
+        placeTypes: List<PlaceType>,
+        itemWidth: Int,
+        backgroundGradientBrush: Brush,
+        itemBackgroundAlpha: Float
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier =
+                Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+        ) {
+            val scope = rememberCoroutineScope()
+            placeTypes.forEach { placeType ->
+                PlaceType(
+                    placeType = placeType,
+                    modifier =
+                        Modifier.padding(horizontal = 1.dp)
+                            .width(itemWidth.dp)
+                            .clip(placeTypeShape)
+                            .background(
+                                brush = backgroundGradientBrush,
+                                shape = placeTypeShape,
+                                alpha = itemBackgroundAlpha,
+                            )
+                            .weight(1f, fill = false)
+                            .clickable {
+                                scope.launch {
+                                    mainViewModel.intent(
+                                        MainIntent.GetPlacesOfType(placeType.wrapped)
+                                    )
+                                    mainViewModel.signal(MainSignal.HideBottomSheet)
+                                }
+                            },
+                )
             }
         }
     }
