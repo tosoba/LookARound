@@ -1,4 +1,4 @@
-package com.lookaround.ui.place.types
+package com.lookaround.ui.place.categories
 
 import android.content.res.Configuration
 import android.os.Bundle
@@ -35,6 +35,7 @@ import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
 import com.lookaround.core.android.model.Tourism
+import com.lookaround.core.android.view.composable.SearchBar
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.android.view.theme.Ocean0
 import com.lookaround.core.android.view.theme.Ocean2
@@ -42,13 +43,12 @@ import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.listFragmentItemBackgroundUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
-import com.lookaround.ui.place.types.composable.PlaceType
-import com.lookaround.ui.place.types.composable.PlaceTypeGroupHeader
-import com.lookaround.ui.place.types.composable.placeTypeShape
-import com.lookaround.ui.place.types.databinding.FragmentPlaceTypesBinding
-import com.lookaround.ui.place.types.model.PlaceType
-import com.lookaround.ui.place.types.model.PlaceTypeGroup
-import com.lookaround.core.android.view.composable.SearchBar
+import com.lookaround.ui.place.categories.composable.PlaceType
+import com.lookaround.ui.place.categories.composable.PlaceCategoryHeader
+import com.lookaround.ui.place.categories.composable.placeTypeShape
+import com.lookaround.ui.place.categories.databinding.FragmentPlaceCategoriesBinding
+import com.lookaround.ui.place.categories.model.PlaceCategory
+import com.lookaround.ui.place.categories.model.PlaceType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,8 +61,9 @@ import kotlinx.coroutines.launch
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
 @FlowPreview
-class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
-    private val binding: FragmentPlaceTypesBinding by viewBinding(FragmentPlaceTypesBinding::bind)
+class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
+    private val binding: FragmentPlaceCategoriesBinding
+        by viewBinding(FragmentPlaceCategoriesBinding::bind)
 
     private val mainViewModel: MainViewModel by activityViewModels()
 
@@ -81,11 +82,11 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                 .distinctUntilChanged()
 
         val searchQueryFlow = MutableStateFlow(searchQuery)
-        val placeTypeGroupsFlow =
+        val placeCategoriesFlow =
             searchQueryFlow
                 .map { it.trim().lowercase() }
                 .distinctUntilChanged()
-                .map(::placeTypeGroupsMatching)
+                .map(::placeCategoriesMatching)
                 .distinctUntilChanged()
 
         binding.placeTypesList.setContent {
@@ -100,8 +101,8 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
 
                     val searchQuery = searchQueryFlow.collectAsState(initial = "")
                     val searchFocused = rememberSaveable { mutableStateOf(false) }
-                    val placeTypeGroups =
-                        placeTypeGroupsFlow.collectAsState(initial = placeTypeGroups)
+                    val placeCategories =
+                        placeCategoriesFlow.collectAsState(initial = placeCategories)
 
                     val itemBackgroundFlow = remember {
                         mainViewModel.listFragmentItemBackgroundUpdates
@@ -133,20 +134,20 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                                     onSearchFocusChange = searchFocused::value::set,
                                     onTextFieldValueChange = {
                                         searchQueryFlow.value = it.text
-                                        this@PlaceTypesFragment.searchQuery = it.text
+                                        this@PlaceCategoriesFragment.searchQuery = it.text
                                     }
                                 )
                             }
                         }
 
-                        if (placeTypeGroups.value.isNotEmpty()) {
+                        if (placeCategories.value.isNotEmpty()) {
                             val opaqueBackground =
                                 itemBackground.value == ListFragmentHost.ItemBackground.OPAQUE
                             val itemBackgroundAlpha = if (opaqueBackground) .95f else .55f
 
-                            placeTypeGroups.value.forEach { group ->
+                            placeCategories.value.forEach { group ->
                                 item {
-                                    PlaceTypeGroupHeader(
+                                    PlaceCategoryHeader(
                                         group,
                                         modifier =
                                             Modifier.background(
@@ -226,10 +227,10 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
         outState.putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
     }
 
-    private fun placeTypeGroupsMatching(query: String): List<PlaceTypeGroup> =
-        placeTypeGroups
+    private fun placeCategoriesMatching(query: String): List<PlaceCategory> =
+        placeCategories
             .map {
-                PlaceTypeGroup(
+                PlaceCategory(
                     name = it.name,
                     placeTypes =
                         it.placeTypes.filter { placeType ->
@@ -245,9 +246,9 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
     }
 
     companion object {
-        private val placeTypeGroups =
+        private val placeCategories =
             listOf(
-                PlaceTypeGroup(
+                PlaceCategory(
                     name = "General",
                     placeTypes =
                         listOf(
@@ -283,7 +284,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                             )
                         )
                 ),
-                PlaceTypeGroup(
+                PlaceCategory(
                     name = "Food & drinks",
                     placeTypes =
                         listOf(
@@ -319,7 +320,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                             )
                         )
                 ),
-                PlaceTypeGroup(
+                PlaceCategory(
                     name = "Transport",
                     placeTypes =
                         listOf(
@@ -340,7 +341,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                             ),
                         )
                 ),
-                PlaceTypeGroup(
+                PlaceCategory(
                     name = "Shop",
                     placeTypes =
                         listOf(
@@ -401,7 +402,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                             ),
                         )
                 ),
-                PlaceTypeGroup(
+                PlaceCategory(
                     name = "Tourism",
                     placeTypes =
                         listOf(
@@ -447,7 +448,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                             ),
                         )
                 ),
-                PlaceTypeGroup(
+                PlaceCategory(
                     name = "Entertainment",
                     placeTypes =
                         listOf(
@@ -483,7 +484,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                             )
                         )
                 ),
-                PlaceTypeGroup(
+                PlaceCategory(
                     name = "Leisure",
                     placeTypes =
                         listOf(
@@ -524,7 +525,7 @@ class PlaceTypesFragment : Fragment(R.layout.fragment_place_types) {
                             )
                         )
                 ),
-                PlaceTypeGroup(
+                PlaceCategory(
                     name = "Health",
                     placeTypes =
                         listOf(

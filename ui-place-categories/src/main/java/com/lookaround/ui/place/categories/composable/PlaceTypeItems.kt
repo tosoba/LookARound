@@ -1,4 +1,4 @@
-package com.lookaround.ui.place.types.composable
+package com.lookaround.ui.place.categories.composable
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,19 +13,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
 import com.lookaround.core.android.view.composable.ItemNameText
-import com.lookaround.ui.place.types.model.PlaceType
-import com.lookaround.ui.place.types.model.PlaceTypeGroup
+import com.lookaround.ui.place.categories.model.PlaceType
+import com.lookaround.ui.place.categories.model.PlaceCategory
 import com.skydoves.landscapist.ShimmerParams
 import com.skydoves.landscapist.coil.CoilImage
 
 @Composable
-internal fun PlaceTypeGroupHeader(group: PlaceTypeGroup, modifier: Modifier = Modifier) {
+internal fun PlaceCategoryHeader(category: PlaceCategory, modifier: Modifier = Modifier) {
     Box(
         modifier = Modifier.padding(horizontal = 15.dp).wrapContentWidth().then(modifier),
         propagateMinConstraints = true
     ) {
         Text(
-            group.name,
+            category.name,
             style = MaterialTheme.typography.h6,
             color = Color.Blue,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)

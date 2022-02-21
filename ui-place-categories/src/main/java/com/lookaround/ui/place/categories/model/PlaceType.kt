@@ -1,4 +1,4 @@
-package com.lookaround.ui.place.types.model
+package com.lookaround.ui.place.categories.model
 
 import androidx.compose.runtime.Immutable
 import com.lookaround.core.model.IPlaceType

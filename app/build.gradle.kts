@@ -62,7 +62,7 @@ dependencies {
     implementation(project(":ui-main"))
     implementation(project(":ui-map"))
     implementation(project(":ui-place-map-list"))
-    implementation(project(":ui-place-types"))
+    implementation(project(":ui-place-categories"))
     implementation(project(":ui-recent-searches"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))

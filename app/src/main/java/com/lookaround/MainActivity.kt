@@ -54,7 +54,7 @@ import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.map.list.PlaceMapListFragment
 import com.lookaround.ui.place.map.list.PlaceMapListFragmentHost
-import com.lookaround.ui.place.types.PlaceTypesFragment
+import com.lookaround.ui.place.categories.PlaceCategoriesFragment
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
 import com.lookaround.ui.recent.searches.composable.RecentSearchesChipList
 import com.lookaround.core.android.view.composable.SearchBar
@@ -88,7 +88,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListFragmentHost {
         lazy(LazyThreadSafetyMode.NONE) {
             val bottomSheetFragmentClasses =
                 listOf(
-                    PlaceTypesFragment::class.java,
+                    PlaceCategoriesFragment::class.java,
                     PlaceMapListFragment::class.java,
                     RecentSearchesFragment::class.java
                 )
@@ -126,7 +126,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListFragmentHost {
 
                 fragmentTransaction {
                     when (menuItem.itemId) {
-                        R.id.action_place_types -> showBottomSheetFragment<PlaceTypesFragment>()
+                        R.id.action_place_types -> showBottomSheetFragment<PlaceCategoriesFragment>()
                         R.id.action_place_list -> showBottomSheetFragment<PlaceMapListFragment>()
                         R.id.action_recent_searches ->
                             showBottomSheetFragment<RecentSearchesFragment>()
