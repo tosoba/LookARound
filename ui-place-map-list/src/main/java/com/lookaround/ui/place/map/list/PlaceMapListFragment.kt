@@ -39,6 +39,7 @@ import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.WithValue
+import com.lookaround.core.android.view.composable.SearchBar
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.android.view.theme.Ocean0
 import com.lookaround.core.android.view.theme.Ocean2
@@ -52,7 +53,6 @@ import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.BuildConfig
 import com.lookaround.ui.place.list.R
 import com.lookaround.ui.place.list.databinding.FragmentPlaceMapListBinding
-import com.lookaround.core.android.view.composable.SearchBar
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
@@ -318,13 +318,7 @@ class PlaceMapListFragment :
     }
 
     private fun getMapLayoutParams(): ViewGroup.LayoutParams {
-        val spacingPx = requireContext().dpToPx(10f)
-        val displayMetrics = resources.displayMetrics
-        val orientation = resources.configuration.orientation
-        val mapDimensionPx =
-            (displayMetrics.widthPixels -
-                spacingPx * (if (orientation == Configuration.ORIENTATION_LANDSCAPE) 5 else 3)) /
-                (if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2)
+        val mapDimensionPx = getListItemDimensionPx()
         val mapLayoutParams = binding.map.layoutParams
         mapLayoutParams.width = mapDimensionPx.toInt()
         mapLayoutParams.height = mapDimensionPx.toInt()

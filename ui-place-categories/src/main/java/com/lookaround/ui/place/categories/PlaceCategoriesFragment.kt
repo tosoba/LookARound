@@ -30,7 +30,9 @@ import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.architecture.ListFragmentHost
+import com.lookaround.core.android.ext.getListItemDimensionPx
 import com.lookaround.core.android.ext.listItemBackground
+import com.lookaround.core.android.ext.pxToDp
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
@@ -43,8 +45,8 @@ import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.listFragmentItemBackgroundUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
-import com.lookaround.ui.place.categories.composable.PlaceType
 import com.lookaround.ui.place.categories.composable.PlaceCategoryHeader
+import com.lookaround.ui.place.categories.composable.PlaceType
 import com.lookaround.ui.place.categories.composable.placeTypeShape
 import com.lookaround.ui.place.categories.databinding.FragmentPlaceCategoriesBinding
 import com.lookaround.ui.place.categories.model.PlaceCategory
@@ -62,8 +64,8 @@ import kotlinx.coroutines.launch
 @ExperimentalFoundationApi
 @FlowPreview
 class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
-    private val binding: FragmentPlaceCategoriesBinding
-        by viewBinding(FragmentPlaceCategoriesBinding::bind)
+    private val binding: FragmentPlaceCategoriesBinding by
+        viewBinding(FragmentPlaceCategoriesBinding::bind)
 
     private val mainViewModel: MainViewModel by activityViewModels()
 
@@ -144,6 +146,10 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                             val opaqueBackground =
                                 itemBackground.value == ListFragmentHost.ItemBackground.OPAQUE
                             val itemBackgroundAlpha = if (opaqueBackground) .95f else .55f
+                            val backgroundGradientBrush =
+                                Brush.horizontalGradient(colors = listOf(Ocean2, Ocean0))
+                            val itemWidth =
+                                requireContext().pxToDp(getListItemDimensionPx()).toInt()
 
                             placeCategories.value.forEach { group ->
                                 item {
@@ -151,10 +157,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                         group,
                                         modifier =
                                             Modifier.background(
-                                                brush =
-                                                    Brush.horizontalGradient(
-                                                        colors = listOf(Ocean2, Ocean0)
-                                                    ),
+                                                brush = backgroundGradientBrush,
                                                 shape = placeTypeShape,
                                                 alpha = itemBackgroundAlpha,
                                             )
@@ -171,6 +174,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                         modifier =
                                             Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                                                .fillMaxWidth()
                                                 .wrapContentHeight()
                                     ) {
                                         val scope = rememberCoroutineScope()
@@ -179,12 +183,10 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                                 placeType = placeType,
                                                 modifier =
                                                     Modifier.padding(horizontal = 1.dp)
+                                                        .width(itemWidth.dp)
                                                         .clip(placeTypeShape)
                                                         .background(
-                                                            brush =
-                                                                Brush.horizontalGradient(
-                                                                    colors = listOf(Ocean2, Ocean0)
-                                                                ),
+                                                            brush = backgroundGradientBrush,
                                                             shape = placeTypeShape,
                                                             alpha = itemBackgroundAlpha,
                                                         )
@@ -229,13 +231,13 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
 
     private fun placeCategoriesMatching(query: String): List<PlaceCategory> =
         placeCategories
-            .map {
+            .map { category ->
                 PlaceCategory(
-                    name = it.name,
+                    name = category.name,
                     placeTypes =
-                        it.placeTypes.filter { placeType ->
-                            placeType.wrapped.label.lowercase().contains(query) ||
-                                placeType.wrapped.description.lowercase().contains(query)
+                        category.placeTypes.filter { (wrapped) ->
+                            wrapped.label.lowercase().contains(query) ||
+                                wrapped.description.lowercase().contains(query)
                         }
                 )
             }

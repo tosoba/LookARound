@@ -13,8 +13,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
 import com.lookaround.core.android.view.composable.ItemNameText
-import com.lookaround.ui.place.categories.model.PlaceType
 import com.lookaround.ui.place.categories.model.PlaceCategory
+import com.lookaround.ui.place.categories.model.PlaceType
 import com.skydoves.landscapist.ShimmerParams
 import com.skydoves.landscapist.coil.CoilImage
 
@@ -40,11 +40,7 @@ internal val placeTypeShape = RoundedCornerShape(20.dp)
 internal fun PlaceType(placeType: PlaceType, modifier: Modifier = Modifier) {
     Box(modifier = modifier, propagateMinConstraints = true) {
         Column(modifier = Modifier.padding(10.dp)) {
-            Card(
-                elevation = 3.dp,
-                shape = placeTypeShape,
-                modifier = Modifier.wrapContentWidth().aspectRatio(1.5f)
-            ) {
+            Card(elevation = 3.dp, shape = placeTypeShape, modifier = Modifier.aspectRatio(1.5f)) {
                 CoilImage(
                     imageModel = placeType.imageUrl,
                     contentDescription = null,
@@ -57,7 +53,6 @@ internal fun PlaceType(placeType: PlaceType, modifier: Modifier = Modifier) {
                             dropOff = 0.65f,
                             tilt = 20f
                         ),
-                    modifier = Modifier.fillMaxSize()
                 )
             }
             ItemNameText(

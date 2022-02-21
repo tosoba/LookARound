@@ -1,5 +1,6 @@
 package com.lookaround.core.android.ext
 
+import android.content.res.Configuration
 import android.os.Build
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -47,6 +48,22 @@ val Fragment.rotation: Int
         } else {
             requireActivity().windowManager.defaultDisplay.rotation
         }
+
+fun Fragment.getListItemDimensionPx(
+    spacingDp: Float = 10f,
+    itemsPortrait: Int = 2,
+    itemsLandscape: Int = 4
+): Float {
+    val spacingPx = requireContext().dpToPx(spacingDp)
+    val displayMetrics = resources.displayMetrics
+    val orientation = resources.configuration.orientation
+    return (displayMetrics.widthPixels -
+            spacingPx *
+            (if (orientation == Configuration.ORIENTATION_LANDSCAPE) itemsLandscape + 1
+            else itemsPortrait + 1)) /
+            (if (orientation == Configuration.ORIENTATION_LANDSCAPE) itemsLandscape
+            else itemsPortrait)
+}
 
 val Fragment.listItemBackground: ListFragmentHost.ItemBackground
     get() =
