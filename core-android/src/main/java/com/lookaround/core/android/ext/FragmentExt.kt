@@ -67,5 +67,5 @@ fun Fragment.getListItemDimensionPx(
 
 val Fragment.listItemBackground: ListFragmentHost.ItemBackground
     get() =
-        (activity as? ListFragmentHost)?.itemBackground
+        (activity as? ListFragmentHost)?.listItemBackground
             ?: ListFragmentHost.ItemBackground.TRANSPARENT

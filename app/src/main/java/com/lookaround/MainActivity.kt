@@ -10,10 +10,11 @@ import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -24,8 +25,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.iterator
 import androidx.fragment.app.Fragment
@@ -42,7 +46,10 @@ import com.google.android.material.snackbar.Snackbar
 import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.*
+import com.lookaround.core.android.view.composable.SearchBar
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.core.android.view.theme.Ocean0
+import com.lookaround.core.android.view.theme.Ocean2
 import com.lookaround.core.model.SearchType
 import com.lookaround.databinding.ActivityMainBinding
 import com.lookaround.ui.camera.CameraFragment
@@ -52,12 +59,11 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
+import com.lookaround.ui.place.categories.PlaceCategoriesFragment
 import com.lookaround.ui.place.map.list.PlaceMapListFragment
 import com.lookaround.ui.place.map.list.PlaceMapListFragmentHost
-import com.lookaround.ui.place.categories.PlaceCategoriesFragment
 import com.lookaround.ui.recent.searches.RecentSearchesFragment
 import com.lookaround.ui.recent.searches.composable.RecentSearchesChipList
-import com.lookaround.core.android.view.composable.SearchBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -125,7 +131,8 @@ class MainActivity : AppCompatActivity(), PlaceMapListFragmentHost {
 
                 fragmentTransaction {
                     when (menuItem.itemId) {
-                        R.id.action_place_types -> showBottomSheetFragment<PlaceCategoriesFragment>()
+                        R.id.action_place_types ->
+                            showBottomSheetFragment<PlaceCategoriesFragment>()
                         R.id.action_place_list -> showBottomSheetFragment<PlaceMapListFragment>()
                         R.id.action_recent_searches ->
                             showBottomSheetFragment<RecentSearchesFragment>()
@@ -226,7 +233,7 @@ class MainActivity : AppCompatActivity(), PlaceMapListFragmentHost {
         }
     }
 
-    override val itemBackground: ListFragmentHost.ItemBackground
+    override val listItemBackground: ListFragmentHost.ItemBackground
         get() =
             if (currentTopFragment is CameraFragment) ListFragmentHost.ItemBackground.TRANSPARENT
             else ListFragmentHost.ItemBackground.OPAQUE
@@ -389,8 +396,27 @@ class MainActivity : AppCompatActivity(), PlaceMapListFragmentHost {
     @Composable
     private fun RecentSearchesList() {
         val scope = rememberCoroutineScope()
+        val opaqueBackgroundFlow = remember {
+            viewModel
+                .listFragmentItemBackgroundUpdates
+                .map { it == ListFragmentHost.ItemBackground.OPAQUE }
+                .distinctUntilChanged()
+        }
+        val opaqueBackground =
+            opaqueBackgroundFlow.collectAsState(
+                initial = listItemBackground == ListFragmentHost.ItemBackground.OPAQUE
+            )
+        val itemBackgroundAlpha = if (opaqueBackground.value) .95f else .55f
+        val backgroundGradientBrush = Brush.horizontalGradient(colors = listOf(Ocean2, Ocean0))
         RecentSearchesChipList(
             modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+            chipModifier =
+                Modifier.clip(RoundedCornerShape(20.dp))
+                    .background(
+                        brush = backgroundGradientBrush,
+                        shape = RoundedCornerShape(20.dp),
+                        alpha = itemBackgroundAlpha,
+                    ),
             onMoreClicked = {
                 binding.bottomNavigationView.selectedItemId = R.id.action_recent_searches
             }

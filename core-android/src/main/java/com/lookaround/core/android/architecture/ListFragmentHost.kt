@@ -1,7 +1,7 @@
 package com.lookaround.core.android.architecture
 
 interface ListFragmentHost {
-    val itemBackground: ItemBackground
+    val listItemBackground: ItemBackground
 
     enum class ItemBackground {
         OPAQUE,

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.map
 @Composable
 fun RecentSearchesChipList(
     modifier: Modifier = Modifier,
+    chipModifier: Modifier = Modifier,
     recentSearchesViewModel: RecentSearchesViewModel = hiltViewModel(),
     onMoreClicked: () -> Unit,
     onItemClicked: (RecentSearchModel) -> Unit
@@ -32,6 +33,7 @@ fun RecentSearchesChipList(
         itemsFlow = recentSearchesFlow,
         label = RecentSearchModel::label::get,
         modifier = modifier,
+        chipModifier = chipModifier,
         onMoreClicked = onMoreClicked,
         onItemClicked = onItemClicked
     )

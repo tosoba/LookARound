@@ -107,11 +107,16 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                     val placeCategories =
                         placeCategoriesFlow.collectAsState(initial = placeCategories)
 
-                    val itemBackgroundFlow = remember {
-                        mainViewModel.listFragmentItemBackgroundUpdates
+                    val opaqueBackgroundFlow = remember {
+                        mainViewModel
+                            .listFragmentItemBackgroundUpdates
+                            .map { it == ListFragmentHost.ItemBackground.OPAQUE }
+                            .distinctUntilChanged()
                     }
-                    val itemBackground =
-                        itemBackgroundFlow.collectAsState(initial = listItemBackground)
+                    val opaqueBackground =
+                        opaqueBackgroundFlow.collectAsState(
+                            initial = listItemBackground == ListFragmentHost.ItemBackground.OPAQUE
+                        )
 
                     val lazyListState = rememberLazyListState()
                     binding
@@ -129,9 +134,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                         val rowItemsCount =
                             if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
 
-                        val opaqueBackground =
-                            itemBackground.value == ListFragmentHost.ItemBackground.OPAQUE
-                        val itemBackgroundAlpha = if (opaqueBackground) .95f else .55f
+                        val itemBackgroundAlpha = if (opaqueBackground.value) .95f else .55f
                         val backgroundGradientBrush =
                             Brush.horizontalGradient(colors = listOf(Ocean2, Ocean0))
 
