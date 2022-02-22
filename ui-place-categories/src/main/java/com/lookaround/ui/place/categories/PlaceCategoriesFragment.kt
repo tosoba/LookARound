@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -64,7 +63,6 @@ import kotlinx.coroutines.launch
 @ExperimentalCoilApi
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
-@ExperimentalMaterialApi
 @FlowPreview
 class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     private val binding: FragmentPlaceCategoriesBinding by
@@ -166,11 +164,12 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                             itemsFlow = placeCategoriesFlow,
                                             label = PlaceCategory::name::get,
                                             chipModifier =
-                                                Modifier.background(
-                                                    brush = backgroundGradientBrush,
-                                                    shape = RoundedCornerShape(20.dp),
-                                                    alpha = itemBackgroundAlpha,
-                                                )
+                                                Modifier.clip(RoundedCornerShape(20.dp))
+                                                    .background(
+                                                        brush = backgroundGradientBrush,
+                                                        shape = RoundedCornerShape(20.dp),
+                                                        alpha = itemBackgroundAlpha,
+                                                    )
                                         ) { category ->
                                             scope.launch {
                                                 val placeCategoryIndex =

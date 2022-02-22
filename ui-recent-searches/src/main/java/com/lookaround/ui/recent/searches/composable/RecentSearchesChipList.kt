@@ -1,6 +1,5 @@
 package com.lookaround.ui.recent.searches.composable
 
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 @ExperimentalCoroutinesApi
-@ExperimentalMaterialApi
 @Composable
 fun RecentSearchesChipList(
     modifier: Modifier = Modifier,

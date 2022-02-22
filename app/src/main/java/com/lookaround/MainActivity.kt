@@ -69,7 +69,6 @@ import timber.log.Timber
 @ExperimentalCoilApi
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
-@ExperimentalMaterialApi
 @ExperimentalStdlibApi
 @FlowPreview
 @SuppressLint("RtlHardcoded")
