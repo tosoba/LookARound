@@ -199,3 +199,10 @@ class MarkerPickResult(val marker: Marker, val position: LatLon, val isCluster: 
 typealias TangramMarker = Marker
 
 typealias TangramMarkerPickResult = com.mapzen.tangram.MarkerPickResult
+
+fun locationWith(latitude: Double, longitude: Double, altitude: Double = 0.0): Location =
+    Location("").also {
+        it.latitude = latitude
+        it.longitude = longitude
+        it.altitude = altitude
+    }

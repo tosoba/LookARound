@@ -59,5 +59,5 @@ enum class Tourism(
         8530
     ),
     ZOO("A zoological garden, where animals are confined for viewing by the public.", 7294),
-    AQUARIUM("A facility with living aquatic animals for public viewing.", 1107);
+    AQUARIUM("A facility with living aquatic animals for public viewing.", 1107)
 }

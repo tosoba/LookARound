@@ -55,7 +55,6 @@ kapt { correctErrorTypes = true }
 dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
-    implementation(project(":core-android-model"))
     implementation(project(":tangram"))
     implementation(project(":ui-main"))
 

@@ -1,6 +1,6 @@
 package com.lookaround.ui.recent.searches.model
 
-import com.lookaround.core.android.model.LocationFactory
+import com.lookaround.core.android.ext.locationWith
 import com.lookaround.core.android.model.ParcelableList
 import com.lookaround.core.android.model.Ready
 import com.lookaround.core.model.AutocompleteSearchDTO
@@ -31,7 +31,7 @@ data class SearchesLoadedUpdate(
                                         type = SearchType.AUTOCOMPLETE,
                                         location =
                                             if (priorityLat != null && priorityLon != null) {
-                                                LocationFactory.create(
+                                                locationWith(
                                                     latitude = priorityLat,
                                                     longitude = priorityLon
                                                 )
@@ -47,8 +47,7 @@ data class SearchesLoadedUpdate(
                                         id = id,
                                         label = value,
                                         type = SearchType.AROUND,
-                                        location =
-                                            LocationFactory.create(latitude = lat, longitude = lng),
+                                        location = locationWith(latitude = lat, longitude = lng),
                                         lastSearchedAt = lastSearchedAt
                                     )
                                 }

@@ -2,7 +2,6 @@ rootProject.name = "LookARound"
 include(":app")
 include(":core")
 include(":core-android")
-include(":core-android-model")
 include(":repo-nominatim")
 include(":repo-overpass")
 include(":repo-photon")

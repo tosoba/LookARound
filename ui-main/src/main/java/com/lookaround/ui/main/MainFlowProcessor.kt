@@ -2,8 +2,8 @@ package com.lookaround.ui.main
 
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.architecture.FlowProcessor
+import com.lookaround.core.android.ext.locationWith
 import com.lookaround.core.android.ext.roundToDecimalPlaces
-import com.lookaround.core.android.model.LocationFactory
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.ext.withLatestFrom
 import com.lookaround.core.model.LocationDataDTO
@@ -90,7 +90,7 @@ constructor(
                         is LocationDataDTO.Success -> {
                             emit(
                                 LocationLoadedUpdate(
-                                    LocationFactory.create(
+                                    locationWith(
                                         latitude = it.lat,
                                         longitude = it.lng,
                                         altitude = it.alt
