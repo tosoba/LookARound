@@ -8,8 +8,8 @@ interface IPlaceType {
 
     val label: String
         get() =
-            (if (this is Enum<*>) name.titleCaseWithSpacesInsteadOfUnderscores
-            else throw IllegalArgumentException())
+            if (this is Enum<*>) name.titleCaseWithSpacesInsteadOfUnderscores
+            else throw IllegalArgumentException()
 
     val typeKey: String
         get() = javaClass.simpleName.lowercase()
