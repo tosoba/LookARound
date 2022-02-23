@@ -1,5 +1,6 @@
 package com.lookaround.ui.place.categories.composable
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -9,14 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import coil.annotation.ExperimentalCoilApi
 import com.lookaround.core.android.view.composable.ItemNameText
 import com.lookaround.ui.place.categories.model.PlaceCategory
 import com.lookaround.ui.place.categories.model.PlaceType
-import com.skydoves.landscapist.ShimmerParams
-import com.skydoves.landscapist.coil.CoilImage
+import com.skydoves.landscapist.rememberDrawablePainter
 
 @Composable
 internal fun PlaceCategoryHeader(category: PlaceCategory, modifier: Modifier = Modifier) {
@@ -35,24 +37,22 @@ internal fun PlaceCategoryHeader(category: PlaceCategory, modifier: Modifier = M
 
 internal val placeTypeShape = RoundedCornerShape(20.dp)
 
-@ExperimentalCoilApi
 @Composable
 internal fun PlaceType(placeType: PlaceType, modifier: Modifier = Modifier) {
     Box(modifier = modifier, propagateMinConstraints = true) {
         Column(modifier = Modifier.padding(10.dp)) {
             Card(elevation = 3.dp, shape = placeTypeShape, modifier = Modifier.aspectRatio(1.5f)) {
-                CoilImage(
-                    imageModel = placeType.imageUrl,
+                Image(
+                    painter =
+                        rememberDrawablePainter(
+                            drawable =
+                                ContextCompat.getDrawable(
+                                    LocalContext.current,
+                                    placeType.drawableId
+                                )
+                        ),
                     contentDescription = null,
                     contentScale = ContentScale.FillBounds,
-                    shimmerParams =
-                        ShimmerParams(
-                            baseColor = Color.LightGray.copy(0.9f),
-                            highlightColor = Color.LightGray.copy(0.2f),
-                            durationMillis = 350,
-                            dropOff = 0.65f,
-                            tilt = 20f
-                        ),
                 )
             }
             ItemNameText(
