@@ -323,162 +323,99 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                     name = "General",
                     placeTypes =
                         listOf(
-                            PlaceType(wrapped = Amenity.PARKING, drawableId = R.drawable.parking),
-                            PlaceType(wrapped = Amenity.FUEL, drawableId = R.drawable.fuel),
-                            PlaceType(wrapped = Amenity.CAR_WASH, drawableId = R.drawable.car_wash),
-                            PlaceType(wrapped = Amenity.ATM, drawableId = R.drawable.atm),
-                            PlaceType(
-                                wrapped = Amenity.POST_OFFICE,
-                                drawableId = R.drawable.post_office
-                            ),
-                            PlaceType(wrapped = Amenity.TOILETS, drawableId = R.drawable.toilet)
+                            PlaceType(Amenity.PARKING, R.drawable.parking),
+                            PlaceType(Amenity.FUEL, R.drawable.fuel),
+                            PlaceType(Amenity.CAR_WASH, R.drawable.car_wash),
+                            PlaceType(Amenity.ATM, R.drawable.atm),
+                            PlaceType(Amenity.POST_OFFICE, R.drawable.post_office),
+                            PlaceType(Amenity.TOILETS, R.drawable.toilet)
                         )
                 ),
                 PlaceCategory(
                     name = "Food & drinks",
                     placeTypes =
                         listOf(
-                            PlaceType(
-                                wrapped = Amenity.RESTAURANT,
-                                drawableId = R.drawable.restaurant
-                            ),
-                            PlaceType(wrapped = Amenity.CAFE, drawableId = R.drawable.cafe),
-                            PlaceType(
-                                wrapped = Amenity.FAST_FOOD,
-                                drawableId = R.drawable.fast_food
-                            ),
-                            PlaceType(wrapped = Amenity.BAR, drawableId = R.drawable.bar),
-                            PlaceType(wrapped = Amenity.PUB, drawableId = R.drawable.pub),
-                            PlaceType(
-                                wrapped = Amenity.ICE_CREAM,
-                                drawableId = R.drawable.ice_cream
-                            )
+                            PlaceType(Amenity.RESTAURANT, R.drawable.restaurant),
+                            PlaceType(Amenity.CAFE, R.drawable.cafe),
+                            PlaceType(Amenity.FAST_FOOD, R.drawable.fast_food),
+                            PlaceType(Amenity.BAR, R.drawable.bar),
+                            PlaceType(Amenity.PUB, R.drawable.pub),
+                            PlaceType(Amenity.ICE_CREAM, R.drawable.ice_cream)
                         )
                 ),
                 PlaceCategory(
                     name = "Transport",
                     placeTypes =
                         listOf(
-                            PlaceType(
-                                wrapped = Amenity.BUS_STATION,
-                                drawableId = R.drawable.bus_station
-                            ),
-                            PlaceType(wrapped = Amenity.TAXI, drawableId = R.drawable.taxi),
-                            PlaceType(
-                                wrapped = Amenity.CAR_RENTAL,
-                                drawableId = R.drawable.car_rental
-                            ),
+                            PlaceType(Amenity.BUS_STATION, R.drawable.bus_station),
+                            PlaceType(Amenity.TAXI, R.drawable.taxi),
+                            PlaceType(Amenity.CAR_RENTAL, R.drawable.car_rental),
                         )
                 ),
                 PlaceCategory(
                     name = "Shop",
                     placeTypes =
                         listOf(
-                            PlaceType(
-                                wrapped = Shop.CONVENIENCE,
-                                drawableId = R.drawable.convenience
-                            ),
-                            PlaceType(
-                                wrapped = Shop.SUPERMARKET,
-                                drawableId = R.drawable.supermarket
-                            ),
-                            PlaceType(wrapped = Shop.MALL, drawableId = R.drawable.mall),
-                            PlaceType(wrapped = Shop.CLOTHES, drawableId = R.drawable.clothes),
-                            PlaceType(wrapped = Shop.SHOES, drawableId = R.drawable.shoes),
-                            PlaceType(wrapped = Shop.ALCOHOL, drawableId = R.drawable.alcohol),
-                            PlaceType(
-                                wrapped = Shop.HAIRDRESSER,
-                                drawableId = R.drawable.hairdresser
-                            ),
-                            PlaceType(wrapped = Shop.CAR, drawableId = R.drawable.car),
-                            PlaceType(wrapped = Shop.HARDWARE, drawableId = R.drawable.hardware),
-                            PlaceType(
-                                wrapped = Shop.ELECTRONICS,
-                                drawableId = R.drawable.electronics
-                            ),
-                            PlaceType(wrapped = Shop.BOOKS, drawableId = R.drawable.books),
+                            PlaceType(Shop.CONVENIENCE, R.drawable.convenience),
+                            PlaceType(Shop.SUPERMARKET, R.drawable.supermarket),
+                            PlaceType(Shop.MALL, R.drawable.mall),
+                            PlaceType(Shop.CLOTHES, R.drawable.clothes),
+                            PlaceType(Shop.SHOES, R.drawable.shoes),
+                            PlaceType(Shop.ALCOHOL, R.drawable.alcohol),
+                            PlaceType(Shop.HAIRDRESSER, R.drawable.hairdresser),
+                            PlaceType(Shop.CAR, R.drawable.car),
+                            PlaceType(Shop.HARDWARE, R.drawable.hardware),
+                            PlaceType(Shop.ELECTRONICS, R.drawable.electronics),
+                            PlaceType(Shop.BOOKS, R.drawable.books),
                         )
                 ),
                 PlaceCategory(
                     name = "Tourism",
                     placeTypes =
                         listOf(
-                            PlaceType(wrapped = Tourism.HOTEL, drawableId = R.drawable.hotel),
-                            PlaceType(
-                                wrapped = Tourism.VIEWPOINT,
-                                drawableId = R.drawable.viewpoint
-                            ),
-                            PlaceType(wrapped = Tourism.MUSEUM, drawableId = R.drawable.museum),
-                            PlaceType(wrapped = Tourism.GALLERY, drawableId = R.drawable.gallery),
-                            PlaceType(
-                                wrapped = Tourism.CAMP_SITE,
-                                drawableId = R.drawable.camp_site
-                            ),
-                            PlaceType(
-                                wrapped = Tourism.THEME_PARK,
-                                drawableId = R.drawable.theme_park
-                            ),
-                            PlaceType(
-                                wrapped = Leisure.NATURE_RESERVE,
-                                drawableId = R.drawable.nature_reserve
-                            ),
-                            PlaceType(wrapped = Tourism.ZOO, drawableId = R.drawable.zoo),
+                            PlaceType(Tourism.HOTEL, R.drawable.hotel),
+                            PlaceType(Tourism.VIEWPOINT, R.drawable.viewpoint),
+                            PlaceType(Tourism.MUSEUM, R.drawable.museum),
+                            PlaceType(Tourism.GALLERY, R.drawable.gallery),
+                            PlaceType(Tourism.CAMP_SITE, R.drawable.camp_site),
+                            PlaceType(Tourism.THEME_PARK, R.drawable.theme_park),
+                            PlaceType(Leisure.NATURE_RESERVE, R.drawable.nature_reserve),
+                            PlaceType(Tourism.ZOO, R.drawable.zoo),
                         )
                 ),
                 PlaceCategory(
                     name = "Entertainment",
                     placeTypes =
                         listOf(
-                            PlaceType(wrapped = Amenity.CINEMA, drawableId = R.drawable.cinema),
-                            PlaceType(wrapped = Amenity.THEATRE, drawableId = R.drawable.theatre),
-                            PlaceType(
-                                wrapped = Amenity.NIGHTCLUB,
-                                drawableId = R.drawable.nightclub
-                            ),
-                            PlaceType(
-                                wrapped = Amenity.EVENTS_VENUE,
-                                drawableId = R.drawable.events_venue
-                            ),
-                            PlaceType(wrapped = Amenity.CASINO, drawableId = R.drawable.casino),
-                            PlaceType(wrapped = Amenity.LIBRARY, drawableId = R.drawable.library)
+                            PlaceType(Amenity.CINEMA, R.drawable.cinema),
+                            PlaceType(Amenity.THEATRE, R.drawable.theatre),
+                            PlaceType(Amenity.NIGHTCLUB, R.drawable.nightclub),
+                            PlaceType(Amenity.EVENTS_VENUE, R.drawable.events_venue),
+                            PlaceType(Amenity.CASINO, R.drawable.casino),
+                            PlaceType(Amenity.LIBRARY, R.drawable.library)
                         )
                 ),
                 PlaceCategory(
                     name = "Leisure",
                     placeTypes =
                         listOf(
-                            PlaceType(wrapped = Leisure.PARK, drawableId = R.drawable.park),
-                            PlaceType(wrapped = Leisure.GARDEN, drawableId = R.drawable.garden),
-                            PlaceType(
-                                wrapped = Leisure.PLAYGROUND,
-                                drawableId = R.drawable.playground
-                            ),
-                            PlaceType(wrapped = Leisure.PITCH, drawableId = R.drawable.pitch),
-                            PlaceType(
-                                wrapped = Leisure.SPORTS_CENTRE,
-                                drawableId = R.drawable.sports_centre
-                            ),
-                            PlaceType(
-                                wrapped = Leisure.SWIMMING_POOL,
-                                drawableId = R.drawable.swimming_pool
-                            ),
-                            PlaceType(
-                                wrapped = Leisure.GOLF_COURSE,
-                                drawableId = R.drawable.golf_course
-                            )
+                            PlaceType(Leisure.PARK, R.drawable.park),
+                            PlaceType(Leisure.GARDEN, R.drawable.garden),
+                            PlaceType(Leisure.PLAYGROUND, R.drawable.playground),
+                            PlaceType(Leisure.PITCH, R.drawable.pitch),
+                            PlaceType(Leisure.SPORTS_CENTRE, R.drawable.sports_centre),
+                            PlaceType(Leisure.SWIMMING_POOL, R.drawable.swimming_pool),
+                            PlaceType(Leisure.GOLF_COURSE, R.drawable.golf_course)
                         )
                 ),
                 PlaceCategory(
                     name = "Health",
                     placeTypes =
                         listOf(
-                            PlaceType(wrapped = Amenity.PHARMACY, drawableId = R.drawable.pharmacy),
-                            PlaceType(wrapped = Amenity.HOSPITAL, drawableId = R.drawable.hospital),
-                            PlaceType(wrapped = Amenity.DOCTORS, drawableId = R.drawable.doctors),
-                            PlaceType(
-                                wrapped = Amenity.VETERINARY,
-                                drawableId = R.drawable.veterinary
-                            ),
+                            PlaceType(Amenity.PHARMACY, R.drawable.pharmacy),
+                            PlaceType(Amenity.HOSPITAL, R.drawable.hospital),
+                            PlaceType(Amenity.DOCTORS, R.drawable.doctors),
+                            PlaceType(Amenity.VETERINARY, R.drawable.veterinary),
                         )
                 )
             )
