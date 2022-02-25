@@ -10,15 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import coil.annotation.ExperimentalCoilApi
 import com.lookaround.core.android.view.composable.ItemNameText
 import com.lookaround.ui.place.categories.model.PlaceCategory
 import com.lookaround.ui.place.categories.model.PlaceType
-import com.skydoves.landscapist.rememberDrawablePainter
 
 @Composable
 internal fun PlaceCategoryHeader(category: PlaceCategory, modifier: Modifier = Modifier) {
@@ -43,14 +40,7 @@ internal fun PlaceType(placeType: PlaceType, modifier: Modifier = Modifier) {
         Column(modifier = Modifier.padding(10.dp)) {
             Card(elevation = 3.dp, shape = placeTypeShape, modifier = Modifier.aspectRatio(1.5f)) {
                 Image(
-                    painter =
-                        rememberDrawablePainter(
-                            drawable =
-                                ContextCompat.getDrawable(
-                                    LocalContext.current,
-                                    placeType.drawableId
-                                )
-                        ),
+                    painter = painterResource(id = placeType.drawableId),
                     contentDescription = null,
                     contentScale = ContentScale.FillBounds,
                 )
