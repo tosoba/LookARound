@@ -161,14 +161,15 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                     )
                                     if (orientation == Configuration.ORIENTATION_PORTRAIT) {
                                         val scope = rememberCoroutineScope()
+                                        val shape = RoundedCornerShape(20.dp)
                                         ChipList(
                                             itemsFlow = placeCategoriesFlow,
                                             label = PlaceCategory::name::get,
                                             chipModifier =
-                                                Modifier.clip(RoundedCornerShape(20.dp))
+                                                Modifier.clip(shape)
                                                     .background(
                                                         brush = backgroundGradientBrush,
-                                                        shape = RoundedCornerShape(20.dp),
+                                                        shape = shape,
                                                         alpha = itemBackgroundAlpha,
                                                     )
                                         ) { category ->
