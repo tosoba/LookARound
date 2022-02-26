@@ -2,7 +2,6 @@ package com.lookaround.ui.main.model
 
 import android.location.Location
 import com.lookaround.core.android.exception.LocationDisabledException
-import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.model.*
 import com.lookaround.core.model.NodeDTO
 import com.lookaround.core.model.PointDTO
@@ -82,9 +81,8 @@ object LocationDisabledUpdate : (MainState) -> MainState {
         state.copyWithLocationException(LocationDisabledException)
 }
 
-object FailedToUpdateLocationUpdate : (MainState) -> MainState {
-    override fun invoke(state: MainState): MainState =
-        state.copyWithLocationException(LocationUpdateFailureException)
+data class FailedToUpdateLocationUpdate(val throwable: Throwable) : (MainState) -> MainState {
+    override fun invoke(state: MainState): MainState = state.copyWithLocationException(throwable)
 }
 
 data class RecentSearchesCountUpdate(private val count: Int) : (MainState) -> MainState {

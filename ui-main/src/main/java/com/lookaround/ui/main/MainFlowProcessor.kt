@@ -2,6 +2,7 @@ package com.lookaround.ui.main
 
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.architecture.FlowProcessor
+import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.ext.locationWith
 import com.lookaround.core.android.ext.roundToDecimalPlaces
 import com.lookaround.core.android.model.WithValue
@@ -84,7 +85,11 @@ constructor(
                                 } while (!isLocationAvailable())
                                 emit(LoadingLocationUpdate)
                             } else {
-                                emit(FailedToUpdateLocationUpdate)
+                                emit(
+                                    FailedToUpdateLocationUpdate(
+                                        it.throwable ?: LocationUpdateFailureException
+                                    )
+                                )
                             }
                         }
                         is LocationDataDTO.Success -> {
