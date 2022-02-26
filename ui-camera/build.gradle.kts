@@ -71,7 +71,7 @@ dependencies {
     implementation("androidx.camera:camera-view:1.0.0-alpha30")
     implementation("androidx.palette:palette:1.0.0")
 
-    implementation("com.google.android.gms:play-services-location:18.0.0")
+    implementation("com.google.android.gms:play-services-location:19.0.1")
     implementation("com.github.jintin:FancyLocationProvider:2.0.0")
 
     implementation("com.jakewharton.timber:timber:4.7.1")

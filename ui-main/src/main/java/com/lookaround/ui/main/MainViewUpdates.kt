@@ -6,7 +6,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.lookaround.core.android.architecture.ListFragmentHost
-import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.model.*
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
@@ -17,11 +16,11 @@ import kotlinx.coroutines.flow.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-val MainViewModel.locationUpdateFailureUpdates: Flow<Unit>
+val MainViewModel.locationUpdateFailureUpdates: Flow<Throwable?>
     get() =
         mapStates(MainState::locationState)
-            .filter { (it as? Failed)?.error is LocationUpdateFailureException }
-            .map {}
+            .filterIsInstance<Failed<Location>>()
+            .map(Failed<Location>::error::get)
 
 @FlowPreview
 @ExperimentalCoroutinesApi

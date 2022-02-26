@@ -187,7 +187,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             .launchIn(lifecycleScope)
         viewModel
             .locationUpdateFailureUpdates
-            .onEach { Timber.tag("LOCATION").e("Failed to update location.") }
+            .onEach { Timber.tag("LOCATION").e(it?.message ?: "Failed to update location.") }
             .launchIn(lifecycleScope)
 
         launchPlacesLoadingSnackbarUpdates()

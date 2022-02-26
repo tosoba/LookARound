@@ -100,7 +100,10 @@ constructor(
                         }
                     }
                 }
-                .onStart { if (!isLocationAvailable()) emit(LocationDisabledUpdate) }
+                .onStart {
+                    if (!isLocationAvailable()) emit(LocationDisabledUpdate)
+                    else emit(LoadingLocationUpdate)
+                }
 
     private fun Flow<MainIntent.GetPlacesOfType>.placesOfTypeAroundUpdates(
         currentState: () -> MainState,
