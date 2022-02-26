@@ -76,7 +76,7 @@ import timber.log.Timber
 @ExperimentalStdlibApi
 @FlowPreview
 @SuppressLint("RtlHardcoded")
-class MainActivity : AppCompatActivity(), PlaceMapListFragmentHost {
+class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFragmentHost {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
     private val viewModel: MainViewModel by viewModels()
@@ -161,7 +161,6 @@ class MainActivity : AppCompatActivity(), PlaceMapListFragmentHost {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
         setFullScreenWithTransparentBars()
 
         supportFragmentManager.addOnBackStackChangedListener {
