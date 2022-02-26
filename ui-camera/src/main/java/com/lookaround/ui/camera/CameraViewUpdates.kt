@@ -100,15 +100,36 @@ internal fun arDisabledUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<ARDisabledViewUpdate> =
     combine(
-            mainViewModel.mapStates(MainState::locationState),
-            cameraViewModel.mapStates(CameraState::previewState),
+            mainViewModel
+                .mapStates(MainState::locationState)
+                .onStart { emit(mainViewModel.state.locationState) }
+                .distinctUntilChanged(),
+            cameraViewModel
+                .mapStates(CameraState::previewState)
+                .onStart { emit(cameraViewModel.state.previewState) }
+                .distinctUntilChanged(),
             cameraViewModel.filterSignals<CameraSignal.PitchChanged>(),
-            cameraViewObscuredUpdates(mainViewModel, cameraViewModel)
+            cameraObscuredUpdates(mainViewModel, cameraViewModel)
+                .onStart {
+                    emit(
+                        CameraObscuredUpdate(
+                            obscuredByFragment = false,
+                            obscuredByBottomSheet = false
+                        )
+                    )
+                }
+                .distinctUntilChanged(),
+            mainViewModel
+                .states
+                .map { it.markers.hasValue }
+                .onStart { emit(mainViewModel.state.markers.hasValue) }
+                .distinctUntilChanged()
         ) {
         locationState,
         previewState,
         (pitchWithinLimit),
-        (cameraObscuredByFragment, obscuredByBottomSheet, showingAnyMarkers) ->
+        (cameraObscuredByFragment, obscuredByBottomSheet),
+        showingAnyMarkers ->
         ARDisabledViewUpdate(
             anyPermissionDenied =
                 locationState.isFailedWith<LocationPermissionDeniedException>() ||
