@@ -111,10 +111,16 @@ class CameraFragment :
 
         arDisabledUpdates(mainViewModel, cameraViewModel)
             .onEach {
-                (anyPermissionDenied, locationDisabled, pitchOutsideLimit, initializationFailure) ->
+                (
+                    anyPermissionDenied,
+                    googlePlayServicesNotAvailable,
+                    locationDisabled,
+                    pitchOutsideLimit,
+                    initializationFailure) ->
                 mainViewModel.signal(MainSignal.ARDisabled)
                 binding.onARDisabled(
                     anyPermissionDenied = anyPermissionDenied,
+                    googlePlayServicesNotAvailable = googlePlayServicesNotAvailable,
                     locationDisabled = locationDisabled,
                     pitchOutsideLimit = pitchOutsideLimit,
                     initializationFailure = initializationFailure
@@ -414,19 +420,13 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.onLoadingStarted() {
         hideARViews()
-        cameraInitializationFailureTextView.visibility = View.GONE
-        pitchOutsideLimitTextView.visibility = View.GONE
-        locationDisabledTextView.visibility = View.GONE
-        permissionsViewsGroup.visibility = View.GONE
+        toggleARDisabledViewsVisibility()
         blurBackground.visibility = View.VISIBLE
         loadingShimmerLayout.showAndStart()
     }
 
     private fun FragmentCameraBinding.onAREnabled(showingAnyMarkers: Boolean) {
-        cameraInitializationFailureTextView.visibility = View.GONE
-        pitchOutsideLimitTextView.visibility = View.GONE
-        locationDisabledTextView.visibility = View.GONE
-        permissionsViewsGroup.visibility = View.GONE
+        toggleARDisabledViewsVisibility()
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.GONE
         showARViews(showRadar = showingAnyMarkers)
@@ -437,6 +437,7 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.onARDisabled(
         anyPermissionDenied: Boolean,
+        googlePlayServicesNotAvailable: Boolean,
         locationDisabled: Boolean,
         pitchOutsideLimit: Boolean,
         initializationFailure: Boolean
@@ -444,19 +445,32 @@ class CameraFragment :
         hideARViews()
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.VISIBLE
-        if (initializationFailure) {
-            permissionsViewsGroup.visibility = View.GONE
-            locationDisabledTextView.visibility = View.GONE
-            pitchOutsideLimitTextView.visibility = View.GONE
-            cameraInitializationFailureTextView.visibility = View.VISIBLE
-            return
-        }
-        if (anyPermissionDenied) permissionsViewsGroup.visibility = View.VISIBLE
-        if (locationDisabled) locationDisabledTextView.visibility = View.VISIBLE
-        pitchOutsideLimitTextView.visibility =
-            if (!anyPermissionDenied && !locationDisabled && pitchOutsideLimit) View.VISIBLE
-            else View.GONE
+        toggleARDisabledViewsVisibility(
+            when {
+                initializationFailure -> cameraInitializationFailureTextView
+                anyPermissionDenied -> permissionsViewsGroup
+                googlePlayServicesNotAvailable -> googlePlayServicesNotAvailableTextView
+                locationDisabled -> locationDisabledTextView
+                pitchOutsideLimit -> pitchOutsideLimitTextView
+                else -> throw IllegalStateException()
+            }
+        )
         latestARState = CameraARState.DISABLED
+    }
+
+    private fun FragmentCameraBinding.toggleARDisabledViewsVisibility(vararg visibleViews: View) {
+        val visibleViewIds = visibleViews.map(View::getId).toSet()
+        val (visible, gone) =
+            arrayOf(
+                    cameraInitializationFailureTextView,
+                    pitchOutsideLimitTextView,
+                    locationDisabledTextView,
+                    googlePlayServicesNotAvailableTextView,
+                    permissionsViewsGroup
+                )
+                .partition { visibleViewIds.contains(it.id) }
+        gone.forEach { it.visibility = View.GONE }
+        visible.forEach { it.visibility = View.VISIBLE }
     }
 
     private fun FragmentCameraBinding.onMarkersDrawn(update: CameraMarkersDrawnViewUpdate) {

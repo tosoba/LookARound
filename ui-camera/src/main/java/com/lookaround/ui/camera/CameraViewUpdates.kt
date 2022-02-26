@@ -2,6 +2,7 @@ package com.lookaround.ui.camera
 
 import androidx.camera.view.PreviewView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.lookaround.core.android.exception.GooglePayServicesNotAvailableException
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
 import com.lookaround.core.android.model.*
@@ -125,35 +126,45 @@ internal fun arDisabledUpdates(
                 .onStart { emit(mainViewModel.state.markers.hasValue) }
                 .distinctUntilChanged()
         ) {
-        locationState,
-        previewState,
-        (pitchWithinLimit),
-        (cameraObscuredByFragment, obscuredByBottomSheet),
-        showingAnyMarkers ->
-        ARDisabledViewUpdate(
-            anyPermissionDenied =
-                locationState.isFailedWith<LocationPermissionDeniedException>() ||
-                    previewState is CameraPreviewState.PermissionDenied,
-            locationDisabled = locationState.isFailedWith<LocationDisabledException>(),
-            pitchOutsideRequiredLimit =
-                !pitchWithinLimit &&
-                    !cameraObscuredByFragment &&
-                    !obscuredByBottomSheet &&
-                    showingAnyMarkers,
-            cameraInitializationFailure = previewState is CameraPreviewState.InitializationFailure
-        )
-    }
-        .distinctUntilChanged()
-        .filter { (anyPermissionDenied, locationDisabled, pitchOutsideLimit) ->
-            anyPermissionDenied || locationDisabled || pitchOutsideLimit
+            locationState,
+            previewState,
+            (pitchWithinLimit),
+            (cameraObscuredByFragment, obscuredByBottomSheet),
+            showingAnyMarkers ->
+            ARDisabledViewUpdate(
+                anyPermissionDenied =
+                    locationState.isFailedWith<LocationPermissionDeniedException>() ||
+                        previewState is CameraPreviewState.PermissionDenied,
+                googlePlayServicesNotAvailable =
+                    locationState.isFailedWith<GooglePayServicesNotAvailableException>(),
+                locationDisabled = locationState.isFailedWith<LocationDisabledException>(),
+                pitchOutsideRequiredLimit =
+                    !pitchWithinLimit &&
+                        !cameraObscuredByFragment &&
+                        !obscuredByBottomSheet &&
+                        showingAnyMarkers,
+                cameraInitializationFailure =
+                    previewState is CameraPreviewState.InitializationFailure
+            )
         }
+        .distinctUntilChanged()
+        .filter(ARDisabledViewUpdate::isDisabled::get)
 
 internal data class ARDisabledViewUpdate(
     val anyPermissionDenied: Boolean,
+    val googlePlayServicesNotAvailable: Boolean,
     val locationDisabled: Boolean,
     val pitchOutsideRequiredLimit: Boolean,
     val cameraInitializationFailure: Boolean,
-)
+) {
+    val isDisabled: Boolean
+        get() =
+            anyPermissionDenied ||
+                googlePlayServicesNotAvailable ||
+                locationDisabled ||
+                pitchOutsideRequiredLimit ||
+                cameraInitializationFailure
+}
 
 @FlowPreview
 @ExperimentalCoroutinesApi
