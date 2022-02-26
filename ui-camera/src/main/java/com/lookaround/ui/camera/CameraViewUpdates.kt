@@ -23,21 +23,30 @@ internal fun arEnabledUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<Boolean> =
     combine(
-            mainViewModel.mapStates(MainState::locationState).onStart {
-                emit(mainViewModel.state.locationState)
-            },
-            cameraViewModel.mapStates(CameraState::previewState).onStart {
-                emit(cameraViewModel.state.previewState)
-            },
-            cameraViewModel.filterSignals<CameraSignal.PitchChanged>(),
-            cameraObscuredUpdates(mainViewModel, cameraViewModel).onStart {
-                emit(
-                    CameraObscuredUpdate(obscuredByFragment = false, obscuredByBottomSheet = false)
-                )
-            },
-            mainViewModel.states.map { it.markers.hasValue }.onStart {
-                emit(mainViewModel.state.markers.hasValue)
-            }
+            mainViewModel
+                .mapStates(MainState::locationState)
+                .onStart { emit(mainViewModel.state.locationState) }
+                .distinctUntilChanged(),
+            cameraViewModel
+                .mapStates(CameraState::previewState)
+                .onStart { emit(cameraViewModel.state.previewState) }
+                .distinctUntilChanged(),
+            cameraViewModel.filterSignals<CameraSignal.PitchChanged>().distinctUntilChanged(),
+            cameraObscuredUpdates(mainViewModel, cameraViewModel)
+                .onStart {
+                    emit(
+                        CameraObscuredUpdate(
+                            obscuredByFragment = false,
+                            obscuredByBottomSheet = false
+                        )
+                    )
+                }
+                .distinctUntilChanged(),
+            mainViewModel
+                .states
+                .map { it.markers.hasValue }
+                .onStart { emit(mainViewModel.state.markers.hasValue) }
+                .distinctUntilChanged()
         ) {
             locationState,
             previewState,
