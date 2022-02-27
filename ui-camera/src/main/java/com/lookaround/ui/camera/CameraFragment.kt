@@ -220,7 +220,7 @@ class CameraFragment :
                 (obscuredByFragment, obscuredByBottomSheet, showingAnyMarkers) ->
                 val obscured = obscuredByFragment || obscuredByBottomSheet
                 openGLRenderer.setBlurEnabled(enabled = obscured, animated = !obscured || index > 0)
-                if (obscured) hideARViews() else showARViews(showRadar = showingAnyMarkers)
+                if (obscured) disableAR() else enableAR(showingAnyMarkers)
             }
         }
 
@@ -258,12 +258,10 @@ class CameraFragment :
                 imageFlow
                     .map(ImageProxy::bitmap::get)
                     .filterNotNull()
+                    .filter { latestARState == CameraARState.ENABLED && !isRunningOnEmulator() }
                     .flowOn(Dispatchers.Default)
                     .collect { bitmap ->
                         launch { updateContrastingColorUsing(bitmap) }
-                        if (latestARState != CameraARState.ENABLED || isRunningOnEmulator()) {
-                            return@collect
-                        }
                         blurAndUpdateViewsUsing(bitmap)
                     }
             } catch (ex: Exception) {
@@ -429,10 +427,14 @@ class CameraFragment :
         toggleARDisabledViewsVisibility()
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.GONE
-        showARViews(showRadar = showingAnyMarkers)
+        enableAR(showingAnyMarkers)
+    }
+
+    private fun FragmentCameraBinding.enableAR(showingAnyMarkers: Boolean) {
         openGLRenderer.markerRectsDisabled = false
         cameraMarkerRenderer.disabled = false
         radarMarkerRenderer.disabled = false
+        showARViews(showRadar = showingAnyMarkers)
     }
 
     private fun FragmentCameraBinding.onARDisabled(
@@ -442,7 +444,7 @@ class CameraFragment :
         pitchOutsideLimit: Boolean,
         initializationFailure: Boolean
     ) {
-        hideARViews()
+        disableAR()
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.VISIBLE
         toggleARDisabledViewsVisibility(
@@ -456,6 +458,13 @@ class CameraFragment :
             }
         )
         latestARState = CameraARState.DISABLED
+    }
+
+    private fun FragmentCameraBinding.disableAR() {
+        hideARViews()
+        openGLRenderer.markerRectsDisabled = true
+        cameraMarkerRenderer.disabled = true
+        radarMarkerRenderer.disabled = true
     }
 
     private fun FragmentCameraBinding.toggleARDisabledViewsVisibility(vararg visibleViews: View) {
@@ -490,10 +499,7 @@ class CameraFragment :
 
     override fun onPause() {
         binding.blurBackground.visibility = View.VISIBLE
-        cameraMarkerRenderer.disabled = true
-        radarMarkerRenderer.disabled = true
-        openGLRenderer.markerRectsDisabled = true
-        binding.hideARViews()
+        binding.disableAR()
         orientationManager.stopSensor()
         super.onPause()
     }
