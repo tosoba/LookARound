@@ -137,9 +137,9 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                             Brush.horizontalGradient(colors = listOf(Ocean2, Ocean0))
 
                         if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED) {
-                            item { Spacer(Modifier.height(112.dp)) }
+                            item(key = "categories-top-spacer") { Spacer(Modifier.height(112.dp)) }
                         } else {
-                            stickyHeader {
+                            stickyHeader(key = "categories-sticky-header") {
                                 val headerPaddingBottomPx = requireContext().dpToPx(10f).toInt()
                                 var headerHeightPx by remember { mutableStateOf(0) }
                                 Column(
@@ -217,7 +217,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                 requireContext().pxToDp(getListItemDimensionPx()).toInt()
 
                             placeCategories.value.forEach { group ->
-                                item {
+                                item(key = group.name) {
                                     PlaceCategoryHeader(
                                         group,
                                         modifier =
@@ -228,7 +228,12 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                             )
                                     )
                                 }
-                                items(group.placeTypes.chunked(rowItemsCount)) { chunk ->
+                                items(
+                                    group.placeTypes.chunked(rowItemsCount),
+                                    key = { placeTypes ->
+                                        placeTypes.joinToString("-") { it.wrapped.typeValue }
+                                    }
+                                ) { chunk ->
                                     PlaceTypesRow(
                                         placeTypes = chunk,
                                         itemWidth = itemWidth,
@@ -236,10 +241,12 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                         itemBackgroundAlpha = itemBackgroundAlpha
                                     )
                                 }
-                                item { Spacer(Modifier.height(4.dp)) }
+                                item(key = "${group.name}-bottom-spacer") {
+                                    Spacer(Modifier.height(4.dp))
+                                }
                             }
                         } else {
-                            item {
+                            item(key = "no-place-types-found-text") {
                                 Text(
                                     text = "No place types found.",
                                     textAlign = TextAlign.Center,
