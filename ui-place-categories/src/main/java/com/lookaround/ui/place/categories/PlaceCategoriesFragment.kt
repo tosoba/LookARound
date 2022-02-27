@@ -1,51 +1,27 @@
 package com.lookaround.ui.place.categories
 
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.google.accompanist.insets.ProvideWindowInsets
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.lookaround.core.android.architecture.ListFragmentHost
-import com.lookaround.core.android.ext.dpToPx
-import com.lookaround.core.android.ext.getListItemDimensionPx
-import com.lookaround.core.android.ext.listItemBackground
-import com.lookaround.core.android.ext.pxToDp
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
 import com.lookaround.core.android.model.Tourism
-import com.lookaround.core.android.view.composable.ChipList
-import com.lookaround.core.android.view.composable.SearchBar
-import com.lookaround.core.android.view.theme.LookARoundTheme
-import com.lookaround.core.android.view.theme.Ocean0
-import com.lookaround.core.android.view.theme.Ocean2
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.ui.main.listFragmentItemBackgroundUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
-import com.lookaround.ui.place.categories.composable.PlaceCategoryHeader
 import com.lookaround.ui.place.categories.composable.PlaceType
 import com.lookaround.ui.place.categories.composable.placeTypeShape
 import com.lookaround.ui.place.categories.databinding.FragmentPlaceCategoriesBinding
@@ -53,10 +29,6 @@ import com.lookaround.ui.place.categories.model.PlaceCategory
 import com.lookaround.ui.place.categories.model.PlaceType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
@@ -76,189 +48,204 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val bottomSheetSignalsFlow =
-            mainViewModel
-                .filterSignals(MainSignal.BottomSheetStateChanged::state)
-                .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
-                .distinctUntilChanged()
-
-        val searchQueryFlow = MutableStateFlow(searchQuery)
-        val placeCategoriesFlow =
-            searchQueryFlow
-                .map { it.trim().lowercase() }
-                .distinctUntilChanged()
-                .map(::placeCategoriesMatching)
-                .distinctUntilChanged()
-
-        binding.placeTypesList.setContent {
-            ProvideWindowInsets {
-                LookARoundTheme {
-                    val orientation = LocalConfiguration.current.orientation
-
-                    val bottomSheetState =
-                        bottomSheetSignalsFlow.collectAsState(
-                            initial = BottomSheetBehavior.STATE_HIDDEN
-                        )
-
-                    val searchQuery = searchQueryFlow.collectAsState(initial = "")
-                    val searchFocused = rememberSaveable { mutableStateOf(false) }
-                    val placeCategories =
-                        placeCategoriesFlow.collectAsState(initial = placeCategories)
-
-                    val opaqueBackgroundFlow = remember {
-                        mainViewModel
-                            .listFragmentItemBackgroundUpdates
-                            .map { it == ListFragmentHost.ItemBackground.OPAQUE }
-                            .distinctUntilChanged()
-                    }
-                    val opaqueBackground =
-                        opaqueBackgroundFlow.collectAsState(
-                            initial = listItemBackground == ListFragmentHost.ItemBackground.OPAQUE
-                        )
-
-                    val lazyListState = rememberLazyListState()
-                    binding
-                        .disallowInterceptTouchContainer
-                        .shouldRequestDisallowInterceptTouchEvent =
-                        (lazyListState.firstVisibleItemIndex != 0 ||
-                            lazyListState.firstVisibleItemScrollOffset != 0) &&
-                            bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED
-
-                    LazyColumn(
-                        state = lazyListState,
-                        modifier = Modifier.padding(horizontal = 5.dp).fillMaxHeight(),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        val rowItemsCount =
-                            if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
-
-                        val itemBackgroundAlpha = if (opaqueBackground.value) .95f else .55f
-                        val backgroundGradientBrush =
-                            Brush.horizontalGradient(colors = listOf(Ocean2, Ocean0))
-
-                        if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED) {
-                            item(key = "categories-top-spacer") { Spacer(Modifier.height(112.dp)) }
-                        } else {
-                            stickyHeader(key = "categories-sticky-header") {
-                                val headerPaddingBottomPx = requireContext().dpToPx(10f).toInt()
-                                var headerHeightPx by remember { mutableStateOf(0) }
-                                Column(
-                                    modifier =
-                                        Modifier.onSizeChanged {
-                                            headerHeightPx = it.height + headerPaddingBottomPx
-                                        }
-                                ) {
-                                    SearchBar(
-                                        query = searchQuery.value,
-                                        focused = searchFocused.value,
-                                        onBackPressedDispatcher =
-                                            requireActivity().onBackPressedDispatcher,
-                                        onSearchFocusChange = searchFocused::value::set,
-                                        onTextFieldValueChange = {
-                                            searchQueryFlow.value = it.text
-                                            this@PlaceCategoriesFragment.searchQuery = it.text
-                                        }
-                                    )
-                                    if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                                        val scope = rememberCoroutineScope()
-                                        val shape = RoundedCornerShape(20.dp)
-                                        ChipList(
-                                            itemsFlow = placeCategoriesFlow,
-                                            label = PlaceCategory::name::get,
-                                            chipModifier =
-                                                Modifier.clip(shape)
-                                                    .background(
-                                                        brush = backgroundGradientBrush,
-                                                        shape = shape,
-                                                        alpha = itemBackgroundAlpha,
-                                                    )
-                                        ) { category ->
-                                            scope.launch {
-                                                val placeCategoryIndex =
-                                                    placeCategories.value.indexOfFirst {
-                                                        it.name == category.name
-                                                    }
-                                                val placeItemsCount =
-                                                    if (placeCategoryIndex == 0) {
-                                                        0
-                                                    } else {
-                                                        placeCategories.value.take(
-                                                                placeCategoryIndex
-                                                            )
-                                                            .sumOf {
-                                                                val useExtraRowIncrement =
-                                                                    if (it.placeTypes.size %
-                                                                            rowItemsCount == 0
-                                                                    ) {
-                                                                        0
-                                                                    } else {
-                                                                        1
-                                                                    }
-                                                                it.placeTypes.size / rowItemsCount +
-                                                                    useExtraRowIncrement
-                                                            }
-                                                    }
-                                                lazyListState.scrollToItem(
-                                                    index =
-                                                        placeCategoryIndex * 2 +
-                                                            placeItemsCount +
-                                                            1,
-                                                    scrollOffset = -headerHeightPx
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (placeCategories.value.isNotEmpty()) {
-                            val itemWidth =
-                                requireContext().pxToDp(getListItemDimensionPx()).toInt()
-
-                            placeCategories.value.forEach { group ->
-                                item(key = group.name) {
-                                    PlaceCategoryHeader(
-                                        group,
-                                        modifier =
-                                            Modifier.background(
-                                                brush = backgroundGradientBrush,
-                                                shape = placeTypeShape,
-                                                alpha = itemBackgroundAlpha,
-                                            )
-                                    )
-                                }
-                                items(
-                                    group.placeTypes.chunked(rowItemsCount),
-                                    key = { placeTypes ->
-                                        placeTypes.joinToString("-") { it.wrapped.typeValue }
-                                    }
-                                ) { chunk ->
-                                    PlaceTypesRow(
-                                        placeTypes = chunk,
-                                        itemWidth = itemWidth,
-                                        backgroundGradientBrush = backgroundGradientBrush,
-                                        itemBackgroundAlpha = itemBackgroundAlpha
-                                    )
-                                }
-                                item(key = "${group.name}-bottom-spacer") {
-                                    Spacer(Modifier.height(4.dp))
-                                }
-                            }
-                        } else {
-                            item(key = "no-place-types-found-text") {
-                                Text(
-                                    text = "No place types found.",
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        binding.placeTypesRecyclerView.adapter =
+            PlaceTypesRecyclerViewAdapter(placeCategories.flatMap { it.placeTypes })
+        //        val bottomSheetSignalsFlow =
+        //            mainViewModel
+        //                .filterSignals(MainSignal.BottomSheetStateChanged::state)
+        //                .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
+        //                .distinctUntilChanged()
+        //
+        //        val searchQueryFlow = MutableStateFlow(searchQuery)
+        //        val placeCategoriesFlow =
+        //            searchQueryFlow
+        //                .map { it.trim().lowercase() }
+        //                .distinctUntilChanged()
+        //                .map(::placeCategoriesMatching)
+        //                .distinctUntilChanged()
+        //
+        //        binding.placeTypesList.setContent {
+        //            ProvideWindowInsets {
+        //                LookARoundTheme {
+        //                    val orientation = LocalConfiguration.current.orientation
+        //
+        //                    val bottomSheetState =
+        //                        bottomSheetSignalsFlow.collectAsState(
+        //                            initial = BottomSheetBehavior.STATE_HIDDEN
+        //                        )
+        //
+        //                    val searchQuery = searchQueryFlow.collectAsState(initial = "")
+        //                    val searchFocused = rememberSaveable { mutableStateOf(false) }
+        //                    val placeCategories =
+        //                        placeCategoriesFlow.collectAsState(initial = placeCategories)
+        //
+        //                    val opaqueBackgroundFlow = remember {
+        //                        mainViewModel
+        //                            .listFragmentItemBackgroundUpdates
+        //                            .map { it == ListFragmentHost.ItemBackground.OPAQUE }
+        //                            .distinctUntilChanged()
+        //                    }
+        //                    val opaqueBackground =
+        //                        opaqueBackgroundFlow.collectAsState(
+        //                            initial = listItemBackground ==
+        // ListFragmentHost.ItemBackground.OPAQUE
+        //                        )
+        //
+        //                    val lazyListState = rememberLazyListState()
+        //                    binding
+        //                        .disallowInterceptTouchContainer
+        //                        .shouldRequestDisallowInterceptTouchEvent =
+        //                        (lazyListState.firstVisibleItemIndex != 0 ||
+        //                            lazyListState.firstVisibleItemScrollOffset != 0) &&
+        //                            bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED
+        //
+        //                    LazyColumn(
+        //                        state = lazyListState,
+        //                        modifier = Modifier.padding(horizontal = 5.dp).fillMaxHeight(),
+        //                        verticalArrangement = Arrangement.spacedBy(10.dp)
+        //                    ) {
+        //                        val rowItemsCount =
+        //                            if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else
+        // 2
+        //
+        //                        val itemBackgroundAlpha = if (opaqueBackground.value) .95f else
+        // .55f
+        //                        val backgroundGradientBrush =
+        //                            Brush.horizontalGradient(colors = listOf(Ocean2, Ocean0))
+        //
+        //                        if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED)
+        // {
+        //                            item(key = "categories-top-spacer") {
+        // Spacer(Modifier.height(112.dp)) }
+        //                        } else {
+        //                            stickyHeader(key = "categories-sticky-header") {
+        //                                val headerPaddingBottomPx =
+        // requireContext().dpToPx(10f).toInt()
+        //                                var headerHeightPx by remember { mutableStateOf(0) }
+        //                                Column(
+        //                                    modifier =
+        //                                        Modifier.onSizeChanged {
+        //                                            headerHeightPx = it.height +
+        // headerPaddingBottomPx
+        //                                        }
+        //                                ) {
+        //                                    SearchBar(
+        //                                        query = searchQuery.value,
+        //                                        focused = searchFocused.value,
+        //                                        onBackPressedDispatcher =
+        //                                            requireActivity().onBackPressedDispatcher,
+        //                                        onSearchFocusChange = searchFocused::value::set,
+        //                                        onTextFieldValueChange = {
+        //                                            searchQueryFlow.value = it.text
+        //                                            this@PlaceCategoriesFragment.searchQuery =
+        // it.text
+        //                                        }
+        //                                    )
+        //                                    if (orientation == Configuration.ORIENTATION_PORTRAIT)
+        // {
+        //                                        val scope = rememberCoroutineScope()
+        //                                        val shape = RoundedCornerShape(20.dp)
+        //                                        ChipList(
+        //                                            itemsFlow = placeCategoriesFlow,
+        //                                            label = PlaceCategory::name::get,
+        //                                            chipModifier =
+        //                                                Modifier.clip(shape)
+        //                                                    .background(
+        //                                                        brush = backgroundGradientBrush,
+        //                                                        shape = shape,
+        //                                                        alpha = itemBackgroundAlpha,
+        //                                                    )
+        //                                        ) { category ->
+        //                                            scope.launch {
+        //                                                val placeCategoryIndex =
+        //                                                    placeCategories.value.indexOfFirst {
+        //                                                        it.name == category.name
+        //                                                    }
+        //                                                val placeItemsCount =
+        //                                                    if (placeCategoryIndex == 0) {
+        //                                                        0
+        //                                                    } else {
+        //                                                        placeCategories.value.take(
+        //                                                                placeCategoryIndex
+        //                                                            )
+        //                                                            .sumOf {
+        //                                                                val useExtraRowIncrement =
+        //                                                                    if (it.placeTypes.size
+        // %
+        //                                                                            rowItemsCount
+        // == 0
+        //                                                                    ) {
+        //                                                                        0
+        //                                                                    } else {
+        //                                                                        1
+        //                                                                    }
+        //                                                                it.placeTypes.size /
+        // rowItemsCount +
+        //                                                                    useExtraRowIncrement
+        //                                                            }
+        //                                                    }
+        //                                                lazyListState.scrollToItem(
+        //                                                    index =
+        //                                                        placeCategoryIndex * 2 +
+        //                                                            placeItemsCount +
+        //                                                            1,
+        //                                                    scrollOffset = -headerHeightPx
+        //                                                )
+        //                                            }
+        //                                        }
+        //                                    }
+        //                                }
+        //                            }
+        //                        }
+        //
+        //                        if (placeCategories.value.isNotEmpty()) {
+        //                            val itemWidth =
+        //                                requireContext().pxToDp(getListItemDimensionPx()).toInt()
+        //
+        //                            placeCategories.value.forEach { category ->
+        //                                item(key = category.name) {
+        //                                    PlaceCategoryHeader(
+        //                                        category,
+        //                                        modifier =
+        //                                            Modifier.background(
+        //                                                brush = backgroundGradientBrush,
+        //                                                shape = placeTypeShape,
+        //                                                alpha = itemBackgroundAlpha,
+        //                                            )
+        //                                    )
+        //                                }
+        //                                items(
+        //                                    category.placeTypes.chunked(rowItemsCount),
+        //                                    key = { placeTypes ->
+        //                                        placeTypes.joinToString("-") {
+        // it.wrapped.typeValue }
+        //                                    }
+        //                                ) { chunk ->
+        //                                    PlaceTypesRow(
+        //                                        placeTypes = chunk,
+        //                                        itemWidth = itemWidth,
+        //                                        backgroundGradientBrush = backgroundGradientBrush,
+        //                                        itemBackgroundAlpha = itemBackgroundAlpha
+        //                                    )
+        //                                }
+        //                                item(key = "${category.name}-bottom-spacer") {
+        //                                    Spacer(Modifier.height(4.dp))
+        //                                }
+        //                            }
+        //                        } else {
+        //                            item(key = "no-place-types-found-text") {
+        //                                Text(
+        //                                    text = "No place types found.",
+        //                                    textAlign = TextAlign.Center,
+        //                                    fontWeight = FontWeight.Bold,
+        //                                    modifier = Modifier.fillMaxWidth(),
+        //                                )
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
     }
 
     @Composable
