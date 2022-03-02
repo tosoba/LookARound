@@ -1,5 +1,6 @@
 package com.lookaround.ui.place.categories
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -49,10 +50,19 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.placeTypesRecyclerView.adapter =
-            PlaceTypesRecyclerViewAdapter(placeCategories.flatMap(PlaceCategory::placeTypes))
-        binding.placeTypesRecyclerView.layoutManager =
-            GridLayoutManager(requireContext(), 2, GridLayoutManager.VERTICAL, false)
+        with(binding.placeTypesRecyclerView) {
+            adapter =
+                PlaceTypesRecyclerViewAdapter(placeCategories.flatMap(PlaceCategory::placeTypes))
+            val orientation = resources.configuration.orientation
+            layoutManager =
+                GridLayoutManager(
+                    requireContext(),
+                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2,
+                    GridLayoutManager.VERTICAL,
+                    false
+                )
+            setHasFixedSize(true)
+        }
 
         //        val bottomSheetSignalsFlow =
         //            mainViewModel
