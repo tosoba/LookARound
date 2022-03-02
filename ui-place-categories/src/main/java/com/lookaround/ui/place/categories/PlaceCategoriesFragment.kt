@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.GridLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
@@ -49,7 +50,10 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.placeTypesRecyclerView.adapter =
-            PlaceTypesRecyclerViewAdapter(placeCategories.flatMap { it.placeTypes })
+            PlaceTypesRecyclerViewAdapter(placeCategories.flatMap(PlaceCategory::placeTypes))
+        binding.placeTypesRecyclerView.layoutManager =
+            GridLayoutManager(requireContext(), 2, GridLayoutManager.VERTICAL, false)
+
         //        val bottomSheetSignalsFlow =
         //            mainViewModel
         //                .filterSignals(MainSignal.BottomSheetStateChanged::state)
