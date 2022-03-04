@@ -11,10 +11,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <View
+    <androidx.compose.ui.platform.ComposeView
         android:id="@+id/place_types_search_bar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@android:color/holo_red_dark" />
+        android:layout_height="wrap_content" />
 
 </com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout>

@@ -4,23 +4,47 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.accompanist.insets.ProvideWindowInsets
+import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.ext.addCollapseTopViewOnScrollListener
+import com.lookaround.core.android.ext.dpToPx
+import com.lookaround.core.android.ext.listItemBackground
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
 import com.lookaround.core.android.model.Tourism
+import com.lookaround.core.android.view.composable.ChipList
+import com.lookaround.core.android.view.composable.SearchBar
+import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.core.android.view.theme.Ocean0
+import com.lookaround.core.android.view.theme.Ocean2
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.listFragmentItemBackgroundUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.place.categories.databinding.FragmentPlaceCategoriesBinding
 import com.lookaround.ui.place.categories.model.PlaceTypeListItem
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
@@ -40,6 +64,76 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val searchQueryFlow = MutableStateFlow(searchQuery)
+        binding.placeTypesSearchBar.setContent {
+            val headerPaddingBottomPx = requireContext().dpToPx(10f).toInt()
+            var headerHeightPx by remember { mutableStateOf(0) }
+
+            val searchQuery = searchQueryFlow.collectAsState(initial = "")
+            val searchFocused = rememberSaveable { mutableStateOf(false) }
+
+            val opaqueBackgroundFlow = remember {
+                mainViewModel
+                    .listFragmentItemBackgroundUpdates
+                    .map { it == ListFragmentHost.ItemBackground.OPAQUE }
+                    .distinctUntilChanged()
+            }
+            val opaqueBackground =
+                opaqueBackgroundFlow.collectAsState(
+                    initial = listItemBackground == ListFragmentHost.ItemBackground.OPAQUE
+                )
+
+            val placeCategoriesFlow = remember {
+                searchQueryFlow
+                    .map { it.trim().lowercase() }
+                    .distinctUntilChanged()
+                    .map(::placeCategoriesMatching)
+                    .distinctUntilChanged()
+            }
+
+            ProvideWindowInsets {
+                LookARoundTheme {
+                    Column(
+                        modifier =
+                            Modifier.onSizeChanged {
+                                headerHeightPx = it.height + headerPaddingBottomPx
+                            }
+                    ) {
+                        SearchBar(
+                            query = searchQuery.value,
+                            focused = searchFocused.value,
+                            onBackPressedDispatcher = requireActivity().onBackPressedDispatcher,
+                            onSearchFocusChange = searchFocused::value::set,
+                            onTextFieldValueChange = {
+                                searchQueryFlow.value = it.text
+                                this@PlaceCategoriesFragment.searchQuery = it.text
+                            }
+                        )
+
+                        val orientation = LocalConfiguration.current.orientation
+                        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                            val scope = rememberCoroutineScope()
+                            val shape = RoundedCornerShape(20.dp)
+                            ChipList(
+                                itemsFlow = placeCategoriesFlow,
+                                label = PlaceTypeListItem.PlaceCategory::name::get,
+                                chipModifier =
+                                    Modifier.clip(shape)
+                                        .background(
+                                            brush =
+                                                Brush.horizontalGradient(
+                                                    colors = listOf(Ocean2, Ocean0)
+                                                ),
+                                            shape = shape,
+                                            alpha = if (opaqueBackground.value) .95f else .55f,
+                                        )
+                            ) { category -> scope.launch {} }
+                        }
+                    }
+                }
+            }
+        }
+
         with(binding.placeTypesRecyclerView) {
             adapter =
                 PlaceTypesRecyclerViewAdapter(PLACE_TYPE_LIST_ITEMS) { placeType ->
@@ -66,6 +160,9 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
             addCollapseTopViewOnScrollListener(binding.placeTypesSearchBar)
         }
     }
+
+    private fun placeCategoriesMatching(query: String): List<PlaceTypeListItem.PlaceCategory> =
+        PLACE_TYPE_LIST_ITEMS.filterIsInstance<PlaceTypeListItem.PlaceCategory>()
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
