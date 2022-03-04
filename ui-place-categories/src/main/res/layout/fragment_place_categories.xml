@@ -6,15 +6,15 @@
     android:layout_margin="8dp"
     android:animateLayoutChanges="true">
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/place_types_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <View
         android:id="@+id/place_types_search_bar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="@android:color/holo_red_dark" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/place_types_recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 
 </com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout>

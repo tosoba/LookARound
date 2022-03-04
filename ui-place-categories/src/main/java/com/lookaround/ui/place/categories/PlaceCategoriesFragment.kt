@@ -66,49 +66,28 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
             addOnScrollListener(
                 object : RecyclerView.OnScrollListener() {
                     var verticalOffset = 0
-                    var scrollingUp = false
 
                     override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                            if (scrollingUp) {
-                                if (verticalOffset > binding.placeTypesSearchBar.height) {
-                                    binding.placeTypesSearchBar.visibility = View.GONE
-                                    verticalOffset = binding.placeTypesSearchBar.height
-                                }
-                            } else {
-                                if (binding.placeTypesSearchBar.translationY <
-                                        binding.placeTypesSearchBar.height * -0.6 &&
-                                        verticalOffset > binding.placeTypesSearchBar.height
-                                ) {
-                                    binding.placeTypesSearchBar.visibility = View.GONE
-                                    verticalOffset = binding.placeTypesSearchBar.height
-                                } else {
-                                    binding.placeTypesSearchBar.visibility = View.VISIBLE
-                                }
-                            }
+                        if (newState == RecyclerView.SCROLL_STATE_IDLE &&
+                                verticalOffset > binding.placeTypesSearchBar.height
+                        ) {
+                            verticalOffset = binding.placeTypesSearchBar.height
                         }
                     }
 
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         verticalOffset += dy
-                        scrollingUp = dy > 0
-                        binding.placeTypesSearchBar.animate().cancel()
-
                         val toolbarYOffset = dy - binding.placeTypesSearchBar.translationY
-                        if (scrollingUp) {
-                            if (toolbarYOffset < binding.placeTypesSearchBar.height) {
-                                binding.placeTypesSearchBar.translationY = -toolbarYOffset
-                            } else {
-                                binding.placeTypesSearchBar.translationY =
+                        binding.placeTypesSearchBar.translationY =
+                            if (dy > 0) {
+                                if (toolbarYOffset < binding.placeTypesSearchBar.height) {
+                                    -toolbarYOffset
+                                } else {
                                     -binding.placeTypesSearchBar.height.toFloat()
-                            }
-                        } else {
-                            if (toolbarYOffset < 0) {
-                                binding.placeTypesSearchBar.translationY = 0f
+                                }
                             } else {
-                                binding.placeTypesSearchBar.translationY = -toolbarYOffset
+                                if (toolbarYOffset < 0) 0f else -toolbarYOffset
                             }
-                        }
                     }
                 }
             )
