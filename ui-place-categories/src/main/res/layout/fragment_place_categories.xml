@@ -6,6 +6,12 @@
     android:layout_margin="8dp"
     android:animateLayoutChanges="true">
 
+    <View
+        android:id="@+id/place_types_search_bar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@android:color/holo_red_dark" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/place_types_recycler_view"
         android:layout_width="match_parent"

@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
@@ -62,6 +63,55 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                             }
                     }
             setHasFixedSize(true)
+            addOnScrollListener(
+                object : RecyclerView.OnScrollListener() {
+                    var verticalOffset = 0
+                    var scrollingUp = false
+
+                    override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                            if (scrollingUp) {
+                                if (verticalOffset > binding.placeTypesSearchBar.height) {
+                                    binding.placeTypesSearchBar.visibility = View.GONE
+                                    verticalOffset = binding.placeTypesSearchBar.height
+                                }
+                            } else {
+                                if (binding.placeTypesSearchBar.translationY <
+                                        binding.placeTypesSearchBar.height * -0.6 &&
+                                        verticalOffset > binding.placeTypesSearchBar.height
+                                ) {
+                                    binding.placeTypesSearchBar.visibility = View.GONE
+                                    verticalOffset = binding.placeTypesSearchBar.height
+                                } else {
+                                    binding.placeTypesSearchBar.visibility = View.VISIBLE
+                                }
+                            }
+                        }
+                    }
+
+                    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                        verticalOffset += dy
+                        scrollingUp = dy > 0
+                        binding.placeTypesSearchBar.animate().cancel()
+
+                        val toolbarYOffset = dy - binding.placeTypesSearchBar.translationY
+                        if (scrollingUp) {
+                            if (toolbarYOffset < binding.placeTypesSearchBar.height) {
+                                binding.placeTypesSearchBar.translationY = -toolbarYOffset
+                            } else {
+                                binding.placeTypesSearchBar.translationY =
+                                    -binding.placeTypesSearchBar.height.toFloat()
+                            }
+                        } else {
+                            if (toolbarYOffset < 0) {
+                                binding.placeTypesSearchBar.translationY = 0f
+                            } else {
+                                binding.placeTypesSearchBar.translationY = -toolbarYOffset
+                            }
+                        }
+                    }
+                }
+            )
         }
     }
 
