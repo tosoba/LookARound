@@ -8,8 +8,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.lookaround.core.android.ext.addCollapseTopViewOnScrollListener
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
@@ -63,34 +63,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                             }
                     }
             setHasFixedSize(true)
-            addOnScrollListener(
-                object : RecyclerView.OnScrollListener() {
-                    var verticalOffset = 0
-
-                    override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                        if (newState == RecyclerView.SCROLL_STATE_IDLE &&
-                                verticalOffset > binding.placeTypesSearchBar.height
-                        ) {
-                            verticalOffset = binding.placeTypesSearchBar.height
-                        }
-                    }
-
-                    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                        verticalOffset += dy
-                        val toolbarYOffset = dy - binding.placeTypesSearchBar.translationY
-                        binding.placeTypesSearchBar.translationY =
-                            if (dy > 0) {
-                                if (toolbarYOffset < binding.placeTypesSearchBar.height) {
-                                    -toolbarYOffset
-                                } else {
-                                    -binding.placeTypesSearchBar.height.toFloat()
-                                }
-                            } else {
-                                if (toolbarYOffset < 0) 0f else -toolbarYOffset
-                            }
-                    }
-                }
-            )
+            addCollapseTopViewOnScrollListener(binding.placeTypesSearchBar)
         }
     }
 
