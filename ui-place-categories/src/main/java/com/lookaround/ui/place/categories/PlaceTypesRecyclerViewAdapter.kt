@@ -2,13 +2,14 @@ package com.lookaround.ui.place.categories
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.place.categories.databinding.PlaceCategoryHeaderItemBinding
 import com.lookaround.ui.place.categories.databinding.PlaceTypeItemBinding
-import com.lookaround.ui.place.categories.model.PlaceTypeListItem
+import com.lookaround.ui.place.categories.databinding.TopSpacerItemBinding
 
 internal class PlaceTypesRecyclerViewAdapter(
     private val placeTypeListItems: List<PlaceTypeListItem>,
@@ -18,6 +19,14 @@ internal class PlaceTypesRecyclerViewAdapter(
         val inflater = LayoutInflater.from(parent.context)
         return ViewHolder(
             when (ViewType.values()[viewType]) {
+                ViewType.SPACER ->
+                    TopSpacerItemBinding.inflate(inflater, parent, false).apply {
+                        root.layoutParams =
+                            FrameLayout.LayoutParams(
+                                FrameLayout.LayoutParams.MATCH_PARENT,
+                                (placeTypeListItems[0] as PlaceTypeListItem.Spacer).heightPx
+                            )
+                    }
                 ViewType.PLACE_TYPE -> PlaceTypeItemBinding.inflate(inflater, parent, false)
                 ViewType.PLACE_CATEGORY_HEADER ->
                     PlaceCategoryHeaderItemBinding.inflate(inflater, parent, false)
@@ -51,6 +60,7 @@ internal class PlaceTypesRecyclerViewAdapter(
 
     override fun getItemViewType(position: Int): Int =
         when (placeTypeListItems[position]) {
+            is PlaceTypeListItem.Spacer -> ViewType.SPACER.ordinal
             is PlaceTypeListItem.PlaceCategory -> ViewType.PLACE_CATEGORY_HEADER.ordinal
             is PlaceTypeListItem.PlaceType -> ViewType.PLACE_TYPE.ordinal
         }
@@ -59,6 +69,7 @@ internal class PlaceTypesRecyclerViewAdapter(
         RecyclerView.ViewHolder(binding.root)
 
     private enum class ViewType {
+        SPACER,
         PLACE_TYPE,
         PLACE_CATEGORY_HEADER
     }
