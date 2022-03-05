@@ -82,9 +82,6 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     private fun initSearchBar() {
         val searchQueryFlow = MutableStateFlow(searchQuery)
         binding.placeTypesSearchBar.setContent {
-            val headerPaddingBottomPx = requireContext().dpToPx(10f).toInt()
-            var headerHeightPx by remember { mutableStateOf(0) }
-
             val searchQuery = searchQueryFlow.collectAsState(initial = "")
             val searchFocused = rememberSaveable { mutableStateOf(false) }
 
@@ -102,24 +99,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
             ProvideWindowInsets {
                 LookARoundTheme {
                     Column(
-                        modifier =
-                            Modifier.onSizeChanged {
-                                if (placeTypeListItems.first() is PlaceTypeListItem.Spacer) {
-                                    return@onSizeChanged
-                                }
-                                val layoutManager =
-                                    binding.placeTypesRecyclerView.layoutManager as
-                                        LinearLayoutManager
-                                val wasNotScrolled =
-                                    layoutManager.findFirstCompletelyVisibleItemPosition() == 0
-                                headerHeightPx = it.height + headerPaddingBottomPx
-                                placeTypeListItems.add(0, PlaceTypeListItem.Spacer(headerHeightPx))
-                                placeTypesAdapter.notifyItemInserted(0)
-                                binding.placeTypesRecyclerView.apply {
-                                    if (wasNotScrolled) scrollToTopAndShow()
-                                    else visibility = View.VISIBLE
-                                }
-                            }
+                        modifier = Modifier.onSizeChanged { addPlaceTypesListTopSpacer(it.height) }
                     ) {
                         SearchBar(
                             query = searchQuery.value,
@@ -139,6 +119,21 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                     }
                 }
             }
+        }
+    }
+
+    private fun addPlaceTypesListTopSpacer(height: Int) {
+        if (placeTypeListItems.first() is PlaceTypeListItem.Spacer) {
+            placeTypeListItems.removeAt(0)
+            placeTypesAdapter.notifyItemRemoved(0)
+        }
+        val layoutManager = binding.placeTypesRecyclerView.layoutManager as LinearLayoutManager
+        val wasNotScrolled = layoutManager.findFirstCompletelyVisibleItemPosition() == 0
+        val headerHeightPx = height + requireContext().dpToPx(8f).toInt()
+        placeTypeListItems.add(0, PlaceTypeListItem.Spacer(headerHeightPx))
+        placeTypesAdapter.notifyItemInserted(0)
+        binding.placeTypesRecyclerView.apply {
+            if (wasNotScrolled) scrollToTopAndShow() else visibility = View.VISIBLE
         }
     }
 
