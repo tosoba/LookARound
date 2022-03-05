@@ -3,6 +3,7 @@ package com.lookaround.ui.place.categories
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
@@ -12,7 +13,7 @@ import com.lookaround.ui.place.categories.databinding.PlaceTypeItemBinding
 import com.lookaround.ui.place.categories.databinding.TopSpacerItemBinding
 
 internal class PlaceTypesRecyclerViewAdapter(
-    private val placeTypeListItems: List<PlaceTypeListItem>,
+    private var items: List<PlaceTypeListItem>,
     private val onPlaceTypeClicked: (IPlaceType) -> Unit,
 ) : RecyclerView.Adapter<PlaceTypesRecyclerViewAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -24,7 +25,7 @@ internal class PlaceTypesRecyclerViewAdapter(
                         root.layoutParams =
                             FrameLayout.LayoutParams(
                                 FrameLayout.LayoutParams.MATCH_PARENT,
-                                (placeTypeListItems[0] as PlaceTypeListItem.Spacer).heightPx
+                                (items[0] as PlaceTypeListItem.Spacer).heightPx
                             )
                     }
                 ViewType.PLACE_TYPE -> PlaceTypeItemBinding.inflate(inflater, parent, false)
@@ -45,25 +46,44 @@ internal class PlaceTypesRecyclerViewAdapter(
         binding: PlaceCategoryHeaderItemBinding,
         position: Int
     ) {
-        val item = placeTypeListItems[position] as PlaceTypeListItem.PlaceCategory
+        val item = items[position] as PlaceTypeListItem.PlaceCategory
         binding.placeCategoryNameChip.text = item.name
     }
 
     private fun bindPlaceTypeItem(binding: PlaceTypeItemBinding, position: Int) {
-        val item = placeTypeListItems[position] as PlaceTypeListItem.PlaceType
+        val item = items[position] as PlaceTypeListItem.PlaceType<*>
         binding.placeTypeText.text = item.wrapped.label
         Glide.with(binding.root).load(item.drawableId).into(binding.placeTypeImage)
         binding.root.setOnClickListener { onPlaceTypeClicked(item.wrapped) }
     }
 
-    override fun getItemCount(): Int = placeTypeListItems.size
+    override fun getItemCount(): Int = items.size
 
     override fun getItemViewType(position: Int): Int =
-        when (placeTypeListItems[position]) {
+        when (items[position]) {
             is PlaceTypeListItem.Spacer -> ViewType.SPACER.ordinal
             is PlaceTypeListItem.PlaceCategory -> ViewType.PLACE_CATEGORY_HEADER.ordinal
-            is PlaceTypeListItem.PlaceType -> ViewType.PLACE_TYPE.ordinal
+            is PlaceTypeListItem.PlaceType<*> -> ViewType.PLACE_TYPE.ordinal
         }
+
+    fun updateItems(newItems: List<PlaceTypeListItem>) {
+        DiffUtil.calculateDiff(DiffUtilCallback(items, newItems)).dispatchUpdatesTo(this)
+        items = newItems
+    }
+
+    private class DiffUtilCallback(
+        private val oldList: List<PlaceTypeListItem>,
+        private val newList: List<PlaceTypeListItem>
+    ) : DiffUtil.Callback() {
+        override fun getOldListSize(): Int = oldList.size
+        override fun getNewListSize(): Int = newList.size
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+            oldList[oldItemPosition] == newList[newItemPosition]
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+            oldList[oldItemPosition] == newList[newItemPosition]
+    }
 
     internal class ViewHolder(val binding: ViewBinding) : RecyclerView.ViewHolder(binding.root)
 

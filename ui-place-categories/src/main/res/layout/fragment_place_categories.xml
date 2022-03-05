@@ -15,6 +15,7 @@
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/place_types_search_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_gravity="top" />
 
 </com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout>
