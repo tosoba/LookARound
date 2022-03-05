@@ -23,7 +23,6 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.ext.addCollapseTopViewOnScrollListener
-import com.lookaround.core.android.ext.dpToPx
 import com.lookaround.core.android.ext.listItemBackground
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
@@ -133,19 +132,18 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     }
 
     private fun addPlaceTypesListTopSpacer(height: Int): Int {
-        val headerHeightPx = height + requireContext().dpToPx(4f).toInt()
         if (placeTypeListItems.first() is PlaceTypeListItem.Spacer) {
             binding.placeTypesRecyclerView.visibility = View.VISIBLE
-            return headerHeightPx
+            return height
         }
         val layoutManager = binding.placeTypesRecyclerView.layoutManager as LinearLayoutManager
         val wasNotScrolled = layoutManager.findFirstCompletelyVisibleItemPosition() == 0
-        placeTypeListItems.add(0, PlaceTypeListItem.Spacer(headerHeightPx))
+        placeTypeListItems.add(0, PlaceTypeListItem.Spacer(height))
         placeTypesAdapter.notifyItemInserted(0)
         binding.placeTypesRecyclerView.apply {
             if (wasNotScrolled) scrollToTopAndShow() else visibility = View.VISIBLE
         }
-        return headerHeightPx
+        return height
     }
 
     @Composable
