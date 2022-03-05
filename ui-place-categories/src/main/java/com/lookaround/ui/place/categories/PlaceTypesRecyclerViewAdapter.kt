@@ -14,8 +14,8 @@ import com.lookaround.ui.place.categories.databinding.TopSpacerItemBinding
 internal class PlaceTypesRecyclerViewAdapter(
     private val placeTypeListItems: List<PlaceTypeListItem>,
     private val onPlaceTypeClicked: (IPlaceType) -> Unit,
-) : RecyclerView.Adapter<PlaceTypesRecyclerViewAdapter.ViewHolder<ViewBinding>>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder<ViewBinding> {
+) : RecyclerView.Adapter<PlaceTypesRecyclerViewAdapter.ViewHolder>() {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return ViewHolder(
             when (ViewType.values()[viewType]) {
@@ -34,7 +34,7 @@ internal class PlaceTypesRecyclerViewAdapter(
         )
     }
 
-    override fun onBindViewHolder(holder: ViewHolder<ViewBinding>, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         when (val binding = holder.binding) {
             is PlaceCategoryHeaderItemBinding -> bindPlaceCategoryHeaderItem(binding, position)
             is PlaceTypeItemBinding -> bindPlaceTypeItem(binding, position)
@@ -65,8 +65,7 @@ internal class PlaceTypesRecyclerViewAdapter(
             is PlaceTypeListItem.PlaceType -> ViewType.PLACE_TYPE.ordinal
         }
 
-    internal class ViewHolder<VB : ViewBinding>(val binding: VB) :
-        RecyclerView.ViewHolder(binding.root)
+    internal class ViewHolder(val binding: ViewBinding) : RecyclerView.ViewHolder(binding.root)
 
     private enum class ViewType {
         SPACER,
