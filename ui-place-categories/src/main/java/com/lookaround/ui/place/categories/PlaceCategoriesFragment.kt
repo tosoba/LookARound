@@ -69,11 +69,16 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        savedInstanceState?.getString(SavedStateKey.SEARCH_QUERY.name)?.let(::searchQuery::set)
-        savedInstanceState?.getBoolean(SavedStateKey.SEARCH_FOCUSED.name)?.let(::searchFocused::set)
-        savedInstanceState
-            ?.getParcelableArrayList<PlaceTypeListItem>(SavedStateKey.PLACE_TYPE_ITEMS.name)
-            ?.let(::placeTypeListItems::set)
+        if (savedInstanceState != null) initFromSavedState(savedInstanceState)
+    }
+
+    private fun initFromSavedState(savedInstanceState: Bundle) {
+        with(savedInstanceState) {
+            getString(SavedStateKey.SEARCH_QUERY.name)?.let(::searchQuery::set)
+            searchFocused = getBoolean(SavedStateKey.SEARCH_FOCUSED.name)
+            getParcelableArrayList<PlaceTypeListItem>(SavedStateKey.PLACE_TYPE_ITEMS.name)
+                ?.let(::placeTypeListItems::set)
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -196,6 +201,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
 
     private fun RecyclerView.init(searchQueryFlow: Flow<String>) {
         adapter = placeTypesAdapter
+
         val orientation = resources.configuration.orientation
         val spanCount = if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
         layoutManager =
@@ -210,7 +216,9 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                 }
                         }
                 }
+
         addCollapseTopViewOnScrollListener(binding.placeTypesSearchBar)
+
         searchQueryFlow
             .map { it.trim().lowercase() }
             .distinctUntilChanged()
