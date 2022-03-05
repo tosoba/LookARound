@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
@@ -106,11 +107,18 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                 if (placeTypeListItems.first() is PlaceTypeListItem.Spacer) {
                                     return@onSizeChanged
                                 }
-
+                                val layoutManager =
+                                    binding.placeTypesRecyclerView.layoutManager as
+                                        LinearLayoutManager
+                                val wasNotScrolled =
+                                    layoutManager.findFirstCompletelyVisibleItemPosition() == 0
                                 headerHeightPx = it.height + headerPaddingBottomPx
                                 placeTypeListItems.add(0, PlaceTypeListItem.Spacer(headerHeightPx))
                                 placeTypesAdapter.notifyItemInserted(0)
-                                binding.placeTypesRecyclerView.scrollToTopAndShow()
+                                binding.placeTypesRecyclerView.apply {
+                                    if (wasNotScrolled) scrollToTopAndShow()
+                                    else visibility = View.VISIBLE
+                                }
                             }
                     ) {
                         SearchBar(
@@ -158,6 +166,22 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
         ) { category -> scope.launch {} }
     }
 
+    private fun placeCategoriesMatching(query: String): List<PlaceTypeListItem.PlaceCategory> =
+        placeTypeListItems.filterIsInstance<PlaceTypeListItem.PlaceCategory>().filter {
+            var index = placeTypeListItems.indexOf(it) + 1
+            while (index < placeTypeListItems.size &&
+                placeTypeListItems[index] is PlaceTypeListItem.PlaceType) {
+                val placeType = (placeTypeListItems[index] as PlaceTypeListItem.PlaceType).wrapped
+                if (placeType.label.lowercase().contains(query) ||
+                        placeType.description.lowercase().contains(query)
+                ) {
+                    return@filter true
+                }
+                ++index
+            }
+            false
+        }
+
     private fun RecyclerView.init() {
         adapter = placeTypesAdapter
         val orientation = resources.configuration.orientation
@@ -183,9 +207,6 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
             visibility = View.VISIBLE
         }
     }
-
-    private fun placeCategoriesMatching(query: String): List<PlaceTypeListItem.PlaceCategory> =
-        placeTypeListItems.filterIsInstance<PlaceTypeListItem.PlaceCategory>()
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
