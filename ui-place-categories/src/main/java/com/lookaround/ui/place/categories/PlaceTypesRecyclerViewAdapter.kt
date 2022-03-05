@@ -2,48 +2,49 @@ package com.lookaround.ui.place.categories
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
-import com.google.android.material.chip.Chip
 import com.lookaround.core.model.IPlaceType
+import com.lookaround.ui.place.categories.databinding.PlaceCategoryHeaderItemBinding
+import com.lookaround.ui.place.categories.databinding.PlaceTypeItemBinding
 import com.lookaround.ui.place.categories.model.PlaceTypeListItem
 
 internal class PlaceTypesRecyclerViewAdapter(
     private val placeTypeListItems: List<PlaceTypeListItem>,
     private val onPlaceTypeClicked: (IPlaceType) -> Unit,
-) : RecyclerView.Adapter<PlaceTypesRecyclerViewAdapter.ViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-        when (ViewType.values()[viewType]) {
-            ViewType.PLACE_TYPE ->
-                ViewHolder.PlaceTypeItemViewHolder(parent, R.layout.place_type_item)
-            ViewType.PLACE_CATEGORY_HEADER ->
-                ViewHolder.PlaceCategoryHeaderItemViewHolder(
-                    parent,
-                    R.layout.place_category_header_item
-                )
-        }
+) : RecyclerView.Adapter<PlaceTypesRecyclerViewAdapter.ViewHolder<ViewBinding>>() {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder<ViewBinding> {
+        val inflater = LayoutInflater.from(parent.context)
+        return ViewHolder(
+            when (ViewType.values()[viewType]) {
+                ViewType.PLACE_TYPE -> PlaceTypeItemBinding.inflate(inflater, parent, false)
+                ViewType.PLACE_CATEGORY_HEADER ->
+                    PlaceCategoryHeaderItemBinding.inflate(inflater, parent, false)
+            }
+        )
+    }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        when (holder) {
-            is ViewHolder.PlaceCategoryHeaderItemViewHolder -> {
-                val item =
-                    placeTypeListItems[position] as? PlaceTypeListItem.PlaceCategory
-                        ?: throw IllegalStateException()
-                holder.placeCategoryNameChip.text = item.name
-            }
-            is ViewHolder.PlaceTypeItemViewHolder -> {
-                val item =
-                    placeTypeListItems[position] as? PlaceTypeListItem.PlaceType
-                        ?: throw IllegalStateException()
-                holder.placeTypeTextView.text = item.wrapped.label
-                Glide.with(holder.itemView.context)
-                    .load(item.drawableId)
-                    .into(holder.placeTypeImageView)
-                holder.itemView.setOnClickListener { onPlaceTypeClicked(item.wrapped) }
-            }
+    override fun onBindViewHolder(holder: ViewHolder<ViewBinding>, position: Int) {
+        when (val binding = holder.binding) {
+            is PlaceCategoryHeaderItemBinding -> bindPlaceCategoryHeaderItem(binding, position)
+            is PlaceTypeItemBinding -> bindPlaceTypeItem(binding, position)
         }
+    }
+
+    private fun bindPlaceCategoryHeaderItem(
+        binding: PlaceCategoryHeaderItemBinding,
+        position: Int
+    ) {
+        val item = placeTypeListItems[position] as PlaceTypeListItem.PlaceCategory
+        binding.placeCategoryNameChip.text = item.name
+    }
+
+    private fun bindPlaceTypeItem(binding: PlaceTypeItemBinding, position: Int) {
+        val item = placeTypeListItems[position] as PlaceTypeListItem.PlaceType
+        binding.placeTypeText.text = item.wrapped.label
+        Glide.with(binding.root).load(item.drawableId).into(binding.placeTypeImage)
+        binding.root.setOnClickListener { onPlaceTypeClicked(item.wrapped) }
     }
 
     override fun getItemCount(): Int = placeTypeListItems.size
@@ -54,22 +55,8 @@ internal class PlaceTypesRecyclerViewAdapter(
             is PlaceTypeListItem.PlaceType -> ViewType.PLACE_TYPE.ordinal
         }
 
-    internal sealed class ViewHolder(parent: ViewGroup, layoutResource: Int) :
-        RecyclerView.ViewHolder(
-            LayoutInflater.from(parent.context).inflate(layoutResource, parent, false)
-        ) {
-
-        class PlaceTypeItemViewHolder(parent: ViewGroup, layoutResource: Int) :
-            ViewHolder(parent, layoutResource) {
-            val placeTypeTextView: TextView = itemView.findViewById(R.id.place_type_text)
-            val placeTypeImageView: ImageView = itemView.findViewById(R.id.place_type_image)
-        }
-
-        class PlaceCategoryHeaderItemViewHolder(parent: ViewGroup, layoutResource: Int) :
-            ViewHolder(parent, layoutResource) {
-            val placeCategoryNameChip: Chip = itemView.findViewById(R.id.place_category_name_chip)
-        }
-    }
+    internal class ViewHolder<VB : ViewBinding>(val binding: VB) :
+        RecyclerView.ViewHolder(binding.root)
 
     private enum class ViewType {
         PLACE_TYPE,

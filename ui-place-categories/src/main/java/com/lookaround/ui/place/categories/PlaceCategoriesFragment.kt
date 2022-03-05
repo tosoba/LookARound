@@ -152,7 +152,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                 override fun getSpanSize(position: Int): Int =
                                     when (PLACE_TYPE_LIST_ITEMS[position]) {
                                         is PlaceTypeListItem.PlaceCategory -> spanCount
-                                        is PlaceTypeListItem.PlaceType -> 1
+                                        else -> 1
                                     }
                             }
                     }
