@@ -84,6 +84,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
         binding.placeTypesSearchBar.setContent {
             val searchQuery = searchQueryFlow.collectAsState(initial = "")
             val searchFocused = rememberSaveable { mutableStateOf(false) }
+            var topSpacerHeightPx by remember { mutableStateOf(0) }
 
             val opaqueBackgroundFlow = remember {
                 mainViewModel
@@ -99,7 +100,10 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
             ProvideWindowInsets {
                 LookARoundTheme {
                     Column(
-                        modifier = Modifier.onSizeChanged { addPlaceTypesListTopSpacer(it.height) }
+                        modifier =
+                            Modifier.onSizeChanged {
+                                topSpacerHeightPx = addPlaceTypesListTopSpacer(it.height)
+                            }
                     ) {
                         SearchBar(
                             query = searchQuery.value,
@@ -114,7 +118,11 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
 
                         val orientation = LocalConfiguration.current.orientation
                         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                            PlaceCategoriesChipList(searchQueryFlow, opaqueBackground.value)
+                            PlaceCategoriesChipList(
+                                searchQueryFlow = searchQueryFlow,
+                                opaqueBackground = opaqueBackground.value,
+                                topSpaceHeightPx = topSpacerHeightPx
+                            )
                         }
                     }
                 }
@@ -122,7 +130,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
         }
     }
 
-    private fun addPlaceTypesListTopSpacer(height: Int) {
+    private fun addPlaceTypesListTopSpacer(height: Int): Int {
         if (placeTypeListItems.first() is PlaceTypeListItem.Spacer) {
             placeTypeListItems.removeAt(0)
             placeTypesAdapter.notifyItemRemoved(0)
@@ -135,10 +143,15 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
         binding.placeTypesRecyclerView.apply {
             if (wasNotScrolled) scrollToTopAndShow() else visibility = View.VISIBLE
         }
+        return headerHeightPx
     }
 
     @Composable
-    private fun PlaceCategoriesChipList(searchQueryFlow: Flow<String>, opaqueBackground: Boolean) {
+    private fun PlaceCategoriesChipList(
+        searchQueryFlow: Flow<String>,
+        opaqueBackground: Boolean,
+        topSpaceHeightPx: Int
+    ) {
         val placeCategoriesFlow = remember {
             searchQueryFlow
                 .map { it.trim().lowercase() }
@@ -146,7 +159,6 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                 .map(::placeCategoriesMatching)
                 .distinctUntilChanged()
         }
-        val scope = rememberCoroutineScope()
         val shape = RoundedCornerShape(20.dp)
         ChipList(
             itemsFlow = placeCategoriesFlow,
@@ -158,7 +170,10 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                         shape = shape,
                         alpha = if (opaqueBackground) .95f else .55f,
                     )
-        ) { category -> scope.launch {} }
+        ) { category ->
+            (binding.placeTypesRecyclerView.layoutManager as GridLayoutManager)
+                .scrollToPositionWithOffset(placeTypeListItems.indexOf(category), topSpaceHeightPx)
+        }
     }
 
     private fun placeCategoriesMatching(query: String): List<PlaceTypeListItem.PlaceCategory> =
