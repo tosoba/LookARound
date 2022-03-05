@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -67,10 +66,12 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
         }
 
     private var searchQuery: String = ""
+    private var searchFocused: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         savedInstanceState?.getString(SavedStateKey.SEARCH_QUERY.name)?.let(::searchQuery::set)
+        savedInstanceState?.getBoolean(SavedStateKey.SEARCH_FOCUSED.name)?.let(::searchFocused::set)
         savedInstanceState
             ?.getParcelableArrayList<PlaceTypeListItem>(SavedStateKey.PLACE_TYPE_ITEMS.name)
             ?.let(::placeTypeListItems::set)
@@ -84,8 +85,8 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
 
     private fun initSearchBar(searchQueryFlow: MutableStateFlow<String>) {
         binding.placeTypesSearchBar.setContent {
-            val searchQuery = searchQueryFlow.collectAsState(initial = searchQuery)
-            val searchFocused = rememberSaveable { mutableStateOf(false) }
+            val searchQueryState = searchQueryFlow.collectAsState(initial = searchQuery)
+            val searchFocusedState = remember { mutableStateOf(searchFocused) }
             var topSpacerHeightPx by remember { mutableStateOf(0) }
 
             val opaqueBackgroundFlow = remember {
@@ -108,16 +109,18 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                             }
                     ) {
                         SearchBar(
-                            query = searchQuery.value,
-                            focused = searchFocused.value,
+                            query = searchQueryState.value,
+                            focused = searchFocusedState.value,
                             onBackPressedDispatcher = requireActivity().onBackPressedDispatcher,
-                            onSearchFocusChange = searchFocused::value::set,
+                            onSearchFocusChange = {
+                                searchFocusedState.value = it
+                                searchFocused = it
+                            },
                             onTextFieldValueChange = {
                                 searchQueryFlow.value = it.text
-                                this@PlaceCategoriesFragment.searchQuery = it.text
+                                searchQuery = it.text
                             }
                         )
-
                         PlaceCategoriesChipList(
                             searchQueryFlow = searchQueryFlow,
                             opaqueBackground = opaqueBackground.value,
@@ -254,11 +257,13 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
+        outState.putBoolean(SavedStateKey.SEARCH_FOCUSED.name, searchFocused)
         outState.putParcelableArrayList(SavedStateKey.PLACE_TYPE_ITEMS.name, placeTypeListItems)
     }
 
     private enum class SavedStateKey {
         SEARCH_QUERY,
+        SEARCH_FOCUSED,
         PLACE_TYPE_ITEMS
     }
 
