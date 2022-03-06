@@ -60,7 +60,7 @@ internal class PlaceTypesRecyclerViewAdapter(
             val backgroundDrawable =
                 ResourcesCompat.getDrawable(
                     holder.binding.root.resources,
-                    R.drawable.rounded_transparent_shadow_background,
+                    R.drawable.selectable_rounded_elevated_background,
                     null
                 ) as
                     LayerDrawable

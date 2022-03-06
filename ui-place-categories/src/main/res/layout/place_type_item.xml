@@ -4,7 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="5dp"
-    android:background="@drawable/rounded_transparent_shadow_background">
+    android:background="@drawable/selectable_rounded_elevated_background"
+    android:clickable="true"
+    android:focusable="true">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/place_type_image_card"
@@ -30,10 +32,10 @@
         android:id="@+id/place_type_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingVertical="5dp"
-        android:paddingHorizontal="10dp"
         android:ellipsize="end"
         android:maxLines="1"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="5dp"
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"

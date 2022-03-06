@@ -75,4 +75,6 @@
             <corners android:radius="20dp" />
         </shape>
     </item>
+
+    <item android:drawable="@drawable/rounded_corners_ripple" />
 </layer-list>
