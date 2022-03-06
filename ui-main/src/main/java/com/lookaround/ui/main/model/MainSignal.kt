@@ -15,4 +15,5 @@ sealed interface MainSignal {
     object ARDisabled : MainSignal
     data class ToggleSearchBarVisibility(val targetVisibility: Int) : MainSignal
     object NoPlacesFound : MainSignal
+    data class ContrastingColorUpdated(val color: Int) : MainSignal
 }

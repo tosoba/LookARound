@@ -195,11 +195,11 @@ class MapFragment :
     }
 
     private suspend fun pickMarker(posX: Float, posY: Float): MarkerPickResult? =
-            suspendCancellableCoroutine { continuation ->
-        markerPickContinuations.offer(continuation)
-        continuation.invokeOnCancellation { markerPickContinuations.remove(continuation) }
-        mapController.launch { pickMarker(posX, posY) }
-    }
+        suspendCancellableCoroutine { continuation ->
+            markerPickContinuations.offer(continuation)
+            continuation.invokeOnCancellation { markerPickContinuations.remove(continuation) }
+            mapController.launch { pickMarker(posX, posY) }
+        }
 
     fun updateCurrentMarker(marker: Marker?) {
         updateCurrentMarkerPosition(position = marker?.location?.latLon)
@@ -486,6 +486,10 @@ class MapFragment :
             val blurredBackground = withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
             binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
             mainViewModel.state.bitmapCache.put(this@MapFragment.javaClass.name, blurredBackground)
+            val dominantSwatch =
+                withContext(Dispatchers.Default) { bitmap.dominantSwatch } ?: return@launch
+            val contrastingColor = colorContrastingTo(dominantSwatch.rgb)
+            mainViewModel.signal(MainSignal.ContrastingColorUpdated(contrastingColor))
         }
     }
 

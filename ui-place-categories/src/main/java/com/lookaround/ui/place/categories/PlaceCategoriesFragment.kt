@@ -39,8 +39,10 @@ import com.lookaround.ui.main.listFragmentItemBackgroundUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.place.categories.databinding.FragmentPlaceCategoriesBinding
+import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -54,9 +56,35 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
 
     private var placeTypeListItems = ArrayList(allPlaceTypeListItems)
 
+    private val contrastingColorJobs = mutableMapOf<UUID, Job>()
     private val placeTypesAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
-            PlaceTypesRecyclerViewAdapter(placeTypeListItems) { placeType ->
+            PlaceTypesRecyclerViewAdapter(
+                placeTypeListItems,
+                object : PlaceTypesRecyclerViewAdapter.ContrastingColorCallbacks {
+                    override fun onViewAttachedToWindow(
+                        holder: PlaceTypesRecyclerViewAdapter.ViewHolder,
+                        action: (Int) -> Unit
+                    ) {
+                        if (contrastingColorJobs.containsKey(holder.uuid)) return
+                        contrastingColorJobs[holder.uuid] =
+                            mainViewModel
+                                .filterSignals(MainSignal.ContrastingColorUpdated::color)
+                                .onEach(action)
+                                .launchIn(viewLifecycleOwner.lifecycleScope)
+                    }
+
+                    override fun onViewDetachedFromWindow(
+                        holder: PlaceTypesRecyclerViewAdapter.ViewHolder
+                    ) {
+                        contrastingColorJobs.remove(holder.uuid)?.cancel()
+                    }
+
+                    override fun onDetachedFromRecyclerView() {
+                        contrastingColorJobs.values.forEach(Job::cancel)
+                    }
+                }
+            ) { placeType ->
                 lifecycleScope.launch {
                     mainViewModel.intent(MainIntent.GetPlacesOfType(placeType))
                     mainViewModel.signal(MainSignal.HideBottomSheet)

@@ -1,19 +1,27 @@
 package com.lookaround.ui.place.categories
 
+import android.content.res.ColorStateList
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
+import com.lookaround.core.android.R
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.place.categories.databinding.PlaceCategoryHeaderItemBinding
 import com.lookaround.ui.place.categories.databinding.PlaceTypeItemBinding
 import com.lookaround.ui.place.categories.databinding.TopSpacerItemBinding
+import java.util.*
 
 internal class PlaceTypesRecyclerViewAdapter(
     private var items: List<PlaceTypeListItem>,
+    private val callbacks: ContrastingColorCallbacks,
     private val onPlaceTypeClicked: (IPlaceType) -> Unit,
 ) : RecyclerView.Adapter<PlaceTypesRecyclerViewAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -40,6 +48,36 @@ internal class PlaceTypesRecyclerViewAdapter(
             is PlaceCategoryHeaderItemBinding -> bindPlaceCategoryHeaderItem(binding, position)
             is PlaceTypeItemBinding -> bindPlaceTypeItem(binding, position)
         }
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        callbacks.onDetachedFromRecyclerView()
+    }
+
+    override fun onViewAttachedToWindow(holder: ViewHolder) {
+        if (holder.binding !is PlaceTypeItemBinding) return
+        callbacks.onViewAttachedToWindow(holder) { contrastingColor ->
+            val backgroundDrawable =
+                ResourcesCompat.getDrawable(
+                    holder.binding.root.resources,
+                    R.drawable.rounded_transparent_shadow_background,
+                    null
+                ) as
+                    LayerDrawable
+            val backgroundLayer =
+                backgroundDrawable.findDrawableByLayerId(
+                    R.id.rounded_transparent_shadow_background_layer
+                ) as
+                    GradientDrawable
+            backgroundLayer.color =
+                ColorStateList.valueOf(ColorUtils.setAlphaComponent(contrastingColor, 0x30))
+            holder.binding.root.background = backgroundDrawable
+        }
+    }
+
+    override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        if (holder.binding !is PlaceTypeItemBinding) return
+        callbacks.onViewDetachedFromWindow(holder)
     }
 
     private fun bindPlaceCategoryHeaderItem(
@@ -85,7 +123,16 @@ internal class PlaceTypesRecyclerViewAdapter(
             oldList[oldItemPosition] == newList[newItemPosition]
     }
 
-    internal class ViewHolder(val binding: ViewBinding) : RecyclerView.ViewHolder(binding.root)
+    interface ContrastingColorCallbacks {
+        fun onViewAttachedToWindow(holder: ViewHolder, action: (Int) -> Unit)
+        fun onViewDetachedFromWindow(holder: ViewHolder)
+        fun onDetachedFromRecyclerView()
+    }
+
+    class ViewHolder(
+        val binding: ViewBinding,
+        val uuid: UUID = UUID.randomUUID(),
+    ) : RecyclerView.ViewHolder(binding.root)
 
     private enum class ViewType {
         SPACER,

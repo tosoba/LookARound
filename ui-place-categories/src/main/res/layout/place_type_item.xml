@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="5dp"
-    android:background="@drawable/rounded_transparent_shadow">
+    android:background="@drawable/rounded_transparent_shadow_background">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/place_type_image_card"

@@ -8,7 +8,7 @@
                 android:left="1dp"
                 android:right="1dp"
                 android:top="1dp" />
-            <solid android:color="#04000000" />
+            <solid android:color="#03000000" />
             <corners android:radius="20dp" />
         </shape>
     </item>
@@ -30,7 +30,7 @@
                 android:left="1dp"
                 android:right="1dp"
                 android:top="1dp" />
-            <solid android:color="#06000000" />
+            <solid android:color="#05000000" />
             <corners android:radius="20dp" />
         </shape>
     </item>
@@ -52,7 +52,7 @@
                 android:left="1dp"
                 android:right="1dp"
                 android:top="1dp" />
-            <solid android:color="#08000000" />
+            <solid android:color="#07000000" />
             <corners android:radius="20dp" />
         </shape>
     </item>
@@ -69,9 +69,9 @@
     </item>
 
     <!-- Background -->
-    <item>
+    <item android:id="@+id/rounded_transparent_shadow_background_layer">
         <shape>
-            <solid android:color="#d2FFFFFF" />
+            <solid android:color="#00000000" />
             <corners android:radius="20dp" />
         </shape>
     </item>

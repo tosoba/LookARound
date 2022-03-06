@@ -280,6 +280,7 @@ class CameraFragment :
                 green = Color.green(contrastingColor),
                 blue = Color.blue(contrastingColor)
             )
+            mainViewModel.signal(MainSignal.ContrastingColorUpdated(contrastingColor))
         }
     }
 
