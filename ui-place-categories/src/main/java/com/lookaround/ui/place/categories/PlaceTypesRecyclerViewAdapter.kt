@@ -55,7 +55,7 @@ internal class PlaceTypesRecyclerViewAdapter(
     }
 
     override fun onViewAttachedToWindow(holder: ViewHolder) {
-        if (holder.binding !is PlaceTypeItemBinding) return
+        if (holder.binding is TopSpacerItemBinding) return
         callbacks.onViewAttachedToWindow(holder) { contrastingColor ->
             val backgroundDrawable =
                 ResourcesCompat.getDrawable(
@@ -76,7 +76,7 @@ internal class PlaceTypesRecyclerViewAdapter(
     }
 
     override fun onViewDetachedFromWindow(holder: ViewHolder) {
-        if (holder.binding !is PlaceTypeItemBinding) return
+        if (holder.binding is TopSpacerItemBinding) return
         callbacks.onViewDetachedFromWindow(holder)
     }
 
@@ -85,7 +85,7 @@ internal class PlaceTypesRecyclerViewAdapter(
         position: Int
     ) {
         val item = items[position] as PlaceTypeListItem.PlaceCategory
-        binding.placeCategoryNameChip.text = item.name
+        binding.placeCategoryNameTextView.text = item.name
     }
 
     private fun bindPlaceTypeItem(binding: PlaceTypeItemBinding, position: Int) {
