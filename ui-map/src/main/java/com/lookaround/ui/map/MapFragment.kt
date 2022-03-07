@@ -479,18 +479,25 @@ class MapFragment :
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
+    private var blurBackgroundJob: Job? = null
     private fun updateBlurBackground() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            mapSceneViewModel.awaitSceneLoaded()
-            val bitmap = mapController.await().captureFrame(true)
-            val blurredBackground = withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
-            binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
-            mainViewModel.state.bitmapCache.put(this@MapFragment.javaClass.name, blurredBackground)
-            val dominantSwatch =
-                withContext(Dispatchers.Default) { bitmap.dominantSwatch } ?: return@launch
-            val contrastingColor = colorContrastingTo(dominantSwatch.rgb)
-            mainViewModel.signal(MainSignal.ContrastingColorUpdated(contrastingColor))
-        }
+        blurBackgroundJob?.cancel()
+        blurBackgroundJob =
+            viewLifecycleOwner.lifecycleScope.launch {
+                mapSceneViewModel.awaitSceneLoaded()
+                val bitmap = mapController.await().captureFrame(true)
+                val blurredBackground =
+                    withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
+                binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
+                mainViewModel.state.bitmapCache.put(
+                    this@MapFragment.javaClass.name,
+                    blurredBackground
+                )
+                val dominantSwatch =
+                    withContext(Dispatchers.Default) { bitmap.dominantSwatch } ?: return@launch
+                val contrastingColor = colorContrastingTo(dominantSwatch.rgb)
+                mainViewModel.signal(MainSignal.ContrastingColorUpdated(contrastingColor))
+            }
     }
 
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
