@@ -6,12 +6,12 @@
         android:visible="false" />
 
     <item
-        android:id="@+id/action_place_types"
+        android:id="@+id/action_place_categories"
         android:icon="@drawable/ic_baseline_view_list_24"
         android:title="@string/categories" />
 
     <item
-        android:id="@+id/action_place_list"
+        android:id="@+id/action_place_map_list"
         android:icon="@drawable/ic_baseline_view_list_24"
         android:title="@string/places"
         android:visible="false" />

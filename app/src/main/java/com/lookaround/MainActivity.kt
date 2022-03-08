@@ -34,6 +34,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.iterator
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
@@ -129,9 +130,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
 
                 fragmentTransaction {
                     when (menuItem.itemId) {
-                        R.id.action_place_types ->
+                        R.id.action_place_categories ->
                             showBottomSheetFragment<PlaceCategoriesFragment>()
-                        R.id.action_place_list -> showBottomSheetFragment<PlaceMapListFragment>()
+                        R.id.action_place_map_list ->
+                            showBottomSheetFragment<PlaceMapListFragment>()
                         R.id.action_recent_searches ->
                             showBottomSheetFragment<RecentSearchesFragment>()
                         else -> throw IllegalArgumentException()
@@ -145,6 +147,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             }
         }
 
+    private val currentBottomSheetFragment: Fragment?
+        get() = supportFragmentManager.findFragmentById(R.id.bottom_sheet_fragment_container_view)
+
     private inline fun <reified F : Fragment> FragmentTransaction.showBottomSheetFragment() {
         if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
             setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
@@ -157,7 +162,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
     }
 
     private val currentTopFragment: Fragment?
-        get() = supportFragmentManager.findFragmentById(R.id.main_fragment_container)
+        get() = supportFragmentManager.findFragmentById(R.id.main_fragment_container_view)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -244,7 +249,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             else -> {
                 fragmentTransaction {
                     setSlideInFromBottom()
-                    replace(R.id.main_fragment_container, MapFragment.new(marker))
+                    replace(R.id.main_fragment_container_view, MapFragment.new(marker))
                     addToBackStack(null)
                 }
             }
@@ -317,7 +322,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         if (currentTopFragment is MapFragment) return
         fragmentTransaction {
             setSlideInFromBottom()
-            replace(R.id.main_fragment_container, MapFragment())
+            replace(R.id.main_fragment_container_view, MapFragment())
             addToBackStack(null)
         }
     }
@@ -481,7 +486,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             viewModel
                 .placesBottomNavItemVisibilityUpdates
                 .onEach { isVisible ->
-                    menu.findItem(R.id.action_place_list).isVisible = isVisible
+                    menu.findItem(R.id.action_place_map_list).isVisible = isVisible
                     updateBottomAppBarFabAlignment()
                 }
                 .launchIn(lifecycleScope)
