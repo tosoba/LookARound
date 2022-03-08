@@ -99,14 +99,14 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val searchQueryFlow = MutableStateFlow(searchQuery)
-        binding.placeTypesRecyclerView.init(searchQueryFlow)
-        initSearchBar(searchQueryFlow)
+        binding.placeTypesRecyclerView.initWith(searchQueryFlow)
+        initSearchBarWith(searchQueryFlow)
     }
 
-    private fun initSearchBar(searchQueryFlow: MutableStateFlow<String>) {
+    private fun initSearchBarWith(searchQueryFlow: MutableStateFlow<String>) {
         binding.placeTypesSearchBar.setContent {
             val searchQueryState = searchQueryFlow.collectAsState(initial = searchQuery)
-            val searchFocusedState = remember { mutableStateOf(searchFocused) }
+            var searchFocusedState by remember { mutableStateOf(searchFocused) }
             var topSpacerHeightPx by remember { mutableStateOf(0) }
 
             ProvideWindowInsets {
@@ -119,10 +119,10 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                     ) {
                         SearchBar(
                             query = searchQueryState.value,
-                            focused = searchFocusedState.value,
+                            focused = searchFocusedState,
                             onBackPressedDispatcher = requireActivity().onBackPressedDispatcher,
                             onSearchFocusChange = {
-                                searchFocusedState.value = it
+                                searchFocusedState = it
                                 searchFocused = it
                             },
                             onTextFieldValueChange = {
@@ -130,49 +130,49 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                 searchQuery = it.text
                             }
                         )
-                        AndroidView(
-                            factory = {
-                                RecyclerView(it).apply {
-                                    layoutParams =
-                                        FrameLayout.LayoutParams(
-                                            FrameLayout.LayoutParams.MATCH_PARENT,
-                                            FrameLayout.LayoutParams.WRAP_CONTENT
-                                        )
-                                }
-                            },
-                            update = { recyclerView ->
-                                recyclerView.layoutManager =
-                                    LinearLayoutManager(
-                                        requireContext(),
-                                        LinearLayoutManager.HORIZONTAL,
-                                        false
-                                    )
-                                val adapter =
-                                    TransparentChipsRecyclerViewAdapter(
-                                        emptyList(),
-                                        PlaceTypeListItem.PlaceCategory::name::get,
-                                    ) { category ->
-                                        (binding.placeTypesRecyclerView.layoutManager as
-                                                GridLayoutManager)
-                                            .scrollToPositionWithOffset(
-                                                placeTypeListItems.indexOf(category),
-                                                topSpacerHeightPx
-                                            )
-                                    }
-                                searchQueryFlow
-                                    .map { query -> query.trim().lowercase() }
-                                    .distinctUntilChanged()
-                                    .map(::placeCategoriesMatching)
-                                    .distinctUntilChanged()
-                                    .onEach(adapter::updateItems)
-                                    .launchIn(viewLifecycleOwner.lifecycleScope)
-                                recyclerView.adapter = adapter
-                            }
-                        )
+                        PlaceCategoriesRecyclerView(searchQueryFlow, topSpacerHeightPx)
                     }
                 }
             }
         }
+    }
+
+    @Composable
+    private fun PlaceCategoriesRecyclerView(searchQueryFlow: Flow<String>, topSpacerHeightPx: Int) {
+        AndroidView(
+            factory = {
+                RecyclerView(it).apply {
+                    layoutParams =
+                        FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.WRAP_CONTENT
+                        )
+                }
+            },
+            update = { recyclerView ->
+                recyclerView.layoutManager =
+                    LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+                val adapter =
+                    TransparentChipsRecyclerViewAdapter(
+                        emptyList(),
+                        PlaceTypeListItem.PlaceCategory::name::get,
+                    ) { category ->
+                        (binding.placeTypesRecyclerView.layoutManager as GridLayoutManager)
+                            .scrollToPositionWithOffset(
+                                placeTypeListItems.indexOf(category),
+                                topSpacerHeightPx
+                            )
+                    }
+                searchQueryFlow
+                    .map { query -> query.trim().lowercase() }
+                    .distinctUntilChanged()
+                    .map(::placeCategoriesMatching)
+                    .distinctUntilChanged()
+                    .onEach(adapter::updateItems)
+                    .launchIn(viewLifecycleOwner.lifecycleScope)
+                recyclerView.adapter = adapter
+            }
+        )
     }
 
     private fun addPlaceTypesListTopSpacer(height: Int): Int {
@@ -208,7 +208,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     private fun IPlaceType.matchesQuery(query: String) =
         label.lowercase().contains(query) || description.lowercase().contains(query)
 
-    private fun RecyclerView.init(searchQueryFlow: Flow<String>) {
+    private fun RecyclerView.initWith(searchQueryFlow: Flow<String>) {
         adapter = placeTypesAdapter
 
         val orientation = resources.configuration.orientation
@@ -258,8 +258,10 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                         }
                     }
                 }
-                placeTypesAdapter.updateItems(placeTypeListItems)
+                placeTypeListItems
             }
+            .distinctUntilChanged()
+            .onEach(placeTypesAdapter::updateItems)
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
