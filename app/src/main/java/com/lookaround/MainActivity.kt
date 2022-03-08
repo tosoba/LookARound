@@ -34,7 +34,6 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.iterator
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
@@ -447,7 +446,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             )
 
             viewModel
-                .onEachSignal(MainSignal.BottomSheetStateChanged::state) { sheetState ->
+                .filterSignals(MainSignal.BottomSheetStateChanged::state)
+                .debounce(500L)
+                .onEach { sheetState ->
                     when (sheetState) {
                         BottomSheetBehavior.STATE_EXPANDED -> setSearchbarVisibility(View.GONE)
                         BottomSheetBehavior.STATE_HIDDEN -> {
