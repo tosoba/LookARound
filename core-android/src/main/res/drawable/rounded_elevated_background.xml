@@ -68,13 +68,10 @@
         </shape>
     </item>
 
-    <!-- Background -->
     <item android:id="@+id/rounded_transparent_shadow_background_layer">
         <shape>
             <solid android:color="#00000000" />
             <corners android:radius="20dp" />
         </shape>
     </item>
-
-    <item android:drawable="@drawable/rounded_corners_ripple" />
 </layer-list>

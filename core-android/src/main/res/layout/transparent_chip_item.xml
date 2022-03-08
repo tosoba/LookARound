@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="8dp"
     android:layout_marginVertical="4dp"
-    android:background="@drawable/selectable_rounded_elevated_background"
+    android:background="@drawable/rounded_elevated_background"
     android:clickable="false"
     android:focusable="false">
 

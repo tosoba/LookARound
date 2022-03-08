@@ -4,9 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="5dp"
-    android:background="@drawable/selectable_rounded_elevated_background"
+    android:background="@drawable/rounded_elevated_background"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:foreground="@drawable/rounded_corners_ripple">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/place_type_image_card"
