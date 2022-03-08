@@ -10,23 +10,27 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
 import com.lookaround.core.android.R
+import com.lookaround.core.android.databinding.TransparentChipItemBinding
+import com.lookaround.core.android.view.recyclerview.ColorRecyclerViewAdapterCallbacks
+import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
+import com.lookaround.core.android.view.recyclerview.TransparentChipsRecyclerViewAdapter
 import com.lookaround.core.model.IPlaceType
-import com.lookaround.ui.place.categories.databinding.PlaceCategoryHeaderItemBinding
 import com.lookaround.ui.place.categories.databinding.PlaceTypeItemBinding
 import com.lookaround.ui.place.categories.databinding.TopSpacerItemBinding
-import java.util.*
 
 internal class PlaceTypesRecyclerViewAdapter(
     private var items: List<PlaceTypeListItem>,
-    private val callbacks: ContrastingColorCallbacks,
+    private val callbacks: ColorRecyclerViewAdapterCallbacks,
     private val onPlaceTypeClicked: (IPlaceType) -> Unit,
-) : RecyclerView.Adapter<PlaceTypesRecyclerViewAdapter.ViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+) : RecyclerView.Adapter<TransparentChipsRecyclerViewAdapter.ViewHolder>() {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): TransparentChipsRecyclerViewAdapter.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return ViewHolder(
+        return TransparentChipsRecyclerViewAdapter.ViewHolder(
             when (ViewType.values()[viewType]) {
                 ViewType.SPACER ->
                     TopSpacerItemBinding.inflate(inflater, parent, false).apply {
@@ -38,14 +42,17 @@ internal class PlaceTypesRecyclerViewAdapter(
                     }
                 ViewType.PLACE_TYPE -> PlaceTypeItemBinding.inflate(inflater, parent, false)
                 ViewType.PLACE_CATEGORY_HEADER ->
-                    PlaceCategoryHeaderItemBinding.inflate(inflater, parent, false)
+                    TransparentChipItemBinding.inflate(inflater, parent, false)
             }
         )
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: TransparentChipsRecyclerViewAdapter.ViewHolder,
+        position: Int
+    ) {
         when (val binding = holder.binding) {
-            is PlaceCategoryHeaderItemBinding -> bindPlaceCategoryHeaderItem(binding, position)
+            is TransparentChipItemBinding -> bindPlaceCategoryHeaderItem(binding, position)
             is PlaceTypeItemBinding -> bindPlaceTypeItem(binding, position)
         }
     }
@@ -54,9 +61,9 @@ internal class PlaceTypesRecyclerViewAdapter(
         callbacks.onDetachedFromRecyclerView()
     }
 
-    override fun onViewAttachedToWindow(holder: ViewHolder) {
+    override fun onViewAttachedToWindow(holder: TransparentChipsRecyclerViewAdapter.ViewHolder) {
         if (holder.binding is TopSpacerItemBinding) return
-        callbacks.onViewAttachedToWindow(holder) { contrastingColor ->
+        callbacks.onViewAttachedToWindow(holder.uuid) { contrastingColor ->
             val backgroundDrawable =
                 ResourcesCompat.getDrawable(
                     holder.binding.root.resources,
@@ -75,17 +82,14 @@ internal class PlaceTypesRecyclerViewAdapter(
         }
     }
 
-    override fun onViewDetachedFromWindow(holder: ViewHolder) {
+    override fun onViewDetachedFromWindow(holder: TransparentChipsRecyclerViewAdapter.ViewHolder) {
         if (holder.binding is TopSpacerItemBinding) return
-        callbacks.onViewDetachedFromWindow(holder)
+        callbacks.onViewDetachedFromWindow(holder.uuid)
     }
 
-    private fun bindPlaceCategoryHeaderItem(
-        binding: PlaceCategoryHeaderItemBinding,
-        position: Int
-    ) {
+    private fun bindPlaceCategoryHeaderItem(binding: TransparentChipItemBinding, position: Int) {
         val item = items[position] as PlaceTypeListItem.PlaceCategory
-        binding.placeCategoryNameTextView.text = item.name
+        binding.chipLabelTextView.text = item.name
     }
 
     private fun bindPlaceTypeItem(binding: PlaceTypeItemBinding, position: Int) {
@@ -105,34 +109,9 @@ internal class PlaceTypesRecyclerViewAdapter(
         }
 
     fun updateItems(newItems: List<PlaceTypeListItem>) {
-        DiffUtil.calculateDiff(DiffUtilCallback(items, newItems)).dispatchUpdatesTo(this)
+        DiffUtil.calculateDiff(DefaultDiffUtilCallback(items, newItems)).dispatchUpdatesTo(this)
         items = newItems
     }
-
-    private class DiffUtilCallback(
-        private val oldList: List<PlaceTypeListItem>,
-        private val newList: List<PlaceTypeListItem>
-    ) : DiffUtil.Callback() {
-        override fun getOldListSize(): Int = oldList.size
-        override fun getNewListSize(): Int = newList.size
-
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-            oldList[oldItemPosition] == newList[newItemPosition]
-
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-            oldList[oldItemPosition] == newList[newItemPosition]
-    }
-
-    interface ContrastingColorCallbacks {
-        fun onViewAttachedToWindow(holder: ViewHolder, action: (Int) -> Unit)
-        fun onViewDetachedFromWindow(holder: ViewHolder)
-        fun onDetachedFromRecyclerView()
-    }
-
-    class ViewHolder(
-        val binding: ViewBinding,
-        val uuid: UUID = UUID.randomUUID(),
-    ) : RecyclerView.ViewHolder(binding.root)
 
     private enum class ViewType {
         SPACER,

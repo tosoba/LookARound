@@ -3,16 +3,13 @@ package com.lookaround.ui.place.categories
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
+import android.widget.FrameLayout
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -21,21 +18,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
-import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.ext.addCollapseTopViewOnScrollListener
-import com.lookaround.core.android.ext.listItemBackground
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
 import com.lookaround.core.android.model.Tourism
-import com.lookaround.core.android.view.composable.ChipList
 import com.lookaround.core.android.view.composable.SearchBar
+import com.lookaround.core.android.view.recyclerview.ColorRecyclerViewAdapterCallbacks
+import com.lookaround.core.android.view.recyclerview.TransparentChipsRecyclerViewAdapter
 import com.lookaround.core.android.view.theme.LookARoundTheme
-import com.lookaround.core.android.view.theme.Ocean0
-import com.lookaround.core.android.view.theme.Ocean2
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.ui.main.listFragmentItemBackgroundUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.place.categories.databinding.FragmentPlaceCategoriesBinding
@@ -61,23 +54,18 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
         lazy(LazyThreadSafetyMode.NONE) {
             PlaceTypesRecyclerViewAdapter(
                 placeTypeListItems,
-                object : PlaceTypesRecyclerViewAdapter.ContrastingColorCallbacks {
-                    override fun onViewAttachedToWindow(
-                        holder: PlaceTypesRecyclerViewAdapter.ViewHolder,
-                        action: (Int) -> Unit
-                    ) {
-                        if (contrastingColorJobs.containsKey(holder.uuid)) return
-                        contrastingColorJobs[holder.uuid] =
+                object : ColorRecyclerViewAdapterCallbacks {
+                    override fun onViewAttachedToWindow(uuid: UUID, action: (Int) -> Unit) {
+                        if (contrastingColorJobs.containsKey(uuid)) return
+                        contrastingColorJobs[uuid] =
                             mainViewModel
                                 .filterSignals(MainSignal.ContrastingColorUpdated::color)
                                 .onEach(action)
                                 .launchIn(viewLifecycleOwner.lifecycleScope)
                     }
 
-                    override fun onViewDetachedFromWindow(
-                        holder: PlaceTypesRecyclerViewAdapter.ViewHolder
-                    ) {
-                        contrastingColorJobs.remove(holder.uuid)?.cancel()
+                    override fun onViewDetachedFromWindow(uuid: UUID) {
+                        contrastingColorJobs.remove(uuid)?.cancel()
                     }
 
                     override fun onDetachedFromRecyclerView() {
@@ -121,17 +109,6 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
             val searchFocusedState = remember { mutableStateOf(searchFocused) }
             var topSpacerHeightPx by remember { mutableStateOf(0) }
 
-            val opaqueBackgroundFlow = remember {
-                mainViewModel
-                    .listFragmentItemBackgroundUpdates
-                    .map { it == ListFragmentHost.ItemBackground.OPAQUE }
-                    .distinctUntilChanged()
-            }
-            val opaqueBackground =
-                opaqueBackgroundFlow.collectAsState(
-                    initial = listItemBackground == ListFragmentHost.ItemBackground.OPAQUE
-                )
-
             ProvideWindowInsets {
                 LookARoundTheme {
                     Column(
@@ -153,10 +130,44 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                 searchQuery = it.text
                             }
                         )
-                        PlaceCategoriesChipList(
-                            searchQueryFlow = searchQueryFlow,
-                            opaqueBackground = opaqueBackground.value,
-                            topSpaceHeightPx = topSpacerHeightPx
+                        AndroidView(
+                            factory = {
+                                RecyclerView(it).apply {
+                                    layoutParams =
+                                        FrameLayout.LayoutParams(
+                                            FrameLayout.LayoutParams.MATCH_PARENT,
+                                            FrameLayout.LayoutParams.WRAP_CONTENT
+                                        )
+                                }
+                            },
+                            update = { recyclerView ->
+                                recyclerView.layoutManager =
+                                    LinearLayoutManager(
+                                        requireContext(),
+                                        LinearLayoutManager.HORIZONTAL,
+                                        false
+                                    )
+                                val adapter =
+                                    TransparentChipsRecyclerViewAdapter(
+                                        emptyList(),
+                                        PlaceTypeListItem.PlaceCategory::name::get,
+                                    ) { category ->
+                                        (binding.placeTypesRecyclerView.layoutManager as
+                                                GridLayoutManager)
+                                            .scrollToPositionWithOffset(
+                                                placeTypeListItems.indexOf(category),
+                                                topSpacerHeightPx
+                                            )
+                                    }
+                                searchQueryFlow
+                                    .map { query -> query.trim().lowercase() }
+                                    .distinctUntilChanged()
+                                    .map(::placeCategoriesMatching)
+                                    .distinctUntilChanged()
+                                    .onEach(adapter::updateItems)
+                                    .launchIn(viewLifecycleOwner.lifecycleScope)
+                                recyclerView.adapter = adapter
+                            }
                         )
                     }
                 }
@@ -177,36 +188,6 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
             if (wasNotScrolled) scrollToTopAndShow() else visibility = View.VISIBLE
         }
         return height
-    }
-
-    @Composable
-    private fun PlaceCategoriesChipList(
-        searchQueryFlow: Flow<String>,
-        opaqueBackground: Boolean,
-        topSpaceHeightPx: Int
-    ) {
-        val placeCategoriesFlow = remember {
-            searchQueryFlow
-                .map { it.trim().lowercase() }
-                .distinctUntilChanged()
-                .map(::placeCategoriesMatching)
-                .distinctUntilChanged()
-        }
-        val shape = RoundedCornerShape(20.dp)
-        ChipList(
-            itemsFlow = placeCategoriesFlow,
-            label = PlaceTypeListItem.PlaceCategory::name::get,
-            chipModifier =
-                Modifier.clip(shape)
-                    .background(
-                        brush = Brush.horizontalGradient(colors = listOf(Ocean2, Ocean0)),
-                        shape = shape,
-                        alpha = if (opaqueBackground) .95f else .55f,
-                    )
-        ) { category ->
-            (binding.placeTypesRecyclerView.layoutManager as GridLayoutManager)
-                .scrollToPositionWithOffset(placeTypeListItems.indexOf(category), topSpaceHeightPx)
-        }
     }
 
     private fun placeCategoriesMatching(query: String): List<PlaceTypeListItem.PlaceCategory> =
