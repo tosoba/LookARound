@@ -1,18 +1,13 @@
 package com.lookaround.ui.place.categories
 
-import android.content.res.ColorStateList
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.LayerDrawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.lookaround.core.android.R
 import com.lookaround.core.android.databinding.TransparentChipItemBinding
+import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.view.recyclerview.ColorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.TransparentChipsRecyclerViewAdapter
@@ -22,7 +17,7 @@ import com.lookaround.ui.place.categories.databinding.TopSpacerItemBinding
 
 internal class PlaceTypesRecyclerViewAdapter(
     private var items: List<PlaceTypeListItem>,
-    private val callbacks: ColorRecyclerViewAdapterCallbacks,
+    private val colorCallbacks: ColorRecyclerViewAdapterCallbacks,
     private val onPlaceTypeClicked: (IPlaceType) -> Unit,
 ) : RecyclerView.Adapter<TransparentChipsRecyclerViewAdapter.ViewHolder>() {
     override fun onCreateViewHolder(
@@ -58,33 +53,19 @@ internal class PlaceTypesRecyclerViewAdapter(
     }
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
-        callbacks.onDetachedFromRecyclerView()
+        colorCallbacks.onDetachedFromRecyclerView()
     }
 
     override fun onViewAttachedToWindow(holder: TransparentChipsRecyclerViewAdapter.ViewHolder) {
         if (holder.binding is TopSpacerItemBinding) return
-        callbacks.onViewAttachedToWindow(holder.uuid) { contrastingColor ->
-            val backgroundDrawable =
-                ResourcesCompat.getDrawable(
-                    holder.binding.root.resources,
-                    R.drawable.rounded_elevated_background,
-                    null
-                ) as
-                    LayerDrawable
-            val backgroundLayer =
-                backgroundDrawable.findDrawableByLayerId(
-                    R.id.rounded_transparent_shadow_background_layer
-                ) as
-                    GradientDrawable
-            backgroundLayer.color =
-                ColorStateList.valueOf(ColorUtils.setAlphaComponent(contrastingColor, 0x30))
-            holder.binding.root.background = backgroundDrawable
+        colorCallbacks.onViewAttachedToWindow(holder.uuid) { contrastingColor ->
+            holder.binding.root.setListBackgroundItemDrawableWith(contrastingColor)
         }
     }
 
     override fun onViewDetachedFromWindow(holder: TransparentChipsRecyclerViewAdapter.ViewHolder) {
         if (holder.binding is TopSpacerItemBinding) return
-        callbacks.onViewDetachedFromWindow(holder.uuid)
+        colorCallbacks.onViewDetachedFromWindow(holder.uuid)
     }
 
     private fun bindPlaceCategoryHeaderItem(binding: TransparentChipItemBinding, position: Int) {

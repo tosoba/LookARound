@@ -24,18 +24,16 @@ import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
 import com.lookaround.core.android.model.Tourism
 import com.lookaround.core.android.view.composable.SearchBar
-import com.lookaround.core.android.view.recyclerview.ColorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.TransparentChipsRecyclerViewAdapter
+import com.lookaround.core.android.view.recyclerview.contrastingColorCallbacks
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.place.categories.databinding.FragmentPlaceCategoriesBinding
-import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -52,26 +50,9 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
         lazy(LazyThreadSafetyMode.NONE) {
             PlaceTypesRecyclerViewAdapter(
                 placeTypeListItems,
-                object : ColorRecyclerViewAdapterCallbacks {
-                    private val contrastingColorJobs = mutableMapOf<UUID, Job>()
-
-                    override fun onViewAttachedToWindow(uuid: UUID, action: (Int) -> Unit) {
-                        if (contrastingColorJobs.containsKey(uuid)) return
-                        contrastingColorJobs[uuid] =
-                            mainViewModel
-                                .filterSignals(MainSignal.ContrastingColorUpdated::color)
-                                .onEach(action)
-                                .launchIn(viewLifecycleOwner.lifecycleScope)
-                    }
-
-                    override fun onViewDetachedFromWindow(uuid: UUID) {
-                        contrastingColorJobs.remove(uuid)?.cancel()
-                    }
-
-                    override fun onDetachedFromRecyclerView() {
-                        contrastingColorJobs.values.forEach(Job::cancel)
-                    }
-                }
+                viewLifecycleOwner.lifecycleScope.contrastingColorCallbacks(
+                    mainViewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
+                )
             ) { placeType ->
                 lifecycleScope.launch {
                     mainViewModel.intent(MainIntent.GetPlacesOfType(placeType))

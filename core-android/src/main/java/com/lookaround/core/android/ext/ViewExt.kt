@@ -1,10 +1,17 @@
 package com.lookaround.core.android.ext
 
 import android.animation.Animator
+import android.content.res.ColorStateList
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
+import androidx.annotation.IntRange
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.ColorUtils
 import com.facebook.shimmer.ShimmerFrameLayout
+import com.lookaround.core.android.R
 
 fun ShimmerFrameLayout.showAndStart() {
     visibility = View.VISIBLE
@@ -61,4 +68,21 @@ fun View.fadeSetVisibility(visibility: Int) {
                 override fun onAnimationRepeat(animation: Animator?) = Unit
             }
         )
+}
+
+fun View.setListBackgroundItemDrawableWith(
+    contrastingColor: Int,
+    @IntRange(from = 0x0, to = 0xFF) alpha: Int = 0x30
+) {
+    val backgroundDrawable =
+        ResourcesCompat.getDrawable(resources, R.drawable.rounded_elevated_background, null) as
+            LayerDrawable
+    val backgroundLayer =
+        backgroundDrawable.findDrawableByLayerId(
+            R.id.rounded_transparent_shadow_background_layer
+        ) as
+            GradientDrawable
+    backgroundLayer.color =
+        ColorStateList.valueOf(ColorUtils.setAlphaComponent(contrastingColor, alpha))
+    background = backgroundDrawable
 }

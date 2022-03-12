@@ -7,29 +7,16 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.LocationBitmapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
@@ -40,12 +27,10 @@ import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.composable.SearchBar
+import com.lookaround.core.android.view.recyclerview.contrastingColorCallbacks
 import com.lookaround.core.android.view.theme.LookARoundTheme
-import com.lookaround.core.android.view.theme.Ocean0
-import com.lookaround.core.android.view.theme.Ocean2
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.ui.main.listFragmentItemBackgroundUpdates
 import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
@@ -58,6 +43,7 @@ import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -89,6 +75,63 @@ class PlaceMapListFragment :
     private val reloadBitmapTrigger = MutableSharedFlow<Unit>()
 
     private var searchQuery: String = ""
+
+    private val placeMapsRecyclerViewAdapter by
+        lazy(LazyThreadSafetyMode.NONE) {
+            PlaceMapsRecyclerViewAdapter(
+                emptyList(),
+                viewLifecycleOwner.lifecycleScope.contrastingColorCallbacks(
+                    mainViewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
+                ),
+                object : PlaceMapsRecyclerViewAdapter.BitmapCallbacks {
+                    private val jobs = mutableMapOf<UUID, Job>()
+
+                    override fun onBindViewHolder(
+                        uuid: UUID,
+                        location: Location,
+                        action: (bitmap: Bitmap) -> Unit
+                    ) {
+                        jobs[uuid] =
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                action(getBitmapFor(location))
+                            }
+                    }
+
+                    override fun onViewDetachedFromWindow(uuid: UUID) {
+                        jobs.remove(uuid)?.cancel()
+                    }
+
+                    override fun onDetachedFromRecyclerView() {
+                        jobs.values.forEach(Job::cancel)
+                    }
+                },
+                object : PlaceMapsRecyclerViewAdapter.UserLocationCallbacks {
+                    private val jobs = mutableMapOf<UUID, Job>()
+
+                    override fun onBindViewHolder(
+                        uuid: UUID,
+                        action: (userLocation: Location) -> Unit
+                    ) {
+                        if (jobs.containsKey(uuid)) return
+                        jobs[uuid] =
+                            mainViewModel
+                                .locationReadyUpdates
+                                .onEach(action)
+                                .launchIn(viewLifecycleOwner.lifecycleScope)
+                    }
+
+                    override fun onViewDetachedFromWindow(uuid: UUID) {
+                        jobs.remove(uuid)?.cancel()
+                    }
+
+                    override fun onDetachedFromRecyclerView() {
+                        jobs.values.forEach(Job::cancel)
+                    }
+                }
+            ) { namedLocation ->
+                (activity as? PlaceMapListFragmentHost)?.onPlaceMapItemClick(namedLocation)
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -135,12 +178,6 @@ class PlaceMapListFragment :
             }
         }
 
-        val bottomSheetSignalsFlow =
-            mainViewModel
-                .filterSignals(MainSignal.BottomSheetStateChanged::state)
-                .onStart { emit(mainViewModel.state.lastLiveBottomSheetState) }
-                .distinctUntilChanged()
-
         val searchQueryFlow = MutableStateFlow(searchQuery)
 
         val markersFlow =
@@ -161,106 +198,34 @@ class PlaceMapListFragment :
                 }
                 .distinctUntilChanged()
 
-        binding.placeMapList.setContent {
+        binding.placeMapsSearchBar.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
-                    val bottomSheetState =
-                        bottomSheetSignalsFlow.collectAsState(
-                            initial = BottomSheetBehavior.STATE_HIDDEN
-                        )
-
-                    binding.placeListFabLayout.visibility =
-                        if (bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED) {
-                            View.VISIBLE
-                        } else {
-                            View.GONE
-                        }
-
-                    val markers = markersFlow.collectAsState(initial = emptyList())
                     val searchQuery = searchQueryFlow.collectAsState(initial = "")
                     val searchFocused = rememberSaveable { mutableStateOf(false) }
-
-                    val itemBackgroundFlow = remember {
-                        mainViewModel.listFragmentItemBackgroundUpdates
-                    }
-                    val itemBackground =
-                        itemBackgroundFlow.collectAsState(initial = listItemBackground)
-
-                    val lazyListState = rememberLazyListState()
-                    binding
-                        .disallowInterceptTouchContainer
-                        .shouldRequestDisallowInterceptTouchEvent =
-                        (lazyListState.firstVisibleItemIndex != 0 ||
-                            lazyListState.firstVisibleItemScrollOffset != 0) &&
-                            bottomSheetState.value == BottomSheetBehavior.STATE_EXPANDED
-                    val orientation = LocalConfiguration.current.orientation
-                    LazyColumn(
-                        state = lazyListState,
-                        modifier = Modifier.padding(horizontal = 10.dp).fillMaxHeight(),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        if (bottomSheetState.value != BottomSheetBehavior.STATE_EXPANDED) {
-                            item { Spacer(Modifier.height(112.dp)) }
-                        } else {
-                            stickyHeader {
-                                SearchBar(
-                                    query = searchQuery.value,
-                                    focused = searchFocused.value,
-                                    onBackPressedDispatcher =
-                                        requireActivity().onBackPressedDispatcher,
-                                    onSearchFocusChange = searchFocused::value::set,
-                                    onTextFieldValueChange = {
-                                        searchQueryFlow.value = it.text
-                                        this@PlaceMapListFragment.searchQuery = it.text
-                                    }
-                                )
-                            }
+                    SearchBar(
+                        query = searchQuery.value,
+                        focused = searchFocused.value,
+                        onBackPressedDispatcher = requireActivity().onBackPressedDispatcher,
+                        onSearchFocusChange = searchFocused::value::set,
+                        onTextFieldValueChange = {
+                            searchQueryFlow.value = it.text
+                            this@PlaceMapListFragment.searchQuery = it.text
                         }
-
-                        val opaqueBackground =
-                            itemBackground.value == ListFragmentHost.ItemBackground.OPAQUE
-                        items(
-                            markers.value.chunked(
-                                if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
-                            )
-                        ) { chunk ->
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                modifier = Modifier.wrapContentHeight()
-                            ) {
-                                chunk.forEach { point ->
-                                    PlaceMapListItem(
-                                        point = point,
-                                        userLocationFlow = mainViewModel.locationReadyUpdates,
-                                        getPlaceBitmap = this@PlaceMapListFragment::getBitmapFor,
-                                        reloadBitmapTrigger = reloadBitmapTrigger,
-                                        bitmapDimension =
-                                            requireContext()
-                                                .pxToDp(mapLayoutParams.width.toFloat())
-                                                .toInt(),
-                                        modifier =
-                                            Modifier.clip(placeMapListItemShape)
-                                                .background(
-                                                    brush =
-                                                        Brush.horizontalGradient(
-                                                            colors = listOf(Ocean2, Ocean0)
-                                                        ),
-                                                    shape = placeMapListItemShape,
-                                                    alpha = if (opaqueBackground) .95f else .55f,
-                                                )
-                                                .weight(1f, fill = false)
-                                                .clickable {
-                                                    (activity as? PlaceMapListFragmentHost)
-                                                        ?.onPlaceMapItemClick(point)
-                                                }
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    )
                 }
             }
         }
+
+        val orientation = resources.configuration.orientation
+        val spanCount = if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
+        binding.placeMapsRecyclerView.layoutManager =
+            GridLayoutManager(requireContext(), spanCount, GridLayoutManager.VERTICAL, false)
+        binding.placeMapsRecyclerView.adapter = placeMapsRecyclerViewAdapter
+        markersFlow
+            .onEach(placeMapsRecyclerViewAdapter::updateItems)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+        binding.placeMapsRecyclerView.addCollapseTopViewOnScrollListener(binding.placeMapsSearchBar)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/disallow_intercept_touch_container"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:animateLayoutChanges="true">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="170dp"
-        android:layout_height="170dp"
+        android:layout_width="320dp"
+        android:layout_height="400dp"
         android:layout_marginLeft="-2000dp"
         android:elevation="5dp"
         android:padding="10dp"
@@ -24,10 +24,18 @@
 
     </androidx.cardview.widget.CardView>
 
-    <androidx.compose.ui.platform.ComposeView
-        android:id="@+id/place_map_list"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/place_maps_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="match_parent"
+        android:paddingHorizontal="8dp"
+        android:visibility="visible" />
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/place_maps_search_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/reload_maps_fab"

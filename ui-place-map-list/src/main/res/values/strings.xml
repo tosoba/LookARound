@@ -2,4 +2,5 @@
 <resources>
     <string name="reload_maps">Reload maps</string>
     <string name="show_map">Show map</string>
+    <string name="place_map_image_card">place_map_image_card</string>
 </resources>
