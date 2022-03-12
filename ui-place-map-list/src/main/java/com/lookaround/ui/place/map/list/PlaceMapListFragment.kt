@@ -10,11 +10,15 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.lookaround.core.android.ext.*
@@ -79,7 +83,6 @@ class PlaceMapListFragment :
     private val placeMapsRecyclerViewAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
             PlaceMapsRecyclerViewAdapter(
-                emptyList(),
                 viewLifecycleOwner.lifecycleScope.contrastingColorCallbacks(
                     mainViewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
                 ),
@@ -180,24 +183,6 @@ class PlaceMapListFragment :
 
         val searchQueryFlow = MutableStateFlow(searchQuery)
 
-        val markersFlow =
-            mainViewModel
-                .mapStates(MainState::markers)
-                .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
-                .distinctUntilChanged()
-                .combine(searchQueryFlow.map { it.trim().lowercase() }.distinctUntilChanged()) {
-                    markers,
-                    query ->
-                    markers to query
-                }
-                .map { (markers, query) ->
-                    markers.value.items.run {
-                        if (query.isBlank()) toList()
-                        else filter { marker -> marker.name.lowercase().contains(query) }
-                    }
-                }
-                .distinctUntilChanged()
-
         binding.placeMapsSearchBar.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
@@ -211,21 +196,71 @@ class PlaceMapListFragment :
                         onTextFieldValueChange = {
                             searchQueryFlow.value = it.text
                             this@PlaceMapListFragment.searchQuery = it.text
-                        }
+                        },
+                        modifier = Modifier.onSizeChanged { addPlaceTypesListTopSpacer(it.height) }
                     )
                 }
             }
         }
 
+        mainViewModel
+            .mapStates(MainState::markers)
+            .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
+            .distinctUntilChanged()
+            .combine(searchQueryFlow.map { it.trim().lowercase() }.distinctUntilChanged()) {
+                markers,
+                query ->
+                markers to query
+            }
+            .map { (markers, query) ->
+                markers.value.items.run {
+                    if (query.isBlank()) toList()
+                    else filter { marker -> marker.name.lowercase().contains(query) }
+                }
+            }
+            .distinctUntilChanged()
+            .onEach { markers ->
+                placeMapsRecyclerViewAdapter.updateItems(
+                    markers.map(PlaceMapsRecyclerViewAdapter.Item::Map)
+                )
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+        binding.placeMapsRecyclerView.adapter = placeMapsRecyclerViewAdapter
         val orientation = resources.configuration.orientation
         val spanCount = if (orientation == Configuration.ORIENTATION_LANDSCAPE) 4 else 2
         binding.placeMapsRecyclerView.layoutManager =
             GridLayoutManager(requireContext(), spanCount, GridLayoutManager.VERTICAL, false)
-        binding.placeMapsRecyclerView.adapter = placeMapsRecyclerViewAdapter
-        markersFlow
-            .onEach(placeMapsRecyclerViewAdapter::updateItems)
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+                .apply {
+                    spanSizeLookup =
+                        object : GridLayoutManager.SpanSizeLookup() {
+                            override fun getSpanSize(position: Int): Int =
+                                when (placeMapsRecyclerViewAdapter.items[position]) {
+                                    is PlaceMapsRecyclerViewAdapter.Item.Spacer -> spanCount
+                                    else -> 1
+                                }
+                        }
+                }
         binding.placeMapsRecyclerView.addCollapseTopViewOnScrollListener(binding.placeMapsSearchBar)
+    }
+
+    private fun addPlaceTypesListTopSpacer(height: Int) {
+        if (placeMapsRecyclerViewAdapter.items[0] is PlaceMapsRecyclerViewAdapter.Item.Spacer) {
+            binding.placeMapsRecyclerView.visibility = View.VISIBLE
+            return
+        }
+        val layoutManager = binding.placeMapsRecyclerView.layoutManager as LinearLayoutManager
+        val wasNotScrolled = layoutManager.findFirstCompletelyVisibleItemPosition() == 0
+        placeMapsRecyclerViewAdapter.addTopSpacer(PlaceMapsRecyclerViewAdapter.Item.Spacer(height))
+        binding.placeMapsRecyclerView.apply {
+            if (wasNotScrolled) scrollToTopAndShow() else visibility = View.VISIBLE
+        }
+    }
+
+    private fun RecyclerView.scrollToTopAndShow() {
+        post {
+            scrollToPosition(0)
+            visibility = View.VISIBLE
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

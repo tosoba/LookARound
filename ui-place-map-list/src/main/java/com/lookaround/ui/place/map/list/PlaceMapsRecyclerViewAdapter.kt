@@ -4,8 +4,11 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewbinding.ViewBinding
+import com.lookaround.core.android.databinding.SpacerItemBinding
 import com.lookaround.core.android.ext.formattedDistanceTo
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.model.Marker
@@ -15,16 +18,33 @@ import com.lookaround.ui.place.list.databinding.PlaceMapListItemBinding
 import java.util.*
 
 internal class PlaceMapsRecyclerViewAdapter(
-    private var items: List<Marker>,
     private val colorCallbacks: ColorRecyclerViewAdapterCallbacks,
     private val bitmapCallbacks: BitmapCallbacks,
     private val userLocationCallbacks: UserLocationCallbacks,
     private val onItemClicked: (Marker) -> Unit,
 ) : RecyclerView.Adapter<PlaceMapsRecyclerViewAdapter.ViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-        ViewHolder(
-            PlaceMapListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+    var items: List<Item> = emptyList()
+        private set
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        return ViewHolder(
+            when (ViewType.values()[viewType]) {
+                ViewType.SPACER -> {
+                    SpacerItemBinding.inflate(inflater, parent, false).apply {
+                        root.layoutParams =
+                            FrameLayout.LayoutParams(
+                                FrameLayout.LayoutParams.MATCH_PARENT,
+                                (items[0] as Item.Spacer).heightPx
+                            )
+                    }
+                }
+                ViewType.MAP -> {
+                    PlaceMapListItemBinding.inflate(inflater, parent, false)
+                }
+            }
         )
+    }
 
     override fun onViewAttachedToWindow(holder: ViewHolder) {
         colorCallbacks.onViewAttachedToWindow(holder.uuid) { contrastingColor ->
@@ -46,28 +66,62 @@ internal class PlaceMapsRecyclerViewAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.binding.placeMapNameText.text = item.name
-        bitmapCallbacks.onBindViewHolder(holder.uuid, item.location) { bitmap ->
-            holder.binding.placeMapImage.setImageBitmap(bitmap)
+        if (item is Item.Map) bindMapItem(holder, item)
+    }
+
+    override fun getItemViewType(position: Int): Int =
+        when (items[position]) {
+            is Item.Spacer -> ViewType.SPACER.ordinal
+            is Item.Map -> ViewType.MAP.ordinal
+        }
+
+    private fun bindMapItem(holder: ViewHolder, item: Item.Map) {
+        val binding = holder.binding as PlaceMapListItemBinding
+        binding.placeMapNameText.text = item.marker.name
+        bitmapCallbacks.onBindViewHolder(holder.uuid, item.marker.location) { bitmap ->
+            binding.placeMapImage.setImageBitmap(bitmap)
         }
         userLocationCallbacks.onBindViewHolder(holder.uuid) { userLocation ->
-            holder.binding.placeMapDistanceText.text =
-                userLocation.formattedDistanceTo(item.location)
+            binding.placeMapDistanceText.text =
+                userLocation.formattedDistanceTo(item.marker.location)
         }
-        holder.binding.root.setOnClickListener { onItemClicked(item) }
+        binding.root.setOnClickListener { onItemClicked(item.marker) }
     }
 
     override fun getItemCount(): Int = items.size
 
-    fun updateItems(newItems: List<Marker>) {
+    fun updateItems(newItems: List<Item>) {
+        DiffUtil.calculateDiff(
+                DefaultDiffUtilCallback(
+                    items,
+                    if (items.isNotEmpty() && items[0] is Item.Spacer) listOf(items[0]) + newItems
+                    else newItems
+                )
+            )
+            .dispatchUpdatesTo(this)
+        items = newItems
+    }
+
+    fun addTopSpacer(spacer: Item.Spacer) {
+        val newItems = ArrayList(items).apply { add(0, spacer) }
         DiffUtil.calculateDiff(DefaultDiffUtilCallback(items, newItems)).dispatchUpdatesTo(this)
         items = newItems
     }
 
     class ViewHolder(
-        val binding: PlaceMapListItemBinding,
+        val binding: ViewBinding,
         val uuid: UUID = UUID.randomUUID(),
     ) : RecyclerView.ViewHolder(binding.root)
+
+    private enum class ViewType {
+        SPACER,
+        MAP,
+    }
+
+    sealed interface Item {
+        data class Map(val marker: Marker) : Item
+        data class Spacer(val heightPx: Int) : Item
+    }
 
     interface UserLocationCallbacks {
         fun onBindViewHolder(uuid: UUID, action: (userLocation: Location) -> Unit)
