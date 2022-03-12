@@ -32,14 +32,12 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.github.marlonlom.utilities.timeago.TimeAgo
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.lookaround.core.android.ext.listItemBackground
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
 import com.lookaround.core.model.SearchType
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.ui.main.listFragmentItemBackgroundUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
@@ -47,7 +45,6 @@ import com.lookaround.ui.recent.searches.databinding.FragmentRecentSearchesBindi
 import com.lookaround.ui.recent.searches.model.RecentSearchModel
 import com.lookaround.ui.recent.searches.model.RecentSearchesIntent
 import com.lookaround.ui.recent.searches.model.RecentSearchesState
-import com.lookaround.core.android.view.composable.SearchBar
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import java.util.*
@@ -113,12 +110,6 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
 
                     val searchQuery = rememberSaveable { mutableStateOf("") }
                     val searchFocused = rememberSaveable { mutableStateOf(false) }
-
-                    val itemBackgroundFlow = remember {
-                        mainViewModel.listFragmentItemBackgroundUpdates
-                    }
-                    val itemBackground =
-                        itemBackgroundFlow.collectAsState(initial = listItemBackground)
 
                     val lazyListState = rememberLazyListState()
                     binding

@@ -146,9 +146,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             }
         }
 
-    private val currentBottomSheetFragment: Fragment?
-        get() = supportFragmentManager.findFragmentById(R.id.bottom_sheet_fragment_container_view)
-
     private inline fun <reified F : Fragment> FragmentTransaction.showBottomSheetFragment() {
         if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
             setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)

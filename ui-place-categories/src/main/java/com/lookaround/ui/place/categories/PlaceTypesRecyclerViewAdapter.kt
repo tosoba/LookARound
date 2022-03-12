@@ -6,6 +6,7 @@ import android.widget.FrameLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.lookaround.core.android.databinding.SpacerItemBinding
 import com.lookaround.core.android.databinding.TransparentChipItemBinding
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.view.recyclerview.ColorRecyclerViewAdapterCallbacks
@@ -13,7 +14,6 @@ import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.TransparentChipsRecyclerViewAdapter
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.place.categories.databinding.PlaceTypeItemBinding
-import com.lookaround.ui.place.categories.databinding.TopSpacerItemBinding
 
 internal class PlaceTypesRecyclerViewAdapter(
     private var items: List<PlaceTypeListItem>,
@@ -28,7 +28,7 @@ internal class PlaceTypesRecyclerViewAdapter(
         return TransparentChipsRecyclerViewAdapter.ViewHolder(
             when (ViewType.values()[viewType]) {
                 ViewType.SPACER ->
-                    TopSpacerItemBinding.inflate(inflater, parent, false).apply {
+                    SpacerItemBinding.inflate(inflater, parent, false).apply {
                         root.layoutParams =
                             FrameLayout.LayoutParams(
                                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -57,14 +57,14 @@ internal class PlaceTypesRecyclerViewAdapter(
     }
 
     override fun onViewAttachedToWindow(holder: TransparentChipsRecyclerViewAdapter.ViewHolder) {
-        if (holder.binding is TopSpacerItemBinding) return
+        if (holder.binding is SpacerItemBinding) return
         colorCallbacks.onViewAttachedToWindow(holder.uuid) { contrastingColor ->
             holder.binding.root.setListBackgroundItemDrawableWith(contrastingColor)
         }
     }
 
     override fun onViewDetachedFromWindow(holder: TransparentChipsRecyclerViewAdapter.ViewHolder) {
-        if (holder.binding is TopSpacerItemBinding) return
+        if (holder.binding is SpacerItemBinding) return
         colorCallbacks.onViewDetachedFromWindow(holder.uuid)
     }
 
