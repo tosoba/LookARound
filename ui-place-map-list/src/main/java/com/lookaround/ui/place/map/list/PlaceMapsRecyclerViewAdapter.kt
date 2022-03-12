@@ -78,9 +78,12 @@ internal class PlaceMapsRecyclerViewAdapter(
     private fun bindMapItem(holder: ViewHolder, item: Item.Map) {
         val binding = holder.binding as PlaceMapListItemBinding
         binding.placeMapNameText.text = item.marker.name
-        bitmapCallbacks.onBindViewHolder(holder.uuid, item.marker.location) { bitmap ->
-            binding.placeMapImage.setImageBitmap(bitmap)
-        }
+        bitmapCallbacks.onBindViewHolder(
+            holder.uuid,
+            item.marker.location,
+            onBitmapLoadingStarted = { binding.placeMapImage.background = null },
+            onBitmapLoaded = { bitmap -> binding.placeMapImage.setImageBitmap(bitmap) }
+        )
         userLocationCallbacks.onBindViewHolder(holder.uuid) { userLocation ->
             binding.placeMapDistanceText.text =
                 userLocation.formattedDistanceTo(item.marker.location)
@@ -123,7 +126,12 @@ internal class PlaceMapsRecyclerViewAdapter(
     }
 
     interface BitmapCallbacks {
-        fun onBindViewHolder(uuid: UUID, location: Location, action: (bitmap: Bitmap) -> Unit)
+        fun onBindViewHolder(
+            uuid: UUID,
+            location: Location,
+            onBitmapLoadingStarted: () -> Unit,
+            onBitmapLoaded: (bitmap: Bitmap) -> Unit
+        )
         fun onViewDetachedFromWindow(uuid: UUID)
         fun onDetachedFromRecyclerView()
     }

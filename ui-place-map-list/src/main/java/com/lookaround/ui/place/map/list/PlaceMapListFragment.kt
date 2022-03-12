@@ -86,25 +86,49 @@ class PlaceMapListFragment :
                     mainViewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
                 ),
                 object : PlaceMapsRecyclerViewAdapter.BitmapCallbacks {
-                    private val jobs = mutableMapOf<UUID, Job>()
+                    private val loadBitmapJobs = mutableMapOf<UUID, Job>()
+                    private val reloadBitmapJobs = mutableMapOf<UUID, Job>()
 
                     override fun onBindViewHolder(
                         uuid: UUID,
                         location: Location,
+                        onBitmapLoadingStarted: () -> Unit,
+                        onBitmapLoaded: (bitmap: Bitmap) -> Unit
+                    ) {
+                        loadBitmap(uuid, location, onBitmapLoaded)
+                        if (!reloadBitmapJobs.containsKey(uuid)) {
+                            reloadBitmapJobs[uuid] =
+                                reloadBitmapTrigger
+                                    .onEach {
+                                        loadBitmapJobs.remove(uuid)?.cancel()
+                                        onBitmapLoadingStarted()
+                                        loadBitmap(uuid, location, onBitmapLoaded)
+                                    }
+                                    .launchIn(viewLifecycleOwner.lifecycleScope)
+                        }
+                    }
+
+                    private fun loadBitmap(
+                        uuid: UUID,
+                        location: Location,
                         action: (bitmap: Bitmap) -> Unit
                     ) {
-                        jobs[uuid] =
-                            viewLifecycleOwner.lifecycleScope.launch {
-                                action(getBitmapFor(location))
-                            }
+                        if (!loadBitmapJobs.containsKey(uuid)) {
+                            loadBitmapJobs[uuid] =
+                                viewLifecycleOwner.lifecycleScope
+                                    .launch { action(getBitmapFor(location)) }
+                                    .apply { invokeOnCompletion { loadBitmapJobs.remove(uuid) } }
+                        }
                     }
 
                     override fun onViewDetachedFromWindow(uuid: UUID) {
-                        jobs.remove(uuid)?.cancel()
+                        loadBitmapJobs.remove(uuid)?.cancel()
+                        reloadBitmapJobs.remove(uuid)?.cancel()
                     }
 
                     override fun onDetachedFromRecyclerView() {
-                        jobs.values.forEach(Job::cancel)
+                        loadBitmapJobs.values.forEach(Job::cancel)
+                        reloadBitmapJobs.values.forEach(Job::cancel)
                     }
                 },
                 object : PlaceMapsRecyclerViewAdapter.UserLocationCallbacks {
