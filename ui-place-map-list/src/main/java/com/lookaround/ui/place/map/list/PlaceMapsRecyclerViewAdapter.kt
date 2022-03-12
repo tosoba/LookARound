@@ -91,14 +91,7 @@ internal class PlaceMapsRecyclerViewAdapter(
     override fun getItemCount(): Int = items.size
 
     fun updateItems(newItems: List<Item>) {
-        DiffUtil.calculateDiff(
-                DefaultDiffUtilCallback(
-                    items,
-                    if (items.isNotEmpty() && items[0] is Item.Spacer) listOf(items[0]) + newItems
-                    else newItems
-                )
-            )
-            .dispatchUpdatesTo(this)
+        DiffUtil.calculateDiff(DefaultDiffUtilCallback(items, newItems)).dispatchUpdatesTo(this)
         items = newItems
     }
 

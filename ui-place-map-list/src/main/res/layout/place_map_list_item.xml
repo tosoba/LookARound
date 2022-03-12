@@ -17,7 +17,7 @@
         android:layout_marginTop="5dp"
         app:cardCornerRadius="20dp"
         app:layout_constraintBottom_toTopOf="@id/place_map_name_text"
-        app:layout_constraintDimensionRatio="H,4:5"
+        app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -53,7 +53,7 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:paddingHorizontal="10dp"
-        android:paddingVertical="5dp"
+        android:paddingBottom="5dp"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"

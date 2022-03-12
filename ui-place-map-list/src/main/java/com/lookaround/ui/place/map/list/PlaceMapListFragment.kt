@@ -7,9 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.fragment.app.Fragment
@@ -79,6 +77,7 @@ class PlaceMapListFragment :
     private val reloadBitmapTrigger = MutableSharedFlow<Unit>()
 
     private var searchQuery: String = ""
+    private var searchFocused: Boolean = false
 
     private val placeMapsRecyclerViewAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -138,7 +137,14 @@ class PlaceMapListFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        savedInstanceState?.getString(SavedStateKey.SEARCH_QUERY.name)?.let(::searchQuery::set)
+        if (savedInstanceState != null) initFromSavedState(savedInstanceState)
+    }
+
+    private fun initFromSavedState(savedInstanceState: Bundle) {
+        with(savedInstanceState) {
+            getString(SavedStateKey.SEARCH_QUERY.name)?.let(::searchQuery::set)
+            searchFocused = getBoolean(SavedStateKey.SEARCH_FOCUSED.name)
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -186,16 +192,19 @@ class PlaceMapListFragment :
         binding.placeMapsSearchBar.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
-                    val searchQuery = searchQueryFlow.collectAsState(initial = "")
-                    val searchFocused = rememberSaveable { mutableStateOf(false) }
+                    val searchQueryState = searchQueryFlow.collectAsState(initial = searchQuery)
+                    var searchFocusedState by remember { mutableStateOf(searchFocused) }
                     SearchBar(
-                        query = searchQuery.value,
-                        focused = searchFocused.value,
+                        query = searchQueryState.value,
+                        focused = searchFocusedState,
                         onBackPressedDispatcher = requireActivity().onBackPressedDispatcher,
-                        onSearchFocusChange = searchFocused::value::set,
+                        onSearchFocusChange = {
+                            searchFocusedState = it
+                            searchFocused = it
+                        },
                         onTextFieldValueChange = {
                             searchQueryFlow.value = it.text
-                            this@PlaceMapListFragment.searchQuery = it.text
+                            searchQuery = it.text
                         },
                         modifier = Modifier.onSizeChanged { addPlaceTypesListTopSpacer(it.height) }
                     )
@@ -265,6 +274,7 @@ class PlaceMapListFragment :
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
+        outState.putBoolean(SavedStateKey.SEARCH_FOCUSED.name, searchFocused)
     }
 
     override fun onDestroyView() {
@@ -389,7 +399,8 @@ class PlaceMapListFragment :
     override fun onRegionDidChange(animated: Boolean) = Unit
 
     private enum class SavedStateKey {
-        SEARCH_QUERY
+        SEARCH_QUERY,
+        SEARCH_FOCUSED
     }
 
     private data class GetLocationBitmapRequest(
