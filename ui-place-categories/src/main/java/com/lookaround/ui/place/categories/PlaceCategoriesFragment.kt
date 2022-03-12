@@ -48,13 +48,13 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     private val mainViewModel: MainViewModel by activityViewModels()
 
     private var placeTypeListItems = ArrayList(allPlaceTypeListItems)
-
-    private val contrastingColorJobs = mutableMapOf<UUID, Job>()
     private val placeTypesAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
             PlaceTypesRecyclerViewAdapter(
                 placeTypeListItems,
                 object : ColorRecyclerViewAdapterCallbacks {
+                    private val contrastingColorJobs = mutableMapOf<UUID, Job>()
+
                     override fun onViewAttachedToWindow(uuid: UUID, action: (Int) -> Unit) {
                         if (contrastingColorJobs.containsKey(uuid)) return
                         contrastingColorJobs[uuid] =
@@ -140,8 +140,8 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     @Composable
     private fun PlaceCategoriesRecyclerView(searchQueryFlow: Flow<String>, topSpacerHeightPx: Int) {
         AndroidView(
-            factory = {
-                RecyclerView(it).apply {
+            factory = { context ->
+                RecyclerView(context).apply {
                     layoutParams =
                         FrameLayout.LayoutParams(
                             FrameLayout.LayoutParams.MATCH_PARENT,
