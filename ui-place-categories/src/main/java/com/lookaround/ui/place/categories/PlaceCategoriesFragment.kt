@@ -94,9 +94,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                 LookARoundTheme {
                     Column(
                         modifier =
-                            Modifier.onSizeChanged {
-                                topSpacerHeightPx = addPlaceTypesListTopSpacer(it.height)
-                            }
+                            Modifier.onSizeChanged { topSpacerHeightPx = addTopSpacer(it.height) }
                     ) {
                         SearchBar(
                             query = searchQueryState.value,
@@ -156,7 +154,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
         )
     }
 
-    private fun addPlaceTypesListTopSpacer(height: Int): Int {
+    private fun addTopSpacer(height: Int): Int {
         if (placeTypeListItems.first() is PlaceTypeListItem.Spacer) {
             binding.placeTypesRecyclerView.visibility = View.VISIBLE
             return height

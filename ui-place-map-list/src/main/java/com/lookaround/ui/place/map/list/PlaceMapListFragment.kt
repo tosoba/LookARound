@@ -231,7 +231,7 @@ class PlaceMapListFragment :
                             searchQueryFlow.value = it.text
                             searchQuery = it.text
                         },
-                        modifier = Modifier.onSizeChanged { addPlaceTypesListTopSpacer(it.height) }
+                        modifier = Modifier.onSizeChanged { addTopSpacer(it.height) }
                     )
                 }
             }
@@ -277,7 +277,7 @@ class PlaceMapListFragment :
         binding.placeMapsRecyclerView.addCollapseTopViewOnScrollListener(binding.placeMapsSearchBar)
     }
 
-    private fun addPlaceTypesListTopSpacer(height: Int) {
+    private fun addTopSpacer(height: Int) {
         if (placeMapsRecyclerViewAdapter.items[0] is PlaceMapsRecyclerViewAdapter.Item.Spacer) {
             binding.placeMapsRecyclerView.visibility = View.VISIBLE
             return

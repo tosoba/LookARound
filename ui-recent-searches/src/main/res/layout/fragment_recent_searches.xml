@@ -5,9 +5,17 @@
     android:layout_height="match_parent"
     android:animateLayoutChanges="true">
 
-    <androidx.compose.ui.platform.ComposeView
-        android:id="@+id/recent_searches_list"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recent_searches_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:paddingHorizontal="8dp"
+        android:visibility="invisible" />
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/recent_searches_search_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top" />
 
 </com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout>
