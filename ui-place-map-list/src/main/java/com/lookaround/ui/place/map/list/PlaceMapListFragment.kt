@@ -29,6 +29,7 @@ import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.composable.SearchBar
+import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.contrastingColorCallbacks
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
@@ -131,7 +132,7 @@ class PlaceMapListFragment :
                         reloadBitmapJobs.values.forEach(Job::cancel)
                     }
                 },
-                object : PlaceMapsRecyclerViewAdapter.UserLocationCallbacks {
+                object : LocationRecyclerViewAdapterCallbacks {
                     private val jobs = mutableMapOf<UUID, Job>()
 
                     override fun onBindViewHolder(

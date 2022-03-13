@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="recent_search_deleted">Recent search was deleted.</string>
+    <string name="recent_search_image_card">recent_search_image_card</string>
 </resources>

@@ -14,13 +14,14 @@ import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.recyclerview.ColorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
+import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
 import com.lookaround.ui.place.list.databinding.PlaceMapListItemBinding
 import java.util.*
 
 internal class PlaceMapsRecyclerViewAdapter(
     private val colorCallbacks: ColorRecyclerViewAdapterCallbacks,
     private val bitmapCallbacks: BitmapCallbacks,
-    private val userLocationCallbacks: UserLocationCallbacks,
+    private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks,
     private val onItemClicked: (Marker) -> Unit,
 ) : RecyclerView.Adapter<PlaceMapsRecyclerViewAdapter.ViewHolder>() {
     var items: List<Item> = emptyList()
@@ -117,12 +118,6 @@ internal class PlaceMapsRecyclerViewAdapter(
     sealed interface Item {
         data class Map(val marker: Marker) : Item
         data class Spacer(val heightPx: Int) : Item
-    }
-
-    interface UserLocationCallbacks {
-        fun onBindViewHolder(uuid: UUID, action: (userLocation: Location) -> Unit)
-        fun onViewDetachedFromWindow(uuid: UUID)
-        fun onDetachedFromRecyclerView()
     }
 
     interface BitmapCallbacks {
