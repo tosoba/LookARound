@@ -46,7 +46,13 @@ constructor(
                             val increment = RecentSearchesState.SEARCHES_LIMIT_INCREMENT
                             val nextLimit =
                                 searches.value.items.size / increment * increment + increment
-                            if (totalSearchesCount > nextLimit) currentQuery to nextLimit else null
+                            if (totalSearchesCount + RecentSearchesState.SEARCHES_LIMIT_INCREMENT >
+                                    nextLimit
+                            ) {
+                                currentQuery to nextLimit
+                            } else {
+                                null
+                            }
                         }
                         is Empty -> currentQuery to RecentSearchesState.SEARCHES_LIMIT_INCREMENT
                         else -> null

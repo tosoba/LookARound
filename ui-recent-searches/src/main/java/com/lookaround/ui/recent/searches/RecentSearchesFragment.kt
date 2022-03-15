@@ -21,6 +21,7 @@ import com.google.accompanist.insets.ProvideWindowInsets
 import com.lookaround.core.android.ext.addCollapseTopViewOnScrollListener
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.composable.*
+import com.lookaround.core.android.view.recyclerview.LoadMoreRecyclerViewScrollListener
 import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.contrastingColorCallbacks
 import com.lookaround.core.android.view.theme.LookARoundTheme
@@ -191,6 +192,13 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                 }
         binding.recentSearchesRecyclerView.addCollapseTopViewOnScrollListener(
             binding.recentSearchesSearchBar
+        )
+        binding.recentSearchesRecyclerView.addOnScrollListener(
+            LoadMoreRecyclerViewScrollListener {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    recentSearchesViewModel.intent(RecentSearchesIntent.LoadSearches(searchQuery))
+                }
+            }
         )
     }
 
