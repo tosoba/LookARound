@@ -163,8 +163,15 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
             .map(WithValue<ParcelableList<RecentSearchModel>>::value::get)
             .distinctUntilChanged()
             .onEach {
+                val recentSearchItems = it.map(RecentSearchesRecyclerViewAdapter.Item::Search)
                 recentSearchesRecyclerViewAdapter.updateItems(
-                    it.map(RecentSearchesRecyclerViewAdapter.Item::Search)
+                    if (recentSearchesRecyclerViewAdapter.items.firstOrNull() is
+                            RecentSearchesRecyclerViewAdapter.Item.Spacer
+                    ) {
+                        listOf(recentSearchesRecyclerViewAdapter.items.first()) + recentSearchItems
+                    } else {
+                        recentSearchItems
+                    }
                 )
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -188,7 +195,7 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
     }
 
     private fun addTopSpacer(height: Int) {
-        if (recentSearchesRecyclerViewAdapter.items[0] is
+        if (recentSearchesRecyclerViewAdapter.items.firstOrNull() is
                 RecentSearchesRecyclerViewAdapter.Item.Spacer
         ) {
             binding.recentSearchesRecyclerView.visibility = View.VISIBLE
