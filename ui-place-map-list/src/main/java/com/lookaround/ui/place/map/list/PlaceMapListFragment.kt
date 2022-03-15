@@ -254,8 +254,15 @@ class PlaceMapListFragment :
             }
             .distinctUntilChanged()
             .onEach { markers ->
+                val mapItems = markers.map(PlaceMapsRecyclerViewAdapter.Item::Map)
                 placeMapsRecyclerViewAdapter.updateItems(
-                    markers.map(PlaceMapsRecyclerViewAdapter.Item::Map)
+                    if (placeMapsRecyclerViewAdapter.items.firstOrNull() is
+                            PlaceMapsRecyclerViewAdapter.Item.Spacer
+                    ) {
+                        listOf(placeMapsRecyclerViewAdapter.items.first()) + mapItems
+                    } else {
+                        mapItems
+                    }
                 )
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
