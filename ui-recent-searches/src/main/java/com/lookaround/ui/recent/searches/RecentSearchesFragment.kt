@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.location.Location
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -86,6 +87,23 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                     override fun onDetachedFromRecyclerView() {
                         jobs.values.forEach(Job::cancel)
                     }
+                },
+                { (id, label, type) ->
+                    AlertDialog.Builder(requireContext())
+                        .setTitle(label)
+                        .setMessage(getString(R.string.remove_from_recent_searches))
+                        .setCancelable(true)
+                        .setPositiveButton(getString(R.string.remove)) { _, _ ->
+                            lifecycleScope.launch {
+                                recentSearchesViewModel.intent(
+                                    RecentSearchesIntent.DeleteSearch(id, type)
+                                )
+                            }
+                        }
+                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .show()
                 }
             ) { recentSearch ->
                 lifecycleScope.launch {

@@ -23,6 +23,7 @@ import java.util.*
 class RecentSearchesRecyclerViewAdapter(
     private val colorCallbacks: ColorRecyclerViewAdapterCallbacks,
     private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks,
+    private val onItemLongClicked: (RecentSearchModel) -> Unit,
     private val onItemClicked: (RecentSearchModel) -> Unit,
 ) : RecyclerView.Adapter<RecentSearchesRecyclerViewAdapter.ViewHolder>() {
     var items: List<Item> = emptyList()
@@ -78,6 +79,10 @@ class RecentSearchesRecyclerViewAdapter(
             }
         }
         binding.root.setOnClickListener { onItemClicked(item.search) }
+        binding.root.setOnLongClickListener {
+            onItemLongClicked(item.search)
+            true
+        }
     }
 
     override fun getItemCount(): Int = items.size

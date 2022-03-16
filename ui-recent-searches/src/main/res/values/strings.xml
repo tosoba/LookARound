@@ -2,4 +2,7 @@
 <resources>
     <string name="recent_search_deleted">Recent search was deleted.</string>
     <string name="recent_search_image_card">recent_search_image_card</string>
+    <string name="remove_from_recent_searches">Remove from recent searches?</string>
+    <string name="remove">Remove</string>
+    <string name="cancel">Cancel</string>
 </resources>
