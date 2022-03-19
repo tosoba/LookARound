@@ -206,6 +206,17 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                 }
 
         addCollapseTopViewOnScrollListener(binding.placeTypesSearchBar)
+        addOnScrollListener(
+            object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    val lm = (recyclerView.layoutManager as? GridLayoutManager) ?: return
+                    binding
+                        .disallowInterceptTouchContainer
+                        .shouldRequestDisallowInterceptTouchEvent =
+                        lm.findFirstCompletelyVisibleItemPosition() != 0
+                }
+            }
+        )
 
         searchQueryFlow
             .map { it.trim().lowercase() }
