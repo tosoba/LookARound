@@ -86,15 +86,25 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
 
     private fun initSearchBarWith(searchQueryFlow: MutableStateFlow<String>) {
         binding.placeTypesSearchBar.setContent {
+            val scope = rememberCoroutineScope()
+
+            val topSpacerHeightPx = remember { mutableStateOf(0) }
+            remember {
+                snapshotFlow(topSpacerHeightPx::value)
+                    .drop(1)
+                    .distinctUntilChanged()
+                    .debounce(500L)
+                    .onEach(::addTopSpacer)
+                    .launchIn(scope)
+            }
+
             val searchQueryState = searchQueryFlow.collectAsState(initial = searchQuery)
             var searchFocusedState by remember { mutableStateOf(searchFocused) }
-            var topSpacerHeightPx by remember { mutableStateOf(0) }
 
             ProvideWindowInsets {
                 LookARoundTheme {
                     Column(
-                        modifier =
-                            Modifier.onSizeChanged { topSpacerHeightPx = addTopSpacer(it.height) }
+                        modifier = Modifier.onSizeChanged { topSpacerHeightPx.value = it.height }
                     ) {
                         SearchBar(
                             query = searchQueryState.value,
@@ -109,7 +119,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                                 searchQuery = it.text
                             }
                         )
-                        PlaceCategoriesRecyclerView(searchQueryFlow, topSpacerHeightPx)
+                        PlaceCategoriesRecyclerView(searchQueryFlow, topSpacerHeightPx.value)
                     }
                 }
             }

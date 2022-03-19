@@ -145,13 +145,24 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
         binding.recentSearchesSearchBar.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
+                    val scope = rememberCoroutineScope()
+
+                    val topSpacerHeightPx = remember { mutableStateOf(0) }
+                    remember {
+                        snapshotFlow(topSpacerHeightPx::value)
+                            .drop(1)
+                            .distinctUntilChanged()
+                            .debounce(500L)
+                            .onEach(::addTopSpacer)
+                            .launchIn(scope)
+                    }
+
                     val emptyRecentSearches =
                         emptyRecentSearchesFlow.collectAsState(initial = false)
                     if (emptyRecentSearches.value) {
                         LaunchedEffect(true) { mainViewModel.signal(MainSignal.HideBottomSheet) }
                     }
 
-                    val scope = rememberCoroutineScope()
                     var searchFocusedState by remember { mutableStateOf(searchFocused) }
                     SearchBar(
                         query = searchQuery,
@@ -169,7 +180,7 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                                 )
                             }
                         },
-                        modifier = Modifier.onSizeChanged { addTopSpacer(it.height) }
+                        modifier = Modifier.onSizeChanged { topSpacerHeightPx.value = it.height }
                     )
                 }
             }

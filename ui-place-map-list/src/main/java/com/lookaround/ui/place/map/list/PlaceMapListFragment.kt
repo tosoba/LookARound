@@ -217,8 +217,21 @@ class PlaceMapListFragment :
         binding.placeMapsSearchBar.setContent {
             ProvideWindowInsets {
                 LookARoundTheme {
+                    val scope = rememberCoroutineScope()
+
+                    val topSpacerHeightPx = remember { mutableStateOf(0) }
+                    remember {
+                        snapshotFlow(topSpacerHeightPx::value)
+                            .drop(1)
+                            .distinctUntilChanged()
+                            .debounce(500L)
+                            .onEach(::addTopSpacer)
+                            .launchIn(scope)
+                    }
+
                     val searchQueryState = searchQueryFlow.collectAsState(initial = searchQuery)
                     var searchFocusedState by remember { mutableStateOf(searchFocused) }
+
                     SearchBar(
                         query = searchQueryState.value,
                         focused = searchFocusedState,
@@ -231,7 +244,7 @@ class PlaceMapListFragment :
                             searchQueryFlow.value = it.text
                             searchQuery = it.text
                         },
-                        modifier = Modifier.onSizeChanged { addTopSpacer(it.height) }
+                        modifier = Modifier.onSizeChanged { topSpacerHeightPx.value = it.height }
                     )
                 }
             }
