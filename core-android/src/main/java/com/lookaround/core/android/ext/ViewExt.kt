@@ -10,8 +10,6 @@ import android.view.animation.TranslateAnimation
 import androidx.annotation.IntRange
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
-import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.lookaround.core.android.R
 
@@ -87,12 +85,4 @@ fun View.setListBackgroundItemDrawableWith(
     backgroundLayer.color =
         ColorStateList.valueOf(ColorUtils.setAlphaComponent(contrastingColor, alpha))
     background = backgroundDrawable
-}
-
-fun ViewPager2.disableNestedScrolling() {
-    (getChildAt(0) as? RecyclerView)?.apply {
-        isNestedScrollingEnabled = false
-        overScrollMode = View.OVER_SCROLL_NEVER
-    }
-        ?: throw IllegalStateException("First child of the ViewPager is not of type RecyclerView.")
 }

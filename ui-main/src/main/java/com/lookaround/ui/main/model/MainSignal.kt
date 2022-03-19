@@ -1,12 +1,14 @@
 package com.lookaround.ui.main.model
 
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 
 sealed interface MainSignal {
     object UnableToLoadPlacesWithoutLocation : MainSignal
     object UnableToLoadPlacesWithoutConnection : MainSignal
     data class TopFragmentChanged(val cameraObscured: Boolean, val onResume: Boolean) : MainSignal
-    data class BottomSheetStateChanged(@BottomSheetBehavior.State val state: Int) : MainSignal
+    data class BottomSheetStateChanged(
+        @ViewPagerBottomSheetBehavior.State val state: Int,
+    ) : MainSignal
     object HideBottomSheet : MainSignal
     data class PlacesLoadingFailed(val throwable: Throwable) : MainSignal
     data class SnackbarStatusChanged(val isShowing: Boolean) : MainSignal

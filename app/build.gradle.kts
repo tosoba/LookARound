@@ -77,6 +77,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-insets:0.20.1")
     implementation("com.google.accompanist:accompanist-coil:0.15.0")
     implementation("io.github.hokofly:hoko-blur:1.3.7")
+    implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
 
     implementation("androidx.compose.runtime:runtime:1.2.0-alpha02")
     implementation("androidx.compose.compiler:compiler:1.2.0-alpha02")

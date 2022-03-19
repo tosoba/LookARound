@@ -15,7 +15,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.ViewPagerBottomSheetBehavior
 import com.hoko.blur.HokoBlur
 import com.hoko.blur.processor.BlurProcessor
 import com.lookaround.core.android.ext.*
@@ -412,7 +412,7 @@ class MapFragment :
                     ?.apply { animate() }
             skipFirstBottomSheetSignal = true
         } else if (mainViewModel.state.lastLiveBottomSheetState ==
-                BottomSheetBehavior.STATE_EXPANDED
+                ViewPagerBottomSheetBehavior.STATE_EXPANDED
         ) {
             viewLifecycleOwner.lifecycleScope.launch { showAndBlurMapImage() }
             skipFirstBottomSheetSignal = true
@@ -422,9 +422,9 @@ class MapFragment :
             .filterSignals(MainSignal.BottomSheetStateChanged::state)
             .run { if (skipFirstBottomSheetSignal) drop(1) else this }
             .onEach { sheetState ->
-                if (sheetState == BottomSheetBehavior.STATE_EXPANDED) {
+                if (sheetState == ViewPagerBottomSheetBehavior.STATE_EXPANDED) {
                     showAndBlurMapImage()
-                } else if (sheetState == BottomSheetBehavior.STATE_HIDDEN) {
+                } else if (sheetState == ViewPagerBottomSheetBehavior.STATE_HIDDEN) {
                     reverseBlurAndHideMapImage()
                 }
             }

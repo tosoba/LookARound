@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.model.*
 import com.lookaround.ui.main.model.MainSignal
@@ -57,9 +58,9 @@ val MainViewModel.nearMeFabVisibilityUpdates: Flow<Boolean>
             ) { sheetState, isSnackbarShowing, noMarkers ->
                 noMarkers &&
                     !isSnackbarShowing &&
-                    sheetState != BottomSheetBehavior.STATE_EXPANDED &&
-                    sheetState != BottomSheetBehavior.STATE_DRAGGING &&
-                    sheetState != BottomSheetBehavior.STATE_SETTLING
+                    sheetState != ViewPagerBottomSheetBehavior.STATE_EXPANDED &&
+                    sheetState != ViewPagerBottomSheetBehavior.STATE_DRAGGING &&
+                    sheetState != ViewPagerBottomSheetBehavior.STATE_SETTLING
             }
             .distinctUntilChanged()
 

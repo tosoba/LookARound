@@ -2,6 +2,7 @@ package com.lookaround.ui.camera
 
 import androidx.camera.view.PreviewView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.exception.GooglePayServicesNotAvailableException
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException
@@ -186,9 +187,9 @@ internal fun cameraObscuredUpdates(
             CameraObscuredUpdate(
                 obscuredByFragment = obscured,
                 obscuredByBottomSheet =
-                    sheetState == BottomSheetBehavior.STATE_EXPANDED ||
-                        sheetState == BottomSheetBehavior.STATE_DRAGGING ||
-                        sheetState == BottomSheetBehavior.STATE_SETTLING,
+                    sheetState == ViewPagerBottomSheetBehavior.STATE_EXPANDED ||
+                        sheetState == ViewPagerBottomSheetBehavior.STATE_DRAGGING ||
+                        sheetState == ViewPagerBottomSheetBehavior.STATE_SETTLING,
             )
         }
         .distinctUntilChanged()

@@ -52,7 +52,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
 
     implementation("com.google.android.material:material:1.5.0")
-    implementation("biz.laenger.android:vpbs:0.0.6")
+    implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
 
     implementation("androidx.compose.runtime:runtime:1.2.0-alpha02")
     implementation("androidx.compose.compiler:compiler:1.2.0-alpha02")

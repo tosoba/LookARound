@@ -218,17 +218,6 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                 }
             }
         )
-        binding.recentSearchesRecyclerView.addOnScrollListener(
-            object : RecyclerView.OnScrollListener() {
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    val lm = (recyclerView.layoutManager as? GridLayoutManager) ?: return
-                    binding
-                        .disallowInterceptTouchContainer
-                        .shouldRequestDisallowInterceptTouchEvent =
-                        lm.findFirstCompletelyVisibleItemPosition() != 0
-                }
-            }
-        )
     }
 
     private fun addTopSpacer(height: Int) {

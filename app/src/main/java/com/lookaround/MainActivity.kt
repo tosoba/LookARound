@@ -38,11 +38,10 @@ import androidx.viewpager2.widget.ViewPager2
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.ViewPagerBottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.Marker
@@ -94,7 +93,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
     private val shouldUpdateLastLiveBottomSheetState: Boolean
         get() =
             viewsInteractionEnabled &&
-                bottomSheetBehavior.state != BottomSheetBehavior.STATE_SETTLING
+                bottomSheetBehavior.state != ViewPagerBottomSheetBehavior.STATE_SETTLING
 
     private val viewsInteractionEnabled: Boolean
         get() = currentTopFragment !is CameraFragment || latestARState == CameraARState.ENABLED
@@ -107,6 +106,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
                 lifecycleScope.launch {
                     viewModel.intent(MainIntent.BottomNavigationViewItemSelected(menuItem.itemId))
                 }
+
                 if (menuItem.itemId == R.id.action_unchecked || !menuItem.isVisible) {
                     return@OnItemSelectedListener true
                 }
@@ -120,11 +120,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
                             else -> throw IllegalArgumentException()
                         }
                     ),
-                    bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED
+                    bottomSheetBehavior.state == ViewPagerBottomSheetBehavior.STATE_EXPANDED
                 )
 
                 if (viewsInteractionEnabled) {
-                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                    bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_EXPANDED
                 }
 
                 true
@@ -171,7 +171,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
     }
 
     override fun onPause() {
-        if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) {
+        if (bottomSheetBehavior.state == ViewPagerBottomSheetBehavior.STATE_HIDDEN) {
             binding.bottomNavigationView.visibility = View.GONE
         }
         binding.nearMeFab.visibility = View.GONE
@@ -197,8 +197,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
     }
 
     override fun onBackPressed() {
-        if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        if (bottomSheetBehavior.state == ViewPagerBottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
             if (viewModel.state.searchFocused) super.onBackPressed()
         } else if (binding.mainDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
             binding.mainDrawerLayout.closeDrawer(Gravity.LEFT)
@@ -237,7 +237,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         binding.bottomNavigationView.visibility = View.GONE
         binding.nearMeFab.visibility = View.GONE
         binding.bottomSheetViewPager.visibility = View.GONE
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
     }
 
     private fun onAREnabled() {
@@ -263,7 +263,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         binding.bottomNavigationView.visibility = View.GONE
         binding.nearMeFab.visibility = View.GONE
         binding.bottomSheetViewPager.visibility = View.GONE
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
     }
 
     private suspend fun signalTopFragmentChanged(onResume: Boolean) {
@@ -407,8 +407,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
     }
 
     private fun initBottomSheet() {
-        bottomSheetBehavior.addBottomSheetCallback(
-            object : BottomSheetBehavior.BottomSheetCallback() {
+        bottomSheetBehavior.setBottomSheetCallback(
+            object : ViewPagerBottomSheetBehavior.BottomSheetCallback() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) =
                     onBottomSheetStateChanged(newState)
                 override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
@@ -420,8 +420,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             .debounce(500L)
             .onEach { sheetState ->
                 when (sheetState) {
-                    BottomSheetBehavior.STATE_EXPANDED -> setSearchbarVisibility(View.GONE)
-                    BottomSheetBehavior.STATE_HIDDEN -> {
+                    ViewPagerBottomSheetBehavior.STATE_EXPANDED -> setSearchbarVisibility(View.GONE)
+                    ViewPagerBottomSheetBehavior.STATE_HIDDEN -> {
                         if (viewsInteractionEnabled) setSearchbarVisibility(View.VISIBLE)
                         binding.bottomNavigationView.selectedItemId = R.id.action_unchecked
                     }
@@ -431,7 +431,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
 
         viewModel
             .onEachSignal<MainSignal.HideBottomSheet> {
-                bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+                bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
                 binding.bottomNavigationView.selectedItemId = R.id.action_unchecked
             }
             .launchIn(lifecycleScope)
@@ -442,7 +442,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             registerOnPageChangeCallback(
                 object : ViewPager2.OnPageChangeCallback() {
                     override fun onPageSelected(position: Int) {
-                        if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) return
+                        if (bottomSheetBehavior.state == ViewPagerBottomSheetBehavior.STATE_HIDDEN)
+                            return
+
                         binding.bottomNavigationView.selectedItemId =
                             when (bottomSheetViewPagerAdapter.fragmentFactories[position]) {
                                 MainFragmentFactory.PLACE_CATEGORIES -> R.id.action_place_categories
@@ -450,11 +452,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
                                 MainFragmentFactory.RECENT_SEARCHES -> R.id.action_recent_searches
                                 else -> throw IllegalArgumentException()
                             }
-                        binding.bottomSheetViewPager.post(bottomSheetBehavior::updateScrollingChild)
                     }
                 }
             )
-            disableNestedScrolling()
         }
 
         combine(
@@ -542,8 +542,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             .launchIn(lifecycleScope)
     }
 
-    private fun onBottomSheetStateChanged(@BottomSheetBehavior.State sheetState: Int) {
-        if (sheetState != BottomSheetBehavior.STATE_SETTLING && viewsInteractionEnabled) {
+    private fun onBottomSheetStateChanged(@ViewPagerBottomSheetBehavior.State sheetState: Int) {
+        if (sheetState != ViewPagerBottomSheetBehavior.STATE_SETTLING && viewsInteractionEnabled) {
             lifecycleScope.launch {
                 viewModel.intent(MainIntent.LiveBottomSheetStateChanged(sheetState))
             }

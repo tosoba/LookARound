@@ -73,6 +73,7 @@ dependencies {
     implementation("com.facebook.shimmer:shimmer:0.5.0")
     implementation("io.github.hokofly:hoko-blur:1.3.7")
     implementation("androidx.palette:palette:1.0.0")
+    implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
 
     implementation("com.google.dagger:hilt-android:2.40")
     kapt("com.google.dagger:hilt-android-compiler:2.40")

@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.os.Parcelable
 import androidx.collection.LruCache
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.model.Empty
 import com.lookaround.core.android.model.Loadable
 import com.lookaround.core.android.model.Marker
@@ -17,7 +17,7 @@ import kotlinx.parcelize.Parcelize
 data class MainState(
     val markers: Loadable<ParcelableSortedSet<Marker>> = Empty,
     val locationState: Loadable<Location> = Empty,
-    val lastLiveBottomSheetState: Int = BottomSheetBehavior.STATE_HIDDEN,
+    val lastLiveBottomSheetState: Int = ViewPagerBottomSheetBehavior.STATE_HIDDEN,
     val selectedBottomNavigationViewItemId: Int = R.id.action_unchecked,
     val recentSearchesCount: Int = 0,
     val autocompleteSearchQuery: String = "",

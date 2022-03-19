@@ -52,6 +52,7 @@ dependencies {
     implementation("com.facebook.shimmer:shimmer:0.5.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
     implementation("io.github.hokofly:hoko-blur:1.3.7")
+    implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.3.6")
