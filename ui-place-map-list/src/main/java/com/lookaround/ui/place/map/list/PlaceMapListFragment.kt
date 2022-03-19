@@ -96,14 +96,13 @@ class PlaceMapListFragment :
                         onBitmapLoadingStarted: () -> Unit,
                         onBitmapLoaded: (bitmap: Bitmap) -> Unit
                     ) {
-                        loadBitmap(uuid, location, onBitmapLoaded)
+                        loadBitmap(uuid, location,onBitmapLoadingStarted, onBitmapLoaded)
                         if (!reloadBitmapJobs.containsKey(uuid)) {
                             reloadBitmapJobs[uuid] =
                                 reloadBitmapTrigger
                                     .onEach {
                                         loadBitmapJobs.remove(uuid)?.cancel()
-                                        onBitmapLoadingStarted()
-                                        loadBitmap(uuid, location, onBitmapLoaded)
+                                        loadBitmap(uuid, location,onBitmapLoadingStarted, onBitmapLoaded)
                                     }
                                     .launchIn(viewLifecycleOwner.lifecycleScope)
                         }
@@ -112,9 +111,11 @@ class PlaceMapListFragment :
                     private fun loadBitmap(
                         uuid: UUID,
                         location: Location,
+                        onBitmapLoadingStarted: () -> Unit,
                         action: (bitmap: Bitmap) -> Unit
                     ) {
                         if (!loadBitmapJobs.containsKey(uuid)) {
+                            onBitmapLoadingStarted()
                             loadBitmapJobs[uuid] =
                                 viewLifecycleOwner.lifecycleScope
                                     .launch { action(getBitmapFor(location)) }

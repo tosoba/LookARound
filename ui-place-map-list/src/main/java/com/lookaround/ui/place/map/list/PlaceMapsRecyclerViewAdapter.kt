@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
+import com.facebook.shimmer.Shimmer
+import com.facebook.shimmer.ShimmerDrawable
 import com.lookaround.core.android.databinding.SpacerItemBinding
 import com.lookaround.core.android.ext.formattedDistanceTo
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
@@ -78,12 +80,26 @@ internal class PlaceMapsRecyclerViewAdapter(
     private fun bindMapItem(holder: ViewHolder, item: Item.Map) {
         val binding = holder.binding as PlaceMapListItemBinding
         binding.placeMapNameText.text = item.marker.name
+
+        val shimmerDrawable =
+            ShimmerDrawable().apply {
+                setShimmer(
+                    Shimmer.AlphaHighlightBuilder()
+                        .setDuration(1000L)
+                        .setBaseAlpha(0.8f)
+                        .setHighlightAlpha(0.5f)
+                        .setDirection(Shimmer.Direction.LEFT_TO_RIGHT)
+                        .setAutoStart(true)
+                        .build()
+                )
+            }
         bitmapCallbacks.onBindViewHolder(
             holder.uuid,
             item.marker.location,
-            onBitmapLoadingStarted = { binding.placeMapImage.background = null },
+            onBitmapLoadingStarted = { binding.placeMapImage.background = shimmerDrawable },
             onBitmapLoaded = { bitmap -> binding.placeMapImage.setImageBitmap(bitmap) }
         )
+
         userLocationCallbacks.onBindViewHolder(holder.uuid) { userLocation ->
             binding.placeMapDistanceText.text =
                 userLocation.formattedDistanceTo(item.marker.location)
