@@ -1,8 +1,7 @@
 package com.lookaround.ui.camera
 
 import androidx.camera.view.PreviewView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.ViewPagerBottomSheetBehavior
+import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.exception.GooglePayServicesNotAvailableException
 import com.lookaround.core.android.exception.LocationDisabledException
 import com.lookaround.core.android.exception.LocationPermissionDeniedException

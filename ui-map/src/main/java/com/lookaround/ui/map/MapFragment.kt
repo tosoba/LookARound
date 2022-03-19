@@ -15,9 +15,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.google.android.material.bottomsheet.ViewPagerBottomSheetBehavior
 import com.hoko.blur.HokoBlur
 import com.hoko.blur.processor.BlurProcessor
+import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.ext.MarkerPickResult
 import com.lookaround.core.android.map.clustering.ClusterManager
