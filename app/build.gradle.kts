@@ -76,7 +76,6 @@ dependencies {
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
     implementation("com.google.accompanist:accompanist-insets:0.20.1")
     implementation("com.google.accompanist:accompanist-coil:0.15.0")
-    implementation("biz.laenger.android:vpbs:0.0.6")
     implementation("io.github.hokofly:hoko-blur:1.3.7")
 
     implementation("androidx.compose.runtime:runtime:1.2.0-alpha02")
