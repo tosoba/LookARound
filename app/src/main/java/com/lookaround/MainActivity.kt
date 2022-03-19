@@ -442,8 +442,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             registerOnPageChangeCallback(
                 object : ViewPager2.OnPageChangeCallback() {
                     override fun onPageSelected(position: Int) {
-                        if (bottomSheetBehavior.state == ViewPagerBottomSheetBehavior.STATE_HIDDEN)
+                        if (bottomSheetBehavior.state ==
+                                ViewPagerBottomSheetBehavior.STATE_HIDDEN ||
+                                binding.bottomNavigationView.selectedItemId == R.id.action_unchecked
+                        ) {
                             return
+                        }
 
                         binding.bottomNavigationView.selectedItemId =
                             when (bottomSheetViewPagerAdapter.fragmentFactories[position]) {
