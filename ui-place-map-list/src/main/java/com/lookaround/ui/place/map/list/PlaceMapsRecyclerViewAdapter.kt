@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
@@ -34,8 +33,8 @@ internal class PlaceMapsRecyclerViewAdapter(
                 ViewType.SPACER -> {
                     SpacerItemBinding.inflate(inflater, parent, false).apply {
                         root.layoutParams =
-                            FrameLayout.LayoutParams(
-                                FrameLayout.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
                                 (items[0] as Item.Spacer).heightPx
                             )
                     }

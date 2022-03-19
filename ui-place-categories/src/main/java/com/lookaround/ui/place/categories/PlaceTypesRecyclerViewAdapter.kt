@@ -2,7 +2,6 @@ package com.lookaround.ui.place.categories
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -30,8 +29,8 @@ internal class PlaceTypesRecyclerViewAdapter(
                 ViewType.SPACER ->
                     SpacerItemBinding.inflate(inflater, parent, false).apply {
                         root.layoutParams =
-                            FrameLayout.LayoutParams(
-                                FrameLayout.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
                                 (items[0] as PlaceTypeListItem.Spacer).heightPx
                             )
                     }

@@ -2,7 +2,6 @@ package com.lookaround.ui.recent.searches
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -37,8 +36,8 @@ class RecentSearchesRecyclerViewAdapter(
                 ViewType.SPACER -> {
                     SpacerItemBinding.inflate(inflater, parent, false).apply {
                         root.layoutParams =
-                            FrameLayout.LayoutParams(
-                                FrameLayout.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
                                 (items[0] as Item.Spacer).heightPx
                             )
                     }
