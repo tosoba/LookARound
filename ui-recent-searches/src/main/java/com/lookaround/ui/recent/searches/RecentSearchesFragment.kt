@@ -105,13 +105,12 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                         }
                         .show()
                 }
-            ) { recentSearch ->
+            ) { (id, _, type) ->
                 lifecycleScope.launch {
                     mainViewModel.intent(
-                        when (recentSearch.type) {
-                            SearchType.AROUND -> MainIntent.LoadSearchAroundResults(recentSearch.id)
-                            SearchType.AUTOCOMPLETE ->
-                                MainIntent.LoadSearchAutocompleteResults(recentSearch.id)
+                        when (type) {
+                            SearchType.AROUND -> MainIntent.LoadSearchAroundResults(id)
+                            SearchType.AUTOCOMPLETE -> MainIntent.LoadSearchAutocompleteResults(id)
                         }
                     )
                     mainViewModel.signal(MainSignal.HideBottomSheet)

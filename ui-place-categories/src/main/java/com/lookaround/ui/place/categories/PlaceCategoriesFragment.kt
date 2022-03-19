@@ -165,7 +165,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     }
 
     private fun addTopSpacer(height: Int): Int {
-        if (placeTypeListItems.first() is PlaceTypeListItem.Spacer) {
+        if (placeTypeListItems.firstOrNull() is PlaceTypeListItem.Spacer) {
             binding.placeTypesRecyclerView.visibility = View.VISIBLE
             return height
         }
