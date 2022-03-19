@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/disallow_intercept_touch_container"
     android:layout_width="match_parent"
@@ -73,4 +73,4 @@
 
     </LinearLayout>
 
-</com.lookaround.core.android.view.DisallowInterceptTouchEventFrameLayout>
+</FrameLayout>
