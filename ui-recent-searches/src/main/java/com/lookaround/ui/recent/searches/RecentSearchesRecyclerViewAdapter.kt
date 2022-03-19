@@ -15,6 +15,7 @@ import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.view.recyclerview.ColorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
+import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
 import com.lookaround.core.model.SearchType
 import com.lookaround.ui.recent.searches.databinding.RecentSearchListItemBinding
 import com.lookaround.ui.recent.searches.model.RecentSearchModel
@@ -69,9 +70,7 @@ class RecentSearchesRecyclerViewAdapter(
             }
         }
         binding.recentSearchNameText.text =
-            item.search.label.replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-            }
+            item.search.label.titleCaseWithSpacesInsteadOfUnderscores
         binding.recentSearchTimestampText.text = TimeAgo.using(item.search.lastSearchedAt.time)
         item.search.location?.let {
             userLocationCallbacks.onBindViewHolder(holder.uuid) { userLocation ->

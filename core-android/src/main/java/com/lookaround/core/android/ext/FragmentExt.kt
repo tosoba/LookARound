@@ -6,7 +6,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
 import com.lookaround.core.android.R
-import com.lookaround.core.android.architecture.ListFragmentHost
 import kotlin.properties.ReadOnlyProperty
 
 fun FragmentTransaction.setSlideInFromBottom() {
@@ -19,15 +18,17 @@ fun FragmentTransaction.setSlideInFromBottom() {
 }
 
 inline fun <reified T> nullableArgument(name: String? = null): ReadOnlyProperty<Fragment, T?> =
-        ReadOnlyProperty { thisRef, property ->
-    thisRef.arguments?.get(name ?: property.name) as? T
-}
+    ReadOnlyProperty { thisRef, property ->
+        thisRef.arguments?.get(name ?: property.name) as? T
+    }
 
 inline fun <reified T> argument(name: String? = null): ReadOnlyProperty<Fragment, T> =
-        ReadOnlyProperty { thisRef, property ->
-    thisRef.arguments?.get(name ?: property.name) as? T
-        ?: throw RuntimeException("Argument named: ${name?:property.name} not present in bundle.")
-}
+    ReadOnlyProperty { thisRef, property ->
+        thisRef.arguments?.get(name ?: property.name) as? T
+            ?: throw RuntimeException(
+                "Argument named: ${name?:property.name} not present in bundle."
+            )
+    }
 
 fun FragmentActivity.fragmentTransaction(
     autoCommit: Boolean = true,
@@ -58,14 +59,8 @@ fun Fragment.getListItemDimensionPx(
     val displayMetrics = resources.displayMetrics
     val orientation = resources.configuration.orientation
     return (displayMetrics.widthPixels -
-            spacingPx *
+        spacingPx *
             (if (orientation == Configuration.ORIENTATION_LANDSCAPE) itemsLandscape + 1
             else itemsPortrait + 1)) /
-            (if (orientation == Configuration.ORIENTATION_LANDSCAPE) itemsLandscape
-            else itemsPortrait)
+        (if (orientation == Configuration.ORIENTATION_LANDSCAPE) itemsLandscape else itemsPortrait)
 }
-
-val Fragment.listItemBackground: ListFragmentHost.ItemBackground
-    get() =
-        (activity as? ListFragmentHost)?.listItemBackground
-            ?: ListFragmentHost.ItemBackground.TRANSPARENT

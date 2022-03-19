@@ -10,11 +10,9 @@ import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -25,11 +23,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.iterator
 import androidx.fragment.app.Fragment
@@ -42,15 +37,12 @@ import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
-import com.lookaround.core.android.architecture.ListFragmentHost
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.model.hasValue
 import com.lookaround.core.android.view.composable.SearchBar
 import com.lookaround.core.android.view.theme.LookARoundTheme
-import com.lookaround.core.android.view.theme.Ocean0
-import com.lookaround.core.android.view.theme.Ocean2
 import com.lookaround.core.android.view.viewpager.DiffUtilFragmentStateAdapter
 import com.lookaround.core.model.SearchType
 import com.lookaround.databinding.ActivityMainBinding
@@ -206,11 +198,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             super.onBackPressed()
         }
     }
-
-    override val listItemBackground: ListFragmentHost.ItemBackground
-        get() =
-            if (currentTopFragment is CameraFragment) ListFragmentHost.ItemBackground.TRANSPARENT
-            else ListFragmentHost.ItemBackground.OPAQUE
 
     override fun onPlaceMapItemClick(marker: Marker) {
         if (!lifecycle.isResumed) return
@@ -370,27 +357,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
     @Composable
     private fun RecentSearchesList() {
         val scope = rememberCoroutineScope()
-        val opaqueBackgroundFlow = remember {
-            viewModel
-                .listFragmentItemBackgroundUpdates
-                .map { it == ListFragmentHost.ItemBackground.OPAQUE }
-                .distinctUntilChanged()
-        }
-        val opaqueBackground =
-            opaqueBackgroundFlow.collectAsState(
-                initial = listItemBackground == ListFragmentHost.ItemBackground.OPAQUE
-            )
-        val itemBackgroundAlpha = if (opaqueBackground.value) .95f else .55f
-        val backgroundGradientBrush = Brush.horizontalGradient(colors = listOf(Ocean2, Ocean0))
         RecentSearchesChipList(
             modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            chipModifier =
-                Modifier.clip(RoundedCornerShape(20.dp))
-                    .background(
-                        brush = backgroundGradientBrush,
-                        shape = RoundedCornerShape(20.dp),
-                        alpha = itemBackgroundAlpha,
-                    ),
             onMoreClicked = {
                 binding.bottomNavigationView.selectedItemId = R.id.action_recent_searches
             }
