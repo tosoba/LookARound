@@ -215,7 +215,7 @@ class CameraFragment :
             listOf(
                 RoundedRectF(
                     requireContext().bottomNavigationViewRectF,
-                    100f
+                    OpenGLRenderer.MARKER_RECT_CORNER_RADIUS
                 )
             )
 

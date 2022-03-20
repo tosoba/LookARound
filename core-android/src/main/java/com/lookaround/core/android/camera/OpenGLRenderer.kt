@@ -36,8 +36,8 @@ class OpenGLRenderer {
 
         private val RENDERER_COUNT = AtomicInteger(0)
 
+        const val MARKER_RECT_CORNER_RADIUS = 100f
         private const val MARKER_RECTS_MAX_SIZE = 24
-        private const val MARKER_RECT_CORNER_RADIUS = 100f
         private const val COORDINATES_PER_RECT = 5
     }
 
