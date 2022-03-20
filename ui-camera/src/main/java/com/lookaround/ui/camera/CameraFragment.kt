@@ -212,7 +212,12 @@ class CameraFragment :
             cameraMarkerRenderer.drawnRectsFlow.collect(openGLRenderer::setMarkerRects)
         }
         openGLRenderer.otherRects =
-            listOf(RoundedRectF(requireContext().bottomNavigationViewRectF, 0f))
+            listOf(
+                RoundedRectF(
+                    requireContext().bottomNavigationViewRectF,
+                    100f
+                )
+            )
 
         viewLifecycleOwner.lifecycleScope.launchWhenResumed {
             cameraViewObscuredUpdates(mainViewModel, cameraViewModel).collectIndexed {
