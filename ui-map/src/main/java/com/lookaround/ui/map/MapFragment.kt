@@ -97,9 +97,6 @@ class MapFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainViewModel.state.bitmapCache.get(javaClass.name)?.let { blurredBackground ->
             binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
-            viewLifecycleOwner.lifecycleScope.launch {
-                mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurredBackground))
-            }
         }
 
         lifecycleScope.launchWhenResumed {
@@ -492,9 +489,6 @@ class MapFragment :
                 val blurredBackground =
                     withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
                 binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
-                viewLifecycleOwner.lifecycleScope.launch {
-                    mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurredBackground))
-                }
                 mainViewModel.state.bitmapCache.put(
                     this@MapFragment.javaClass.name,
                     blurredBackground

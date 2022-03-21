@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.iterator
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
@@ -133,7 +134,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
 
         supportFragmentManager.addOnBackStackChangedListener {
             lifecycleScope.launchWhenResumed {
-                signalTopFragmentChanged(false)
+                signalTopFragmentChanged()
                 viewModel.signal(MainSignal.BottomSheetStateChanged(bottomSheetBehavior.state))
             }
             setSearchbarVisibility(View.VISIBLE)
@@ -184,7 +185,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         }
 
         lifecycleScope.launchWhenResumed {
-            signalTopFragmentChanged(true)
+            signalTopFragmentChanged()
             viewModel.signal(MainSignal.BottomSheetStateChanged(bottomSheetBehavior.state))
         }
     }
@@ -254,11 +255,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
     }
 
-    private suspend fun signalTopFragmentChanged(onResume: Boolean) {
+    private suspend fun signalTopFragmentChanged() {
         viewModel.signal(
             MainSignal.TopFragmentChanged(
                 cameraObscured = currentTopFragment !is CameraFragment,
-                onResume
             )
         )
     }
@@ -274,6 +274,40 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             binding.mainDrawerLayout.closeDrawer(Gravity.LEFT)
             true
         }
+
+        fun onDrawerToggled(open: Boolean) {
+            lifecycleScope.launch { viewModel.signal(MainSignal.DrawerToggled(open)) }
+        }
+
+        onDrawerToggled(binding.mainDrawerLayout.isDrawerOpen(binding.drawerNavigationView))
+
+        binding.mainDrawerLayout.addDrawerListener(
+            object : DrawerLayout.DrawerListener {
+                private var lastState: Int = DrawerLayout.STATE_IDLE
+
+                override fun onDrawerOpened(drawerView: View) {
+                    onDrawerToggled(true)
+                }
+
+                override fun onDrawerClosed(drawerView: View) {
+                    onDrawerToggled(false)
+                }
+
+                override fun onDrawerStateChanged(newState: Int) {
+                    if (lastState == DrawerLayout.STATE_IDLE &&
+                            newState == DrawerLayout.STATE_DRAGGING
+                    ) {
+                        viewModel.state.bitmapCache.get(javaClass.name)?.let { blurredBackground ->
+                            binding.drawerNavigationView.background =
+                                BitmapDrawable(resources, blurredBackground)
+                        }
+                    }
+                    lastState = newState
+                }
+
+                override fun onDrawerSlide(drawerView: View, slideOffset: Float) = Unit
+            }
+        )
 
         viewModel
             .filterSignals(MainSignal.BlurBackgroundUpdated::bitmap)

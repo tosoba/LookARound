@@ -105,9 +105,6 @@ class CameraFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainViewModel.state.bitmapCache.get(javaClass.name)?.let { blurredBackground ->
             binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
-            viewLifecycleOwner.lifecycleScope.launch {
-                mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurredBackground))
-            }
         }
 
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
@@ -191,22 +188,21 @@ class CameraFragment :
                 combine(
                     cameraMarkerRenderer.markersDrawnFlow,
                     cameraViewModel.mapStates(CameraState::firstMarkerIndex),
-                    mainViewModel.mapStates(MainState::markers).distinctUntilChanged().map {
-                        if (it is WithValue) it.value.size else 0
-                    },
+                    mainViewModel
+                        .mapStates(MainState::markers)
+                        .map { if (it is WithValue) it.value.size else 0 }
+                        .distinctUntilChanged(),
                     cameraObscuredUpdates(mainViewModel, cameraViewModel)
-                ) {
-                    markersDrawn,
-                    firstMarkerIndex,
-                    markersSize,
-                    (cameraObscuredByFragment, cameraObscuredByBottomSheet) ->
+                        .map(CameraObscuredUpdate::obscured::get)
+                        .distinctUntilChanged()
+                ) { markersDrawn, firstMarkerIndex, markersSize, cameraObscured ->
                     val (currentPage, maxPage) = markersDrawn
                     CameraMarkersDrawnViewUpdate(
                         firstMarkerIndex = firstMarkerIndex,
                         markersSize = markersSize,
                         currentPage = currentPage,
                         maxPage = maxPage,
-                        cameraObscured = cameraObscuredByFragment || cameraObscuredByBottomSheet
+                        cameraObscured = cameraObscured
                     )
                 }
             markersDrawnUpdates.distinctUntilChanged().collect { onMarkersDrawn(it) }
@@ -225,9 +221,12 @@ class CameraFragment :
         viewLifecycleOwner.lifecycleScope.launchWhenResumed {
             cameraViewObscuredUpdates(mainViewModel, cameraViewModel).collectIndexed {
                 index,
-                (obscuredByFragment, obscuredByBottomSheet, showingAnyMarkers) ->
-                val obscured = obscuredByFragment || obscuredByBottomSheet
+                (obscured, showingAnyMarkers) ->
                 openGLRenderer.setBlurEnabled(enabled = obscured, animated = !obscured || index > 0)
+                mainViewModel.state.bitmapCache.get(this@CameraFragment.javaClass.name)?.let {
+                    blurredBackground ->
+                    mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurredBackground))
+                }
                 if (obscured) disableAR() else enableAR(showingAnyMarkers)
             }
         }
@@ -298,9 +297,6 @@ class CameraFragment :
         mainViewModel.state.bitmapCache.put(this@CameraFragment.javaClass.name, blurred)
         with(binding) {
             blurBackground.background = BitmapDrawable(resources, blurred)
-            viewLifecycleOwner.lifecycleScope.launch {
-                mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurred))
-            }
             val textColor = blurredDominantSwatch?.bodyTextColor ?: return
             locationDisabledTextView.setTextColor(textColor)
             permissionsRequiredTextView.setTextColor(textColor)

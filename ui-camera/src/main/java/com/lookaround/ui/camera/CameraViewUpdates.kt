@@ -32,13 +32,16 @@ internal fun arEnabledUpdates(
                 .mapStates(CameraState::previewState)
                 .onStart { emit(cameraViewModel.state.previewState) }
                 .distinctUntilChanged(),
-            cameraViewModel.filterSignals<CameraSignal.PitchChanged>().distinctUntilChanged(),
+            cameraViewModel
+                .filterSignals(CameraSignal.PitchChanged::withinLimit)
+                .distinctUntilChanged(),
             cameraObscuredUpdates(mainViewModel, cameraViewModel)
                 .onStart {
                     emit(
                         CameraObscuredUpdate(
                             obscuredByFragment = false,
-                            obscuredByBottomSheet = false
+                            obscuredByBottomSheet = false,
+                            obscuredByDrawer = false
                         )
                     )
                 }
@@ -48,19 +51,13 @@ internal fun arEnabledUpdates(
                 .map { it.markers.hasValue }
                 .onStart { emit(mainViewModel.state.markers.hasValue) }
                 .distinctUntilChanged()
-        ) {
-            locationState,
-            previewState,
-            (pitchWithinLimit),
-            (obscuredByFragment, obscuredByBottomSheet),
-            showingAnyMarkers ->
+        ) { locationState, previewState, pitchWithinLimit, obscuredUpdate, showingAnyMarkers ->
             AREnabledUpdate(
                 enabled =
                     locationState is Ready &&
                         previewState.isLive &&
                         (!showingAnyMarkers || pitchWithinLimit) &&
-                        !obscuredByFragment &&
-                        !obscuredByBottomSheet,
+                        !obscuredUpdate.obscured,
                 showingAnyMarkers = showingAnyMarkers
             )
         }
@@ -115,7 +112,8 @@ internal fun arDisabledUpdates(
                     emit(
                         CameraObscuredUpdate(
                             obscuredByFragment = false,
-                            obscuredByBottomSheet = false
+                            obscuredByBottomSheet = false,
+                            obscuredByDrawer = false,
                         )
                     )
                 }
@@ -125,12 +123,7 @@ internal fun arDisabledUpdates(
                 .map { it.markers.hasValue }
                 .onStart { emit(mainViewModel.state.markers.hasValue) }
                 .distinctUntilChanged()
-        ) {
-            locationState,
-            previewState,
-            (pitchWithinLimit),
-            (cameraObscuredByFragment, obscuredByBottomSheet),
-            showingAnyMarkers ->
+        ) { locationState, previewState, (pitchWithinLimit), obscuredUpdate, showingAnyMarkers ->
             ARDisabledViewUpdate(
                 anyPermissionDenied =
                     locationState.isFailedWith<LocationPermissionDeniedException>() ||
@@ -139,10 +132,7 @@ internal fun arDisabledUpdates(
                     locationState.isFailedWith<GooglePayServicesNotAvailableException>(),
                 locationDisabled = locationState.isFailedWith<LocationDisabledException>(),
                 pitchOutsideRequiredLimit =
-                    !pitchWithinLimit &&
-                        !cameraObscuredByFragment &&
-                        !obscuredByBottomSheet &&
-                        showingAnyMarkers,
+                    !pitchWithinLimit && !obscuredUpdate.obscured && showingAnyMarkers,
                 cameraInitializationFailure =
                     previewState is CameraPreviewState.InitializationFailure
             )
@@ -179,16 +169,18 @@ internal fun cameraObscuredUpdates(
             mainViewModel.filterSignals(MainSignal.BottomSheetStateChanged::state).onStart {
                 emit(mainViewModel.state.lastLiveBottomSheetState)
             },
+            mainViewModel.filterSignals(MainSignal.DrawerToggled::open).onStart { emit(false) },
             cameraViewModel
                 .mapStates(CameraState::previewState)
                 .filter(CameraPreviewState::isLive::get),
-        ) { obscured, sheetState, _ ->
+        ) { obscured, sheetState, drawerOpen, _ ->
             CameraObscuredUpdate(
                 obscuredByFragment = obscured,
                 obscuredByBottomSheet =
                     sheetState == ViewPagerBottomSheetBehavior.STATE_EXPANDED ||
                         sheetState == ViewPagerBottomSheetBehavior.STATE_DRAGGING ||
                         sheetState == ViewPagerBottomSheetBehavior.STATE_SETTLING,
+                obscuredByDrawer = drawerOpen,
             )
         }
         .distinctUntilChanged()
@@ -201,20 +193,23 @@ internal fun cameraViewObscuredUpdates(
 ): Flow<CameraObscuredViewUpdate> =
     cameraObscuredUpdates(mainViewModel, cameraViewModel)
         .withLatestFrom(mainViewModel.states.map { it.markers.hasValue }) {
-            (obscuredByFragment, obscuredByBottomSheet),
+            obscuredUpdate,
             showingAnyMarkers ->
-            CameraObscuredViewUpdate(obscuredByFragment, obscuredByBottomSheet, showingAnyMarkers)
+            CameraObscuredViewUpdate(obscuredUpdate.obscured, showingAnyMarkers)
         }
         .debounce(500L)
 
 internal data class CameraObscuredUpdate(
     val obscuredByFragment: Boolean,
     val obscuredByBottomSheet: Boolean,
-)
+    val obscuredByDrawer: Boolean
+) {
+    val obscured: Boolean
+        get() = obscuredByFragment || obscuredByBottomSheet || obscuredByDrawer
+}
 
 internal data class CameraObscuredViewUpdate(
-    val obscuredByFragment: Boolean,
-    val obscuredByBottomSheet: Boolean,
+    val obscured: Boolean,
     val showingAnyMarkers: Boolean,
 )
 
