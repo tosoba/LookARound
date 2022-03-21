@@ -49,12 +49,14 @@ internal class PlaceMapsRecyclerViewAdapter(
     }
 
     override fun onViewAttachedToWindow(holder: ViewHolder) {
+        if (holder.binding is SpacerItemBinding) return
         colorCallbacks.onViewAttachedToWindow(holder.uuid) { contrastingColor ->
             holder.binding.root.setListBackgroundItemDrawableWith(contrastingColor)
         }
     }
 
     override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        if (holder.binding is SpacerItemBinding) return
         colorCallbacks.onViewDetachedFromWindow(holder.uuid)
         bitmapCallbacks.onViewDetachedFromWindow(holder.uuid)
         userLocationCallbacks.onViewDetachedFromWindow(holder.uuid)

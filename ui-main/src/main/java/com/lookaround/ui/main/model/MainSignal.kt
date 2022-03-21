@@ -1,5 +1,6 @@
 package com.lookaround.ui.main.model
 
+import android.graphics.Bitmap
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 
 sealed interface MainSignal {
@@ -18,4 +19,5 @@ sealed interface MainSignal {
     data class ToggleSearchBarVisibility(val targetVisibility: Int) : MainSignal
     object NoPlacesFound : MainSignal
     data class ContrastingColorUpdated(val color: Int) : MainSignal
+    data class BlurBackgroundUpdated(val bitmap: Bitmap) : MainSignal
 }

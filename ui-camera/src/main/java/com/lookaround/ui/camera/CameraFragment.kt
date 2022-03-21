@@ -105,6 +105,9 @@ class CameraFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainViewModel.state.bitmapCache.get(javaClass.name)?.let { blurredBackground ->
             binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
+            viewLifecycleOwner.lifecycleScope.launch {
+                mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurredBackground))
+            }
         }
 
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
@@ -295,6 +298,9 @@ class CameraFragment :
         mainViewModel.state.bitmapCache.put(this@CameraFragment.javaClass.name, blurred)
         with(binding) {
             blurBackground.background = BitmapDrawable(resources, blurred)
+            viewLifecycleOwner.lifecycleScope.launch {
+                mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurred))
+            }
             val textColor = blurredDominantSwatch?.bodyTextColor ?: return
             locationDisabledTextView.setTextColor(textColor)
             permissionsRequiredTextView.setTextColor(textColor)

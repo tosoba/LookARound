@@ -2,6 +2,7 @@ package com.lookaround
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.MenuItem
@@ -273,6 +274,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             binding.mainDrawerLayout.closeDrawer(Gravity.LEFT)
             true
         }
+
+        viewModel
+            .filterSignals(MainSignal.BlurBackgroundUpdated::bitmap)
+            .onEach { binding.drawerNavigationView.background = BitmapDrawable(resources, it) }
+            .launchIn(lifecycleScope)
     }
 
     private fun showMapFragment() {
