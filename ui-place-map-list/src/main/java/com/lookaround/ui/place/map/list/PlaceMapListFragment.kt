@@ -96,13 +96,18 @@ class PlaceMapListFragment :
                         onBitmapLoadingStarted: () -> Unit,
                         onBitmapLoaded: (bitmap: Bitmap) -> Unit
                     ) {
-                        loadBitmap(uuid, location,onBitmapLoadingStarted, onBitmapLoaded)
+                        loadBitmap(uuid, location, onBitmapLoadingStarted, onBitmapLoaded)
                         if (!reloadBitmapJobs.containsKey(uuid)) {
                             reloadBitmapJobs[uuid] =
                                 reloadBitmapTrigger
                                     .onEach {
                                         loadBitmapJobs.remove(uuid)?.cancel()
-                                        loadBitmap(uuid, location,onBitmapLoadingStarted, onBitmapLoaded)
+                                        loadBitmap(
+                                            uuid,
+                                            location,
+                                            onBitmapLoadingStarted,
+                                            onBitmapLoaded
+                                        )
                                     }
                                     .launchIn(viewLifecycleOwner.lifecycleScope)
                         }
@@ -112,13 +117,16 @@ class PlaceMapListFragment :
                         uuid: UUID,
                         location: Location,
                         onBitmapLoadingStarted: () -> Unit,
-                        action: (bitmap: Bitmap) -> Unit
+                        onBitmapLoaded: (bitmap: Bitmap) -> Unit
                     ) {
                         if (!loadBitmapJobs.containsKey(uuid)) {
                             onBitmapLoadingStarted()
                             loadBitmapJobs[uuid] =
                                 viewLifecycleOwner.lifecycleScope
-                                    .launch { action(getBitmapFor(location)) }
+                                    .launch {
+                                        val bitmap = getBitmapFor(location)
+                                        onBitmapLoaded(bitmap)
+                                    }
                                     .apply { invokeOnCompletion { loadBitmapJobs.remove(uuid) } }
                         }
                     }

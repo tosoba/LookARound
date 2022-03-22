@@ -1,6 +1,7 @@
 package com.lookaround.ui.place.map.list
 
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.location.Location
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -83,24 +84,28 @@ internal class PlaceMapsRecyclerViewAdapter(
         val binding = holder.binding as PlaceMapListItemBinding
         binding.placeMapNameText.text = item.marker.name
 
-        val shimmerDrawable =
-            ShimmerDrawable().apply {
-                setShimmer(
-                    Shimmer.AlphaHighlightBuilder()
-                        .setDuration(1000L)
-                        .setBaseAlpha(0.8f)
-                        .setHighlightAlpha(0.5f)
-                        .setDirection(Shimmer.Direction.LEFT_TO_RIGHT)
-                        .setAutoStart(true)
-                        .build()
-                )
-            }
-        bitmapCallbacks.onBindViewHolder(
-            holder.uuid,
-            item.marker.location,
-            onBitmapLoadingStarted = { binding.placeMapImage.background = shimmerDrawable },
-            onBitmapLoaded = { bitmap -> binding.placeMapImage.setImageBitmap(bitmap) }
-        )
+        if (binding.placeMapImage.background !is BitmapDrawable) {
+            bitmapCallbacks.onBindViewHolder(
+                holder.uuid,
+                item.marker.location,
+                onBitmapLoadingStarted = {
+                    binding.placeMapImage.setImageDrawable(
+                        ShimmerDrawable().apply {
+                            setShimmer(
+                                Shimmer.AlphaHighlightBuilder()
+                                    .setDuration(1000L)
+                                    .setBaseAlpha(0.8f)
+                                    .setHighlightAlpha(0.5f)
+                                    .setDirection(Shimmer.Direction.LEFT_TO_RIGHT)
+                                    .setAutoStart(true)
+                                    .build()
+                            )
+                        }
+                    )
+                },
+                onBitmapLoaded = { bitmap -> binding.placeMapImage.setImageBitmap(bitmap) }
+            )
+        }
 
         userLocationCallbacks.onBindViewHolder(holder.uuid) { userLocation ->
             binding.placeMapDistanceText.text =
