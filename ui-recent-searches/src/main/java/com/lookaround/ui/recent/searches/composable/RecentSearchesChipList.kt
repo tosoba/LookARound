@@ -10,6 +10,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.lookaround.core.android.model.WithValue
+import com.lookaround.core.android.view.recyclerview.ColorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.TransparentChipsRecyclerViewAdapter
 import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
 import com.lookaround.ui.recent.searches.RecentSearchesViewModel
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.map
 fun RecentSearchesChipList(
     modifier: Modifier = Modifier,
     recentSearchesViewModel: RecentSearchesViewModel = hiltViewModel(),
+    colorCallbacks: ColorRecyclerViewAdapterCallbacks,
     onMoreClicked: () -> Unit,
     onItemClicked: (RecentSearchModel) -> Unit
 ) {
@@ -52,6 +54,7 @@ fun RecentSearchesChipList(
                 TransparentChipsRecyclerViewAdapter(
                     recentSearchesState.value,
                     label = { item -> item.label.titleCaseWithSpacesInsteadOfUnderscores },
+                    colorCallbacks = colorCallbacks,
                     onMoreClicked = onMoreClicked,
                     onItemClicked = onItemClicked,
                 )

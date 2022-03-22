@@ -143,8 +143,14 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                     LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
                 val adapter =
                     TransparentChipsRecyclerViewAdapter(
-                        emptyList(),
-                        PlaceTypeListItem.PlaceCategory::name::get,
+                        items = emptyList(),
+                        label = PlaceTypeListItem.PlaceCategory::name::get,
+                        colorCallbacks =
+                            viewLifecycleOwner.lifecycleScope.contrastingColorCallbacks(
+                                mainViewModel.filterSignals(
+                                    MainSignal.ContrastingColorUpdated::color
+                                )
+                            )
                     ) { category ->
                         (binding.placeTypesRecyclerView.layoutManager as GridLayoutManager)
                             .scrollToPositionWithOffset(

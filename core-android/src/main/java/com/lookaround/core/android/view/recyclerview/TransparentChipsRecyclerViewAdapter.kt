@@ -9,11 +9,13 @@ import androidx.viewbinding.ViewBinding
 import com.lookaround.core.android.R
 import com.lookaround.core.android.databinding.TransparentChipItemBinding
 import com.lookaround.core.android.ext.dpToPx
+import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import java.util.*
 
 class TransparentChipsRecyclerViewAdapter<I>(
     private var items: List<I>,
     private val label: (I) -> String,
+    private val colorCallbacks: ColorRecyclerViewAdapterCallbacks,
     private val onMoreClicked: (() -> Unit)? = null,
     private val onItemClicked: (I) -> Unit
 ) : RecyclerView.Adapter<TransparentChipsRecyclerViewAdapter.ViewHolder>() {
@@ -65,6 +67,20 @@ class TransparentChipsRecyclerViewAdapter<I>(
             lastIndex -> ViewType.LAST.ordinal
             else -> ViewType.OTHER.ordinal
         }
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        colorCallbacks.onDetachedFromRecyclerView()
+    }
+
+    override fun onViewAttachedToWindow(holder: ViewHolder) {
+        colorCallbacks.onViewAttachedToWindow(holder.uuid) { contrastingColor ->
+            holder.binding.root.setListBackgroundItemDrawableWith(contrastingColor)
+        }
+    }
+
+    override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        colorCallbacks.onViewDetachedFromWindow(holder.uuid)
     }
 
     fun updateItems(newItems: List<I>) {
