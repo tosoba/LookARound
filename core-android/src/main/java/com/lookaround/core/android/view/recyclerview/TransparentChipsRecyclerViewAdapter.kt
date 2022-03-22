@@ -42,6 +42,7 @@ class TransparentChipsRecyclerViewAdapter<I>(
                             }
                         }
                     }
+                    chipLabelTextView.textSize = 18f
                 }
         )
 
