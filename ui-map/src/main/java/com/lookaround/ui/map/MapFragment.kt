@@ -488,11 +488,13 @@ class MapFragment :
                 val bitmap = mapController.await().captureFrame(true)
                 val blurredBackground =
                     withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
-                binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
                 mainViewModel.state.bitmapCache.put(
                     this@MapFragment.javaClass.name,
                     blurredBackground
                 )
+                val blurBackgroundDrawable = BitmapDrawable(resources, blurredBackground)
+                binding.blurBackground.background = blurBackgroundDrawable
+                mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurBackgroundDrawable))
                 val dominantSwatch =
                     withContext(Dispatchers.Default) { bitmap.dominantSwatch } ?: return@launch
                 val contrastingColor = colorContrastingTo(dominantSwatch.rgb)

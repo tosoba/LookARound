@@ -2,7 +2,6 @@ package com.lookaround
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.MenuItem
@@ -279,40 +278,41 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             lifecycleScope.launch { viewModel.signal(MainSignal.DrawerToggled(open)) }
         }
 
-        onDrawerToggled(binding.mainDrawerLayout.isDrawerOpen(binding.drawerNavigationView))
+        val initiallyOpen = binding.mainDrawerLayout.isDrawerOpen(binding.drawerNavigationView)
+        onDrawerToggled(initiallyOpen)
 
         binding.mainDrawerLayout.addDrawerListener(
             object : DrawerLayout.DrawerListener {
                 private var lastState: Int = DrawerLayout.STATE_IDLE
+                private var open: Boolean = initiallyOpen
+
+                init {
+                    viewModel
+                        .filterSignals(MainSignal.BlurBackgroundUpdated::drawable)
+                        .filter {
+                            lifecycle.isResumed && !open && lastState == DrawerLayout.STATE_IDLE
+                        }
+                        .onEach { binding.drawerNavigationView.background = it }
+                        .launchIn(lifecycleScope)
+                }
 
                 override fun onDrawerOpened(drawerView: View) {
+                    open = true
                     onDrawerToggled(true)
                 }
 
                 override fun onDrawerClosed(drawerView: View) {
+                    open = false
                     onDrawerToggled(false)
                 }
 
                 override fun onDrawerStateChanged(newState: Int) {
-                    if (lastState == DrawerLayout.STATE_IDLE &&
-                            newState == DrawerLayout.STATE_DRAGGING
-                    ) {
-                        viewModel.state.bitmapCache.get(javaClass.name)?.let { blurredBackground ->
-                            binding.drawerNavigationView.background =
-                                BitmapDrawable(resources, blurredBackground)
-                        }
-                    }
                     lastState = newState
                 }
 
                 override fun onDrawerSlide(drawerView: View, slideOffset: Float) = Unit
             }
         )
-
-        viewModel
-            .filterSignals(MainSignal.BlurBackgroundUpdated::bitmap)
-            .onEach { binding.drawerNavigationView.background = BitmapDrawable(resources, it) }
-            .launchIn(lifecycleScope)
     }
 
     private fun showMapFragment() {

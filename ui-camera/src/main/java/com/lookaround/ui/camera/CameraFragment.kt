@@ -223,10 +223,6 @@ class CameraFragment :
                 index,
                 (obscured, showingAnyMarkers) ->
                 openGLRenderer.setBlurEnabled(enabled = obscured, animated = !obscured || index > 0)
-                mainViewModel.state.bitmapCache.get(this@CameraFragment.javaClass.name)?.let {
-                    blurredBackground ->
-                    mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurredBackground))
-                }
                 if (obscured) disableAR() else enableAR(showingAnyMarkers)
             }
         }
@@ -296,7 +292,9 @@ class CameraFragment :
         val blurredDominantSwatch = withContext(Dispatchers.Default) { blurred.dominantSwatch }
         mainViewModel.state.bitmapCache.put(this@CameraFragment.javaClass.name, blurred)
         with(binding) {
-            blurBackground.background = BitmapDrawable(resources, blurred)
+            val blurBackgroundDrawable = BitmapDrawable(resources, blurred)
+            blurBackground.background = blurBackgroundDrawable
+            mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurBackgroundDrawable))
             val textColor = blurredDominantSwatch?.bodyTextColor ?: return
             locationDisabledTextView.setTextColor(textColor)
             permissionsRequiredTextView.setTextColor(textColor)
