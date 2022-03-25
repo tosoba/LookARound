@@ -29,8 +29,8 @@ import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.composable.SearchBar
-import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
-import com.lookaround.core.android.view.recyclerview.contrastingColorCallbacks
+import com.lookaround.core.android.view.recyclerview.colorRecyclerViewAdapterCallbacks
+import com.lookaround.core.android.view.recyclerview.locationRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
@@ -83,78 +83,67 @@ class PlaceMapListFragment :
     private val placeMapsRecyclerViewAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
             PlaceMapsRecyclerViewAdapter(
-                viewLifecycleOwner.lifecycleScope.contrastingColorCallbacks(
-                    mainViewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
-                ),
-                object : PlaceMapsRecyclerViewAdapter.BitmapCallbacks {
-                    private val loadBitmapJobs = mutableMapOf<UUID, Job>()
-                    private val reloadBitmapJobs = mutableMapOf<UUID, Job>()
+                colorCallbacks =
+                    viewLifecycleOwner.lifecycleScope.colorRecyclerViewAdapterCallbacks(
+                        mainViewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
+                    ),
+                bitmapCallbacks =
+                    object : PlaceMapsRecyclerViewAdapter.BitmapCallbacks {
+                        private val loadBitmapJobs = mutableMapOf<UUID, Job>()
+                        private val reloadBitmapJobs = mutableMapOf<UUID, Job>()
 
-                    override fun onBindViewHolder(
-                        uuid: UUID,
-                        location: Location,
-                        onBitmapLoadingStarted: () -> Unit,
-                        onBitmapLoaded: (bitmap: Bitmap) -> Unit
-                    ) {
-                        loadBitmap(uuid, location, onBitmapLoadingStarted, onBitmapLoaded)
-                        if (!reloadBitmapJobs.containsKey(uuid)) {
-                            reloadBitmapJobs[uuid] =
-                                reloadBitmapTrigger
-                                    .onEach {
-                                        loadBitmapJobs.remove(uuid)?.cancel()
-                                        loadBitmap(
-                                            uuid,
-                                            location,
-                                            onBitmapLoadingStarted,
-                                            onBitmapLoaded
-                                        )
-                                    }
-                                    .launchIn(viewLifecycleOwner.lifecycleScope)
+                        override fun onBindViewHolder(
+                            uuid: UUID,
+                            location: Location,
+                            onBitmapLoadingStarted: () -> Unit,
+                            onBitmapLoaded: (bitmap: Bitmap) -> Unit
+                        ) {
+                            loadBitmap(uuid, location, onBitmapLoadingStarted, onBitmapLoaded)
+                            if (!reloadBitmapJobs.containsKey(uuid)) {
+                                reloadBitmapJobs[uuid] =
+                                    reloadBitmapTrigger
+                                        .onEach {
+                                            loadBitmapJobs.remove(uuid)?.cancel()
+                                            loadBitmap(
+                                                uuid,
+                                                location,
+                                                onBitmapLoadingStarted,
+                                                onBitmapLoaded
+                                            )
+                                        }
+                                        .launchIn(viewLifecycleOwner.lifecycleScope)
+                            }
                         }
-                    }
 
-                    private fun loadBitmap(
-                        uuid: UUID,
-                        location: Location,
-                        onBitmapLoadingStarted: () -> Unit,
-                        onBitmapLoaded: (bitmap: Bitmap) -> Unit
-                    ) {
-                        if (!loadBitmapJobs.containsKey(uuid)) {
-                            onBitmapLoadingStarted()
-                            loadBitmapJobs[uuid] =
-                                viewLifecycleOwner.lifecycleScope
-                                    .launch {
-                                        val bitmap = getBitmapFor(location)
-                                        onBitmapLoaded(bitmap)
-                                    }
-                                    .apply { invokeOnCompletion { loadBitmapJobs.remove(uuid) } }
+                        private fun loadBitmap(
+                            uuid: UUID,
+                            location: Location,
+                            onBitmapLoadingStarted: () -> Unit,
+                            onBitmapLoaded: (bitmap: Bitmap) -> Unit
+                        ) {
+                            if (!loadBitmapJobs.containsKey(uuid)) {
+                                onBitmapLoadingStarted()
+                                loadBitmapJobs[uuid] =
+                                    viewLifecycleOwner.lifecycleScope
+                                        .launch {
+                                            val bitmap = getBitmapFor(location)
+                                            onBitmapLoaded(bitmap)
+                                        }
+                                        .apply {
+                                            invokeOnCompletion { loadBitmapJobs.remove(uuid) }
+                                        }
+                            }
                         }
-                    }
 
-                    override fun onDetachedFromRecyclerView() {
-                        loadBitmapJobs.values.forEach(Job::cancel)
-                        reloadBitmapJobs.values.forEach(Job::cancel)
-                    }
-                },
-                object : LocationRecyclerViewAdapterCallbacks {
-                    private val jobs = mutableMapOf<UUID, Job>()
-
-                    override fun onBindViewHolder(
-                        uuid: UUID,
-                        action: (userLocation: Location) -> Unit
-                    ) {
-                        if (jobs.containsKey(uuid)) return
-                        jobs[uuid] =
-                            mainViewModel
-                                .locationReadyUpdates
-                                .onEach(action)
-                                .launchIn(viewLifecycleOwner.lifecycleScope)
-                    }
-
-                    override fun onDetachedFromRecyclerView() {
-                        jobs.values.forEach(Job::cancel)
-                    }
-                }
+                        override fun onDetachedFromRecyclerView() {
+                            loadBitmapJobs.values.forEach(Job::cancel)
+                            reloadBitmapJobs.values.forEach(Job::cancel)
+                        }
+                    },
+                userLocationCallbacks =
+                    viewLifecycleOwner.lifecycleScope.locationRecyclerViewAdapterCallbacks(
+                        mainViewModel.locationReadyUpdates
+                    )
             ) { namedLocation ->
                 (activity as? PlaceMapListFragmentHost)?.onPlaceMapItemClick(namedLocation)
             }

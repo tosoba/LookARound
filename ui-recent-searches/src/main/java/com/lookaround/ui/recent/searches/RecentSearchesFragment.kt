@@ -1,7 +1,6 @@
 package com.lookaround.ui.recent.searches
 
 import android.content.res.Configuration
-import android.location.Location
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AlertDialog
@@ -23,8 +22,8 @@ import com.lookaround.core.android.ext.addCollapseTopViewOnScrollListener
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.recyclerview.LoadMoreRecyclerViewScrollListener
-import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
-import com.lookaround.core.android.view.recyclerview.contrastingColorCallbacks
+import com.lookaround.core.android.view.recyclerview.colorRecyclerViewAdapterCallbacks
+import com.lookaround.core.android.view.recyclerview.locationRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.SearchType
 import com.lookaround.ui.main.MainViewModel
@@ -40,7 +39,6 @@ import dagger.hilt.android.WithFragmentBindings
 import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -62,29 +60,15 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
     private val recentSearchesRecyclerViewAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
             RecentSearchesRecyclerViewAdapter(
-                viewLifecycleOwner.lifecycleScope.contrastingColorCallbacks(
-                    mainViewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
-                ),
-                object : LocationRecyclerViewAdapterCallbacks {
-                    private val jobs = mutableMapOf<UUID, Job>()
-
-                    override fun onBindViewHolder(
-                        uuid: UUID,
-                        action: (userLocation: Location) -> Unit
-                    ) {
-                        if (jobs.containsKey(uuid)) return
-                        jobs[uuid] =
-                            mainViewModel
-                                .locationReadyUpdates
-                                .onEach(action)
-                                .launchIn(viewLifecycleOwner.lifecycleScope)
-                    }
-
-                    override fun onDetachedFromRecyclerView() {
-                        jobs.values.forEach(Job::cancel)
-                    }
-                },
-                { (id, label, type) ->
+                colorCallbacks =
+                    viewLifecycleOwner.lifecycleScope.colorRecyclerViewAdapterCallbacks(
+                        mainViewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
+                    ),
+                userLocationCallbacks =
+                    viewLifecycleOwner.lifecycleScope.locationRecyclerViewAdapterCallbacks(
+                        mainViewModel.locationReadyUpdates
+                    ),
+                onItemLongClicked = { (id, label, type) ->
                     AlertDialog.Builder(requireContext())
                         .setTitle(label)
                         .setMessage(getString(R.string.remove_from_recent_searches))

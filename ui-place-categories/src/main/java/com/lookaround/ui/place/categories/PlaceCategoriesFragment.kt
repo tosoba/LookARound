@@ -25,7 +25,7 @@ import com.lookaround.core.android.model.Shop
 import com.lookaround.core.android.model.Tourism
 import com.lookaround.core.android.view.composable.SearchBar
 import com.lookaround.core.android.view.recyclerview.TransparentChipsRecyclerViewAdapter
-import com.lookaround.core.android.view.recyclerview.contrastingColorCallbacks
+import com.lookaround.core.android.view.recyclerview.colorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.main.MainViewModel
@@ -50,7 +50,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
         lazy(LazyThreadSafetyMode.NONE) {
             PlaceTypesRecyclerViewAdapter(
                 placeTypeListItems,
-                viewLifecycleOwner.lifecycleScope.contrastingColorCallbacks(
+                viewLifecycleOwner.lifecycleScope.colorRecyclerViewAdapterCallbacks(
                     mainViewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
                 )
             ) { placeType ->
@@ -146,7 +146,7 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                         items = emptyList(),
                         label = PlaceTypeListItem.PlaceCategory::name::get,
                         colorCallbacks =
-                            viewLifecycleOwner.lifecycleScope.contrastingColorCallbacks(
+                            viewLifecycleOwner.lifecycleScope.colorRecyclerViewAdapterCallbacks(
                                 mainViewModel.filterSignals(
                                     MainSignal.ContrastingColorUpdated::color
                                 )

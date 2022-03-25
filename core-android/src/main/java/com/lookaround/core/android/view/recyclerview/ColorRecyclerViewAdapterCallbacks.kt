@@ -13,7 +13,7 @@ interface ColorRecyclerViewAdapterCallbacks {
     fun onDetachedFromRecyclerView()
 }
 
-fun CoroutineScope.contrastingColorCallbacks(
+fun CoroutineScope.colorRecyclerViewAdapterCallbacks(
     contrastingColorsFlow: Flow<Int>,
 ): ColorRecyclerViewAdapterCallbacks =
     object : ColorRecyclerViewAdapterCallbacks {
@@ -22,7 +22,7 @@ fun CoroutineScope.contrastingColorCallbacks(
         override fun onViewAttachedToWindow(uuid: UUID, action: (Int) -> Unit) {
             if (contrastingColorJobs.containsKey(uuid)) return
             contrastingColorJobs[uuid] =
-                contrastingColorsFlow.onEach(action).launchIn(this@contrastingColorCallbacks)
+                contrastingColorsFlow.onEach(action).launchIn(this@colorRecyclerViewAdapterCallbacks)
         }
 
         override fun onViewDetachedFromWindow(uuid: UUID) {
