@@ -5,6 +5,5 @@ import java.util.*
 
 interface LocationRecyclerViewAdapterCallbacks {
     fun onBindViewHolder(uuid: UUID, action: (userLocation: Location) -> Unit)
-    fun onViewDetachedFromWindow(uuid: UUID)
     fun onDetachedFromRecyclerView()
 }

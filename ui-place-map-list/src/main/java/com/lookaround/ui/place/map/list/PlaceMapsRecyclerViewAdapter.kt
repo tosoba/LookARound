@@ -59,7 +59,6 @@ internal class PlaceMapsRecyclerViewAdapter(
     override fun onViewDetachedFromWindow(holder: ViewHolder) {
         if (holder.binding is SpacerItemBinding) return
         colorCallbacks.onViewDetachedFromWindow(holder.uuid)
-        userLocationCallbacks.onViewDetachedFromWindow(holder.uuid)
     }
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {

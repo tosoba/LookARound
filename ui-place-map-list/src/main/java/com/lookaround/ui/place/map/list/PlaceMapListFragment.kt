@@ -151,10 +151,6 @@ class PlaceMapListFragment :
                                 .launchIn(viewLifecycleOwner.lifecycleScope)
                     }
 
-                    override fun onViewDetachedFromWindow(uuid: UUID) {
-                        jobs.remove(uuid)?.cancel()
-                    }
-
                     override fun onDetachedFromRecyclerView() {
                         jobs.values.forEach(Job::cancel)
                     }
