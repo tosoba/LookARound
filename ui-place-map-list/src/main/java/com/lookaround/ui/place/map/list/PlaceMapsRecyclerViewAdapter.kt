@@ -19,7 +19,6 @@ import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
 import com.lookaround.ui.place.list.databinding.PlaceMapListItemBinding
 import java.util.*
-import timber.log.Timber
 
 internal class PlaceMapsRecyclerViewAdapter(
     private val colorCallbacks: ColorRecyclerViewAdapterCallbacks,
@@ -60,7 +59,6 @@ internal class PlaceMapsRecyclerViewAdapter(
     override fun onViewDetachedFromWindow(holder: ViewHolder) {
         if (holder.binding is SpacerItemBinding) return
         colorCallbacks.onViewDetachedFromWindow(holder.uuid)
-        bitmapCallbacks.onViewDetachedFromWindow(holder.uuid)
         userLocationCallbacks.onViewDetachedFromWindow(holder.uuid)
     }
 
@@ -82,24 +80,14 @@ internal class PlaceMapsRecyclerViewAdapter(
         }
 
     private fun bindMapItem(holder: ViewHolder, item: Item.Map) {
-        Timber.tag("BIT")
-            .e(
-                "${item.marker.location.latitude}:${item.marker.location.longitude}:${item.marker.name} - entered bind"
-            )
-
         val binding = holder.binding as PlaceMapListItemBinding
         binding.placeMapNameText.text = item.marker.name
 
         if (binding.placeMapImage.background !is BitmapDrawable) {
             bitmapCallbacks.onBindViewHolder(
-                holder.uuid,
+                item.marker.id,
                 item.marker.location,
                 onBitmapLoadingStarted = {
-                    Timber.tag("BIT")
-                        .e(
-                            "${item.marker.location.latitude}:${item.marker.location.longitude}:${item.marker.name} - loading started"
-                        )
-
                     binding.placeMapImage.setImageDrawable(
                         ShimmerDrawable().apply {
                             setShimmer(
@@ -114,14 +102,7 @@ internal class PlaceMapsRecyclerViewAdapter(
                         }
                     )
                 },
-                onBitmapLoaded = { bitmap ->
-                    Timber.tag("BIT")
-                        .e(
-                            "${item.marker.location.latitude}:${item.marker.location.longitude}:${item.marker.name} - bitmap loaded"
-                        )
-
-                    binding.placeMapImage.setImageBitmap(bitmap)
-                }
+                onBitmapLoaded = binding.placeMapImage::setImageBitmap
             )
         }
 

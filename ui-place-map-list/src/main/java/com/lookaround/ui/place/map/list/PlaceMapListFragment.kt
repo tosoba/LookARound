@@ -390,15 +390,10 @@ class PlaceMapListFragment :
     }
 
     private suspend fun getBitmapFor(location: Location): Bitmap {
-        val cached = getCachedBitmap(location)
-        if (cached != null) {
-            Timber.tag("BIT").e("${location.latitude}:${location.longitude} - returning cached")
-            return cached.bitmap
-        }
+        val cached = getCachedBitmap(location)?.bitmap
+        if (cached != null) return cached
 
         mapReady.await()
-
-        Timber.tag("BIT").e("${location.latitude}:${location.longitude} - loading bitmap started")
 
         val deferredBitmap = CompletableDeferred<Bitmap>()
         getLocationBitmapFlow.emit(
