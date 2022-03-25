@@ -131,11 +131,6 @@ class PlaceMapListFragment :
                         }
                     }
 
-                    override fun onViewDetachedFromWindow(uuid: UUID) {
-                        loadBitmapJobs.remove(uuid)?.cancel()
-                        reloadBitmapJobs.remove(uuid)?.cancel()
-                    }
-
                     override fun onDetachedFromRecyclerView() {
                         loadBitmapJobs.values.forEach(Job::cancel)
                         reloadBitmapJobs.values.forEach(Job::cancel)

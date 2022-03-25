@@ -148,7 +148,6 @@ internal class PlaceMapsRecyclerViewAdapter(
             onBitmapLoadingStarted: () -> Unit,
             onBitmapLoaded: (bitmap: Bitmap) -> Unit
         )
-        fun onViewDetachedFromWindow(uuid: UUID)
         fun onDetachedFromRecyclerView()
     }
 }
