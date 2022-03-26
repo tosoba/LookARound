@@ -29,6 +29,7 @@ import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.WithValue
+import com.lookaround.core.android.model.hasValue
 import com.lookaround.core.android.view.BlurAnimator
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
@@ -67,10 +68,10 @@ class MapFragment :
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by
         lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
-    private val mapReady = CompletableDeferred<Unit>()
 
     private val markerArgument: Marker? by nullableArgument(Arguments.MARKER.name)
     private var currentMarkerPosition: LatLon? = null
+    private var unsetCurrentMarker: Boolean = true
 
     private var blurAnimator: BlurAnimator? = null
     private var clusterManager: ClusterManager<DefaultClusterItem>? = null
@@ -111,14 +112,14 @@ class MapFragment :
             setSingleTapResponder()
             zoomOnDoubleTap()
             loadScene(MapScene.WALKABOUT)
-            initCameraPosition(savedInstanceState)
+            val cameraPositionInitialized = initCameraPosition(savedInstanceState)
+            syncMarkerChangesWithMap(cameraPositionInitialized)
         }
 
         initMapImageBlurring(savedInstanceState)
-        syncMarkerChangesWithMap()
 
         mapSceneViewModel
-            .onEachSignal<MapSceneSignal.RetryLoadScene> { (scene) ->
+            .onEachSignal(MapSceneSignal.RetryLoadScene::scene) { scene ->
                 mapController.await().loadScene(scene)
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -176,13 +177,11 @@ class MapFragment :
         }
     }
 
-    override fun onViewComplete() {
-        if (mapReady.isCompleted) return else mapReady.complete(Unit)
-    }
-
+    override fun onViewComplete() = Unit
     override fun onRegionWillChange(animated: Boolean) = Unit
     override fun onRegionIsChanging() = Unit
     override fun onRegionDidChange(animated: Boolean) {
+        if (unsetCurrentMarker) currentMarkerPosition = null else unsetCurrentMarker = true
         clusterManager?.onRegionDidChange(animated)
         if (!isRunningOnEmulator()) updateBlurBackground()
     }
@@ -211,6 +210,7 @@ class MapFragment :
 
     private fun updateCurrentMarkerPosition(position: LatLon?) {
         if (position != null) {
+            unsetCurrentMarker = false
             showFABs()
             if (currentMarkerPosition == position) return
             currentMarkerPosition = position
@@ -227,27 +227,32 @@ class MapFragment :
         }
     }
 
-    private suspend fun MapController.initCameraPosition(savedInstanceState: Bundle?) {
-        mapReady.await()
+    private suspend fun MapController.initCameraPosition(savedInstanceState: Bundle?): Boolean {
+        mapSceneViewModel.awaitSceneLoaded()
 
         if (savedInstanceState != null) {
             restoreCameraPosition(savedInstanceState)
-            return
+            return true
         }
 
         currentMarkerPosition?.let { (latitude, longitude) ->
             moveCameraPositionTo(lat = latitude, lng = longitude, zoom = LOCATION_FOCUSED_ZOOM)
-            return
+            return true
         }
+
+        if (mainViewModel.state.markers.hasValue) return false
 
         val location = mainViewModel.state.locationState
         if (location is WithValue<Location>) {
             moveCameraPositionTo(
                 lat = location.value.latitude,
                 lng = location.value.longitude,
-                zoom = LOCATION_FOCUSED_ZOOM
+                zoom = cameraPosition.zoom
             )
+            return true
         }
+
+        return false
     }
 
     private suspend fun MapController.loadScene(scene: MapScene) {
@@ -323,27 +328,33 @@ class MapFragment :
         )
     }
 
-    private fun syncMarkerChangesWithMap() {
+    private fun syncMarkerChangesWithMap(cameraPositionInitialized: Boolean) {
         mainViewModel
             .mapStates(MainState::markers)
             .distinctUntilChanged()
-            .onEach { loadable ->
+            .withIndex()
+            .onEach { (index, loadable) ->
                 mapSceneViewModel.awaitSceneLoaded()
                 mapController.launch {
                     removeAllMarkers()
                     if (loadable !is WithValue) return@launch
 
                     val markers = loadable.value.items
+                    val changeCameraPosition = index != 0 || !cameraPositionInitialized
                     if (markers.size > 1) {
-                        calculateAndZoomToBoundsOf(markers.map(Marker::location::get))
+                        if (changeCameraPosition) {
+                            calculateAndZoomToBoundsOf(markers.map(Marker::location::get))
+                        }
                         addMarkerClusters(markers)
                     } else if (markers.size == 1) {
                         val marker = markers.first()
-                        moveCameraPositionTo(
-                            lat = marker.location.latitude,
-                            lng = marker.location.longitude,
-                            zoom = LOCATION_FOCUSED_ZOOM
-                        )
+                        if (changeCameraPosition) {
+                            moveCameraPositionTo(
+                                lat = marker.location.latitude,
+                                lng = marker.location.longitude,
+                                zoom = LOCATION_FOCUSED_ZOOM
+                            )
+                        }
                         markers.forEach { addMarkerFor(it.location) }
                     }
                 }
