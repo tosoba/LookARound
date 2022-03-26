@@ -1,6 +1,7 @@
 package com.lookaround.core.android.ext
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.RectF
 import android.os.Build
 import android.util.Size
@@ -29,7 +30,7 @@ val Context.statusBarHeightPx: Int
         return if (resourceId > 0) {
             resources.getDimensionPixelSize(resourceId)
         } else {
-            val heightDp = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) 24 else 25
+            val heightDp = 24
             ceil(heightDp * resources.displayMetrics.density).toInt()
         }
     }
@@ -143,3 +144,9 @@ fun isRunningOnEmulator(): Boolean {
         Build.PRODUCT.contains("emulator") ||
         Build.PRODUCT.contains("simulator"))
 }
+
+val Context.uiMode: Int
+    get() = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+
+val Context.darkMode: Boolean
+    get() = uiMode == Configuration.UI_MODE_NIGHT_YES

@@ -160,7 +160,7 @@ class PlaceMapListFragment :
         mapController.launch {
             setSceneLoadListener(this@PlaceMapListFragment)
             setMapChangeListener(this@PlaceMapListFragment)
-            loadScene(MapScene.REFILL)
+            loadScene(if (requireContext().darkMode) MapScene.DARK else MapScene.LIGHT)
         }
 
         viewModel
@@ -412,7 +412,7 @@ class PlaceMapListFragment :
     private suspend fun MapController.loadScene(scene: MapScene) {
         viewModel.intent(MapSceneIntent.LoadingScene(scene))
         loadSceneFile(
-            scene.url,
+            scene.path,
             listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
         )
     }

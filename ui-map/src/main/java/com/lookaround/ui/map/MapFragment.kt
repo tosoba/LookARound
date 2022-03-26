@@ -110,7 +110,7 @@ class MapFragment :
             setMarkerPickListener(this@MapFragment)
             setSingleTapResponder()
             zoomOnDoubleTap()
-            loadScene(MapScene.REFILL)
+            loadScene(if (requireContext().darkMode) MapScene.DARK else MapScene.LIGHT)
             val cameraPositionInitialized = initCameraPosition(savedInstanceState)
             syncMarkerChangesWithMap(cameraPositionInitialized)
         }
@@ -261,7 +261,7 @@ class MapFragment :
 
         mapSceneViewModel.intent(MapSceneIntent.LoadingScene(scene))
         loadSceneFile(
-            scene.url,
+            scene.path,
             listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
         )
     }

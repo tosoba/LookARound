@@ -1,9 +1,6 @@
 package com.lookaround.core.android.map.scene.model
 
-enum class MapScene(val url: String) {
-    BUBBLE_WRAP("https://www.nextzen.org/carto/bubble-wrap-style/9/bubble-wrap-style.zip"),
-    REFILL("map_theme/scene-dark.yaml"),
-    WALKABOUT("https://www.nextzen.org/carto/walkabout-style/7/walkabout-style.zip"),
-    TRON("https://www.nextzen.org/carto/tron-style/6/tron-style.zip"),
-    CINNABAR("https://www.nextzen.org/carto/cinnabar-style/9/cinnabar-style.zip")
+enum class MapScene(val path: String) {
+    DARK("map_theme/scene-dark.yaml"),
+    LIGHT("map_theme/scene-light.yaml"),
 }
