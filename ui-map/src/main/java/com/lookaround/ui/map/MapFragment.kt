@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.hoko.blur.HokoBlur
 import com.hoko.blur.processor.BlurProcessor
+import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.ext.MarkerPickResult
 import com.lookaround.core.android.map.clustering.ClusterManager
@@ -113,6 +114,8 @@ class MapFragment :
             val cameraPositionInitialized = initCameraPosition(savedInstanceState)
             syncMarkerChangesWithMap(cameraPositionInitialized)
         }
+
+        initBlurringOnBottomSheetStateChanged()
 
         mapSceneViewModel
             .onEachSignal(MapSceneSignal.RetryLoadScene::scene) { scene ->
@@ -428,6 +431,21 @@ class MapFragment :
                 val contrastingColor = colorContrastingTo(dominantSwatch.rgb)
                 mainViewModel.signal(MainSignal.ContrastingColorUpdated(contrastingColor))
             }
+    }
+
+    private fun initBlurringOnBottomSheetStateChanged() {
+        if (isRunningOnEmulator()) return
+
+        mainViewModel
+            .filterSignals(MainSignal.BottomSheetStateChanged::state)
+            .onEach { sheetState ->
+                if (sheetState == ViewPagerBottomSheetBehavior.STATE_EXPANDED) {
+                    binding.blurBackground.fadeSetVisibility(View.VISIBLE)
+                } else if (sheetState == ViewPagerBottomSheetBehavior.STATE_HIDDEN) {
+                    binding.blurBackground.fadeSetVisibility(View.GONE)
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun Deferred<MapController>.launch(block: suspend MapController.() -> Unit) {
