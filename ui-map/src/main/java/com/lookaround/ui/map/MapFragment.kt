@@ -67,6 +67,7 @@ class MapFragment :
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by
         lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
+    private val mapReady = CompletableDeferred<Unit>()
 
     private val markerArgument: Marker? by nullableArgument(Arguments.MARKER.name)
     private var currentMarkerPosition: LatLon? = null
@@ -175,7 +176,10 @@ class MapFragment :
         }
     }
 
-    override fun onViewComplete() = Unit
+    override fun onViewComplete() {
+        if (mapReady.isCompleted) return else mapReady.complete(Unit)
+    }
+
     override fun onRegionWillChange(animated: Boolean) = Unit
     override fun onRegionIsChanging() = Unit
     override fun onRegionDidChange(animated: Boolean) {
@@ -223,7 +227,9 @@ class MapFragment :
         }
     }
 
-    private fun MapController.initCameraPosition(savedInstanceState: Bundle?) {
+    private suspend fun MapController.initCameraPosition(savedInstanceState: Bundle?) {
+        mapReady.await()
+
         if (savedInstanceState != null) {
             restoreCameraPosition(savedInstanceState)
             return

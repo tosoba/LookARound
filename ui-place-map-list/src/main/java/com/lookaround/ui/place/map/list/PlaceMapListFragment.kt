@@ -358,6 +358,7 @@ class PlaceMapListFragment :
                     deferred.complete(bitmap)
                 }
         }
+
         mapReady.complete(Unit)
     }
 
