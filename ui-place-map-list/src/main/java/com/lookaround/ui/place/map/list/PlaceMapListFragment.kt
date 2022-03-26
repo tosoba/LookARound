@@ -160,7 +160,7 @@ class PlaceMapListFragment :
         mapController.launch {
             setSceneLoadListener(this@PlaceMapListFragment)
             setMapChangeListener(this@PlaceMapListFragment)
-            loadScene(MapScene.WALKABOUT)
+            loadScene(MapScene.REFILL)
         }
 
         viewModel

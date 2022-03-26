@@ -110,7 +110,7 @@ class MapFragment :
             setMarkerPickListener(this@MapFragment)
             setSingleTapResponder()
             zoomOnDoubleTap()
-            loadScene(MapScene.WALKABOUT)
+            loadScene(MapScene.REFILL)
             val cameraPositionInitialized = initCameraPosition(savedInstanceState)
             syncMarkerChangesWithMap(cameraPositionInitialized)
         }
