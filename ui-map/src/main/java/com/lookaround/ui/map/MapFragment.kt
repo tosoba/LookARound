@@ -211,12 +211,10 @@ class MapFragment :
             if (currentMarkerPosition == position) return
             currentMarkerPosition = position
             mapController.launch {
-                val currentZoom = cameraPosition.zoom
                 moveCameraPositionTo(
                     lat = position.latitude,
                     lng = position.longitude,
-                    zoom =
-                        if (currentZoom < LOCATION_FOCUSED_ZOOM) currentZoom + 1f else currentZoom,
+                    zoom = LOCATION_FOCUSED_ZOOM,
                     durationMs = CAMERA_POSITION_ANIMATION_DURATION_MS
                 )
             }
@@ -510,7 +508,7 @@ class MapFragment :
     }
 
     companion object {
-        private const val LOCATION_FOCUSED_ZOOM = 15f
+        private const val LOCATION_FOCUSED_ZOOM = 17f
         private const val CAMERA_POSITION_ANIMATION_DURATION_MS = 150
 
         enum class SavedStateKeys {
