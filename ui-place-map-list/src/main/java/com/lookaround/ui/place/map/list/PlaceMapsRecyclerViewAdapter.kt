@@ -1,6 +1,7 @@
 package com.lookaround.ui.place.map.list
 
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.location.Location
 import android.view.LayoutInflater
@@ -14,14 +15,12 @@ import com.lookaround.core.android.databinding.SpacerItemBinding
 import com.lookaround.core.android.ext.formattedDistanceTo
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.model.Marker
-import com.lookaround.core.android.view.recyclerview.ColorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
 import com.lookaround.ui.place.list.databinding.PlaceMapListItemBinding
 import java.util.*
 
 internal class PlaceMapsRecyclerViewAdapter(
-    private val colorCallbacks: ColorRecyclerViewAdapterCallbacks,
     private val bitmapCallbacks: BitmapCallbacks,
     private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks,
     private val onItemClicked: (Marker) -> Unit,
@@ -43,26 +42,15 @@ internal class PlaceMapsRecyclerViewAdapter(
                     }
                 }
                 ViewType.MAP -> {
-                    PlaceMapListItemBinding.inflate(inflater, parent, false)
+                    PlaceMapListItemBinding.inflate(inflater, parent, false).apply {
+                        root.setListBackgroundItemDrawableWith(Color.WHITE)
+                    }
                 }
             }
         )
     }
 
-    override fun onViewAttachedToWindow(holder: ViewHolder) {
-        if (holder.binding is SpacerItemBinding) return
-        colorCallbacks.onViewAttachedToWindow(holder.uuid) { contrastingColor ->
-            holder.binding.root.setListBackgroundItemDrawableWith(contrastingColor)
-        }
-    }
-
-    override fun onViewDetachedFromWindow(holder: ViewHolder) {
-        if (holder.binding is SpacerItemBinding) return
-        colorCallbacks.onViewDetachedFromWindow(holder.uuid)
-    }
-
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
-        colorCallbacks.onDetachedFromRecyclerView()
         bitmapCallbacks.onDetachedFromRecyclerView()
         userLocationCallbacks.onDetachedFromRecyclerView()
     }

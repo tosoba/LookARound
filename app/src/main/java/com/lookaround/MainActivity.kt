@@ -43,7 +43,6 @@ import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.model.hasValue
 import com.lookaround.core.android.view.composable.SearchBar
-import com.lookaround.core.android.view.recyclerview.colorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.android.view.viewpager.DiffUtilFragmentStateAdapter
 import com.lookaround.core.model.SearchType
@@ -400,10 +399,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         val scope = rememberCoroutineScope()
         RecentSearchesChipList(
             modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            colorCallbacks =
-                lifecycleScope.colorRecyclerViewAdapterCallbacks(
-                    viewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
-                ),
             onMoreClicked = {
                 binding.bottomNavigationView.selectedItemId = R.id.action_recent_searches
             }

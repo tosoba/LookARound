@@ -22,7 +22,6 @@ import com.lookaround.core.android.ext.addCollapseTopViewOnScrollListener
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.recyclerview.LoadMoreRecyclerViewScrollListener
-import com.lookaround.core.android.view.recyclerview.colorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.locationRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.SearchType
@@ -60,10 +59,6 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
     private val recentSearchesRecyclerViewAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
             RecentSearchesRecyclerViewAdapter(
-                colorCallbacks =
-                    viewLifecycleOwner.lifecycleScope.colorRecyclerViewAdapterCallbacks(
-                        mainViewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
-                    ),
                 userLocationCallbacks =
                     viewLifecycleOwner.lifecycleScope.locationRecyclerViewAdapterCallbacks(
                         mainViewModel.locationReadyUpdates

@@ -1,5 +1,6 @@
 package com.lookaround.ui.place.categories
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -8,7 +9,6 @@ import com.bumptech.glide.Glide
 import com.lookaround.core.android.databinding.SpacerItemBinding
 import com.lookaround.core.android.databinding.TransparentChipItemBinding
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
-import com.lookaround.core.android.view.recyclerview.ColorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.TransparentChipsRecyclerViewAdapter
 import com.lookaround.core.model.IPlaceType
@@ -16,7 +16,6 @@ import com.lookaround.ui.place.categories.databinding.PlaceTypeItemBinding
 
 internal class PlaceTypesRecyclerViewAdapter(
     private var items: List<PlaceTypeListItem>,
-    private val colorCallbacks: ColorRecyclerViewAdapterCallbacks,
     private val onPlaceTypeClicked: (IPlaceType) -> Unit,
 ) : RecyclerView.Adapter<TransparentChipsRecyclerViewAdapter.ViewHolder>() {
     override fun onCreateViewHolder(
@@ -26,7 +25,7 @@ internal class PlaceTypesRecyclerViewAdapter(
         val inflater = LayoutInflater.from(parent.context)
         return TransparentChipsRecyclerViewAdapter.ViewHolder(
             when (ViewType.values()[viewType]) {
-                ViewType.SPACER ->
+                ViewType.SPACER -> {
                     SpacerItemBinding.inflate(inflater, parent, false).apply {
                         root.layoutParams =
                             ViewGroup.LayoutParams(
@@ -34,9 +33,17 @@ internal class PlaceTypesRecyclerViewAdapter(
                                 (items[0] as PlaceTypeListItem.Spacer).heightPx
                             )
                     }
-                ViewType.PLACE_TYPE -> PlaceTypeItemBinding.inflate(inflater, parent, false)
-                ViewType.PLACE_CATEGORY_HEADER ->
-                    TransparentChipItemBinding.inflate(inflater, parent, false)
+                }
+                ViewType.PLACE_TYPE -> {
+                    PlaceTypeItemBinding.inflate(inflater, parent, false).apply {
+                        root.setListBackgroundItemDrawableWith(Color.WHITE)
+                    }
+                }
+                ViewType.PLACE_CATEGORY_HEADER -> {
+                    TransparentChipItemBinding.inflate(inflater, parent, false).apply {
+                        root.setListBackgroundItemDrawableWith(Color.WHITE)
+                    }
+                }
             }
         )
     }
@@ -49,22 +56,6 @@ internal class PlaceTypesRecyclerViewAdapter(
             is TransparentChipItemBinding -> bindPlaceCategoryHeaderItem(binding, position)
             is PlaceTypeItemBinding -> bindPlaceTypeItem(binding, position)
         }
-    }
-
-    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
-        colorCallbacks.onDetachedFromRecyclerView()
-    }
-
-    override fun onViewAttachedToWindow(holder: TransparentChipsRecyclerViewAdapter.ViewHolder) {
-        if (holder.binding is SpacerItemBinding) return
-        colorCallbacks.onViewAttachedToWindow(holder.uuid) { contrastingColor ->
-            holder.binding.root.setListBackgroundItemDrawableWith(contrastingColor)
-        }
-    }
-
-    override fun onViewDetachedFromWindow(holder: TransparentChipsRecyclerViewAdapter.ViewHolder) {
-        if (holder.binding is SpacerItemBinding) return
-        colorCallbacks.onViewDetachedFromWindow(holder.uuid)
     }
 
     private fun bindPlaceCategoryHeaderItem(binding: TransparentChipItemBinding, position: Int) {

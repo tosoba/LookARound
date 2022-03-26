@@ -29,7 +29,6 @@ import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.composable.SearchBar
-import com.lookaround.core.android.view.recyclerview.colorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.locationRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.delegate.lazyAsync
@@ -83,10 +82,6 @@ class PlaceMapListFragment :
     private val placeMapsRecyclerViewAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
             PlaceMapsRecyclerViewAdapter(
-                colorCallbacks =
-                    viewLifecycleOwner.lifecycleScope.colorRecyclerViewAdapterCallbacks(
-                        mainViewModel.filterSignals(MainSignal.ContrastingColorUpdated::color)
-                    ),
                 bitmapCallbacks =
                     object : PlaceMapsRecyclerViewAdapter.BitmapCallbacks {
                         private val loadBitmapJobs = mutableMapOf<UUID, Job>()

@@ -1,5 +1,6 @@
 package com.lookaround.ui.recent.searches
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -11,7 +12,6 @@ import com.lookaround.core.android.databinding.SpacerItemBinding
 import com.lookaround.core.android.ext.formattedDistanceTo
 import com.lookaround.core.android.ext.getDrawableOfPlaceTypeBy
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
-import com.lookaround.core.android.view.recyclerview.ColorRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
 import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
@@ -21,7 +21,6 @@ import com.lookaround.ui.recent.searches.model.RecentSearchModel
 import java.util.*
 
 class RecentSearchesRecyclerViewAdapter(
-    private val colorCallbacks: ColorRecyclerViewAdapterCallbacks,
     private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks,
     private val onItemLongClicked: (RecentSearchModel) -> Unit,
     private val onItemClicked: (RecentSearchModel) -> Unit,
@@ -43,7 +42,9 @@ class RecentSearchesRecyclerViewAdapter(
                     }
                 }
                 ViewType.SEARCH -> {
-                    RecentSearchListItemBinding.inflate(inflater, parent, false)
+                    RecentSearchListItemBinding.inflate(inflater, parent, false).apply {
+                        root.setListBackgroundItemDrawableWith(Color.WHITE)
+                    }
                 }
             }
         )
@@ -91,20 +92,7 @@ class RecentSearchesRecyclerViewAdapter(
             is Item.Search -> ViewType.SEARCH.ordinal
         }
 
-    override fun onViewAttachedToWindow(holder: ViewHolder) {
-        if (holder.binding is SpacerItemBinding) return
-        colorCallbacks.onViewAttachedToWindow(holder.uuid) { contrastingColor ->
-            holder.binding.root.setListBackgroundItemDrawableWith(contrastingColor)
-        }
-    }
-
-    override fun onViewDetachedFromWindow(holder: ViewHolder) {
-        if (holder.binding is SpacerItemBinding) return
-        colorCallbacks.onViewDetachedFromWindow(holder.uuid)
-    }
-
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
-        colorCallbacks.onDetachedFromRecyclerView()
         userLocationCallbacks.onDetachedFromRecyclerView()
     }
 

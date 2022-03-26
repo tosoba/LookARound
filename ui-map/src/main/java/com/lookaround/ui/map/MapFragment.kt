@@ -29,7 +29,6 @@ import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.model.hasNoValueOrEmpty
-import com.lookaround.core.android.view.BlurAnimator
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainSignal
@@ -73,7 +72,6 @@ class MapFragment :
     private var currentMarkerPosition: LatLon? = null
     private var unsetCurrentMarker: Boolean = true
 
-    private var blurAnimator: BlurAnimator? = null
     private var clusterManager: ClusterManager<DefaultClusterItem>? = null
 
     private val markers = mutableMapOf<Long, TangramMarker>()
@@ -127,8 +125,6 @@ class MapFragment :
     }
 
     override fun onDestroyView() {
-        blurAnimator?.cancel()
-        blurAnimator = null
         clusterManager?.cancel()
         clusterManager = null
         binding.map.onDestroy()
@@ -155,7 +151,6 @@ class MapFragment :
             outState.putParcelable(SavedStateKeys.CURRENT_MARKER_POSITION.name, it)
         }
         mapController.launch { saveCameraPosition(outState) }
-        blurAnimator?.saveInstanceState(outState)
     }
 
     override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
