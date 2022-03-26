@@ -2,6 +2,7 @@ package com.lookaround
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
 import android.view.MenuItem
@@ -26,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.iterator
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
@@ -518,6 +520,21 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
                 .onEach { isVisible ->
                     menu.findItem(R.id.action_recent_searches).isVisible = isVisible
                     updateBottomAppBarFabAlignment()
+                }
+                .launchIn(lifecycleScope)
+
+            viewModel
+                .filterSignals(MainSignal.TopFragmentChanged::cameraObscured)
+                .onEach { showingCamera ->
+                    if (showingCamera) {
+                        background =
+                            ContextCompat.getDrawable(
+                                this@MainActivity,
+                                R.drawable.bottom_nav_view_background
+                            )
+                    } else {
+                        setBackgroundColor(Color.TRANSPARENT)
+                    }
                 }
                 .launchIn(lifecycleScope)
 
