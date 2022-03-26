@@ -34,6 +34,7 @@ internal fun arEnabledUpdates(
                 .distinctUntilChanged(),
             cameraViewModel
                 .filterSignals(CameraSignal.PitchChanged::withinLimit)
+                .onStart { emit(true) }
                 .distinctUntilChanged(),
             cameraObscuredUpdates(mainViewModel, cameraViewModel)
                 .onStart {
