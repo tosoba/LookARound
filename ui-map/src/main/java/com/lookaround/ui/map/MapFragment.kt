@@ -17,7 +17,6 @@ import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.hoko.blur.HokoBlur
 import com.hoko.blur.processor.BlurProcessor
-import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.ext.MarkerPickResult
 import com.lookaround.core.android.map.clustering.ClusterManager
@@ -116,8 +115,6 @@ class MapFragment :
             val cameraPositionInitialized = initCameraPosition(savedInstanceState)
             syncMarkerChangesWithMap(cameraPositionInitialized)
         }
-
-        initMapImageBlurring()
 
         mapSceneViewModel
             .onEachSignal(MapSceneSignal.RetryLoadScene::scene) { scene ->
@@ -412,68 +409,6 @@ class MapFragment :
                     .show()
             }
         }
-    }
-
-    private fun initMapImageBlurring() {
-        if (isRunningOnEmulator()) return
-
-        mainViewModel
-            .filterSignals(MainSignal.BottomSheetStateChanged::state)
-            .onEach { sheetState ->
-                if (sheetState == ViewPagerBottomSheetBehavior.STATE_EXPANDED) {
-                    showAndBlurMapImage()
-                } else if (sheetState == ViewPagerBottomSheetBehavior.STATE_HIDDEN) {
-                    reverseBlurAndHideMapImage()
-                }
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-    }
-
-    private suspend fun showAndBlurMapImage() {
-        blurAnimator?.let { currentAnimator ->
-            if (currentAnimator.inProgress) {
-                mapReady.await()
-                currentAnimator.cancel()
-                blurAnimator = currentAnimator.reversed(requireContext()).apply { animate() }
-                return
-            }
-        }
-
-        mapReady.await()
-        val bitmap = mapController.await().captureFrame(true)
-        binding.blurredMapImageView.setImageBitmap(bitmap)
-        blurAnimator =
-            BlurAnimator(
-                    requireContext(),
-                    initialBitmap = bitmap,
-                    initialRadius = 0,
-                    targetRadius = 10
-                )
-                .apply { animate() }
-    }
-
-    private fun reverseBlurAndHideMapImage() {
-        blurAnimator?.let { currentAnimator ->
-            currentAnimator.cancel()
-            blurAnimator = currentAnimator.reversed(requireContext()).apply { animate() }
-        }
-    }
-
-    private var blurAnimationJob: Job? = null
-    private fun BlurAnimator.animate() {
-        blurAnimationJob?.cancel()
-        blurAnimationJob =
-            animationStates
-                .onEach { (blurredBitmap, inProgress) ->
-                    binding.blurredMapImageView.setImageBitmap(blurredBitmap)
-                    if (animationType == BlurAnimator.AnimationType.REVERSE_BLUR && !inProgress) {
-                        binding.blurredMapImageView.visibility = View.GONE
-                    }
-                }
-                .launchIn(viewLifecycleOwner.lifecycleScope)
-
-        binding.blurredMapImageView.visibility = View.VISIBLE
-        animateIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private var blurBackgroundJob: Job? = null
