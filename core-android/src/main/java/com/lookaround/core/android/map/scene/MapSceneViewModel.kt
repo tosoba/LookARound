@@ -9,8 +9,6 @@ import com.lookaround.core.android.map.scene.model.MapSceneState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 
 @ExperimentalCoroutinesApi
 @HiltViewModel
@@ -21,8 +19,4 @@ constructor(savedStateHandle: SavedStateHandle, processor: MapSceneFlowProcessor
         savedStateHandle.initialState(),
         savedStateHandle,
         processor
-    ) {
-    suspend fun awaitSceneLoaded() {
-        states.map(MapSceneState::sceneLoaded::get).first { it }
-    }
-}
+    )

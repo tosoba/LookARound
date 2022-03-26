@@ -29,7 +29,7 @@ import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.WithValue
-import com.lookaround.core.android.model.hasValue
+import com.lookaround.core.android.model.hasNoValueOrEmpty
 import com.lookaround.core.android.view.BlurAnimator
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
@@ -68,6 +68,7 @@ class MapFragment :
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by
         lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
+    private val mapReady = CompletableDeferred<Unit>()
 
     private val markerArgument: Marker? by nullableArgument(Arguments.MARKER.name)
     private var currentMarkerPosition: LatLon? = null
@@ -116,7 +117,7 @@ class MapFragment :
             syncMarkerChangesWithMap(cameraPositionInitialized)
         }
 
-        initMapImageBlurring(savedInstanceState)
+        initMapImageBlurring()
 
         mapSceneViewModel
             .onEachSignal(MapSceneSignal.RetryLoadScene::scene) { scene ->
@@ -177,7 +178,10 @@ class MapFragment :
         }
     }
 
-    override fun onViewComplete() = Unit
+    override fun onViewComplete() {
+        if (mapReady.isCompleted) return else mapReady.complete(Unit)
+    }
+
     override fun onRegionWillChange(animated: Boolean) = Unit
     override fun onRegionIsChanging() = Unit
     override fun onRegionDidChange(animated: Boolean) {
@@ -218,7 +222,7 @@ class MapFragment :
                 moveCameraPositionTo(
                     lat = position.latitude,
                     lng = position.longitude,
-                    zoom = LOCATION_FOCUSED_ZOOM,
+                    zoom = MARKER_FOCUSED_ZOOM,
                     durationMs = CAMERA_POSITION_ANIMATION_DURATION_MS
                 )
             }
@@ -228,7 +232,7 @@ class MapFragment :
     }
 
     private suspend fun MapController.initCameraPosition(savedInstanceState: Bundle?): Boolean {
-        mapSceneViewModel.awaitSceneLoaded()
+        mapReady.await()
 
         if (savedInstanceState != null) {
             restoreCameraPosition(savedInstanceState)
@@ -236,20 +240,20 @@ class MapFragment :
         }
 
         currentMarkerPosition?.let { (latitude, longitude) ->
-            moveCameraPositionTo(lat = latitude, lng = longitude, zoom = LOCATION_FOCUSED_ZOOM)
+            moveCameraPositionTo(lat = latitude, lng = longitude, zoom = MARKER_FOCUSED_ZOOM)
             return true
         }
 
-        if (mainViewModel.state.markers.hasValue) return false
-
-        val location = mainViewModel.state.locationState
-        if (location is WithValue<Location>) {
-            moveCameraPositionTo(
-                lat = location.value.latitude,
-                lng = location.value.longitude,
-                zoom = cameraPosition.zoom
-            )
-            return true
+        if (mainViewModel.state.markers.hasNoValueOrEmpty()) {
+            val location = mainViewModel.state.locationState
+            if (location is WithValue<Location>) {
+                moveCameraPositionTo(
+                    lat = location.value.latitude,
+                    lng = location.value.longitude,
+                    zoom = USER_LOCATION_FOCUSED_ZOOM
+                )
+                return true
+            }
         }
 
         return false
@@ -334,7 +338,8 @@ class MapFragment :
             .distinctUntilChanged()
             .withIndex()
             .onEach { (index, loadable) ->
-                mapSceneViewModel.awaitSceneLoaded()
+                mapReady.await()
+
                 mapController.launch {
                     removeAllMarkers()
                     if (loadable !is WithValue) return@launch
@@ -352,7 +357,7 @@ class MapFragment :
                             moveCameraPositionTo(
                                 lat = marker.location.latitude,
                                 lng = marker.location.longitude,
-                                zoom = LOCATION_FOCUSED_ZOOM
+                                zoom = MARKER_FOCUSED_ZOOM
                             )
                         }
                         markers.forEach { addMarkerFor(it.location) }
@@ -373,7 +378,7 @@ class MapFragment :
                     moveCameraPositionTo(
                         lat = location.value.latitude,
                         lng = location.value.longitude,
-                        zoom = LOCATION_FOCUSED_ZOOM
+                        zoom = MARKER_FOCUSED_ZOOM
                     )
                 }
             }
@@ -409,33 +414,11 @@ class MapFragment :
         }
     }
 
-    private fun initMapImageBlurring(savedInstanceState: Bundle?) {
+    private fun initMapImageBlurring() {
         if (isRunningOnEmulator()) return
-
-        val blurredMapImageDrawable = binding.blurredMapImageView.drawable
-        var skipFirstBottomSheetSignal = false
-        if (savedInstanceState != null &&
-                blurredMapImageDrawable is BitmapDrawable &&
-                blurredMapImageDrawable.bitmap != null
-        ) {
-            blurAnimator =
-                BlurAnimator.fromSavedInstanceState(
-                        requireContext(),
-                        blurredMapImageDrawable.bitmap,
-                        savedInstanceState
-                    )
-                    ?.apply { animate() }
-            skipFirstBottomSheetSignal = true
-        } else if (mainViewModel.state.lastLiveBottomSheetState ==
-                ViewPagerBottomSheetBehavior.STATE_EXPANDED
-        ) {
-            viewLifecycleOwner.lifecycleScope.launch { showAndBlurMapImage() }
-            skipFirstBottomSheetSignal = true
-        }
 
         mainViewModel
             .filterSignals(MainSignal.BottomSheetStateChanged::state)
-            .run { if (skipFirstBottomSheetSignal) drop(1) else this }
             .onEach { sheetState ->
                 if (sheetState == ViewPagerBottomSheetBehavior.STATE_EXPANDED) {
                     showAndBlurMapImage()
@@ -447,19 +430,16 @@ class MapFragment :
     }
 
     private suspend fun showAndBlurMapImage() {
-        val isReversing =
-            blurAnimator?.let { currentAnimator ->
-                if (currentAnimator.inProgress) {
-                    currentAnimator.cancel()
-                    blurAnimator = currentAnimator.reversed(requireContext()).apply { animate() }
-                    true
-                } else {
-                    false
-                }
+        blurAnimator?.let { currentAnimator ->
+            if (currentAnimator.inProgress) {
+                mapReady.await()
+                currentAnimator.cancel()
+                blurAnimator = currentAnimator.reversed(requireContext()).apply { animate() }
+                return
             }
-        if (isReversing == true) return
+        }
 
-        mapSceneViewModel.awaitSceneLoaded()
+        mapReady.await()
         val bitmap = mapController.await().captureFrame(true)
         binding.blurredMapImageView.setImageBitmap(bitmap)
         blurAnimator =
@@ -479,19 +459,21 @@ class MapFragment :
         }
     }
 
+    private var blurAnimationJob: Job? = null
     private fun BlurAnimator.animate() {
-        animateIn(viewLifecycleOwner.lifecycleScope)
-        if (animationType == BlurAnimator.AnimationType.BLUR) {
-            binding.blurredMapImageView.visibility = View.VISIBLE
-        }
-        animationStates
-            .onEach { (blurredBitmap, inProgress) ->
-                binding.blurredMapImageView.setImageBitmap(blurredBitmap)
-                if (animationType == BlurAnimator.AnimationType.REVERSE_BLUR && !inProgress) {
-                    binding.blurredMapImageView.visibility = View.GONE
+        blurAnimationJob?.cancel()
+        blurAnimationJob =
+            animationStates
+                .onEach { (blurredBitmap, inProgress) ->
+                    binding.blurredMapImageView.setImageBitmap(blurredBitmap)
+                    if (animationType == BlurAnimator.AnimationType.REVERSE_BLUR && !inProgress) {
+                        binding.blurredMapImageView.visibility = View.GONE
+                    }
                 }
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        binding.blurredMapImageView.visibility = View.VISIBLE
+        animateIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private var blurBackgroundJob: Job? = null
@@ -499,7 +481,8 @@ class MapFragment :
         blurBackgroundJob?.cancel()
         blurBackgroundJob =
             viewLifecycleOwner.lifecycleScope.launch {
-                mapSceneViewModel.awaitSceneLoaded()
+                mapReady.await()
+
                 val bitmap = mapController.await().captureFrame(true)
                 val blurredBackground =
                     withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
@@ -525,7 +508,8 @@ class MapFragment :
     }
 
     companion object {
-        private const val LOCATION_FOCUSED_ZOOM = 17f
+        private const val USER_LOCATION_FOCUSED_ZOOM = 14f
+        private const val MARKER_FOCUSED_ZOOM = 17f
         private const val CAMERA_POSITION_ANIMATION_DURATION_MS = 150
 
         enum class SavedStateKeys {
