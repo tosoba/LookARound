@@ -79,14 +79,14 @@ class PlaceMapListFragment :
     private var searchQuery: String = ""
     private var searchFocused: Boolean = false
 
+    private val loadBitmapJobs = mutableMapOf<UUID, Job>()
+    private val reloadBitmapJobs = mutableMapOf<UUID, Job>()
+
     private val placeMapsRecyclerViewAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
             PlaceMapsRecyclerViewAdapter(
                 bitmapCallbacks =
                     object : PlaceMapsRecyclerViewAdapter.BitmapCallbacks {
-                        private val loadBitmapJobs = mutableMapOf<UUID, Job>()
-                        private val reloadBitmapJobs = mutableMapOf<UUID, Job>()
-
                         override fun onBindViewHolder(
                             uuid: UUID,
                             location: Location,
@@ -128,8 +128,7 @@ class PlaceMapListFragment :
                         }
 
                         override fun onDetachedFromRecyclerView() {
-                            loadBitmapJobs.values.forEach(Job::cancel)
-                            reloadBitmapJobs.values.forEach(Job::cancel)
+                            cancelBitmapJobs()
                         }
                     },
                 userLocationCallbacks =
@@ -140,6 +139,11 @@ class PlaceMapListFragment :
                 (activity as? PlaceMapListFragmentHost)?.onPlaceMapItemClick(namedLocation)
             }
         }
+
+    private fun cancelBitmapJobs() {
+        loadBitmapJobs.values.forEach(Job::cancel)
+        reloadBitmapJobs.values.forEach(Job::cancel)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -248,6 +252,7 @@ class PlaceMapListFragment :
             }
             .distinctUntilChanged()
             .onEach { markers ->
+                cancelBitmapJobs()
                 val mapItems = markers.map(PlaceMapsRecyclerViewAdapter.Item::Map)
                 placeMapsRecyclerViewAdapter.updateItems(
                     if (placeMapsRecyclerViewAdapter.items.firstOrNull() is
