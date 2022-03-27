@@ -116,18 +116,15 @@ class PlaceMapListFragment :
                             onBitmapLoadingStarted: () -> Unit,
                             onBitmapLoaded: (bitmap: Bitmap) -> Unit
                         ) {
-                            if (!loadBitmapJobs.containsKey(uuid)) {
-                                onBitmapLoadingStarted()
-                                loadBitmapJobs[uuid] =
-                                    viewLifecycleOwner.lifecycleScope
-                                        .launch {
-                                            val bitmap = getBitmapFor(location)
-                                            onBitmapLoaded(bitmap)
-                                        }
-                                        .apply {
-                                            invokeOnCompletion { loadBitmapJobs.remove(uuid) }
-                                        }
-                            }
+                            loadBitmapJobs.remove(uuid)?.cancel()
+                            onBitmapLoadingStarted()
+                            loadBitmapJobs[uuid] =
+                                viewLifecycleOwner.lifecycleScope
+                                    .launch {
+                                        val bitmap = getBitmapFor(location)
+                                        onBitmapLoaded(bitmap)
+                                    }
+                                    .apply { invokeOnCompletion { loadBitmapJobs.remove(uuid) } }
                         }
 
                         override fun onDetachedFromRecyclerView() {
