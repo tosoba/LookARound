@@ -28,3 +28,10 @@ fun RecyclerView.addCollapseTopViewOnScrollListener(topView: View) {
         }
     )
 }
+
+fun RecyclerView.scrollToTopAndShow() {
+    post {
+        scrollToPosition(0)
+        visibility = View.VISIBLE
+    }
+}

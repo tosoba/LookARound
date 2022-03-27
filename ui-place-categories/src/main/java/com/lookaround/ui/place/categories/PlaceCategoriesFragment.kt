@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.lookaround.core.android.ext.addCollapseTopViewOnScrollListener
+import com.lookaround.core.android.ext.scrollToTopAndShow
 import com.lookaround.core.android.model.Amenity
 import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
@@ -247,13 +248,6 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
             .distinctUntilChanged()
             .onEach(placeTypesAdapter::updateItems)
             .launchIn(viewLifecycleOwner.lifecycleScope)
-    }
-
-    private fun RecyclerView.scrollToTopAndShow() {
-        post {
-            scrollToPosition(0)
-            visibility = View.VISIBLE
-        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

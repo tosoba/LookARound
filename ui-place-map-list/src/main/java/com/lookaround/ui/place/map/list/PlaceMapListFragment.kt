@@ -296,13 +296,6 @@ class PlaceMapListFragment :
         }
     }
 
-    private fun RecyclerView.scrollToTopAndShow() {
-        post {
-            scrollToPosition(0)
-            visibility = View.VISIBLE
-        }
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(SavedStateKey.SEARCH_QUERY.name, searchQuery)
         outState.putBoolean(SavedStateKey.SEARCH_FOCUSED.name, searchFocused)

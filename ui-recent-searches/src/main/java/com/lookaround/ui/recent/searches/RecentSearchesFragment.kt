@@ -15,10 +15,10 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.lookaround.core.android.ext.addCollapseTopViewOnScrollListener
+import com.lookaround.core.android.ext.scrollToTopAndShow
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.recyclerview.LoadMoreRecyclerViewScrollListener
@@ -219,13 +219,6 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
         )
         binding.recentSearchesRecyclerView.apply {
             if (wasNotScrolled) scrollToTopAndShow() else visibility = View.VISIBLE
-        }
-    }
-
-    private fun RecyclerView.scrollToTopAndShow() {
-        post {
-            scrollToPosition(0)
-            visibility = View.VISIBLE
         }
     }
 
