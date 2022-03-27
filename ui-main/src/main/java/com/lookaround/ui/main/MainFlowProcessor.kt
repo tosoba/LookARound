@@ -130,8 +130,8 @@ constructor(
                 emitPlacesUpdates(signal, ::SearchAroundResultsLoadedUpdate) {
                     getPlacesOfTypeAround(
                         placeType = placeType,
-                        lat = currentLocation.value.latitude,
-                        lng = currentLocation.value.longitude,
+                        lat = currentLocation.value.latitude.roundedTo2DecimalPlaces,
+                        lng = currentLocation.value.longitude.roundedTo2DecimalPlaces,
                         radiusInMeters = PLACES_LOADING_RADIUS_METERS
                     )
                 }
@@ -156,8 +156,8 @@ constructor(
 
             emitPlacesUpdates(signal, ::SearchAroundResultsLoadedUpdate) {
                 getAttractionsAround(
-                    lat = currentLocation.value.latitude,
-                    lng = currentLocation.value.longitude,
+                    lat = currentLocation.value.latitude.roundedTo2DecimalPlaces,
+                    lng = currentLocation.value.longitude.roundedTo2DecimalPlaces,
                     radiusInMeters = PLACES_LOADING_RADIUS_METERS
                 )
             }
@@ -187,8 +187,8 @@ constructor(
                 emitPlacesUpdates(signal, ::AutocompleteSearchResultsLoadedUpdate) {
                     autocompleteSearch(
                         query = query,
-                        priorityLat = currentLocation.value.latitude.roundTo3DecimalPlaces(),
-                        priorityLon = currentLocation.value.longitude.roundTo3DecimalPlaces()
+                        priorityLat = currentLocation.value.latitude.roundedTo2DecimalPlaces,
+                        priorityLon = currentLocation.value.longitude.roundedTo2DecimalPlaces
                     )
                 }
             }
@@ -218,6 +218,7 @@ constructor(
         private const val PLACES_LOADING_TIMEOUT_MILLIS = 10_000L
         private const val PLACES_LOADING_RADIUS_METERS = 5_000f
 
-        private fun Double.roundTo3DecimalPlaces(): Double = roundToDecimalPlaces(3).toDouble()
+        private val Double.roundedTo2DecimalPlaces: Double
+            get() = roundToDecimalPlaces(2).toDouble()
     }
 }
