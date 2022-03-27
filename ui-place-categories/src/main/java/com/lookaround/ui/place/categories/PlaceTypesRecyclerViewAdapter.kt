@@ -10,20 +10,20 @@ import com.lookaround.core.android.databinding.SpacerItemBinding
 import com.lookaround.core.android.databinding.TransparentChipItemBinding
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
-import com.lookaround.core.android.view.recyclerview.TransparentChipsRecyclerViewAdapter
+import com.lookaround.core.android.view.recyclerview.ViewBindingViewHolder
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.place.categories.databinding.PlaceTypeItemBinding
 
 internal class PlaceTypesRecyclerViewAdapter(
     private var items: List<PlaceTypeListItem>,
     private val onPlaceTypeClicked: (IPlaceType) -> Unit,
-) : RecyclerView.Adapter<TransparentChipsRecyclerViewAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<ViewBindingViewHolder>() {
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): TransparentChipsRecyclerViewAdapter.ViewHolder {
+    ): ViewBindingViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return TransparentChipsRecyclerViewAdapter.ViewHolder(
+        return ViewBindingViewHolder(
             when (ViewType.values()[viewType]) {
                 ViewType.SPACER -> {
                     SpacerItemBinding.inflate(inflater, parent, false).apply {
@@ -49,7 +49,7 @@ internal class PlaceTypesRecyclerViewAdapter(
     }
 
     override fun onBindViewHolder(
-        holder: TransparentChipsRecyclerViewAdapter.ViewHolder,
+        holder: ViewBindingViewHolder,
         position: Int
     ) {
         when (val binding = holder.binding) {

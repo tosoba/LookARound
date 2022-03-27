@@ -3,24 +3,26 @@ package com.lookaround.core.android.view.recyclerview
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewbinding.ViewBinding
 import com.lookaround.core.android.R
 import com.lookaround.core.android.databinding.TransparentChipItemBinding
+import com.lookaround.core.android.ext.darkMode
 import com.lookaround.core.android.ext.dpToPx
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
-import java.util.*
+import com.lookaround.core.android.view.theme.Neutral7
 
-class TransparentChipsRecyclerViewAdapter<I>(
+class ChipsRecyclerViewAdapter<I>(
     private var items: List<I>,
     private val label: (I) -> String,
+    private val transparent: Boolean = true,
     private val onMoreClicked: (() -> Unit)? = null,
     private val onItemClicked: (I) -> Unit
-) : RecyclerView.Adapter<TransparentChipsRecyclerViewAdapter.ViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-        ViewHolder(
+) : RecyclerView.Adapter<ViewBindingViewHolder>() {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewBindingViewHolder =
+        ViewBindingViewHolder(
             TransparentChipItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
                 .apply {
                     root.isClickable = true
@@ -42,12 +44,24 @@ class TransparentChipsRecyclerViewAdapter<I>(
                             }
                         }
                     }
-                    root.setListBackgroundItemDrawableWith(Color.WHITE)
+                    if (transparent) {
+                        root.setListBackgroundItemDrawableWith(Color.WHITE)
+                    } else {
+                        root.setListBackgroundItemDrawableWith(
+                            contrastingColor =
+                                if (parent.context.darkMode) Color.parseColor("#ff121212")
+                                else Color.WHITE,
+                            alpha = 0xff
+                        )
+                        if (!parent.context.darkMode) {
+                            chipLabelTextView.setTextColor(Neutral7.toArgb())
+                        }
+                    }
                     chipLabelTextView.textSize = 16f
                 }
         )
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewBindingViewHolder, position: Int) {
         if (holder.binding !is TransparentChipItemBinding) throw IllegalStateException()
         with(holder.binding) {
             chipLabelTextView.text =
@@ -81,9 +95,4 @@ class TransparentChipsRecyclerViewAdapter<I>(
         LAST,
         OTHER
     }
-
-    class ViewHolder(
-        val binding: ViewBinding,
-        val uuid: UUID = UUID.randomUUID(),
-    ) : RecyclerView.ViewHolder(binding.root)
 }

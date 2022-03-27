@@ -24,7 +24,7 @@ import com.lookaround.core.android.model.Leisure
 import com.lookaround.core.android.model.Shop
 import com.lookaround.core.android.model.Tourism
 import com.lookaround.core.android.view.composable.SearchBar
-import com.lookaround.core.android.view.recyclerview.TransparentChipsRecyclerViewAdapter
+import com.lookaround.core.android.view.recyclerview.ChipsRecyclerViewAdapter
 import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.ui.main.MainViewModel
@@ -136,9 +136,10 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                 recyclerView.layoutManager =
                     LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
                 val adapter =
-                    TransparentChipsRecyclerViewAdapter(
+                    ChipsRecyclerViewAdapter(
                         items = emptyList(),
-                        label = PlaceTypeListItem.PlaceCategory::name::get
+                        label = PlaceTypeListItem.PlaceCategory::name::get,
+                        transparent = false
                     ) { category ->
                         (binding.placeTypesRecyclerView.layoutManager as GridLayoutManager)
                             .scrollToPositionWithOffset(

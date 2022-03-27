@@ -10,7 +10,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.lookaround.core.android.model.WithValue
-import com.lookaround.core.android.view.recyclerview.TransparentChipsRecyclerViewAdapter
+import com.lookaround.core.android.view.recyclerview.ChipsRecyclerViewAdapter
 import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
 import com.lookaround.ui.recent.searches.RecentSearchesViewModel
 import com.lookaround.ui.recent.searches.model.RecentSearchModel
@@ -49,8 +49,9 @@ fun RecentSearchesChipList(
             recyclerView.layoutManager =
                 LinearLayoutManager(recyclerView.context, LinearLayoutManager.HORIZONTAL, false)
             val adapter =
-                TransparentChipsRecyclerViewAdapter(
+                ChipsRecyclerViewAdapter(
                     recentSearchesState.value,
+                    transparent = false,
                     label = { item -> item.label.titleCaseWithSpacesInsteadOfUnderscores },
                     onMoreClicked = onMoreClicked,
                     onItemClicked = onItemClicked,
