@@ -37,6 +37,8 @@
             android:visibility="gone"
             app:elevation="0dp"
             app:itemHorizontalTranslationEnabled="false"
+            app:itemIconTint="@drawable/bottom_nav_view_item_colors"
+            app:itemTextColor="@drawable/bottom_nav_view_item_colors"
             app:menu="@menu/main_bottom_nav_menu" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
