@@ -49,6 +49,7 @@ import com.lookaround.core.android.view.theme.LookARoundTheme
 import com.lookaround.core.android.view.viewpager.DiffUtilFragmentStateAdapter
 import com.lookaround.core.model.SearchType
 import com.lookaround.databinding.ActivityMainBinding
+import com.lookaround.ui.about.AboutFragment
 import com.lookaround.ui.camera.CameraFragment
 import com.lookaround.ui.camera.model.CameraARState
 import com.lookaround.ui.main.*
@@ -58,6 +59,7 @@ import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.map.list.PlaceMapListFragmentHost
 import com.lookaround.ui.recent.searches.composable.RecentSearchesChipList
+import com.lookaround.ui.settings.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -217,7 +219,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
     }
 
     override fun onShowMapClick() {
-        showMapFragment()
+        replaceFragmentInMainContainerView<MapFragment>()
     }
 
     private fun onARLoading() {
@@ -268,9 +270,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         binding.drawerNavigationView.setNavigationItemSelectedListener {
             if (lifecycle.isResumed)
                 when (it.itemId) {
-                    R.id.drawer_nav_map -> showMapFragment()
-                    R.id.drawer_nav_about -> {}
-                    R.id.drawer_nav_settings -> {}
+                    R.id.drawer_nav_map -> replaceFragmentInMainContainerView<MapFragment>()
+                    R.id.drawer_nav_about -> replaceFragmentInMainContainerView<AboutFragment>()
+                    R.id.drawer_nav_settings ->
+                        replaceFragmentInMainContainerView<SettingsFragment>()
                 }
             binding.mainDrawerLayout.closeDrawer(Gravity.LEFT)
             true
@@ -282,6 +285,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
 
         val initiallyOpen = binding.mainDrawerLayout.isDrawerOpen(binding.drawerNavigationView)
         onDrawerToggled(initiallyOpen)
+
+        viewModel
+            .filterSignals(MainSignal.TopFragmentChanged::cameraObscured)
+            .distinctUntilChanged()
+            .onEach { obscured ->
+                binding.mainDrawerLayout.setDrawerLockMode(
+                    if (obscured) DrawerLayout.LOCK_MODE_LOCKED_CLOSED
+                    else DrawerLayout.LOCK_MODE_UNLOCKED
+                )
+            }
+            .launchIn(lifecycleScope)
 
         binding.mainDrawerLayout.addDrawerListener(
             object : DrawerLayout.DrawerListener {
@@ -317,11 +331,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         )
     }
 
-    private fun showMapFragment() {
-        if (currentTopFragment is MapFragment) return
+    private inline fun <reified F : Fragment> replaceFragmentInMainContainerView(
+        crossinline factory: () -> F = F::class.java::newInstance
+    ) {
+        if (currentTopFragment is F) return
         fragmentTransaction {
             setSlideInFromBottom()
-            replace(R.id.main_fragment_container_view, MapFragment())
+            replace(R.id.main_fragment_container_view, factory())
             addToBackStack(null)
         }
     }
