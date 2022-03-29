@@ -18,6 +18,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/place_list_fragment_container_view"
+            android:name="com.lookaround.ui.place.list.PlaceListFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="56dp"
+            android:visibility="gone"
+            app:behavior_hideable="true"
+            app:behavior_skipCollapsed="true"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" />
+
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/bottom_sheet_view_pager"
             android:layout_width="match_parent"

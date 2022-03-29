@@ -49,8 +49,8 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         with(binding.placeListRecyclerView) {
-            setItemViewCacheSize(4)
             layoutManager = ProminentLayoutManager(requireContext())
+            setItemViewCacheSize(4)
             adapter = placesRecyclerViewAdapter
 
             val spacing = resources.getDimensionPixelSize(R.dimen.carousel_spacing)

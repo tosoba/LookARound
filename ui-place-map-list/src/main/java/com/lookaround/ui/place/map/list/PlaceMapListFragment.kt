@@ -37,9 +37,9 @@ import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
-import com.lookaround.ui.place.list.BuildConfig
-import com.lookaround.ui.place.list.R
-import com.lookaround.ui.place.list.databinding.FragmentPlaceMapListBinding
+import com.lookaround.ui.place.map.list.BuildConfig
+import com.lookaround.ui.place.map.list.R
+import com.lookaround.ui.place.map.list.databinding.FragmentPlaceMapListBinding
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory

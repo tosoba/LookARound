@@ -17,7 +17,7 @@ import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
-import com.lookaround.ui.place.list.databinding.PlaceMapListItemBinding
+import com.lookaround.ui.place.map.list.databinding.PlaceMapListItemBinding
 import java.util.*
 
 internal class PlaceMapsRecyclerViewAdapter(
