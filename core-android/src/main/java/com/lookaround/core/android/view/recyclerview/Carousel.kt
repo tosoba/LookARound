@@ -2,10 +2,7 @@ package com.lookaround.core.android.view.recyclerview
 
 import android.content.Context
 import android.graphics.Rect
-import android.os.Parcelable
 import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.annotation.Px
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
@@ -14,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.lookaround.core.android.R
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import kotlinx.parcelize.Parcelize
 
 /** Works best with a [LinearLayoutManager] in [LinearLayoutManager.HORIZONTAL] orientation */
 class LinearHorizontalSpacingDecoration(@Px private val innerSpacing: Int) :
@@ -59,62 +55,12 @@ class BoundsOffsetDecoration : ItemDecoration() {
     }
 }
 
-@Parcelize
-data class Image(val url: String, val width: Int, val height: Int) : Parcelable {
-    val aspectRatio: Float
-        get() = width.toFloat() / height.toFloat()
-}
-
-open class CarouselAdapter(private val images: List<Image>) :
-    RecyclerView.Adapter<CarouselAdapter.VH>() {
-
-    private var hasInitParentDimensions = false
-    private var maxImageWidth: Int = 0
-    private var maxImageHeight: Int = 0
-    private var maxImageAspectRatio: Float = 1f
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        // At this point [parent] has been measured and has valid width & height
-        if (!hasInitParentDimensions) {
-            maxImageWidth =
-                parent.width - 2 * parent.resources.getDimensionPixelSize(R.dimen.gradient_width)
-            maxImageHeight = parent.height
-            maxImageAspectRatio = maxImageWidth.toFloat() / maxImageHeight.toFloat()
-            hasInitParentDimensions = true
-        }
-
-        return VH(ImageView(parent.context))
-    }
-
-    override fun onBindViewHolder(vh: VH, position: Int) {
-        val image = images[position]
-
-        // Change aspect ratio
-        val imageAspectRatio = image.aspectRatio
-        val targetImageWidth: Int =
-            if (imageAspectRatio < maxImageAspectRatio) {
-                // Tall image: height = max
-                (maxImageHeight * imageAspectRatio).roundToInt()
-            } else {
-                // Wide image: width = max
-                maxImageWidth
-            }
-        vh.overlayableImageView.layoutParams =
-            RecyclerView.LayoutParams(targetImageWidth, RecyclerView.LayoutParams.MATCH_PARENT)
-    }
-
-    override fun getItemCount(): Int = images.size
-
-    class VH(val overlayableImageView: ImageView) : RecyclerView.ViewHolder(overlayableImageView)
-}
-
-private fun RecyclerView.smoothScrollToCenteredPosition(position: Int) {
+fun RecyclerView.smoothScrollToCenteredPosition(position: Int) {
     val smoothScroller =
         object : LinearSmoothScroller(context) {
             override fun calculateDxToMakeVisible(view: View?, snapPreference: Int): Int {
                 val dxToStart = super.calculateDxToMakeVisible(view, SNAP_TO_START)
                 val dxToEnd = super.calculateDxToMakeVisible(view, SNAP_TO_END)
-
                 return (dxToStart + dxToEnd) / 2
             }
         }
@@ -127,7 +73,7 @@ private fun RecyclerView.smoothScrollToCenteredPosition(position: Int) {
  * Arranges items so that the central one appears prominent: its neighbors are scaled down. Based on
  * https://stackoverflow.com/a/54516315/2291104
  */
-internal class ProminentLayoutManager(
+class ProminentLayoutManager(
     context: Context,
 
     /**
