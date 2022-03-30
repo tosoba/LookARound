@@ -1,12 +1,13 @@
 package com.lookaround.ui.main.model
 
 import android.graphics.drawable.Drawable
+import androidx.fragment.app.Fragment
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 
 sealed interface MainSignal {
     object UnableToLoadPlacesWithoutLocation : MainSignal
     object UnableToLoadPlacesWithoutConnection : MainSignal
-    data class TopFragmentChanged(val cameraObscured: Boolean) : MainSignal
+    data class TopFragmentChanged(val fragmentClass: Class<out Fragment>) : MainSignal
     data class BottomSheetStateChanged(
         @ViewPagerBottomSheetBehavior.State val state: Int,
     ) : MainSignal
@@ -21,4 +22,6 @@ sealed interface MainSignal {
     data class ContrastingColorUpdated(val color: Int) : MainSignal
     data class BlurBackgroundUpdated(val drawable: Drawable) : MainSignal
     data class DrawerToggled(val open: Boolean) : MainSignal
+    object ShowPlaceListBottomSheet : MainSignal
+    object HidePlaceListBottomSheet : MainSignal
 }

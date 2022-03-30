@@ -306,6 +306,7 @@ class MapFragment :
                         if (pickResult != null) {
                             if (!pickResult.isCluster) {
                                 updateCurrentMarkerPosition(pickResult.position)
+                                mainViewModel.signal(MainSignal.ShowPlaceListBottomSheet)
                             } else {
                                 moveCameraPositionTo(
                                     lat = pickResult.position.latitude,
@@ -319,6 +320,7 @@ class MapFragment :
                             mainViewModel.signal(
                                 MainSignal.ToggleSearchBarVisibility(targetVisibility)
                             )
+                            mainViewModel.signal(MainSignal.HidePlaceListBottomSheet)
                         }
                     }
                     return true

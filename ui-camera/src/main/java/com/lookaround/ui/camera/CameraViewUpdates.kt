@@ -40,7 +40,6 @@ internal fun arEnabledUpdates(
                 .onStart {
                     emit(
                         CameraObscuredUpdate(
-                            obscuredByFragment = false,
                             obscuredByBottomSheet = false,
                             obscuredByDrawer = false
                         )
@@ -112,7 +111,6 @@ internal fun arDisabledUpdates(
                 .onStart {
                     emit(
                         CameraObscuredUpdate(
-                            obscuredByFragment = false,
                             obscuredByBottomSheet = false,
                             obscuredByDrawer = false,
                         )
@@ -164,9 +162,6 @@ internal fun cameraObscuredUpdates(
     cameraViewModel: CameraViewModel
 ): Flow<CameraObscuredUpdate> =
     combine(
-            mainViewModel.filterSignals(MainSignal.TopFragmentChanged::cameraObscured).onStart {
-                emit(false)
-            },
             mainViewModel.filterSignals(MainSignal.BottomSheetStateChanged::state).onStart {
                 emit(mainViewModel.state.lastLiveBottomSheetState)
             },
@@ -174,9 +169,8 @@ internal fun cameraObscuredUpdates(
             cameraViewModel
                 .mapStates(CameraState::previewState)
                 .filter(CameraPreviewState::isLive::get),
-        ) { obscured, sheetState, drawerOpen, _ ->
+        ) { sheetState, drawerOpen, _ ->
             CameraObscuredUpdate(
-                obscuredByFragment = obscured,
                 obscuredByBottomSheet =
                     sheetState == ViewPagerBottomSheetBehavior.STATE_EXPANDED ||
                         sheetState == ViewPagerBottomSheetBehavior.STATE_DRAGGING ||
@@ -201,12 +195,11 @@ internal fun cameraViewObscuredUpdates(
         .debounce(500L)
 
 internal data class CameraObscuredUpdate(
-    val obscuredByFragment: Boolean,
     val obscuredByBottomSheet: Boolean,
     val obscuredByDrawer: Boolean
 ) {
     val obscured: Boolean
-        get() = obscuredByFragment || obscuredByBottomSheet || obscuredByDrawer
+        get() = obscuredByBottomSheet || obscuredByDrawer
 }
 
 internal data class CameraObscuredViewUpdate(

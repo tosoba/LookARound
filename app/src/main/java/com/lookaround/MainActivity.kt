@@ -36,6 +36,7 @@ import androidx.viewpager2.widget.ViewPager2
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
@@ -87,6 +88,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
     private val bottomSheetViewPagerAdapter by
         lazy(LazyThreadSafetyMode.NONE) { DiffUtilFragmentStateAdapter(this@MainActivity) }
 
+    private val placeListBottomSheetBehavior by
+        lazy(LazyThreadSafetyMode.NONE) {
+            BottomSheetBehavior.from(binding.placeListFragmentContainerView)
+        }
+
     private val shouldUpdateLastLiveBottomSheetState: Boolean
         get() =
             viewsInteractionEnabled &&
@@ -121,6 +127,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
                 )
 
                 if (viewsInteractionEnabled) {
+                    binding.placeListFragmentContainerView.visibility = View.GONE
+                    placeListBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+                    binding.bottomSheetViewPager.visibility = View.VISIBLE
                     bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_EXPANDED
                 }
 
@@ -146,6 +155,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         initNavigationDrawer()
         initSearch()
         initBottomSheet()
+        initPlaceListBottomSheet()
         initBottomNavigationView()
         initNearMeFab()
 
@@ -259,11 +269,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
     }
 
     private suspend fun signalTopFragmentChanged() {
-        viewModel.signal(
-            MainSignal.TopFragmentChanged(
-                cameraObscured = currentTopFragment !is CameraFragment,
-            )
-        )
+        currentTopFragment?.let {
+            viewModel.signal(MainSignal.TopFragmentChanged(fragmentClass = it::class.java))
+        }
     }
 
     private fun initNavigationDrawer() {
@@ -287,12 +295,15 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         onDrawerToggled(initiallyOpen)
 
         viewModel
-            .filterSignals(MainSignal.TopFragmentChanged::cameraObscured)
+            .filterSignals(MainSignal.TopFragmentChanged::fragmentClass)
             .distinctUntilChanged()
-            .onEach { obscured ->
+            .onEach { fragmentClass ->
                 binding.mainDrawerLayout.setDrawerLockMode(
-                    if (obscured) DrawerLayout.LOCK_MODE_LOCKED_CLOSED
-                    else DrawerLayout.LOCK_MODE_UNLOCKED
+                    if (!fragmentClass.isAssignableFrom(CameraFragment::class.java)) {
+                        DrawerLayout.LOCK_MODE_LOCKED_CLOSED
+                    } else {
+                        DrawerLayout.LOCK_MODE_UNLOCKED
+                    }
                 )
             }
             .launchIn(lifecycleScope)
@@ -365,8 +376,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         }
         val cameraFragmentVisibleFlow = remember {
             viewModel
-                .filterSignals<MainSignal.TopFragmentChanged>()
-                .map { (cameraObscured) -> !cameraObscured }
+                .filterSignals(MainSignal.TopFragmentChanged::fragmentClass)
+                .map { it.isAssignableFrom(CameraFragment::class.java) }
                 .distinctUntilChanged()
         }
         val searchFocused = searchFocusedFlow.collectAsState(initial = false)
@@ -518,6 +529,32 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             .launchIn(lifecycleScope)
     }
 
+    private fun initPlaceListBottomSheet() {
+        viewModel
+            .onEachSignal(MainSignal.TopFragmentChanged::fragmentClass) { fragmentClass ->
+                if (!fragmentClass.isAssignableFrom(MapFragment::class.java)) {
+                    binding.placeListFragmentContainerView.visibility = View.GONE
+                    placeListBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+                }
+            }
+            .launchIn(lifecycleScope)
+
+        viewModel
+            .filterSignals<MainSignal.ShowPlaceListBottomSheet>()
+            .onEach {
+                binding.bottomSheetViewPager.visibility = View.GONE
+                bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
+                binding.placeListFragmentContainerView.visibility = View.VISIBLE
+                placeListBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+            }
+            .launchIn(lifecycleScope)
+
+        viewModel
+            .filterSignals<MainSignal.HidePlaceListBottomSheet>()
+            .onEach { placeListBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN }
+            .launchIn(lifecycleScope)
+    }
+
     private fun initBottomNavigationView() {
         with(binding.bottomNavigationView) {
             selectedItemId = viewModel.state.selectedBottomNavigationViewItemId
@@ -540,16 +577,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
                 .launchIn(lifecycleScope)
 
             viewModel
-                .filterSignals(MainSignal.TopFragmentChanged::cameraObscured)
-                .onEach { showingCamera ->
-                    if (showingCamera) {
+                .filterSignals(MainSignal.TopFragmentChanged::fragmentClass)
+                .distinctUntilChanged()
+                .onEach { fragmentClass ->
+                    if (fragmentClass.isAssignableFrom(CameraFragment::class.java)) {
+                        setBackgroundColor(Color.TRANSPARENT)
+                    } else {
                         background =
                             ContextCompat.getDrawable(
                                 this@MainActivity,
                                 R.drawable.bottom_nav_view_background
                             )
-                    } else {
-                        setBackgroundColor(Color.TRANSPARENT)
                     }
                 }
                 .launchIn(lifecycleScope)
