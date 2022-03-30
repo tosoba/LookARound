@@ -75,7 +75,6 @@ class MapFragment :
 
     private var clusterManager: ClusterManager<DefaultClusterItem>? = null
 
-    private val markers = mutableMapOf<Long, TangramMarker>()
     private val markerPickContinuations = ConcurrentLinkedQueue<Continuation<MarkerPickResult?>>()
 
     private val blurProcessor: BlurProcessor by
@@ -186,14 +185,8 @@ class MapFragment :
     }
 
     override fun onMarkerPickComplete(result: TangramMarkerPickResult?) {
-        val markerPickResult =
-            clusterManager?.onMarkerPickComplete(result)
-                ?: result?.marker?.markerId?.let { markerId ->
-                    val marker = markers[markerId]
-                    if (marker != null) MarkerPickResult(marker, result.coordinates.latLon)
-                    else null
-                }
-        markerPickContinuations.poll()?.resume(markerPickResult)
+        val markerPickResult = clusterManager?.onMarkerPickComplete(result)
+        markerPickResult?.let { markerPickContinuations.poll()?.resume(it) }
     }
 
     private suspend fun pickMarker(posX: Float, posY: Float): MarkerPickResult? =
@@ -267,7 +260,7 @@ class MapFragment :
     }
 
     private fun MapController.addMarkerClusters(markers: SortedSet<Marker>) {
-        val clusterItems = markers.map { DefaultClusterItem(it.location.latLon) }
+        val clusterItems = markers.map { DefaultClusterItem(it.id, it.location.latLon) }
         clusterManager?.cancel()
         clusterManager = ClusterManager(requireContext(), this, clusterItems)
     }
@@ -304,9 +297,10 @@ class MapFragment :
                     viewLifecycleOwner.lifecycleScope.launchWhenResumed {
                         val pickResult = this@MapFragment.pickMarker(posX = x, posY = y)
                         if (pickResult != null) {
-                            if (!pickResult.isCluster) {
+                            val uuid = pickResult.uuid
+                            if (uuid != null) {
                                 updateCurrentMarkerPosition(pickResult.position)
-                                mainViewModel.signal(MainSignal.ShowPlaceListBottomSheet)
+                                mainViewModel.signal(MainSignal.ShowPlaceListBottomSheet(uuid))
                             } else {
                                 moveCameraPositionTo(
                                     lat = pickResult.position.latitude,
@@ -343,21 +337,20 @@ class MapFragment :
 
                     val markers = loadable.value.items
                     val changeCameraPosition = index != 0 || !cameraPositionInitialized
-                    if (markers.size > 1) {
+                    if (markers.size > 0) {
                         if (changeCameraPosition) {
-                            calculateAndZoomToBoundsOf(markers.map(Marker::location::get))
+                            if (markers.size > 1) {
+                                calculateAndZoomToBoundsOf(markers.map(Marker::location::get))
+                            } else {
+                                val marker = markers.first()
+                                moveCameraPositionTo(
+                                    lat = marker.location.latitude,
+                                    lng = marker.location.longitude,
+                                    zoom = MARKER_FOCUSED_ZOOM
+                                )
+                            }
                         }
                         addMarkerClusters(markers)
-                    } else if (markers.size == 1) {
-                        val marker = markers.first()
-                        if (changeCameraPosition) {
-                            moveCameraPositionTo(
-                                lat = marker.location.latitude,
-                                lng = marker.location.longitude,
-                                zoom = MARKER_FOCUSED_ZOOM
-                            )
-                        }
-                        markers.forEach { addMarkerFor(it.location) }
                     }
                 }
             }

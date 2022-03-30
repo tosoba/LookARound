@@ -12,6 +12,7 @@ import com.lookaround.core.android.map.model.LatLon
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
+import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -56,9 +57,9 @@ fun MapController.zoomOnDoubleTap(
 }
 
 suspend fun MapController.captureFrame(waitForTilesLoaded: Boolean = true): Bitmap =
-        suspendCoroutine {
-    captureFrame(it::resume, waitForTilesLoaded)
-}
+    suspendCoroutine {
+        captureFrame(it::resume, waitForTilesLoaded)
+    }
 
 private const val PREF_ROTATION = "map_rotation"
 private const val PREF_TILT = "map_tilt"
@@ -194,7 +195,7 @@ fun normalizeLongitude(lon: Double): Double {
     return result
 }
 
-class MarkerPickResult(val marker: Marker, val position: LatLon, val isCluster: Boolean = false)
+class MarkerPickResult(val position: LatLon, val uuid: UUID? = null)
 
 typealias TangramMarker = Marker
 

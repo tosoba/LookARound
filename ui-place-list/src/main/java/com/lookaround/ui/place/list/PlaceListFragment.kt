@@ -3,9 +3,11 @@ package com.lookaround.ui.place.list
 import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.model.Marker
@@ -21,6 +23,7 @@ import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.databinding.FragmentPlaceListBinding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -67,5 +70,26 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                 .onEach(placesRecyclerViewAdapter::updateItems)
                 .launchIn(viewLifecycleOwner.lifecycleScope)
         }
+    }
+
+    fun scrollToPlace(uuid: UUID) {
+        val layoutManager =
+            binding.placeListRecyclerView.layoutManager as? LinearLayoutManager ?: return
+        placesRecyclerViewAdapter
+            .items
+            .indexOfFirst { it.id == uuid }
+            .takeUnless { it == -1 }
+            ?.let { position ->
+                layoutManager.scrollToPosition(position)
+                binding.placeListRecyclerView.doOnPreDraw {
+                    val targetView =
+                        layoutManager.findViewByPosition(position) ?: return@doOnPreDraw
+                    val distanceToFinalSnap =
+                        snapHelper.calculateDistanceToFinalSnap(layoutManager, targetView)
+                            ?: return@doOnPreDraw
+
+                    layoutManager.scrollToPositionWithOffset(position, -distanceToFinalSnap[0])
+                }
+            }
     }
 }

@@ -3,6 +3,7 @@ package com.lookaround.ui.main.model
 import android.graphics.drawable.Drawable
 import androidx.fragment.app.Fragment
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
+import java.util.*
 
 sealed interface MainSignal {
     object UnableToLoadPlacesWithoutLocation : MainSignal
@@ -22,6 +23,6 @@ sealed interface MainSignal {
     data class ContrastingColorUpdated(val color: Int) : MainSignal
     data class BlurBackgroundUpdated(val drawable: Drawable) : MainSignal
     data class DrawerToggled(val open: Boolean) : MainSignal
-    object ShowPlaceListBottomSheet : MainSignal
+    data class ShowPlaceListBottomSheet(val id: UUID) : MainSignal
     object HidePlaceListBottomSheet : MainSignal
 }

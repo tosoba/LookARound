@@ -27,13 +27,10 @@ internal class ClusterRenderer<T : ClusterItem>(
         @Suppress("UNCHECKED_CAST") val cluster = marker.userData as? Cluster<T> ?: return null
         val clusterItems = cluster.items
         return if (clusterItems.size > 1) {
-            MarkerPickResult(marker, markerPickResult.coordinates.latLon, true)
+            MarkerPickResult(markerPickResult.coordinates.latLon)
         } else {
-            MarkerPickResult(
-                marker,
-                LatLon(clusterItems[0].latitude, clusterItems[0].longitude),
-                false
-            )
+            val item = clusterItems[0]
+            MarkerPickResult(LatLon(item.latitude, item.longitude), item.uuid)
         }
     }
 

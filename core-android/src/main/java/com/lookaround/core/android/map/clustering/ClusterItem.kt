@@ -1,18 +1,9 @@
 package com.lookaround.core.android.map.clustering
 
-/** An object representing a single cluster item (marker) on the map. */
-interface ClusterItem : QuadTreePoint {
-    /**
-     * The title of the item.
-     *
-     * @return the title of the item
-     */
-    val title: String?
+import java.util.*
 
-    /**
-     * The snippet of the item.
-     *
-     * @return the snippet of the item
-     */
+interface ClusterItem : QuadTreePoint {
+    val title: String?
     val snippet: String?
+    val uuid: UUID
 }

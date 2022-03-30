@@ -58,6 +58,7 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
+import com.lookaround.ui.place.list.PlaceListFragment
 import com.lookaround.ui.place.map.list.PlaceMapListFragmentHost
 import com.lookaround.ui.recent.searches.composable.RecentSearchesChipList
 import com.lookaround.ui.settings.SettingsFragment
@@ -139,6 +140,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
 
     private val currentTopFragment: Fragment?
         get() = supportFragmentManager.findFragmentById(R.id.main_fragment_container_view)
+
+    private val placeListFragment: PlaceListFragment?
+        get() =
+            supportFragmentManager.findFragmentById(R.id.place_list_fragment_container_view) as?
+                PlaceListFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -540,12 +546,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             .launchIn(lifecycleScope)
 
         viewModel
-            .filterSignals<MainSignal.ShowPlaceListBottomSheet>()
-            .onEach {
+            .filterSignals(MainSignal.ShowPlaceListBottomSheet::id)
+            .onEach { uuid ->
                 binding.bottomSheetViewPager.visibility = View.GONE
                 bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
                 binding.placeListFragmentContainerView.visibility = View.VISIBLE
                 placeListBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                placeListFragment?.scrollToPlace(uuid)
             }
             .launchIn(lifecycleScope)
 
