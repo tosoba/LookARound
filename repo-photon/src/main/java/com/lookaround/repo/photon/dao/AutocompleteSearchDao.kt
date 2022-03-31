@@ -116,4 +116,18 @@ interface AutocompleteSearchDao {
         priorityLon: Double?,
         date: Date
     )
+
+    @Query(
+        """SELECT acs.* FROM autocomplete_search acs 
+        WHERE round(12742 * asin(sqrt(0.5 - cos((priority_lat - :priorityLat) * pi() / 180) / 2 + cos(:priorityLat * pi() / 180) * cos(priority_lat * pi() / 180) * (1 - cos((priority_lon - :priorityLon) * pi() / 180)) / 2)), 3) = (
+            SELECT MIN(round(12742 * asin(sqrt(0.5 - cos((priority_lat - :priorityLat) * pi() / 180) / 2 + cos(:priorityLat * pi() / 180) * cos(priority_lat * pi() / 180) * (1 - cos((priority_lon - :priorityLon) * pi() / 180)) / 2)), 3)) 
+            FROM autocomplete_search acsi 
+            WHERE acsi.`query` = :query
+        )"""
+    )
+    suspend fun selectClosestAutocompleteSearch(
+        query: String,
+        priorityLat: Double,
+        priorityLon: Double
+    ): AutocompleteSearchEntity?
 }
