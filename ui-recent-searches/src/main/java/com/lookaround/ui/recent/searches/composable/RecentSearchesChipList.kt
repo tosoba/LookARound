@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.map
 fun RecentSearchesChipList(
     modifier: Modifier = Modifier,
     recentSearchesViewModel: RecentSearchesViewModel = hiltViewModel(),
+    displayedItemsLimit: Int = 10,
     onMoreClicked: () -> Unit,
     onItemClicked: (RecentSearchModel) -> Unit
 ) {
@@ -30,11 +31,17 @@ fun RecentSearchesChipList(
         recentSearchesViewModel
             .states
             .map { (searches) ->
-                if (searches is WithValue) searches.value.take(10) else emptyList()
+                if (searches is WithValue) {
+                    searches.value.take(displayedItemsLimit) to searches.value.size
+                } else {
+                    emptyList<RecentSearchModel>() to 0
+                }
             }
             .distinctUntilChanged()
     }
-    val recentSearchesState = recentSearchesFlow.collectAsState(emptyList())
+    val recentSearchesState = recentSearchesFlow.collectAsState(emptyList<RecentSearchModel>() to 0)
+    if (recentSearchesState.value.first.isEmpty()) return
+
     AndroidView(
         factory = { context ->
             RecyclerView(context).apply {
@@ -50,10 +57,12 @@ fun RecentSearchesChipList(
                 LinearLayoutManager(recyclerView.context, LinearLayoutManager.HORIZONTAL, false)
             val adapter =
                 ChipsRecyclerViewAdapter(
-                    recentSearchesState.value,
+                    recentSearchesState.value.first,
                     transparent = false,
                     label = { item -> item.label.titleCaseWithSpacesInsteadOfUnderscores },
-                    onMoreClicked = onMoreClicked,
+                    onMoreClicked =
+                        if (recentSearchesState.value.second > displayedItemsLimit) onMoreClicked
+                        else null,
                     onItemClicked = onItemClicked,
                 )
             recyclerView.adapter = adapter
