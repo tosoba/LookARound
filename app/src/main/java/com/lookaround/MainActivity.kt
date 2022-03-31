@@ -210,13 +210,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
     }
 
     override fun onBackPressed() {
-        if (bottomSheetBehavior.state == ViewPagerBottomSheetBehavior.STATE_EXPANDED) {
-            bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
-            if (viewModel.state.searchFocused) super.onBackPressed()
-        } else if (binding.mainDrawerLayout.isDrawerOpen(Gravity.LEFT)) {
-            binding.mainDrawerLayout.closeDrawer(Gravity.LEFT)
-        } else {
-            super.onBackPressed()
+        when {
+            binding.mainDrawerLayout.isDrawerOpen(Gravity.LEFT) -> {
+                binding.mainDrawerLayout.closeDrawer(Gravity.LEFT)
+            }
+            placeListBottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED -> {
+                placeListBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+            }
+            bottomSheetBehavior.state == ViewPagerBottomSheetBehavior.STATE_EXPANDED -> {
+                bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
+            }
+            else -> super.onBackPressed()
         }
     }
 
