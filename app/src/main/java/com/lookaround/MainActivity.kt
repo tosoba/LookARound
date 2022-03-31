@@ -597,7 +597,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
                         background =
                             ContextCompat.getDrawable(
                                 this@MainActivity,
-                                R.drawable.bottom_nav_view_background
+                                R.drawable.rounded_view_background
                             )
                     }
                 }

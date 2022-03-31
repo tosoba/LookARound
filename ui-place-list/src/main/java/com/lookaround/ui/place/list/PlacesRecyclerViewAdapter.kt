@@ -1,17 +1,19 @@
 package com.lookaround.ui.place.list
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.ui.graphics.toArgb
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
+import com.lookaround.core.android.ext.darkMode
 import com.lookaround.core.android.ext.formattedDistanceTo
-import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.smoothScrollToCenteredPosition
+import com.lookaround.core.android.view.theme.Neutral7
+import com.lookaround.core.android.view.theme.Neutral8
 import com.lookaround.ui.place.list.databinding.PlaceListItemBinding
 import java.util.*
 
@@ -27,7 +29,10 @@ internal class PlacesRecyclerViewAdapter(
         val inflater = LayoutInflater.from(parent.context)
         return ViewHolder(
             PlaceListItemBinding.inflate(inflater, parent, false).apply {
-                root.setListBackgroundItemDrawableWith(Color.WHITE)
+                if (!parent.context.darkMode) {
+                    placeNameText.setTextColor(Neutral8.toArgb())
+                    placeDistanceText.setTextColor(Neutral7.toArgb())
+                }
             }
         )
     }
