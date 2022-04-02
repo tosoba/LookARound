@@ -143,7 +143,7 @@ fun MapController.screenPositionToLatLon(screenPosition: PointF): LatLon? =
 fun MapController.addMarkerFor(
     location: Location,
     stylingString: String =
-        "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue, interactive: true}",
+        "{ style: 'points', size: [27px, 27px], order: 2000, flat: true, collide: false, color: 'white', interactive: true}",
     @DrawableRes drawableId: Int = R.drawable.ic_map_marker
 ): Marker =
     addMarker().apply {
@@ -151,6 +151,7 @@ fun MapController.addMarkerFor(
         isVisible = true
         setStylingFromString(stylingString)
         setDrawable(drawableId)
+        setDrawOrder(10)
     }
 
 val LngLat.latLon: LatLon

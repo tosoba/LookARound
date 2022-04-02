@@ -64,10 +64,11 @@ internal class ClusterRenderer<T : ClusterItem>(
                 mapController.addMarker().apply {
                     setPoint(LngLat(clusterToAdd.longitude, clusterToAdd.latitude))
                     setStylingFromString(
-                        "{ style: 'points', size: [27px, 27px], order: 2000, collide: false, color: blue, interactive: true}"
+                        "{ style: 'points', size: [27px, 27px], order: 2000, flat: true, collide: false, color: 'white', interactive: true}"
                     )
                     val markerIcon = getMarkerIcon(clusterToAdd)
                     setDrawable(BitmapDrawable(context.resources, markerIcon))
+                    setDrawOrder(10)
                     isVisible = true
                     userData = clusterToAdd
                 }
