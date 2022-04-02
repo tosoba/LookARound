@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         initNavigationDrawer()
         initSearch()
         initBottomSheet()
-        initPlaceListBottomSheet()
+        initPlaceListBottomSheet(savedInstanceState)
         initBottomNavigationView()
         initNearMeFab()
 
@@ -207,6 +207,14 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             signalTopFragmentChanged()
             viewModel.signal(MainSignal.BottomSheetStateChanged(bottomSheetBehavior.state))
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(
+            SavedStateKeys.PLACE_LIST_BOTTOM_SHEET_STATE.name,
+            placeListBottomSheetBehavior.state
+        )
     }
 
     override fun onBackPressed() {
@@ -539,7 +547,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             .launchIn(lifecycleScope)
     }
 
-    private fun initPlaceListBottomSheet() {
+    private fun initPlaceListBottomSheet(savedInstanceState: Bundle?) {
+        savedInstanceState?.getInt(SavedStateKeys.PLACE_LIST_BOTTOM_SHEET_STATE.name)?.let {
+            placeListBottomSheetBehavior.state = it
+            if (it != BottomSheetBehavior.STATE_EXPANDED) return@let
+            binding.placeListFragmentContainerView.visibility = View.VISIBLE
+        }
+
         viewModel
             .onEachSignal(MainSignal.TopFragmentChanged::fragmentClass) { fragmentClass ->
                 if (!fragmentClass.isAssignableFrom(MapFragment::class.java)) {
@@ -686,5 +700,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
 
     private fun signalSnackbarStatusChanged(isShowing: Boolean) {
         lifecycleScope.launch { viewModel.signal(MainSignal.SnackbarStatusChanged(isShowing)) }
+    }
+
+    enum class SavedStateKeys {
+        PLACE_LIST_BOTTOM_SHEET_STATE
     }
 }

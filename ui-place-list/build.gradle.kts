@@ -53,6 +53,7 @@ dependencies {
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
     implementation("androidx.appcompat:appcompat:1.4.0-rc01")
     implementation("androidx.constraintlayout:constraintlayout:2.1.1")
+    implementation( "androidx.recyclerview:recyclerview:1.3.0-alpha01")
     implementation("com.google.android.material:material:1.5.0")
     implementation("com.google.accompanist:accompanist-insets:0.20.1")
     implementation("com.google.accompanist:accompanist-coil:0.15.0")

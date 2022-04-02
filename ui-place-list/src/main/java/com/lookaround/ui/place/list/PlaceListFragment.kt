@@ -9,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
+import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.ParcelableSortedSet
@@ -52,22 +53,26 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
         with(binding.placeListRecyclerView) {
             layoutManager = ProminentLayoutManager(requireContext())
             setItemViewCacheSize(4)
-            adapter = placesRecyclerViewAdapter
+            adapter =
+                placesRecyclerViewAdapter.apply {
+                    stateRestorationPolicy =
+                        RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+                }
 
             val spacing = resources.getDimensionPixelSize(R.dimen.carousel_spacing)
             addItemDecoration(LinearHorizontalSpacingDecoration(spacing))
             addItemDecoration(BoundsOffsetDecoration())
 
             snapHelper.attachToRecyclerView(this)
-
-            mainViewModel
-                .mapStates(MainState::markers)
-                .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
-                .distinctUntilChanged()
-                .map { it.value.toList() }
-                .onEach(placesRecyclerViewAdapter::updateItems)
-                .launchIn(viewLifecycleOwner.lifecycleScope)
         }
+
+        mainViewModel
+            .mapStates(MainState::markers)
+            .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
+            .distinctUntilChanged()
+            .map { it.value.toList() }
+            .onEach { placesRecyclerViewAdapter.updateItems(it) }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     fun scrollToPlace(uuid: UUID) {
@@ -75,27 +80,28 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
             .items
             .indexOfFirst { it.id == uuid }
             .takeUnless { it == -1 }
-            ?.let { position ->
-                if (initialScroll) {
-                    val layoutManager =
-                        binding.placeListRecyclerView.layoutManager as? LinearLayoutManager
-                            ?: return
-                    layoutManager.scrollToPosition(position)
-                    binding.placeListRecyclerView.doOnPreDraw {
-                        val targetView =
-                            layoutManager.findViewByPosition(position) ?: return@doOnPreDraw
-                        val distanceToFinalSnap =
-                            snapHelper
-                                .calculateDistanceToFinalSnap(layoutManager, targetView)
-                                ?.firstOrNull()
-                                ?: return@doOnPreDraw
-                        val offset = -distanceToFinalSnap
-                        if (offset != 0) layoutManager.scrollToPositionWithOffset(position, offset)
-                    }
-                    initialScroll = false
-                } else {
-                    binding.placeListRecyclerView.smoothScrollToCenteredPosition(position)
-                }
+            ?.let(::scrollToPosition)
+    }
+
+    private fun scrollToPosition(position: Int) {
+        if (initialScroll) {
+            val layoutManager =
+                binding.placeListRecyclerView.layoutManager as? LinearLayoutManager ?: return
+            layoutManager.scrollToPosition(position)
+            binding.placeListRecyclerView.doOnPreDraw {
+                val targetView = layoutManager.findViewByPosition(position) ?: return@doOnPreDraw
+                val distanceToFinalSnap =
+                    snapHelper
+                        .calculateDistanceToFinalSnap(layoutManager, targetView)
+                        ?.firstOrNull()
+                        ?: return@doOnPreDraw
+                val offset = -distanceToFinalSnap
+                if (offset != 0) layoutManager.scrollToPositionWithOffset(position, offset)
             }
+        } else {
+            binding.placeListRecyclerView.smoothScrollToCenteredPosition(position)
+        }
+
+        initialScroll = false
     }
 }
