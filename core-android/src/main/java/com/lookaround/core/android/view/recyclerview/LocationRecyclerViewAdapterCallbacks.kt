@@ -20,7 +20,7 @@ fun CoroutineScope.locationRecyclerViewAdapterCallbacks(
         private val jobs = mutableMapOf<UUID, Job>()
 
         override fun onBindViewHolder(uuid: UUID, action: (userLocation: Location) -> Unit) {
-            if (jobs.containsKey(uuid)) return
+            jobs[uuid]?.cancel()
             jobs[uuid] =
                 locationFlow.onEach(action).launchIn(this@locationRecyclerViewAdapterCallbacks)
         }

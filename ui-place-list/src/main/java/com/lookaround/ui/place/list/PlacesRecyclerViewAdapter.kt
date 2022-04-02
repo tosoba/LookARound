@@ -15,7 +15,6 @@ import com.lookaround.core.android.view.recyclerview.smoothScrollToCenteredPosit
 import com.lookaround.core.android.view.theme.Neutral7
 import com.lookaround.core.android.view.theme.Neutral8
 import com.lookaround.ui.place.list.databinding.PlaceListItemBinding
-import java.util.*
 
 internal class PlacesRecyclerViewAdapter(
     private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks,
@@ -50,8 +49,9 @@ internal class PlacesRecyclerViewAdapter(
         val marker = items[position]
         val binding = holder.binding as PlaceListItemBinding
         binding.placeNameText.text = marker.name
-        userLocationCallbacks.onBindViewHolder(holder.uuid) { userLocation ->
-            binding.placeDistanceText.text = userLocation.preciseFormattedDistanceTo(marker.location)
+        userLocationCallbacks.onBindViewHolder(marker.id) { userLocation ->
+            binding.placeDistanceText.text =
+                userLocation.preciseFormattedDistanceTo(marker.location)
         }
         binding.root.setOnClickListener {
             recyclerView?.smoothScrollToCenteredPosition(position)
@@ -66,8 +66,5 @@ internal class PlacesRecyclerViewAdapter(
         items = newItems
     }
 
-    class ViewHolder(
-        val binding: ViewBinding,
-        val uuid: UUID = UUID.randomUUID(),
-    ) : RecyclerView.ViewHolder(binding.root)
+    class ViewHolder(val binding: ViewBinding) : RecyclerView.ViewHolder(binding.root)
 }
