@@ -204,7 +204,6 @@ class MapFragment :
         if (position != null) {
             unsetCurrentMarker = false
             showFABs()
-            if (currentMarkerPosition == position) return
             currentMarkerPosition = position
             mapController.launch {
                 moveCameraPositionTo(
