@@ -21,7 +21,7 @@ import com.lookaround.ui.recent.searches.model.RecentSearchModel
 import java.util.*
 
 class RecentSearchesRecyclerViewAdapter(
-    private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks,
+    private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks<Long>,
     private val onItemLongClicked: (RecentSearchModel) -> Unit,
     private val onItemClicked: (RecentSearchModel) -> Unit,
 ) : RecyclerView.Adapter<RecentSearchesRecyclerViewAdapter.ViewHolder>() {
@@ -73,7 +73,7 @@ class RecentSearchesRecyclerViewAdapter(
             item.search.label.titleCaseWithSpacesInsteadOfUnderscores
         binding.recentSearchTimestampText.text = TimeAgo.using(item.search.lastSearchedAt.time)
         item.search.location?.let {
-            userLocationCallbacks.onBindViewHolder(holder.uuid) { userLocation ->
+            userLocationCallbacks.onBindViewHolder(item.search.id) { userLocation ->
                 binding.recentSearchDistanceText.text = userLocation.roundedFormattedDistanceTo(it)
             }
         }
@@ -112,10 +112,7 @@ class RecentSearchesRecyclerViewAdapter(
         data class Spacer(val heightPx: Int) : Item
     }
 
-    class ViewHolder(
-        val binding: ViewBinding,
-        val uuid: UUID = UUID.randomUUID(),
-    ) : RecyclerView.ViewHolder(binding.root)
+    class ViewHolder(val binding: ViewBinding) : RecyclerView.ViewHolder(binding.root)
 
     private enum class ViewType {
         SPACER,

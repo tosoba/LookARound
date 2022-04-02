@@ -198,8 +198,6 @@ fun normalizeLongitude(lon: Double): Double {
 
 class MarkerPickResult(val position: LatLon, val uuid: UUID? = null)
 
-typealias TangramMarker = Marker
-
 typealias TangramMarkerPickResult = com.mapzen.tangram.MarkerPickResult
 
 fun locationWith(latitude: Double, longitude: Double, altitude: Double = 0.0): Location =

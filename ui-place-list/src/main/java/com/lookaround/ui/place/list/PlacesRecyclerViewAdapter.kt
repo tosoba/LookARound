@@ -15,9 +15,10 @@ import com.lookaround.core.android.view.recyclerview.smoothScrollToCenteredPosit
 import com.lookaround.core.android.view.theme.Neutral7
 import com.lookaround.core.android.view.theme.Neutral8
 import com.lookaround.ui.place.list.databinding.PlaceListItemBinding
+import java.util.*
 
 internal class PlacesRecyclerViewAdapter(
-    private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks,
+    private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks<UUID>,
     private val onItemClicked: (Marker) -> Unit,
 ) : RecyclerView.Adapter<PlacesRecyclerViewAdapter.ViewHolder>() {
     var items: List<Marker> = emptyList()

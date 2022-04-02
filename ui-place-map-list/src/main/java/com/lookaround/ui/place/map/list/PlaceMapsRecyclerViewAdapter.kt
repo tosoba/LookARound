@@ -22,7 +22,7 @@ import java.util.*
 
 internal class PlaceMapsRecyclerViewAdapter(
     private val bitmapCallbacks: BitmapCallbacks,
-    private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks,
+    private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks<UUID>,
     private val onItemClicked: (Marker) -> Unit,
 ) : RecyclerView.Adapter<PlaceMapsRecyclerViewAdapter.ViewHolder>() {
     var items: List<Item> = emptyList()
@@ -93,7 +93,7 @@ internal class PlaceMapsRecyclerViewAdapter(
             )
         }
 
-        userLocationCallbacks.onBindViewHolder(holder.uuid) { userLocation ->
+        userLocationCallbacks.onBindViewHolder(item.marker.id) { userLocation ->
             binding.placeMapDistanceText.text =
                 userLocation.preciseFormattedDistanceTo(item.marker.location)
         }
@@ -113,10 +113,7 @@ internal class PlaceMapsRecyclerViewAdapter(
         items = newItems
     }
 
-    class ViewHolder(
-        val binding: ViewBinding,
-        val uuid: UUID = UUID.randomUUID(),
-    ) : RecyclerView.ViewHolder(binding.root)
+    class ViewHolder(val binding: ViewBinding) : RecyclerView.ViewHolder(binding.root)
 
     private enum class ViewType {
         SPACER,
