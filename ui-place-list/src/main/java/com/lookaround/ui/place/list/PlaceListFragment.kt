@@ -87,8 +87,8 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                     val distanceToFinalSnap =
                         snapHelper.calculateDistanceToFinalSnap(layoutManager, targetView)
                             ?: return@doOnPreDraw
-
-                    layoutManager.scrollToPositionWithOffset(position, -distanceToFinalSnap[0])
+                    val offset = -distanceToFinalSnap[0]
+                    if (offset != 0) layoutManager.scrollToPositionWithOffset(position, offset)
                 }
             }
     }

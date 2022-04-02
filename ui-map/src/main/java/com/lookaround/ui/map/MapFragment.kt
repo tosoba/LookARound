@@ -210,7 +210,9 @@ class MapFragment :
                 moveCameraPositionTo(
                     lat = position.latitude,
                     lng = position.longitude,
-                    zoom = MARKER_FOCUSED_ZOOM,
+                    zoom =
+                        if (MARKER_FOCUSED_ZOOM > cameraPosition.zoom) MARKER_FOCUSED_ZOOM
+                        else cameraPosition.zoom,
                     durationMs = CAMERA_POSITION_ANIMATION_DURATION_MS
                 )
             }
