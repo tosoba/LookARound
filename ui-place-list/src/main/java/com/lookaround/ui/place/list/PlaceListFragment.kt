@@ -13,10 +13,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.WithValue
-import com.lookaround.core.android.view.recyclerview.BoundsOffsetDecoration
-import com.lookaround.core.android.view.recyclerview.LinearHorizontalSpacingDecoration
-import com.lookaround.core.android.view.recyclerview.ProminentLayoutManager
-import com.lookaround.core.android.view.recyclerview.locationRecyclerViewAdapterCallbacks
+import com.lookaround.core.android.view.recyclerview.*
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainState
@@ -38,6 +35,7 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
 
     private val mainViewModel: MainViewModel by activityViewModels()
 
+    private var initialScroll = true
     private val placesRecyclerViewAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
             PlacesRecyclerViewAdapter(
@@ -73,22 +71,30 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
     }
 
     fun scrollToPlace(uuid: UUID) {
-        val layoutManager =
-            binding.placeListRecyclerView.layoutManager as? LinearLayoutManager ?: return
         placesRecyclerViewAdapter
             .items
             .indexOfFirst { it.id == uuid }
             .takeUnless { it == -1 }
             ?.let { position ->
-                layoutManager.scrollToPosition(position)
-                binding.placeListRecyclerView.doOnPreDraw {
-                    val targetView =
-                        layoutManager.findViewByPosition(position) ?: return@doOnPreDraw
-                    val distanceToFinalSnap =
-                        snapHelper.calculateDistanceToFinalSnap(layoutManager, targetView)
-                            ?: return@doOnPreDraw
-                    val offset = -distanceToFinalSnap[0]
-                    if (offset != 0) layoutManager.scrollToPositionWithOffset(position, offset)
+                if (initialScroll) {
+                    val layoutManager =
+                        binding.placeListRecyclerView.layoutManager as? LinearLayoutManager
+                            ?: return
+                    layoutManager.scrollToPosition(position)
+                    binding.placeListRecyclerView.doOnPreDraw {
+                        val targetView =
+                            layoutManager.findViewByPosition(position) ?: return@doOnPreDraw
+                        val distanceToFinalSnap =
+                            snapHelper
+                                .calculateDistanceToFinalSnap(layoutManager, targetView)
+                                ?.firstOrNull()
+                                ?: return@doOnPreDraw
+                        val offset = -distanceToFinalSnap
+                        if (offset != 0) layoutManager.scrollToPositionWithOffset(position, offset)
+                    }
+                    initialScroll = false
+                } else {
+                    binding.placeListRecyclerView.smoothScrollToCenteredPosition(position)
                 }
             }
     }
