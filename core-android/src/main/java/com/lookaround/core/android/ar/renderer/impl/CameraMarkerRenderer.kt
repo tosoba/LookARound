@@ -284,7 +284,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     private fun Canvas.drawDistanceText(marker: ARMarker, rect: RectF) {
         val distance =
             TextUtils.ellipsize(
-                marker.distance.formattedDistance,
+                marker.distance.preciseFormattedDistance,
                 distanceTextPaint,
                 rect.width() - MARKER_PADDING_DP * 2 - ELLIPSIS_WIDTH_PX,
                 TextUtils.TruncateAt.END

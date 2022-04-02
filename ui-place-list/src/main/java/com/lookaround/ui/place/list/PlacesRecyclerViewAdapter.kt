@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.lookaround.core.android.ext.darkMode
-import com.lookaround.core.android.ext.formattedDistanceTo
+import com.lookaround.core.android.ext.preciseFormattedDistanceTo
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
@@ -51,7 +51,7 @@ internal class PlacesRecyclerViewAdapter(
         val binding = holder.binding as PlaceListItemBinding
         binding.placeNameText.text = marker.name
         userLocationCallbacks.onBindViewHolder(holder.uuid) { userLocation ->
-            binding.placeDistanceText.text = userLocation.formattedDistanceTo(marker.location)
+            binding.placeDistanceText.text = userLocation.preciseFormattedDistanceTo(marker.location)
         }
         binding.root.setOnClickListener {
             recyclerView?.smoothScrollToCenteredPosition(position)

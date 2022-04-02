@@ -2,10 +2,12 @@ package com.lookaround.repo.photon
 
 import com.dropbox.android.external.store4.Store
 import com.dropbox.android.external.store4.get
+import com.lookaround.core.android.ext.locationWith
 import com.lookaround.core.model.AutocompleteSearchDTO
 import com.lookaround.core.model.PointDTO
 import com.lookaround.core.repo.IAutocompleteSearchRepo
 import com.lookaround.repo.photon.dao.AutocompleteSearchDao
+import com.lookaround.repo.photon.entity.AutocompleteSearchEntity
 import com.lookaround.repo.photon.entity.AutocompleteSearchInput
 import com.lookaround.repo.photon.mapper.PointEntityMapper
 import dagger.Reusable
@@ -27,6 +29,12 @@ constructor(
         priorityLat: Double?,
         priorityLon: Double?
     ): List<PointDTO> {
+        if (priorityLat != null && priorityLon != null) {
+            val closestSearchResults =
+                closestAutocompleteSearchResults(query, priorityLat, priorityLon)
+            if (closestSearchResults != null) return closestSearchResults
+        }
+
         dao.updateAutocompleteSearchLastSearchedAt(
             query = query,
             priorityLat = priorityLat,
@@ -41,6 +49,39 @@ constructor(
             )
         )
     }
+
+    private suspend fun closestAutocompleteSearchResults(
+        query: String,
+        priorityLat: Double,
+        priorityLon: Double
+    ): List<PointDTO>? {
+        val closestSearch =
+            dao.selectAutocompleteSearches(query = query).minByOrNull {
+                it.distanceToInMeters(priorityLat, priorityLon)
+            }
+                ?: return null
+
+        val distance = closestSearch.distanceToInMeters(lat = priorityLat, lng = priorityLon)
+        if (distance <= USE_CLOSEST_RESULTS_LIMIT_METERS) {
+            return store.get(
+                AutocompleteSearchInput(
+                    query = query,
+                    priorityLat = requireNotNull(closestSearch.input.priorityLat),
+                    priorityLon = requireNotNull(closestSearch.input.priorityLon)
+                )
+            )
+        }
+        return null
+    }
+
+    private fun AutocompleteSearchEntity.distanceToInMeters(lat: Double, lng: Double): Float =
+        locationWith(latitude = lat, longitude = lng)
+            .distanceTo(
+                locationWith(
+                    latitude = requireNotNull(input.priorityLat),
+                    longitude = requireNotNull(input.priorityLon)
+                )
+            )
 
     override fun recentAutocompleteSearches(
         limit: Int,
@@ -76,5 +117,9 @@ constructor(
 
     override suspend fun deleteSearch(id: Long) {
         dao.deleteById(id)
+    }
+
+    companion object {
+        private const val USE_CLOSEST_RESULTS_LIMIT_METERS = 100f
     }
 }

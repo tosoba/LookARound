@@ -14,13 +14,13 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.lookaround.core.android.ext.formattedDistanceTo
+import com.lookaround.core.android.ext.preciseFormattedDistanceTo
 import com.lookaround.core.android.view.theme.LookARoundTheme
 
 @Composable
 fun ItemDistanceText(location1: Location, location2: Location, modifier: Modifier = Modifier) {
     Text(
-        text = location1.formattedDistanceTo(location2),
+        text = location1.preciseFormattedDistanceTo(location2),
         style = MaterialTheme.typography.subtitle2,
         color = LookARoundTheme.colors.textSecondary,
         modifier = Modifier.heightIn(min = 16.dp).wrapContentHeight() then modifier

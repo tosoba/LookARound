@@ -2,11 +2,13 @@ package com.lookaround.repo.overpass
 
 import com.dropbox.android.external.store4.Store
 import com.dropbox.android.external.store4.get
+import com.lookaround.core.android.ext.locationWith
 import com.lookaround.core.model.IPlaceType
 import com.lookaround.core.model.NodeDTO
 import com.lookaround.core.model.SearchAroundDTO
 import com.lookaround.core.repo.ISearchAroundRepo
 import com.lookaround.repo.overpass.dao.SearchAroundDao
+import com.lookaround.repo.overpass.entity.SearchAroundEntity
 import com.lookaround.repo.overpass.entity.SearchAroundInput
 import com.lookaround.repo.overpass.mapper.NodeEntityMapper
 import dagger.Reusable
@@ -28,8 +30,27 @@ constructor(
         lat: Double,
         lng: Double,
         radiusInMeters: Float
-    ): List<NodeDTO> =
-        store.get(
+    ): List<NodeDTO> {
+        val closestSearchResults =
+            closestSearchAroundResults(
+                key = "tourism",
+                value = "attraction",
+                lat = lat,
+                lng = lng,
+                radiusInMeters = radiusInMeters
+            )
+        if (closestSearchResults != null) return closestSearchResults
+
+        dao.updateSearchAroundLastSearchedAt(
+            lat = lat,
+            lng = lng,
+            radiusInMeters = radiusInMeters,
+            key = "tourism",
+            value = "attraction",
+            filter = Filter.EQUAL,
+            date = Date()
+        )
+        return store.get(
             SearchAroundInput(
                 lat = lat,
                 lng = lng,
@@ -39,6 +60,7 @@ constructor(
                 filter = Filter.EQUAL
             )
         )
+    }
 
     override suspend fun placesOfTypeAround(
         placeType: IPlaceType,
@@ -46,6 +68,16 @@ constructor(
         lng: Double,
         radiusInMeters: Float
     ): List<NodeDTO> {
+        val closestSearchResults =
+            closestSearchAroundResults(
+                key = placeType.typeKey,
+                value = placeType.typeValue,
+                lat = lat,
+                lng = lng,
+                radiusInMeters = radiusInMeters
+            )
+        if (closestSearchResults != null) return closestSearchResults
+
         dao.updateSearchAroundLastSearchedAt(
             lat = lat,
             lng = lng,
@@ -66,6 +98,43 @@ constructor(
             )
         )
     }
+
+    private suspend fun closestSearchAroundResults(
+        key: String,
+        value: String,
+        lat: Double,
+        lng: Double,
+        radiusInMeters: Float
+    ): List<NodeDTO>? {
+        val closestSearch =
+            dao.selectSearchesAround(
+                    radiusInMeters = radiusInMeters,
+                    key = key,
+                    value = value,
+                    filter = Filter.EQUAL
+                )
+                .minByOrNull { it.distanceToInMeters(lat, lng) }
+                ?: return null
+
+        val distance = closestSearch.distanceToInMeters(lat = lat, lng = lng)
+        if (distance <= USE_CLOSEST_RESULTS_LIMIT_METERS) {
+            return store.get(
+                SearchAroundInput(
+                    lat = closestSearch.input.lat,
+                    lng = closestSearch.input.lng,
+                    radiusInMeters = radiusInMeters,
+                    key = key,
+                    value = value,
+                    filter = Filter.EQUAL
+                )
+            )
+        }
+        return null
+    }
+
+    private fun SearchAroundEntity.distanceToInMeters(lat: Double, lng: Double): Float =
+        locationWith(latitude = lat, longitude = lng)
+            .distanceTo(locationWith(latitude = input.lat, longitude = input.lng))
 
     override suspend fun imagesAround(
         lat: Double,
@@ -115,5 +184,9 @@ constructor(
 
     override suspend fun deleteSearch(id: Long) {
         dao.deleteById(id)
+    }
+
+    companion object {
+        private const val USE_CLOSEST_RESULTS_LIMIT_METERS = 100f
     }
 }

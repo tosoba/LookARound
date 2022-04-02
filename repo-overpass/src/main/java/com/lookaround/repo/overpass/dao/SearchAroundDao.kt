@@ -134,4 +134,15 @@ interface SearchAroundDao {
         filter: Filter,
         date: Date
     )
+
+    @Query(
+        """SELECT * FROM search_around
+            WHERE radius_in_meters = :radiusInMeters AND `key` = :key AND value = :value AND filter = :filter"""
+    )
+    suspend fun selectSearchesAround(
+        radiusInMeters: Float,
+        key: String,
+        value: String,
+        filter: Filter,
+    ): List<SearchAroundEntity>
 }

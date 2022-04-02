@@ -9,8 +9,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.github.marlonlom.utilities.timeago.TimeAgo
 import com.lookaround.core.android.databinding.SpacerItemBinding
-import com.lookaround.core.android.ext.formattedDistanceTo
 import com.lookaround.core.android.ext.getDrawableOfPlaceTypeBy
+import com.lookaround.core.android.ext.roundedFormattedDistanceTo
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
@@ -74,7 +74,7 @@ class RecentSearchesRecyclerViewAdapter(
         binding.recentSearchTimestampText.text = TimeAgo.using(item.search.lastSearchedAt.time)
         item.search.location?.let {
             userLocationCallbacks.onBindViewHolder(holder.uuid) { userLocation ->
-                binding.recentSearchDistanceText.text = userLocation.formattedDistanceTo(it)
+                binding.recentSearchDistanceText.text = userLocation.roundedFormattedDistanceTo(it)
             }
         }
         binding.root.setOnClickListener { onItemClicked(item.search) }

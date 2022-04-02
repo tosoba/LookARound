@@ -12,7 +12,7 @@ import androidx.viewbinding.ViewBinding
 import com.facebook.shimmer.Shimmer
 import com.facebook.shimmer.ShimmerDrawable
 import com.lookaround.core.android.databinding.SpacerItemBinding
-import com.lookaround.core.android.ext.formattedDistanceTo
+import com.lookaround.core.android.ext.preciseFormattedDistanceTo
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
@@ -95,7 +95,7 @@ internal class PlaceMapsRecyclerViewAdapter(
 
         userLocationCallbacks.onBindViewHolder(holder.uuid) { userLocation ->
             binding.placeMapDistanceText.text =
-                userLocation.formattedDistanceTo(item.marker.location)
+                userLocation.preciseFormattedDistanceTo(item.marker.location)
         }
         binding.root.setOnClickListener { onItemClicked(item.marker) }
     }
