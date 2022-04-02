@@ -186,7 +186,7 @@ class MapFragment :
 
     override fun onMarkerPickComplete(result: TangramMarkerPickResult?) {
         val markerPickResult = clusterManager?.onMarkerPickComplete(result)
-        markerPickResult?.let { markerPickContinuations.poll()?.resume(it) }
+        markerPickContinuations.poll()?.resume(markerPickResult)
     }
 
     private suspend fun pickMarker(posX: Float, posY: Float): MarkerPickResult? =
@@ -215,6 +215,7 @@ class MapFragment :
                 )
             }
         } else {
+            currentMarkerPosition = null
             hideFABs()
         }
     }
@@ -315,6 +316,7 @@ class MapFragment :
                                 MainSignal.ToggleSearchBarVisibility(targetVisibility)
                             )
                             mainViewModel.signal(MainSignal.HidePlaceListBottomSheet)
+                            updateCurrentMarkerPosition(null)
                         }
                     }
                     return true
