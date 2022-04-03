@@ -57,7 +57,7 @@ constructor(
     ): List<PointDTO>? {
         val closestSearch =
             dao.selectAutocompleteSearches(query = query).minByOrNull {
-                it.distanceToInMeters(priorityLat, priorityLon)
+                it.distanceToInMeters(lat = priorityLat, lng = priorityLon)
             }
                 ?: return null
 

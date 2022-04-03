@@ -30,7 +30,7 @@ internal class ClusterRenderer<T : ClusterItem>(
             MarkerPickResult(markerPickResult.coordinates.latLon)
         } else {
             val item = clusterItems[0]
-            MarkerPickResult(LatLon(item.latitude, item.longitude), item.uuid)
+            MarkerPickResult(LatLon(item.latitude, item.longitude), item.extra)
         }
     }
 

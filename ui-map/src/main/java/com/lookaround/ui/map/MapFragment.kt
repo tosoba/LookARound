@@ -22,7 +22,6 @@ import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.ext.MarkerPickResult
 import com.lookaround.core.android.map.clustering.ClusterManager
 import com.lookaround.core.android.map.clustering.DefaultClusterItem
-import com.lookaround.core.android.map.model.LatLon
 import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
@@ -70,7 +69,7 @@ class MapFragment :
     private val mapReady = CompletableDeferred<Unit>()
 
     private val markerArgument: Marker? by nullableArgument(Arguments.MARKER.name)
-    private var currentMarkerPosition: LatLon? = null
+    private var currentMarker: Marker? = null
     private var unsetCurrentMarker: Boolean = true
 
     private var clusterManager: ClusterManager<DefaultClusterItem>? = null
@@ -89,9 +88,9 @@ class MapFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        currentMarkerPosition =
-            savedInstanceState?.getParcelable(SavedStateKeys.CURRENT_MARKER_POSITION.name)
-                ?: markerArgument?.location?.latLon
+        currentMarker =
+            if (savedInstanceState == null) markerArgument
+            else savedInstanceState.getParcelable(SavedStateKeys.CURRENT_MARKER.name)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -149,9 +148,7 @@ class MapFragment :
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        currentMarkerPosition?.let {
-            outState.putParcelable(SavedStateKeys.CURRENT_MARKER_POSITION.name, it)
-        }
+        currentMarker?.let { outState.putParcelable(SavedStateKeys.CURRENT_MARKER.name, it) }
         mapController.launch { saveCameraPosition(outState) }
     }
 
@@ -159,7 +156,7 @@ class MapFragment :
         if (view == null) return
 
         if (sceneError == null) {
-            if (currentMarkerPosition != null) showFABs() else hideFABs()
+            if (currentMarker != null) showFABs() else hideFABs()
 
             viewLifecycleOwner.lifecycleScope.launch {
                 mapSceneViewModel.intent(MapSceneIntent.SceneLoaded)
@@ -179,7 +176,7 @@ class MapFragment :
     override fun onRegionWillChange(animated: Boolean) = Unit
     override fun onRegionIsChanging() = Unit
     override fun onRegionDidChange(animated: Boolean) {
-        if (unsetCurrentMarker) currentMarkerPosition = null else unsetCurrentMarker = true
+        if (unsetCurrentMarker) currentMarker = null else unsetCurrentMarker = true
         clusterManager?.onRegionDidChange(animated)
         if (!isRunningOnEmulator()) updateBlurBackground()
     }
@@ -197,18 +194,14 @@ class MapFragment :
         }
 
     fun updateCurrentMarker(marker: Marker?) {
-        updateCurrentMarkerPosition(position = marker?.location?.latLon)
-    }
-
-    private fun updateCurrentMarkerPosition(position: LatLon?) {
-        if (position != null) {
+        if (marker != null) {
             unsetCurrentMarker = false
             showFABs()
-            currentMarkerPosition = position
+            currentMarker = marker
             mapController.launch {
                 moveCameraPositionTo(
-                    lat = position.latitude,
-                    lng = position.longitude,
+                    lat = marker.location.latitude,
+                    lng = marker.location.longitude,
                     zoom =
                         if (MARKER_FOCUSED_ZOOM > cameraPosition.zoom) MARKER_FOCUSED_ZOOM
                         else cameraPosition.zoom,
@@ -216,7 +209,7 @@ class MapFragment :
                 )
             }
         } else {
-            currentMarkerPosition = null
+            currentMarker = null
             hideFABs()
         }
     }
@@ -226,11 +219,21 @@ class MapFragment :
 
         if (savedInstanceState != null) {
             restoreCameraPosition(savedInstanceState)
+            currentMarker?.let {
+                mainViewModel.signal(
+                    MainSignal.SetupPlacesBottomSheet(id = it.id, showIfHidden = false)
+                )
+            }
             return true
         }
 
-        currentMarkerPosition?.let { (latitude, longitude) ->
-            moveCameraPositionTo(lat = latitude, lng = longitude, zoom = MARKER_FOCUSED_ZOOM)
+        currentMarker?.let {
+            moveCameraPositionTo(
+                lat = it.location.latitude,
+                lng = it.location.longitude,
+                zoom = MARKER_FOCUSED_ZOOM
+            )
+            mainViewModel.signal(MainSignal.SetupPlacesBottomSheet(id = it.id))
             return true
         }
 
@@ -262,7 +265,8 @@ class MapFragment :
     }
 
     private fun MapController.addMarkerClusters(markers: SortedSet<Marker>) {
-        val clusterItems = markers.map { DefaultClusterItem(it.id, it.location.latLon) }
+        val clusterItems =
+            markers.map { DefaultClusterItem(latLon = it.location.latLon, extra = it) }
         clusterManager?.cancel()
         clusterManager = ClusterManager(requireContext(), this, clusterItems)
     }
@@ -299,10 +303,10 @@ class MapFragment :
                     viewLifecycleOwner.lifecycleScope.launchWhenResumed {
                         val pickResult = this@MapFragment.pickMarker(posX = x, posY = y)
                         if (pickResult != null) {
-                            val uuid = pickResult.uuid
-                            if (uuid != null) {
-                                updateCurrentMarkerPosition(pickResult.position)
-                                mainViewModel.signal(MainSignal.ShowPlaceListBottomSheet(uuid))
+                            val marker = pickResult.extra as? Marker
+                            if (marker != null) {
+                                updateCurrentMarker(marker)
+                                mainViewModel.signal(MainSignal.SetupPlacesBottomSheet(marker.id))
                             } else {
                                 moveCameraPositionTo(
                                     lat = pickResult.position.latitude,
@@ -317,7 +321,7 @@ class MapFragment :
                                 MainSignal.ToggleSearchBarVisibility(targetVisibility)
                             )
                             mainViewModel.signal(MainSignal.HidePlaceListBottomSheet)
-                            updateCurrentMarkerPosition(null)
+                            updateCurrentMarker(null)
                         }
                     }
                     return true
@@ -381,22 +385,22 @@ class MapFragment :
     private fun launchGoogleMapsForNavigation() {
         launchGoogleMapForCurrentMarker(
             failureMsgRes = R.string.unable_to_launch_google_maps_for_navigation
-        ) { (latitude, longitude) -> "google.navigation:q=${latitude},${longitude}" }
+        ) { location -> "google.navigation:q=${location.latitude},${location.longitude}" }
     }
 
     private fun launchGoogleMapsForStreetView() {
         launchGoogleMapForCurrentMarker(failureMsgRes = R.string.unable_to_launch_street_view) {
-            (latitude, longitude) ->
-            "google.streetview:cbll=${latitude},${longitude}"
+            location ->
+            "google.streetview:cbll=${location.latitude},${location.longitude}"
         }
     }
 
     private fun launchGoogleMapForCurrentMarker(
         @StringRes failureMsgRes: Int,
-        uriStringFor: (LatLon) -> String
+        uriStringFor: (Location) -> String
     ) {
-        currentMarkerPosition?.let { position ->
-            val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(uriStringFor(position)))
+        currentMarker?.let {
+            val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(uriStringFor(it.location)))
             mapIntent.setPackage("com.google.android.apps.maps")
             try {
                 startActivity(mapIntent)
@@ -459,7 +463,7 @@ class MapFragment :
         private const val CAMERA_POSITION_ANIMATION_DURATION_MS = 150
 
         enum class SavedStateKeys {
-            CURRENT_MARKER_POSITION
+            CURRENT_MARKER
         }
 
         enum class Arguments {

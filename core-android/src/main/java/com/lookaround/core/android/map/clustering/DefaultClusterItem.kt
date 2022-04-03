@@ -1,9 +1,8 @@
 package com.lookaround.core.android.map.clustering
 
 import com.lookaround.core.android.map.model.LatLon
-import java.util.*
 
-data class DefaultClusterItem(override val uuid: UUID, private val latLon: LatLon) : ClusterItem {
+data class DefaultClusterItem(private val latLon: LatLon, override val extra: Any?) : ClusterItem {
     override val latitude: Double
         get() = latLon.latitude
     override val longitude: Double

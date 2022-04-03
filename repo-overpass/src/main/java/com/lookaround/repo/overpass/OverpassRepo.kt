@@ -113,7 +113,7 @@ constructor(
                     value = value,
                     filter = Filter.EQUAL
                 )
-                .minByOrNull { it.distanceToInMeters(lat, lng) }
+                .minByOrNull { it.distanceToInMeters(lat = lat, lng = lng) }
                 ?: return null
 
         val distance = closestSearch.distanceToInMeters(lat = lat, lng = lng)

@@ -564,12 +564,14 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             .launchIn(lifecycleScope)
 
         viewModel
-            .filterSignals(MainSignal.ShowPlaceListBottomSheet::id)
-            .onEach { uuid ->
-                binding.bottomSheetViewPager.visibility = View.GONE
-                bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
-                binding.placeListFragmentContainerView.visibility = View.VISIBLE
-                placeListBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+            .filterSignals<MainSignal.SetupPlacesBottomSheet>()
+            .onEach { (uuid, showIfHidden) ->
+                if (showIfHidden) {
+                    binding.bottomSheetViewPager.visibility = View.GONE
+                    bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
+                    binding.placeListFragmentContainerView.visibility = View.VISIBLE
+                    placeListBottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                }
                 placeListFragment?.scrollToPlace(uuid)
             }
             .launchIn(lifecycleScope)

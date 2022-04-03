@@ -12,7 +12,6 @@ import com.lookaround.core.android.map.model.LatLon
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
-import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -196,7 +195,7 @@ fun normalizeLongitude(lon: Double): Double {
     return result
 }
 
-class MarkerPickResult(val position: LatLon, val uuid: UUID? = null)
+class MarkerPickResult(val position: LatLon, val extra: Any? = null)
 
 typealias TangramMarkerPickResult = com.mapzen.tangram.MarkerPickResult
 

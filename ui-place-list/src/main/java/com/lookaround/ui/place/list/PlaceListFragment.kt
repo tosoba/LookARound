@@ -49,6 +49,11 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
 
     private val snapHelper by lazy(LazyThreadSafetyMode.NONE, ::PagerSnapHelper)
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.getBoolean(SavedStateKey.INITIAL_SCROLL.name)?.let(::initialScroll::set)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         with(binding.placeListRecyclerView) {
             layoutManager = ProminentLayoutManager(requireContext())
@@ -75,12 +80,17 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(SavedStateKey.INITIAL_SCROLL.name, initialScroll)
+    }
+
     fun scrollToPlace(uuid: UUID) {
         placesRecyclerViewAdapter
             .items
             .indexOfFirst { it.id == uuid }
             .takeUnless { it == -1 }
-            ?.let(::scrollToPosition)
+            ?.let { scrollToPosition(it) }
     }
 
     private fun scrollToPosition(position: Int) {
@@ -103,5 +113,9 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
         }
 
         initialScroll = false
+    }
+
+    private enum class SavedStateKey {
+        INITIAL_SCROLL
     }
 }
