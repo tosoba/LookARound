@@ -46,6 +46,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":carousel-view"))
     implementation(project(":core"))
     implementation(project(":core-android"))
     implementation(project(":ui-main"))
