@@ -24,7 +24,7 @@ sealed interface MainSignal {
     data class ContrastingColorUpdated(val color: Int) : MainSignal
     data class BlurBackgroundUpdated(val drawable: Drawable) : MainSignal
     data class DrawerToggled(val open: Boolean) : MainSignal
-    data class SetupPlacesBottomSheet(val id: UUID, val showIfHidden: Boolean = true) : MainSignal
-    object HidePlaceListBottomSheet : MainSignal
+    data class ShowPlaceInBottomSheet(val id: UUID) : MainSignal
+    object HidePlacesListBottomSheet : MainSignal
     data class UpdateSelectedMarker(val marker: Marker) : MainSignal
 }

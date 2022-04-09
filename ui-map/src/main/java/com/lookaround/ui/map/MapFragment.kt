@@ -304,7 +304,7 @@ class MapFragment :
                             val marker = pickResult.extra as? Marker
                             if (marker != null) {
                                 updateCurrentMarker(marker)
-                                mainViewModel.signal(MainSignal.SetupPlacesBottomSheet(marker.id))
+                                mainViewModel.signal(MainSignal.ShowPlaceInBottomSheet(marker.id))
                             } else {
                                 moveCameraPositionTo(
                                     lat = pickResult.position.latitude,
@@ -318,7 +318,7 @@ class MapFragment :
                             mainViewModel.signal(
                                 MainSignal.ToggleSearchBarVisibility(targetVisibility)
                             )
-                            mainViewModel.signal(MainSignal.HidePlaceListBottomSheet)
+                            mainViewModel.signal(MainSignal.HidePlacesListBottomSheet)
                             updateCurrentMarker(null)
                         }
                     }
