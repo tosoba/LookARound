@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 32
 
     defaultConfig {
         minSdk = 23
-        targetSdk = 31
+        targetSdk = 32
         version = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -32,7 +32,7 @@ android {
 
     buildFeatures { compose = true }
 
-    composeOptions { kotlinCompilerExtensionVersion = "1.2.0-alpha02" }
+    composeOptions { kotlinCompilerExtensionVersion = "1.2.0-alpha07" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -54,14 +54,14 @@ dependencies {
     implementation("com.google.android.material:material:1.5.0")
     implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
 
-    implementation("androidx.compose.runtime:runtime:1.2.0-alpha02")
-    implementation("androidx.compose.compiler:compiler:1.2.0-alpha02")
-    implementation("androidx.compose.ui:ui:1.2.0-alpha02")
-    implementation("androidx.compose.ui:ui-tooling:1.2.0-alpha02")
-    implementation("androidx.compose.foundation:foundation:1.2.0-alpha02")
-    implementation("androidx.compose.material:material:1.2.0-alpha02")
-    implementation("androidx.compose.material:material-icons-core:1.2.0-alpha02")
-    implementation("androidx.compose.material:material-icons-extended:1.2.0-alpha02")
+    implementation("androidx.compose.runtime:runtime:1.2.0-alpha07")
+    implementation("androidx.compose.compiler:compiler:1.2.0-alpha07")
+    implementation("androidx.compose.ui:ui:1.2.0-alpha07")
+    implementation("androidx.compose.ui:ui-tooling:1.2.0-alpha07")
+    implementation("androidx.compose.foundation:foundation:1.2.0-alpha07")
+    implementation("androidx.compose.material:material:1.2.0-alpha07")
+    implementation("androidx.compose.material:material-icons-core:1.2.0-alpha07")
+    implementation("androidx.compose.material:material-icons-extended:1.2.0-alpha07")
 
     implementation("com.google.dagger:hilt-android:2.40")
     kapt("com.google.dagger:hilt-android-compiler:2.40")

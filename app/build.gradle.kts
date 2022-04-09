@@ -9,12 +9,12 @@ plugins {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 32
 
     defaultConfig {
         applicationId = "com.lookaround"
         minSdk = 23
-        targetSdk = 31
+        targetSdk = 32
         version = "1.0"
         versionCode = 1
 
@@ -35,7 +35,7 @@ android {
 
     buildFeatures { compose = true }
 
-    composeOptions { kotlinCompilerExtensionVersion = "1.2.0-alpha02" }
+    composeOptions { kotlinCompilerExtensionVersion = "1.2.0-alpha07" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -82,14 +82,14 @@ dependencies {
     implementation("io.github.hokofly:hoko-blur:1.3.7")
     implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
 
-    implementation("androidx.compose.runtime:runtime:1.2.0-alpha02")
-    implementation("androidx.compose.compiler:compiler:1.2.0-alpha02")
-    implementation("androidx.compose.ui:ui:1.2.0-alpha02")
-    implementation("androidx.compose.ui:ui-tooling:1.2.0-alpha02")
-    implementation("androidx.compose.foundation:foundation:1.2.0-alpha02")
-    implementation("androidx.compose.material:material:1.2.0-alpha02")
-    implementation("androidx.compose.material:material-icons-core:1.2.0-alpha02")
-    implementation("androidx.compose.material:material-icons-extended:1.2.0-alpha02")
+    implementation("androidx.compose.runtime:runtime:1.2.0-alpha07")
+    implementation("androidx.compose.compiler:compiler:1.2.0-alpha07")
+    implementation("androidx.compose.ui:ui:1.2.0-alpha07")
+    implementation("androidx.compose.ui:ui-tooling:1.2.0-alpha07")
+    implementation("androidx.compose.foundation:foundation:1.2.0-alpha07")
+    implementation("androidx.compose.material:material:1.2.0-alpha07")
+    implementation("androidx.compose.material:material-icons-core:1.2.0-alpha07")
+    implementation("androidx.compose.material:material-icons-extended:1.2.0-alpha07")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.3.6")

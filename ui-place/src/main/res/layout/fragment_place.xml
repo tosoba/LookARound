@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".PlaceFragment">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar_lay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#ffffff"
+        android:fitsSystemWindows="true"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true"
+            app:contentScrim="?attr/colorPrimary"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:statusBarScrim="@null"
+            app:titleEnabled="false">
+
+            <com.mapzen.tangram.MapView
+                android:id="@+id/map"
+                android:name="com.mapzen.tangram.MapView"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_collapseMode="parallax" />
+
+            <!--            <com.google.android.gms.maps.MapView-->
+            <!--                android:id="@+id/map_view"-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="300dp"-->
+            <!--                android:layout_below="@+id/main_lay"-->
+            <!--                android:apiKey="@string/google_maps_key"-->
+            <!--                android:clickable="true"-->
+            <!--                android:enabled="true"-->
+            <!--                android:focusable="true"-->
+            <!--                app:layout_collapseMode="parallax" />-->
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/post_rcycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ffffff"
+        android:clipToPadding="false"
+        android:fitsSystemWindows="true"
+        android:visibility="visible"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layout_collapseMode="parallax" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
