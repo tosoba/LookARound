@@ -11,7 +11,6 @@ import com.lookaround.core.android.ext.preciseFormattedDistanceTo
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.recyclerview.DefaultDiffUtilCallback
 import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
-import com.lookaround.core.android.view.recyclerview.smoothScrollToCenteredPosition
 import com.lookaround.core.android.view.theme.Neutral7
 import com.lookaround.core.android.view.theme.Neutral8
 import com.lookaround.ui.place.list.databinding.PlaceListItemBinding
@@ -54,10 +53,7 @@ internal class PlacesRecyclerViewAdapter(
             binding.placeDistanceText.text =
                 userLocation.preciseFormattedDistanceTo(marker.location)
         }
-        binding.root.setOnClickListener {
-            recyclerView?.smoothScrollToCenteredPosition(position)
-            onItemClicked(marker)
-        }
+        binding.root.setOnClickListener { onItemClicked(marker) }
     }
 
     override fun getItemCount(): Int = items.size

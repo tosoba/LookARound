@@ -37,7 +37,12 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
 
     private val mainViewModel: MainViewModel by activityViewModels()
 
-    private val placesRecyclerViewAdapter by
+    private val carousel: Carousel<PlacesRecyclerViewAdapter.ViewHolder> by
+        lazy(LazyThreadSafetyMode.NONE) {
+            Carousel(requireContext(), binding.placeListRecyclerView, placesRecyclerViewAdapter)
+        }
+
+    private val placesRecyclerViewAdapter: PlacesRecyclerViewAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
             PlacesRecyclerViewAdapter(
                 userLocationCallbacks =
@@ -45,11 +50,6 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                         mainViewModel.locationReadyUpdates
                     )
             ) { marker -> }
-        }
-
-    private val carousel by
-        lazy(LazyThreadSafetyMode.NONE) {
-            Carousel(requireContext(), binding.placeListRecyclerView, placesRecyclerViewAdapter)
         }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
