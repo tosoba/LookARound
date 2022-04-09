@@ -1,6 +1,7 @@
 package com.lookaround.ui.place.list
 
 import alirezat775.lib.carouselview.Carousel
+import alirezat775.lib.carouselview.CarouselListener
 import alirezat775.lib.carouselview.CarouselView
 import android.os.Bundle
 import android.view.View
@@ -15,6 +16,7 @@ import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.recyclerview.locationRecyclerViewAdapterCallbacks
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
+import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.list.databinding.FragmentPlaceListBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -23,6 +25,7 @@ import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 @WithFragmentBindings
@@ -50,11 +53,6 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
         }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        carousel.apply {
-            setOrientation(CarouselView.HORIZONTAL, false)
-            scaleView(true)
-        }
-
         mainViewModel
             .mapStates(MainState::markers)
             .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
@@ -62,6 +60,24 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
             .map { it.value.toList() }
             .onEach(placesRecyclerViewAdapter::updateItems)
             .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        carousel.apply {
+            setOrientation(CarouselView.HORIZONTAL, false)
+            scaleView(true)
+            addCarouselListener(
+                object : CarouselListener {
+                    override fun onPositionChange(position: Int) {
+                        placesRecyclerViewAdapter.items.elementAtOrNull(position)?.let { marker ->
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                mainViewModel.signal(MainSignal.UpdateSelectedMarker(marker))
+                            }
+                        }
+                    }
+
+                    override fun onScroll(dx: Int, dy: Int) = Unit
+                }
+            )
+        }
     }
 
     fun scrollToPlace(uuid: UUID) {

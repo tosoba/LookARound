@@ -3,6 +3,7 @@ package com.lookaround.ui.main.model
 import android.graphics.drawable.Drawable
 import androidx.fragment.app.Fragment
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
+import com.lookaround.core.android.model.Marker
 import java.util.*
 
 sealed interface MainSignal {
@@ -25,4 +26,5 @@ sealed interface MainSignal {
     data class DrawerToggled(val open: Boolean) : MainSignal
     data class SetupPlacesBottomSheet(val id: UUID, val showIfHidden: Boolean = true) : MainSignal
     object HidePlaceListBottomSheet : MainSignal
+    data class UpdateSelectedMarker(val marker: Marker) : MainSignal
 }

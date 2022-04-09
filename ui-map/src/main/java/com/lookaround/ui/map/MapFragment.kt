@@ -121,6 +121,10 @@ class MapFragment :
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
+        mainViewModel
+            .onEachSignal(MainSignal.UpdateSelectedMarker::marker, ::updateCurrentMarker)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
         binding.navigateFab.setOnClickListener { launchGoogleMapsForNavigation() }
         binding.streetViewFab.setOnClickListener { launchGoogleMapsForStreetView() }
     }
@@ -219,11 +223,6 @@ class MapFragment :
 
         if (savedInstanceState != null) {
             restoreCameraPosition(savedInstanceState)
-            currentMarker?.let {
-                mainViewModel.signal(
-                    MainSignal.SetupPlacesBottomSheet(id = it.id, showIfHidden = false)
-                )
-            }
             return true
         }
 
@@ -233,7 +232,6 @@ class MapFragment :
                 lng = it.location.longitude,
                 zoom = MARKER_FOCUSED_ZOOM
             )
-            mainViewModel.signal(MainSignal.SetupPlacesBottomSheet(id = it.id))
             return true
         }
 
