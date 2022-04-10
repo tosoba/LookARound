@@ -58,7 +58,6 @@ android {
 dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
-    implementation(project(":tangram"))
     implementation(project(":ui-main"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
@@ -88,8 +87,6 @@ dependencies {
     implementation("androidx.compose.material:material:1.2.0-alpha07")
     implementation("androidx.compose.material:material-icons-core:1.2.0-alpha07")
     implementation("androidx.compose.material:material-icons-extended:1.2.0-alpha07")
-
-    implementation("com.github.marlonlom:timeago:4.0.3")
 
     implementation("com.jakewharton.timber:timber:4.7.1")
 

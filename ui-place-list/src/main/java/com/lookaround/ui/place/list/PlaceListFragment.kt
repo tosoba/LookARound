@@ -49,9 +49,10 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                     viewLifecycleOwner.lifecycleScope.locationRecyclerViewAdapterCallbacks(
                         mainViewModel.locationReadyUpdates
                     )
-            ) { marker ->
+            ) { position, marker ->
+//                if (carousel.getCurrentPosition() != position) return@PlacesRecyclerViewAdapter
                 viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                    mainViewModel.signal(MainSignal.ShowPlaceFragment(marker))
+                    mainViewModel.signal(MainSignal.CaptureMapImage(marker))
                 }
             }
         }

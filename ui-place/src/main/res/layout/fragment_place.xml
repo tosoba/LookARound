@@ -25,13 +25,12 @@
             app:statusBarScrim="@null"
             app:titleEnabled="false">
 
-            <com.mapzen.tangram.MapView
-                android:id="@+id/place_map_view"
-                android:name="com.mapzen.tangram.MapView"
+            <ImageView
+                android:id="@+id/place_map_image_view"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
-                android:clickable="true"
-                android:focusable="true"
+                android:contentDescription="@string/place_map"
+                android:scaleType="center"
                 app:layout_collapseMode="parallax" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>

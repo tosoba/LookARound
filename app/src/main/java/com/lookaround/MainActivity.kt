@@ -184,8 +184,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             .launchIn(lifecycleScope)
 
         lifecycleScope.launchWhenResumed {
-            viewModel.filterSignals(MainSignal.ShowPlaceFragment::marker).collect { marker ->
-                replaceFragmentInMainContainerView { PlaceFragment.new(marker) }
+            viewModel.filterSignals<MainSignal.ShowPlaceFragment>().collect { (marker, markerImage)
+                ->
+                replaceFragmentInMainContainerView { PlaceFragment.new(marker, markerImage) }
             }
         }
 

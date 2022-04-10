@@ -18,7 +18,7 @@ import java.util.*
 
 internal class PlacesRecyclerViewAdapter(
     private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks<UUID>,
-    private val onItemClicked: (Marker) -> Unit,
+    private val onItemClicked: (Int, Marker) -> Unit,
 ) : RecyclerView.Adapter<PlacesRecyclerViewAdapter.ViewHolder>() {
     var items: List<Marker> = emptyList()
         private set
@@ -53,7 +53,7 @@ internal class PlacesRecyclerViewAdapter(
             binding.placeDistanceText.text =
                 userLocation.preciseFormattedDistanceTo(marker.location)
         }
-        binding.root.setOnClickListener { onItemClicked(marker) }
+        binding.root.setOnClickListener { onItemClicked(position, marker) }
     }
 
     override fun getItemCount(): Int = items.size

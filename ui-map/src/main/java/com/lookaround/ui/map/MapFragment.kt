@@ -125,6 +125,17 @@ class MapFragment :
             .onEachSignal(MainSignal.UpdateSelectedMarker::marker, ::updateCurrentMarker)
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
+        mainViewModel
+            .onEachSignal(MainSignal.CaptureMapImage::marker) { marker ->
+                mapController.launch {
+                    removeAllMarkers()
+                    addMarkerFor(marker.location)
+                    val markerImage = captureFrame(true)
+                    mainViewModel.signal(MainSignal.ShowPlaceFragment(marker, markerImage))
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
         binding.navigateFab.setOnClickListener { launchGoogleMapsForNavigation() }
         binding.streetViewFab.setOnClickListener { launchGoogleMapsForStreetView() }
     }
