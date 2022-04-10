@@ -14,10 +14,6 @@ import android.view.View
 import android.widget.TextView
 import com.lookaround.core.android.R
 
-/**
- * The implementation of [IconGenerator] that generates icons with the default style and caches them
- * for subsequent use.
- */
 class DefaultIconGenerator<T : ClusterItem>(
     private val context: Context,
     private val iconStyle: IconStyle = getCreateDefaultIconStyle(context)

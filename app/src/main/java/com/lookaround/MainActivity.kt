@@ -186,7 +186,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         lifecycleScope.launchWhenResumed {
             viewModel.filterSignals<MainSignal.ShowPlaceFragment>().collect { (marker, markerImage)
                 ->
-                replaceFragmentInMainContainerView { PlaceFragment.new(marker, markerImage) }
+                mainFragmentContainerViewTransaction(FragmentTransactionType.ADD) {
+                    PlaceFragment.new(marker, markerImage)
+                }
             }
         }
 
@@ -257,7 +259,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
     }
 
     override fun onShowMapClick() {
-        replaceFragmentInMainContainerView<MapFragment>()
+        mainFragmentContainerViewTransaction<MapFragment>()
     }
 
     private fun onARLoading() {
@@ -306,10 +308,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         binding.drawerNavigationView.setNavigationItemSelectedListener {
             if (lifecycle.isResumed)
                 when (it.itemId) {
-                    R.id.drawer_nav_map -> replaceFragmentInMainContainerView<MapFragment>()
-                    R.id.drawer_nav_about -> replaceFragmentInMainContainerView<AboutFragment>()
+                    R.id.drawer_nav_map -> mainFragmentContainerViewTransaction<MapFragment>()
+                    R.id.drawer_nav_about -> mainFragmentContainerViewTransaction<AboutFragment>()
                     R.id.drawer_nav_settings ->
-                        replaceFragmentInMainContainerView<SettingsFragment>()
+                        mainFragmentContainerViewTransaction<SettingsFragment>()
                 }
             binding.mainDrawerLayout.closeDrawer(Gravity.LEFT)
             true
@@ -370,13 +372,18 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         )
     }
 
-    private inline fun <reified F : Fragment> replaceFragmentInMainContainerView(
-        crossinline factory: () -> F = F::class.java::newInstance
+    private inline fun <reified F : Fragment> mainFragmentContainerViewTransaction(
+        transactionType: FragmentTransactionType = FragmentTransactionType.REPLACE,
+        crossinline factory: () -> F = F::class.java::newInstance,
     ) {
         if (currentTopFragment is F) return
         fragmentTransaction {
             setSlideInFromBottom()
-            replace(R.id.main_fragment_container_view, factory())
+            when (transactionType) {
+                FragmentTransactionType.ADD -> add(R.id.main_fragment_container_view, factory())
+                FragmentTransactionType.REPLACE ->
+                    replace(R.id.main_fragment_container_view, factory())
+            }
             addToBackStack(null)
         }
     }
@@ -712,7 +719,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         lifecycleScope.launch { viewModel.signal(MainSignal.SnackbarStatusChanged(isShowing)) }
     }
 
-    enum class SavedStateKeys {
+    private enum class SavedStateKeys {
         PLACE_LIST_BOTTOM_SHEET_STATE
+    }
+
+    private enum class FragmentTransactionType {
+        ADD,
+        REPLACE
     }
 }

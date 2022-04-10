@@ -2,26 +2,10 @@ package com.lookaround.core.android.map.clustering
 
 import java.util.*
 
-/** An object representing a cluster of items (markers) on the map. */
 class Cluster<T : ClusterItem>
 internal constructor(
-    /**
-     * The latitude of the cluster.
-     *
-     * @return the latitude of the cluster
-     */
     val latitude: Double,
-    /**
-     * The longitude of the cluster.
-     *
-     * @return the longitude of the cluster
-     */
     val longitude: Double,
-    /**
-     * The items contained in the cluster.
-     *
-     * @return the items contained in the cluster
-     */
     val items: List<T>,
     private val north: Double,
     private val west: Double,

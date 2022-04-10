@@ -76,6 +76,8 @@ class MapFragment :
 
     private val markerPickContinuations = ConcurrentLinkedQueue<Continuation<MarkerPickResult?>>()
 
+    private var latestMarkers: Iterable<Marker>? = null
+
     private val blurProcessor: BlurProcessor by
         lazy(LazyThreadSafetyMode.NONE) {
             HokoBlur.with(requireContext())
@@ -106,9 +108,9 @@ class MapFragment :
             setSceneLoadListener(this@MapFragment)
             setMapChangeListener(this@MapFragment)
             setMarkerPickListener(this@MapFragment)
+            loadScene(if (requireContext().darkMode) MapScene.DARK else MapScene.LIGHT)
             setSingleTapResponder()
             zoomOnDoubleTap()
-            loadScene(if (requireContext().darkMode) MapScene.DARK else MapScene.LIGHT)
             val cameraPositionInitialized = initCameraPosition(savedInstanceState)
             syncMarkerChangesWithMap(cameraPositionInitialized)
         }
@@ -136,6 +138,20 @@ class MapFragment :
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
+        mainViewModel
+            .filterSignals<MainSignal.TopFragmentChanged>()
+            .drop(1)
+            .filter { (clazz) -> clazz.isAssignableFrom(this::class.java) && this.view != null }
+            .onEach {
+                latestMarkers?.let {
+                    mapController.launch {
+                        removeAllMarkers()
+                        addMarkerClusters(it)
+                    }
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
         binding.navigateFab.setOnClickListener { launchGoogleMapsForNavigation() }
         binding.streetViewFab.setOnClickListener { launchGoogleMapsForStreetView() }
     }
@@ -143,8 +159,8 @@ class MapFragment :
     override fun onDestroyView() {
         clusterManager?.cancel()
         clusterManager = null
-        binding.map.onDestroy()
         super.onDestroyView()
+        binding.map.onDestroy()
     }
 
     override fun onResume() {
@@ -153,8 +169,8 @@ class MapFragment :
     }
 
     override fun onPause() {
-        binding.map.onPause()
         super.onPause()
+        binding.map.onPause()
     }
 
     override fun onLowMemory() {
@@ -273,7 +289,7 @@ class MapFragment :
         )
     }
 
-    private fun MapController.addMarkerClusters(markers: SortedSet<Marker>) {
+    private fun MapController.addMarkerClusters(markers: Iterable<Marker>) {
         val clusterItems =
             markers.map { DefaultClusterItem(latLon = it.location.latLon, extra = it) }
         clusterManager?.cancel()
@@ -352,6 +368,7 @@ class MapFragment :
                     if (loadable !is WithValue) return@launch
 
                     val markers = loadable.value.items
+                    latestMarkers = markers
                     val changeCameraPosition = index != 0 || !cameraPositionInitialized
                     if (markers.size > 0) {
                         if (changeCameraPosition) {
