@@ -27,4 +27,5 @@ sealed interface MainSignal {
     data class ShowPlaceInBottomSheet(val id: UUID) : MainSignal
     object HidePlacesListBottomSheet : MainSignal
     data class UpdateSelectedMarker(val marker: Marker) : MainSignal
+    data class ShowPlaceFragment(val marker: Marker) : MainSignal
 }

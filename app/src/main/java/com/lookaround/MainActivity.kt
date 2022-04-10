@@ -58,6 +58,7 @@ import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
+import com.lookaround.ui.place.PlaceFragment
 import com.lookaround.ui.place.list.PlaceListFragment
 import com.lookaround.ui.place.map.list.PlaceMapListFragmentHost
 import com.lookaround.ui.recent.searches.composable.RecentSearchesChipList
@@ -168,17 +169,25 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         viewModel.onEachSignal<MainSignal.ARLoading> { onARLoading() }.launchIn(lifecycleScope)
         viewModel.onEachSignal<MainSignal.AREnabled> { onAREnabled() }.launchIn(lifecycleScope)
         viewModel.onEachSignal<MainSignal.ARDisabled> { onARDisabled() }.launchIn(lifecycleScope)
+
         viewModel
             .filterSignals<MainSignal.ToggleSearchBarVisibility>()
             .filter { viewsInteractionEnabled }
             .onEach { (targetVisibility) -> setSearchbarVisibility(targetVisibility) }
             .launchIn(lifecycleScope)
+
         viewModel
             .locationUpdateFailureUpdates
             .onEach {
                 Timber.tag("LOCATION").e(it?.message ?: "Unknown location update failure occurred.")
             }
             .launchIn(lifecycleScope)
+
+        lifecycleScope.launchWhenResumed {
+            viewModel.filterSignals(MainSignal.ShowPlaceFragment::marker).collect { marker ->
+                replaceFragmentInMainContainerView { PlaceFragment.new(marker) }
+            }
+        }
 
         launchPlacesLoadingSnackbarUpdates()
     }
@@ -232,7 +241,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
         }
     }
 
-    override fun onPlaceMapItemClick(marker: Marker) {
+    override fun onPlaceMapItemClick(marker: Marker) { // TODO: convert to signal
         if (!lifecycle.isResumed) return
         when (val topFragment = currentTopFragment) {
             is MapFragment -> topFragment.updateCurrentMarker(marker)

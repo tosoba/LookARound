@@ -439,11 +439,13 @@ class MapFragment :
         mainViewModel
             .filterSignals(MainSignal.BottomSheetStateChanged::state)
             .onEach { sheetState ->
-                if (sheetState == ViewPagerBottomSheetBehavior.STATE_EXPANDED) {
-                    binding.blurBackground.fadeSetVisibility(View.VISIBLE)
-                } else if (sheetState == ViewPagerBottomSheetBehavior.STATE_HIDDEN) {
-                    binding.blurBackground.fadeSetVisibility(View.GONE)
-                }
+                binding.blurBackground.fadeSetVisibility(
+                    when (sheetState) {
+                        ViewPagerBottomSheetBehavior.STATE_EXPANDED -> View.VISIBLE
+                        ViewPagerBottomSheetBehavior.STATE_HIDDEN -> View.GONE
+                        else -> return@onEach
+                    }
+                )
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }

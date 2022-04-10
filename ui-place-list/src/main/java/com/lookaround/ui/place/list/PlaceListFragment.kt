@@ -49,7 +49,11 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                     viewLifecycleOwner.lifecycleScope.locationRecyclerViewAdapterCallbacks(
                         mainViewModel.locationReadyUpdates
                     )
-            ) { marker -> }
+            ) { marker ->
+                viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                    mainViewModel.signal(MainSignal.ShowPlaceFragment(marker))
+                }
+            }
         }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

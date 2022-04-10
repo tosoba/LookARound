@@ -46,7 +46,9 @@ class PlaceFragment :
     @Inject internal lateinit var mapTilesHttpHandler: HttpHandler
     @Inject internal lateinit var glViewHolderFactory: GLViewHolderFactory
     private val mapController: Deferred<MapController> by
-        lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
+        lifecycleScope.lazyAsync {
+            binding.placeMapView.init(mapTilesHttpHandler, glViewHolderFactory)
+        }
     private val mapReady = CompletableDeferred<Unit>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -54,6 +56,7 @@ class PlaceFragment :
             setSceneLoadListener(this@PlaceFragment)
             loadScene(if (requireContext().darkMode) MapScene.DARK else MapScene.LIGHT)
             initCameraPosition(savedInstanceState)
+            addMarkerFor(markerArgument.location)
         }
 
         mapSceneViewModel
@@ -64,23 +67,23 @@ class PlaceFragment :
     }
 
     override fun onDestroyView() {
-        binding.map.onDestroy()
+        binding.placeMapView.onDestroy()
         super.onDestroyView()
     }
 
     override fun onResume() {
         super.onResume()
-        binding.map.onResume()
+        binding.placeMapView.onResume()
     }
 
     override fun onPause() {
-        binding.map.onPause()
+        binding.placeMapView.onPause()
         super.onPause()
     }
 
     override fun onLowMemory() {
         super.onLowMemory()
-        binding.map.onLowMemory()
+        binding.placeMapView.onLowMemory()
     }
 
     private suspend fun MapController.loadScene(scene: MapScene) {
