@@ -53,7 +53,11 @@ internal class PlacesRecyclerViewAdapter(
             binding.placeDistanceText.text =
                 userLocation.preciseFormattedDistanceTo(marker.location)
         }
-        binding.root.setOnClickListener { onItemClicked(position, marker) }
+        binding.root.setOnClickListener {
+            val currentPosition = holder.absoluteAdapterPosition
+            if (currentPosition == RecyclerView.NO_POSITION) return@setOnClickListener
+            onItemClicked(holder.absoluteAdapterPosition, marker)
+        }
     }
 
     override fun getItemCount(): Int = items.size
