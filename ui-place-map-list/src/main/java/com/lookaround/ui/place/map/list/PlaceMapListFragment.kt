@@ -132,8 +132,10 @@ class PlaceMapListFragment :
                     viewLifecycleOwner.lifecycleScope.locationRecyclerViewAdapterCallbacks(
                         mainViewModel.locationReadyUpdates
                     )
-            ) { namedLocation ->
-                (activity as? PlaceMapListFragmentHost)?.onPlaceMapItemClick(namedLocation)
+            ) { marker ->
+                viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                    mainViewModel.signal(MainSignal.ShowMapFragment(marker))
+                }
             }
         }
 
@@ -179,11 +181,9 @@ class PlaceMapListFragment :
         }
 
         binding.showMapFab.setOnClickListener {
-            (activity as? PlaceMapListFragmentHost)?.let {
-                it.onShowMapClick()
-                viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                    mainViewModel.signal(MainSignal.HideBottomSheet)
-                }
+            viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                mainViewModel.signal(MainSignal.HideBottomSheet)
+                mainViewModel.signal(MainSignal.ShowMapFragment())
             }
         }
 

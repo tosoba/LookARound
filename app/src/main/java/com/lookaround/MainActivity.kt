@@ -60,7 +60,6 @@ import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.MapFragment
 import com.lookaround.ui.place.PlaceFragment
 import com.lookaround.ui.place.list.PlaceListFragment
-import com.lookaround.ui.place.map.list.PlaceMapListFragmentHost
 import com.lookaround.ui.recent.searches.composable.RecentSearchesChipList
 import com.lookaround.ui.settings.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -76,7 +75,7 @@ import timber.log.Timber
 @ExperimentalStdlibApi
 @FlowPreview
 @SuppressLint("RtlHardcoded")
-class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFragmentHost {
+class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
 
     private val viewModel: MainViewModel by viewModels()
@@ -192,6 +191,19 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             }
         }
 
+        lifecycleScope.launchWhenResumed {
+            viewModel.filterSignals<MainSignal.ShowMapFragment>().collect { (marker) ->
+                if (marker != null) {
+                    when (val topFragment = currentTopFragment) {
+                        is MapFragment -> topFragment.updateCurrentMarker(marker)
+                        else -> mainFragmentContainerViewTransaction { MapFragment.new(marker) }
+                    }
+                } else {
+                    mainFragmentContainerViewTransaction<MapFragment>()
+                }
+            }
+        }
+
         launchPlacesLoadingSnackbarUpdates()
     }
 
@@ -242,24 +254,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main), PlaceMapListFrag
             }
             else -> super.onBackPressed()
         }
-    }
-
-    override fun onPlaceMapItemClick(marker: Marker) { // TODO: convert to signal
-        if (!lifecycle.isResumed) return
-        when (val topFragment = currentTopFragment) {
-            is MapFragment -> topFragment.updateCurrentMarker(marker)
-            else -> {
-                fragmentTransaction {
-                    setSlideInFromBottom()
-                    replace(R.id.main_fragment_container_view, MapFragment.new(marker))
-                    addToBackStack(null)
-                }
-            }
-        }
-    }
-
-    override fun onShowMapClick() {
-        mainFragmentContainerViewTransaction<MapFragment>()
     }
 
     private fun onARLoading() {

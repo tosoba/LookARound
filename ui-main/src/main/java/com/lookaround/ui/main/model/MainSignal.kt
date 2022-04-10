@@ -30,4 +30,5 @@ sealed interface MainSignal {
     data class UpdateSelectedMarker(val marker: Marker) : MainSignal
     data class ShowPlaceFragment(val marker: Marker, val markerImage: Bitmap) : MainSignal
     data class CaptureMapImage(val marker: Marker) : MainSignal
+    data class ShowMapFragment(val marker: Marker? = null) : MainSignal
 }
