@@ -42,7 +42,6 @@ import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.ext.*
-import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.model.hasValue
 import com.lookaround.core.android.view.composable.SearchBar
@@ -100,7 +99,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 bottomSheetBehavior.state != ViewPagerBottomSheetBehavior.STATE_SETTLING
 
     private val viewsInteractionEnabled: Boolean
-        get() = currentTopFragment !is CameraFragment || latestARState == CameraARState.ENABLED
+        get() =
+            (currentTopFragment is CameraFragment && latestARState == CameraARState.ENABLED) ||
+                currentTopFragment is MapFragment
 
     private var placesStatusLoadingSnackbar: Snackbar? = null
 
@@ -155,7 +156,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 signalTopFragmentChanged()
                 viewModel.signal(MainSignal.BottomSheetStateChanged(bottomSheetBehavior.state))
             }
-            setSearchbarVisibility(View.VISIBLE)
+            setSearchbarVisibility(if (viewsInteractionEnabled) View.VISIBLE else View.GONE)
         }
 
         initNavigationDrawer()
@@ -170,9 +171,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         viewModel.onEachSignal<MainSignal.ARDisabled> { onARDisabled() }.launchIn(lifecycleScope)
 
         viewModel
-            .filterSignals<MainSignal.ToggleSearchBarVisibility>()
+            .filterSignals(MainSignal.ToggleSearchBarVisibility::targetVisibility)
             .filter { viewsInteractionEnabled }
-            .onEach { (targetVisibility) -> setSearchbarVisibility(targetVisibility) }
+            .onEach(::setSearchbarVisibility)
             .launchIn(lifecycleScope)
 
         viewModel
