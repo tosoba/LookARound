@@ -7,6 +7,8 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.android.material.shape.CornerFamily
+import com.google.android.material.shape.MaterialShapeDrawable
 import com.lookaround.core.android.ext.argument
 import com.lookaround.core.android.model.Marker
 import com.lookaround.ui.main.MainViewModel
@@ -30,6 +32,18 @@ class PlaceFragment : Fragment(R.layout.fragment_place) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.placeMapImageView.setImageBitmap(markerImageArgument)
+
+        binding.placeToolbar.title = markerArgument.name
+        val materialShapeDrawable = binding.placeToolbar.background as MaterialShapeDrawable
+        materialShapeDrawable.shapeAppearanceModel =
+            materialShapeDrawable
+                .shapeAppearanceModel
+                .toBuilder()
+                .setAllCorners(
+                    CornerFamily.ROUNDED,
+                    resources.getDimension(R.dimen.rounded_corners_radius)
+                )
+                .build()
     }
 
     companion object {

@@ -5,9 +5,5 @@
     <dimen name="cluster_icon_min_size">32dp</dimen>
     <dimen name="cluster_icon_padding">8dp</dimen>
 
-    <dimen name="grid_spacing">8dp</dimen>
-    <dimen name="carousel_spacing">16dp</dimen>
-    <dimen name="prominent_threshold">72dp</dimen>
-    <dimen name="rounded_corners_radius">8dp</dimen>
-    <dimen name="gradient_width">56dp</dimen>
+    <dimen name="rounded_corners_radius">20dp</dimen>
 </resources>
