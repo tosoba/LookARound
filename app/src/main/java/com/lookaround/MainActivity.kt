@@ -260,22 +260,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private fun onARLoading() {
         if (currentTopFragment !is CameraFragment) return
         latestARState = CameraARState.LOADING
-        binding.searchBarView.visibility = View.GONE
-        binding.bottomNavigationView.visibility = View.GONE
-        binding.nearMeFab.visibility = View.GONE
-        binding.bottomSheetViewPager.visibility = View.GONE
-        bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_HIDDEN
+        hideViewsOnARNotEnabled()
     }
 
     private fun onAREnabled() {
         latestARState = CameraARState.ENABLED
-        binding.searchBarView.visibility = View.VISIBLE
-        binding.bottomNavigationView.visibility = View.VISIBLE
-        if (viewModel.state.markers !is WithValue) {
-            binding.nearMeFab.visibility = View.VISIBLE
-        }
-        binding.bottomSheetViewPager.visibility = View.VISIBLE
-        bottomSheetBehavior.state = viewModel.state.lastLiveBottomSheetState
+        showViewsOnAREnabled()
     }
 
     private fun onARDisabled() {
@@ -286,6 +276,20 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
         latestARState = CameraARState.DISABLED
 
+        hideViewsOnARNotEnabled()
+    }
+
+    private fun showViewsOnAREnabled() {
+        binding.searchBarView.visibility = View.VISIBLE
+        binding.bottomNavigationView.visibility = View.VISIBLE
+        if (viewModel.state.markers !is WithValue) {
+            binding.nearMeFab.visibility = View.VISIBLE
+        }
+        binding.bottomSheetViewPager.visibility = View.VISIBLE
+        bottomSheetBehavior.state = viewModel.state.lastLiveBottomSheetState
+    }
+
+    private fun hideViewsOnARNotEnabled() {
         binding.searchBarView.visibility = View.GONE
         binding.bottomNavigationView.visibility = View.GONE
         binding.nearMeFab.visibility = View.GONE

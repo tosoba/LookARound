@@ -41,6 +41,7 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
         lazy(LazyThreadSafetyMode.NONE) {
             Carousel(requireContext(), binding.placeListRecyclerView, placesRecyclerViewAdapter)
         }
+    private var lastCarouselPosition: Int = 0
 
     private val placesRecyclerViewAdapter: PlacesRecyclerViewAdapter by
         lazy(LazyThreadSafetyMode.NONE) {
@@ -50,12 +51,19 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                         mainViewModel.locationReadyUpdates
                     )
             ) { position, marker ->
-                if (carousel.getCurrentPosition() != position) return@PlacesRecyclerViewAdapter
+                if (lastCarouselPosition != position) return@PlacesRecyclerViewAdapter
                 viewLifecycleOwner.lifecycleScope.launchWhenResumed {
                     mainViewModel.signal(MainSignal.CaptureMapImage(marker))
                 }
             }
         }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState
+            ?.getInt(SavedStateKey.LAST_CAROUSEL_POSITION.name)
+            ?.let(::lastCarouselPosition::set)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainViewModel
@@ -73,6 +81,7 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                 object : CarouselListener {
                     override fun onPositionChange(position: Int) {
                         placesRecyclerViewAdapter.items.elementAtOrNull(position)?.let { marker ->
+                            lastCarouselPosition = position
                             viewLifecycleOwner.lifecycleScope.launch {
                                 mainViewModel.signal(MainSignal.UpdateSelectedMarker(marker))
                             }
@@ -85,6 +94,11 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(SavedStateKey.LAST_CAROUSEL_POSITION.name, lastCarouselPosition)
+    }
+
     fun scrollToPlace(uuid: UUID) {
         placesRecyclerViewAdapter
             .items
@@ -94,6 +108,11 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
     }
 
     private fun scrollToPosition(position: Int) {
+        lastCarouselPosition = position
         carousel.setCurrentPosition(position)
+    }
+
+    private enum class SavedStateKey {
+        LAST_CAROUSEL_POSITION
     }
 }
