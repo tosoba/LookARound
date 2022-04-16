@@ -19,7 +19,6 @@
             android:layout_height="wrap_content"
             app:contentScrim="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|snap|exitUntilCollapsed"
-            app:statusBarScrim="@null"
             app:titleEnabled="true">
 
             <ImageView
@@ -30,9 +29,11 @@
                 android:scaleType="center"
                 app:layout_collapseMode="parallax" />
 
-            <androidx.appcompat.widget.Toolbar
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/place_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:layout_marginTop="24dp"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Dark"
                 app:title="" />
 
