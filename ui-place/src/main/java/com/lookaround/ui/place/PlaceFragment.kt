@@ -32,18 +32,17 @@ class PlaceFragment : Fragment(R.layout.fragment_place) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.placeMapImageView.setImageBitmap(markerImageArgument)
-
-        binding.placeToolbar.title = markerArgument.name
-        val materialShapeDrawable = binding.placeToolbar.background as MaterialShapeDrawable
-        materialShapeDrawable.shapeAppearanceModel =
-            materialShapeDrawable
-                .shapeAppearanceModel
-                .toBuilder()
-                .setAllCorners(
-                    CornerFamily.ROUNDED,
-                    resources.getDimension(R.dimen.rounded_corners_radius)
-                )
-                .build()
+        binding.placeCollapsingToolbarLayout.title = markerArgument.name
+//        val materialShapeDrawable = binding.placeToolbar.background as MaterialShapeDrawable
+//        materialShapeDrawable.shapeAppearanceModel =
+//            materialShapeDrawable
+//                .shapeAppearanceModel
+//                .toBuilder()
+//                .setAllCorners(
+//                    CornerFamily.ROUNDED,
+//                    resources.getDimension(R.dimen.rounded_corners_radius)
+//                )
+//                .build()
     }
 
     companion object {
