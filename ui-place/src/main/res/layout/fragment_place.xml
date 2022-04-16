@@ -17,8 +17,9 @@
             android:id="@+id/place_collapsing_toolbar_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:collapsedTitleTextAppearance="@style/text_appearance_collapsed_shadow"
             app:contentScrim="?attr/colorPrimary"
-            app:expandedTitleTextAppearance="@style/TextAppearance.Design.CollapsingToolbar.Expanded.Shadow"
+            app:expandedTitleTextAppearance="@style/text_appearance_expanded_shadow"
             app:layout_scrollFlags="scroll|snap|exitUntilCollapsed"
             app:titleEnabled="true">
 
@@ -26,7 +27,9 @@
                 android:id="@+id/place_map_image_view"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
+                android:layout_marginBottom="5dp"
                 android:contentDescription="@string/place_map"
+                android:elevation="5dp"
                 android:scaleType="center"
                 app:layout_collapseMode="parallax"
                 app:shapeAppearanceOverlay="@style/rounded_image_view" />
