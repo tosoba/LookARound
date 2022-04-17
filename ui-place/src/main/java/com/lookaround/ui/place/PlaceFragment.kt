@@ -30,7 +30,6 @@ class PlaceFragment : Fragment(R.layout.fragment_place) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.placeMapImageView.setImageBitmap(markerImageArgument)
-        binding.placeCollapsingToolbarLayout.title = markerArgument.name
     }
 
     companion object {
