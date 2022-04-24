@@ -51,8 +51,8 @@ internal class ClusterRenderer<T : ClusterItem>(
 
         for (clusterToRemove in clustersToRemove) {
             val markerToRemove = markers[clusterToRemove] ?: continue
-            mapController.removeMarker(markerToRemove)
             try {
+                mapController.removeMarker(markerToRemove)
                 markers.remove(clusterToRemove)
             } catch (throwable: Throwable) {
                 Timber.e(throwable)

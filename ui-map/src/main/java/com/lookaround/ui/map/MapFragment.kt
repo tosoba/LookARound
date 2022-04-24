@@ -132,7 +132,7 @@ class MapFragment :
                 mapController.launch {
                     removeAllMarkers()
                     addMarkerFor(marker.location)
-                    val markerImage = captureFrame(true)
+                    val markerImage = captureFrame(false)
                     mainViewModel.signal(MainSignal.ShowPlaceFragment(marker, markerImage))
                 }
             }
