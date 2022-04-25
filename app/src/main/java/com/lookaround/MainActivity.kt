@@ -144,8 +144,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     private val placeListFragment: PlaceListFragment?
         get() =
-            supportFragmentManager.findFragmentById(R.id.place_list_fragment_container_view) as?
-                PlaceListFragment
+            supportFragmentManager.findFragmentById(R.id.place_list_fragment_container_view)
+                as? PlaceListFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -156,7 +156,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 signalTopFragmentChanged()
                 viewModel.signal(MainSignal.BottomSheetStateChanged(bottomSheetBehavior.state))
             }
-            setSearchbarVisibility(if (viewsInteractionEnabled) View.VISIBLE else View.GONE)
         }
 
         initNavigationDrawer()
@@ -176,8 +175,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             .onEach(::setSearchbarVisibility)
             .launchIn(lifecycleScope)
 
-        viewModel
-            .locationUpdateFailureUpdates
+        viewModel.locationUpdateFailureUpdates
             .onEach {
                 Timber.tag("LOCATION").e(it?.message ?: "Unknown location update failure occurred.")
             }
@@ -546,7 +544,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 val currentFragmentFactory =
                     if (bottomSheetViewPagerAdapter.fragmentFactories.isNotEmpty()) {
                         bottomSheetViewPagerAdapter.fragmentFactories[
-                            binding.bottomSheetViewPager.currentItem]
+                                binding.bottomSheetViewPager.currentItem]
                     } else {
                         null
                     }
@@ -601,16 +599,14 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             selectedItemId = viewModel.state.selectedBottomNavigationViewItemId
             setOnItemSelectedListener(onBottomNavItemSelectedListener)
 
-            viewModel
-                .placesBottomNavItemVisibilityUpdates
+            viewModel.placesBottomNavItemVisibilityUpdates
                 .onEach { isVisible ->
                     menu.findItem(R.id.action_place_map_list).isVisible = isVisible
                     updateBottomAppBarFabAlignment()
                 }
                 .launchIn(lifecycleScope)
 
-            viewModel
-                .recentSearchesBottomNavItemVisibilityUpdates
+            viewModel.recentSearchesBottomNavItemVisibilityUpdates
                 .onEach { isVisible ->
                     menu.findItem(R.id.action_recent_searches).isVisible = isVisible
                     updateBottomAppBarFabAlignment()
@@ -657,8 +653,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             lifecycleScope.launch { viewModel.intent(MainIntent.GetAttractions) }
         }
 
-        viewModel
-            .nearMeFabVisibilityUpdates
+        viewModel.nearMeFabVisibilityUpdates
             .filter { viewsInteractionEnabled }
             .onEach { visible ->
                 binding.nearMeFab.fadeSetVisibility(if (visible) View.VISIBLE else View.GONE)
@@ -680,8 +675,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     }
 
     private fun launchPlacesLoadingSnackbarUpdates() {
-        viewModel
-            .snackbarUpdates
+        viewModel.snackbarUpdates
             .onEach {
                 when (it) {
                     is SnackbarUpdate.Show -> {
