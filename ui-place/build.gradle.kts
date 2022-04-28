@@ -58,6 +58,7 @@ android {
 dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
+    implementation(project(":tangram"))
     implementation(project(":ui-main"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))

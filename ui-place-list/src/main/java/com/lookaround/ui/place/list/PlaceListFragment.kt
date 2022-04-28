@@ -53,7 +53,7 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
             ) { position, marker ->
                 if (lastCarouselPosition != position) return@PlacesRecyclerViewAdapter
                 viewLifecycleOwner.lifecycleScope.launchWhenResumed {
-                    mainViewModel.signal(MainSignal.CaptureMapImage(marker))
+                    mainViewModel.signal(MainSignal.ShowPlaceFragment(marker))
                 }
             }
         }

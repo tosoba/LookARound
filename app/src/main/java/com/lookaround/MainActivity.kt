@@ -192,10 +192,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             .launchIn(lifecycleScope)
 
         lifecycleScope.launchWhenResumed {
-            viewModel.filterSignals<MainSignal.ShowPlaceFragment>().collect { (marker, markerImage)
+            viewModel.filterSignals<MainSignal.ShowPlaceFragment>().collect { (marker)
                 ->
                 mainFragmentContainerViewTransaction(FragmentTransactionType.ADD) {
-                    PlaceFragment.new(marker, markerImage)
+                    PlaceFragment.new(marker)
                 }
             }
         }

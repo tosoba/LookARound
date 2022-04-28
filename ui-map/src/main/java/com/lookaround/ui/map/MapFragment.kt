@@ -128,17 +128,6 @@ class MapFragment :
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         mainViewModel
-            .onEachSignal(MainSignal.CaptureMapImage::marker) { marker ->
-                mapController.launch {
-                    removeAllMarkers()
-                    addMarkerFor(marker.location)
-                    val markerImage = captureFrame(false)
-                    mainViewModel.signal(MainSignal.ShowPlaceFragment(marker, markerImage))
-                }
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-
-        mainViewModel
             .filterSignals<MainSignal.TopFragmentChanged>()
             .drop(1)
             .filter { (clazz) -> clazz.isAssignableFrom(this::class.java) && this.view != null }

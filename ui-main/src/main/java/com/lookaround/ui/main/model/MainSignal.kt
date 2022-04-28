@@ -1,6 +1,5 @@
 package com.lookaround.ui.main.model
 
-import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import androidx.fragment.app.Fragment
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
@@ -28,7 +27,6 @@ sealed interface MainSignal {
     data class ShowPlaceInBottomSheet(val id: UUID) : MainSignal
     object HidePlacesListBottomSheet : MainSignal
     data class UpdateSelectedMarker(val marker: Marker) : MainSignal
-    data class ShowPlaceFragment(val marker: Marker, val markerImage: Bitmap) : MainSignal
-    data class CaptureMapImage(val marker: Marker) : MainSignal
+    data class ShowPlaceFragment(val marker: Marker) : MainSignal
     data class ShowMapFragment(val marker: Marker? = null) : MainSignal
 }
