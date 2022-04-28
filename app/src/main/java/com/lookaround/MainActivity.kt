@@ -155,6 +155,16 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             lifecycleScope.launchWhenResumed {
                 signalTopFragmentChanged()
                 viewModel.signal(MainSignal.BottomSheetStateChanged(bottomSheetBehavior.state))
+                when (currentTopFragment) {
+                    is MapFragment -> {
+                        setSearchbarVisibility(View.VISIBLE)
+                        binding.bottomNavigationView.fadeSetVisibility(View.VISIBLE)
+                    }
+                    is PlaceFragment -> {
+                        setSearchbarVisibility(View.GONE)
+                        binding.bottomNavigationView.fadeSetVisibility(View.GONE)
+                    }
+                }
             }
         }
 
@@ -629,7 +639,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 }
                 .launchIn(lifecycleScope)
 
-            if (currentTopFragment !is CameraFragment) visibility = View.VISIBLE
+            if (currentTopFragment is MapFragment) visibility = View.VISIBLE
         }
     }
 
