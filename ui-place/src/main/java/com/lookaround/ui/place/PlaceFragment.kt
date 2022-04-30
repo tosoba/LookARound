@@ -52,6 +52,8 @@ class PlaceFragment :
     private val mapReady = CompletableDeferred<Unit>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.placeBackButton.setOnClickListener { activity?.onBackPressed() }
+
         mapController.launch {
             setSceneLoadListener(this@PlaceFragment)
             loadScene(if (requireContext().darkMode) MapScene.DARK else MapScene.LIGHT)
@@ -111,8 +113,7 @@ class PlaceFragment :
             viewLifecycleOwner.lifecycleScope.launch {
                 mapSceneViewModel.intent(MapSceneIntent.SceneLoaded)
             }
-            if (mapReady.isCompleted) return else mapReady.complete(Unit)
-
+            if (!mapReady.isCompleted) mapReady.complete(Unit)
         } else {
             Timber.e("Failed to load scene: $sceneId. Scene error: $sceneError")
         }
