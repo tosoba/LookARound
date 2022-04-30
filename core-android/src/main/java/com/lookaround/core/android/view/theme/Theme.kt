@@ -1,10 +1,12 @@
 package com.lookaround.core.android.view.theme
 
+import android.content.Context
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import com.lookaround.core.android.ext.darkMode
 import com.lookaround.core.android.view.LocalSysUiController
 
 private val LightColorPalette =
@@ -54,6 +56,9 @@ private val DarkColorPalette =
         gradient2_2 = listOf(Ocean7, Shadow7),
         isDark = true
     )
+
+val Context.colorPalette: LookARoundColors
+    get() = if (darkMode) DarkColorPalette else LightColorPalette
 
 @Composable
 fun LookARoundTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {

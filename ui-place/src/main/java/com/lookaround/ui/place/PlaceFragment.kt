@@ -2,6 +2,8 @@ package com.lookaround.ui.place
 
 import android.os.Bundle
 import android.view.View
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -14,10 +16,11 @@ import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
+import com.lookaround.core.android.view.theme.colorPalette
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.place.databinding.FragmentPlaceBinding
-import com.mapzen.tangram.MapChangeListener
 import com.mapzen.tangram.MapController
 import com.mapzen.tangram.SceneError
 import com.mapzen.tangram.SceneUpdate
@@ -28,14 +31,14 @@ import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 @AndroidEntryPoint
 @WithFragmentBindings
-class PlaceFragment :
-    Fragment(R.layout.fragment_place), MapController.SceneLoadListener {
+class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoadListener {
     private val binding: FragmentPlaceBinding by viewBinding(FragmentPlaceBinding::bind)
 
     private val markerArgument: Marker by argument(Arguments.MARKER.name)
@@ -53,6 +56,15 @@ class PlaceFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.placeBackButton.setOnClickListener { activity?.onBackPressed() }
+        binding.placeInfoCardView.setCardBackgroundColor(
+            ContextCompat.getColor(
+                requireContext(),
+                if (requireContext().darkMode) R.color.cardview_dark_background
+                else R.color.cardview_light_background
+            )
+        )
+
+        initPlaceInfo()
 
         mapController.launch {
             setSceneLoadListener(this@PlaceFragment)
@@ -64,6 +76,37 @@ class PlaceFragment :
         mapSceneViewModel
             .onEachSignal(MapSceneSignal.RetryLoadScene::scene) { scene ->
                 mapController.await().loadScene(scene)
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    private fun initPlaceInfo() {
+        markerArgument.tags["opening_hours"]?.let { binding.placeOpeningHoursTextView.text = it }
+            ?: run { binding.placeOpeningHoursTextView.visibility = View.GONE }
+        binding.placeOpeningHoursTextView.setTextColor(
+            requireContext().colorPalette.textHelp.toArgb()
+        )
+
+        binding.placeNameTextView.text = markerArgument.name
+        binding.placeNameTextView.setTextColor(requireContext().colorPalette.textPrimary.toArgb())
+
+        markerArgument.tags["addr:street"]?.let { street ->
+            val address = StringBuilder(street)
+            markerArgument.tags["addr:housenumber"]?.let { address.append(" ").append(it) }
+            binding.placeAddressTextView.text = address.toString()
+        }
+            ?: run { binding.placeAddressTextView.visibility = View.GONE }
+        binding.placeAddressTextView.setTextColor(
+            requireContext().colorPalette.textSecondary.toArgb()
+        )
+
+        binding.placeDistanceTextView.setTextColor(
+            requireContext().colorPalette.textSecondary.toArgb()
+        )
+        mainViewModel.locationReadyUpdates
+            .onEach { location ->
+                binding.placeDistanceTextView.text =
+                    markerArgument.location.preciseFormattedDistanceTo(location)
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
