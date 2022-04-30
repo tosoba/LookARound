@@ -66,6 +66,9 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
         binding.navigateFab.setOnClickListener { launchGoogleMapsForNavigation() }
         binding.streetViewFab.setOnClickListener { launchGoogleMapsForStreetView() }
         binding.placeGoogleMapsFab.setOnClickListener { launchGoogleMaps() }
+        binding.placeNestedScrollView.setBackgroundColor(
+            requireContext().colorPalette.uiBackground.toArgb()
+        )
 
         initPlaceInfo()
 

@@ -151,7 +151,6 @@
         android:id="@+id/place_nested_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#ffffff"
         android:clipToPadding="false"
         android:padding="20dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
@@ -178,12 +177,12 @@
 
             <TextView
                 android:id="@+id/place_no_description_text_view"
-                android:textSize="18sp"
-                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="@string/no_description_available"
                 android:textAlignment="center"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:textSize="18sp"
+                android:visibility="gone" />
 
         </LinearLayout>
 
