@@ -71,6 +71,7 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
             setSceneLoadListener(this@PlaceFragment)
             loadScene(if (requireContext().darkMode) MapScene.DARK else MapScene.LIGHT)
             initCameraPosition()
+            touchInput.setAllGesturesDisabled()
             addMarkerFor(markerArgument.location)
         }
 
