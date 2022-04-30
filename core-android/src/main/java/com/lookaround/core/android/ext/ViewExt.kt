@@ -5,6 +5,7 @@ import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.view.View
+import android.view.ViewTreeObserver.OnPreDrawListener
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import androidx.annotation.IntRange
@@ -75,14 +76,24 @@ fun View.setListBackgroundItemDrawableWith(
     @IntRange(from = 0x0, to = 0xFF) alpha: Int = 0x30
 ) {
     val backgroundDrawable =
-        ResourcesCompat.getDrawable(resources, R.drawable.rounded_elevated_background, null) as
-            LayerDrawable
+        ResourcesCompat.getDrawable(resources, R.drawable.rounded_elevated_background, null)
+            as LayerDrawable
     val backgroundLayer =
-        backgroundDrawable.findDrawableByLayerId(
-            R.id.rounded_transparent_shadow_background_layer
-        ) as
-            GradientDrawable
+        backgroundDrawable.findDrawableByLayerId(R.id.rounded_transparent_shadow_background_layer)
+            as GradientDrawable
     backgroundLayer.color =
         ColorStateList.valueOf(ColorUtils.setAlphaComponent(contrastingColor, alpha))
     background = backgroundDrawable
+}
+
+fun View.runOnPreDraw(action: () -> Unit) {
+    val preDrawListener: OnPreDrawListener =
+        object : OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                viewTreeObserver.removeOnPreDrawListener(this)
+                action()
+                return true
+            }
+        }
+    viewTreeObserver.addOnPreDrawListener(preDrawListener)
 }

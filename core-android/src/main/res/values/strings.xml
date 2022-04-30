@@ -15,4 +15,6 @@
     <string name="unable_to_launch_google_maps_for_navigation">Unable to launch Google Maps for navigation.</string>
     <string name="unable_to_launch_street_view">Unable to launch StreetView</string>
     <string name="show_on_google_maps">Show on Google Maps</string>
+    <string name="description">Description</string>
+    <string name="no_description_available">No description available</string>
 </resources>

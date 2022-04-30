@@ -10,6 +10,7 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
+import androidx.core.view.marginTop
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -142,6 +143,16 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
                 else R.color.cardview_light_background
             )
         )
+        binding.placeInfoCardView.runOnPreDraw {
+            val height = binding.placeInfoCardView.height
+            val padding = requireContext().dpToPx(20f).toInt()
+            binding.placeNestedScrollView.setPadding(
+                padding,
+                height - binding.placeInfoCardView.marginTop + padding,
+                padding,
+                padding
+            )
+        }
 
         markerArgument.tags["opening_hours"]?.let(binding.placeOpeningHoursTextView::setText)
             ?: run { binding.placeOpeningHoursTextView.visibility = View.GONE }
@@ -166,8 +177,23 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
             .onEach(binding.placeDistanceTextView::setText)
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
-        markerArgument.tags["description"]?.let(binding.placeDescriptionTextView::setText)
-            ?: run { binding.placeDescriptionTextView.visibility = View.GONE }
+        markerArgument.tags["description"]?.let {
+            binding.placeDescriptionHeaderTextView.setTextColor(
+                requireContext().colorPalette.textPrimary.toArgb()
+            )
+            binding.placeDescriptionTextView.text = it
+            binding.placeDescriptionTextView.setTextColor(
+                requireContext().colorPalette.textSecondary.toArgb()
+            )
+        }
+            ?: run {
+                binding.placeDescriptionHeaderTextView.visibility = View.GONE
+                binding.placeDescriptionTextView.visibility = View.GONE
+                binding.placeNoDescriptionTextView.visibility = View.VISIBLE
+                binding.placeNoDescriptionTextView.setTextColor(
+                    requireContext().colorPalette.textSecondary.toArgb()
+                )
+            }
     }
 
     private fun launchGoogleMaps() {
