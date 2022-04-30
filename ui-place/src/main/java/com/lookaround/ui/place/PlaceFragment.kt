@@ -2,7 +2,6 @@ package com.lookaround.ui.place
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -37,6 +36,7 @@ import dagger.hilt.android.WithFragmentBindings
 import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
 
@@ -64,6 +64,10 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
         binding.placeBackButton.setOnClickListener { activity?.onBackPressed() }
         binding.navigateFab.setOnClickListener { launchGoogleMapsForNavigation() }
         binding.streetViewFab.setOnClickListener { launchGoogleMapsForStreetView() }
+        binding.placeGoogleMapsFab.apply {
+            if (markerArgument.address != null) setOnClickListener { launchGoogleMaps() }
+            else visibility = View.GONE
+        }
 
         initPlaceInfo()
 
@@ -142,7 +146,7 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
             )
         )
 
-        markerArgument.tags["opening_hours"]?.let { binding.placeOpeningHoursTextView.text = it }
+        markerArgument.tags["opening_hours"]?.let(binding.placeOpeningHoursTextView::setText)
             ?: run { binding.placeOpeningHoursTextView.visibility = View.GONE }
         binding.placeOpeningHoursTextView.setTextColor(
             requireContext().colorPalette.textHelp.toArgb()
@@ -151,11 +155,7 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
         binding.placeNameTextView.text = markerArgument.name
         binding.placeNameTextView.setTextColor(requireContext().colorPalette.textPrimary.toArgb())
 
-        markerArgument.tags["addr:street"]?.let { street ->
-            val address = StringBuilder(street)
-            markerArgument.tags["addr:housenumber"]?.let { address.append(" ").append(it) }
-            binding.placeAddressTextView.text = address.toString()
-        }
+        markerArgument.address?.let(binding.placeAddressTextView::setText)
             ?: run { binding.placeAddressTextView.visibility = View.GONE }
         binding.placeAddressTextView.setTextColor(
             requireContext().colorPalette.textSecondary.toArgb()
@@ -165,31 +165,36 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
             requireContext().colorPalette.textSecondary.toArgb()
         )
         mainViewModel.locationReadyUpdates
-            .onEach { location ->
-                binding.placeDistanceTextView.text =
-                    markerArgument.location.preciseFormattedDistanceTo(location)
-            }
+            .map(markerArgument.location::preciseFormattedDistanceTo)
+            .onEach(binding.placeDistanceTextView::setText)
             .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    private fun launchGoogleMaps() {
+        launchGoogleMapForCurrentMarker(failureMsgRes = R.string.unable_to_launch_google_maps) {
+            marker ->
+            "geo:${marker.location.latitude},${marker.location.longitude}?q=${Uri.encode(marker.address)}&z=21"
+        }
     }
 
     private fun launchGoogleMapsForNavigation() {
         launchGoogleMapForCurrentMarker(
             failureMsgRes = R.string.unable_to_launch_google_maps_for_navigation
-        ) { location -> "google.navigation:q=${location.latitude},${location.longitude}" }
+        ) { (_, location) -> "google.navigation:q=${location.latitude},${location.longitude}" }
     }
 
     private fun launchGoogleMapsForStreetView() {
         launchGoogleMapForCurrentMarker(failureMsgRes = R.string.unable_to_launch_street_view) {
-            location ->
+            (_, location) ->
             "google.streetview:cbll=${location.latitude},${location.longitude}"
         }
     }
 
     private fun launchGoogleMapForCurrentMarker(
         @StringRes failureMsgRes: Int,
-        uriStringFor: (Location) -> String
+        uriStringFor: (Marker) -> String
     ) {
-        val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(uriStringFor(markerArgument.location)))
+        val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(uriStringFor(markerArgument)))
         mapIntent.setPackage("com.google.android.apps.maps")
         try {
             startActivity(mapIntent)
