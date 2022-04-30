@@ -64,10 +64,7 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
         binding.placeBackButton.setOnClickListener { activity?.onBackPressed() }
         binding.navigateFab.setOnClickListener { launchGoogleMapsForNavigation() }
         binding.streetViewFab.setOnClickListener { launchGoogleMapsForStreetView() }
-        binding.placeGoogleMapsFab.apply {
-            if (markerArgument.address != null) setOnClickListener { launchGoogleMaps() }
-            else visibility = View.GONE
-        }
+        binding.placeGoogleMapsFab.setOnClickListener { launchGoogleMaps() }
 
         initPlaceInfo()
 
@@ -168,12 +165,16 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
             .map(markerArgument.location::preciseFormattedDistanceTo)
             .onEach(binding.placeDistanceTextView::setText)
             .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        markerArgument.tags["description"]?.let(binding.placeDescriptionTextView::setText)
+            ?: run { binding.placeDescriptionTextView.visibility = View.GONE }
     }
 
     private fun launchGoogleMaps() {
         launchGoogleMapForCurrentMarker(failureMsgRes = R.string.unable_to_launch_google_maps) {
             marker ->
-            "geo:${marker.location.latitude},${marker.location.longitude}?q=${Uri.encode(marker.address)}&z=21"
+            val query = Uri.encode(if (marker.address != null) marker.address else marker.name)
+            "geo:${marker.location.latitude},${marker.location.longitude}?q=$query&z=21"
         }
     }
 

@@ -153,16 +153,15 @@
         android:layout_height="match_parent"
         android:background="#ffffff"
         android:clipToPadding="false"
+        android:padding="20dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_collapseMode="parallax">
 
         <TextView
+            android:id="@+id/place_description_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TEXT"
-            android:textAllCaps="true"
-            android:textColor="@android:color/black"
-            android:textSize="25sp" />
+            android:textSize="18sp" />
 
     </androidx.core.widget.NestedScrollView>
 
