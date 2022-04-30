@@ -1,14 +1,9 @@
 package com.lookaround.ui.map
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import android.graphics.drawable.BitmapDrawable
 import android.location.Location
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
-import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -140,9 +135,6 @@ class MapFragment :
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
-
-        binding.navigateFab.setOnClickListener { launchGoogleMapsForNavigation() }
-        binding.streetViewFab.setOnClickListener { launchGoogleMapsForStreetView() }
     }
 
     override fun onDestroyView() {
@@ -176,8 +168,6 @@ class MapFragment :
         if (view == null) return
 
         if (sceneError == null) {
-            if (currentMarker != null) showFABs() else hideFABs()
-
             viewLifecycleOwner.lifecycleScope.launch {
                 mapSceneViewModel.intent(MapSceneIntent.SceneLoaded)
             }
@@ -216,7 +206,6 @@ class MapFragment :
     fun updateCurrentMarker(marker: Marker?) {
         if (marker != null) {
             unsetCurrentMarker = false
-            showFABs()
             currentMarker = marker
             mapController.launch {
                 moveCameraPositionTo(
@@ -230,7 +219,6 @@ class MapFragment :
             }
         } else {
             currentMarker = null
-            hideFABs()
         }
     }
 
@@ -267,7 +255,6 @@ class MapFragment :
     }
 
     private suspend fun MapController.loadScene(scene: MapScene) {
-        hideFABs()
         binding.blurBackground.visibility = View.VISIBLE
         binding.shimmerLayout.showAndStart()
 
@@ -297,16 +284,6 @@ class MapFragment :
                 EdgePadding(10, 10, 10, 10)
             ),
         )
-    }
-
-    private fun showFABs() {
-        binding.streetViewFab.visibility = View.VISIBLE
-        binding.navigateFab.visibility = View.VISIBLE
-    }
-
-    private fun hideFABs() {
-        binding.streetViewFab.visibility = View.GONE
-        binding.navigateFab.visibility = View.GONE
     }
 
     private fun MapController.setSingleTapResponder() {
@@ -380,8 +357,7 @@ class MapFragment :
     }
 
     private fun followUserLocation() {
-        mainViewModel
-            .states
+        mainViewModel.states
             .map(MainState::locationState::get)
             .filterIsInstance<WithValue<Location>>()
             .distinctUntilChangedBy { Objects.hash(it.value.latitude, it.value.longitude) }
@@ -395,35 +371,6 @@ class MapFragment :
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
-    }
-
-    private fun launchGoogleMapsForNavigation() {
-        launchGoogleMapForCurrentMarker(
-            failureMsgRes = R.string.unable_to_launch_google_maps_for_navigation
-        ) { location -> "google.navigation:q=${location.latitude},${location.longitude}" }
-    }
-
-    private fun launchGoogleMapsForStreetView() {
-        launchGoogleMapForCurrentMarker(failureMsgRes = R.string.unable_to_launch_street_view) {
-            location ->
-            "google.streetview:cbll=${location.latitude},${location.longitude}"
-        }
-    }
-
-    private fun launchGoogleMapForCurrentMarker(
-        @StringRes failureMsgRes: Int,
-        uriStringFor: (Location) -> String
-    ) {
-        currentMarker?.let {
-            val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(uriStringFor(it.location)))
-            mapIntent.setPackage("com.google.android.apps.maps")
-            try {
-                startActivity(mapIntent)
-            } catch (ex: ActivityNotFoundException) {
-                Toast.makeText(requireContext(), getString(failureMsgRes), Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }
     }
 
     private var blurBackgroundJob: Job? = null

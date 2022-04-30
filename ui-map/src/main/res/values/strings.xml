@@ -1,8 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="navigate">Navigate</string>
-    <string name="streetview">StreetView</string>
-    <string name="unable_to_launch_google_maps_for_navigation">Unable to launch Google Maps for navigation.</string>
     <string name="blurred_map">blurred map</string>
-    <string name="unable_to_launch_street_view">Unable to launch StreetView</string>
 </resources>

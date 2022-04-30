@@ -25,34 +25,6 @@
         android:contentDescription="@string/blurred_map"
         android:visibility="gone" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/street_view_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="10dp"
-        android:layout_marginBottom="10dp"
-        android:contentDescription="@string/streetview"
-        android:src="@drawable/ic_baseline_streetview_24"
-        android:visibility="gone"
-        app:fabSize="mini"
-        app:layout_constraintBottom_toTopOf="@id/navigate_fab"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/navigate_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="10dp"
-        android:contentDescription="@string/navigate"
-        android:src="@drawable/ic_baseline_navigation_24"
-        android:visibility="gone"
-        app:fabSize="mini"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_guideline"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/street_view_fab" />
-
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/bottom_navigation_guideline"
         android:layout_width="wrap_content"

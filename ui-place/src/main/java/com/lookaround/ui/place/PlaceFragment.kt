@@ -1,7 +1,13 @@
 package com.lookaround.ui.place
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
@@ -56,13 +62,8 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.placeBackButton.setOnClickListener { activity?.onBackPressed() }
-        binding.placeInfoCardView.setCardBackgroundColor(
-            ContextCompat.getColor(
-                requireContext(),
-                if (requireContext().darkMode) R.color.cardview_dark_background
-                else R.color.cardview_light_background
-            )
-        )
+        binding.navigateFab.setOnClickListener { launchGoogleMapsForNavigation() }
+        binding.streetViewFab.setOnClickListener { launchGoogleMapsForStreetView() }
 
         initPlaceInfo()
 
@@ -80,7 +81,66 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
+    override fun onDestroyView() {
+        binding.placeMapView.onDestroy()
+        super.onDestroyView()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.placeMapView.onResume()
+    }
+
+    override fun onPause() {
+        binding.placeMapView.onPause()
+        super.onPause()
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        binding.placeMapView.onLowMemory()
+    }
+
+    override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
+        if (view == null) return
+
+        if (sceneError == null) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                mapSceneViewModel.intent(MapSceneIntent.SceneLoaded)
+            }
+            if (!mapReady.isCompleted) mapReady.complete(Unit)
+        } else {
+            Timber.e("Failed to load scene: $sceneId. Scene error: $sceneError")
+        }
+    }
+
+    private suspend fun MapController.loadScene(scene: MapScene) {
+        mapSceneViewModel.intent(MapSceneIntent.LoadingScene(scene))
+        loadSceneFile(
+            scene.path,
+            listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
+        )
+    }
+
+    private suspend fun MapController.initCameraPosition() {
+        mapReady.await()
+
+        moveCameraPositionTo(
+            lat = markerArgument.location.latitude,
+            lng = markerArgument.location.longitude,
+            zoom = MARKER_FOCUSED_ZOOM
+        )
+    }
+
     private fun initPlaceInfo() {
+        binding.placeInfoCardView.setCardBackgroundColor(
+            ContextCompat.getColor(
+                requireContext(),
+                if (requireContext().darkMode) R.color.cardview_dark_background
+                else R.color.cardview_light_background
+            )
+        )
+
         markerArgument.tags["opening_hours"]?.let { binding.placeOpeningHoursTextView.text = it }
             ?: run { binding.placeOpeningHoursTextView.visibility = View.GONE }
         binding.placeOpeningHoursTextView.setTextColor(
@@ -111,54 +171,29 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
-    override fun onDestroyView() {
-        binding.placeMapView.onDestroy()
-        super.onDestroyView()
+    private fun launchGoogleMapsForNavigation() {
+        launchGoogleMapForCurrentMarker(
+            failureMsgRes = R.string.unable_to_launch_google_maps_for_navigation
+        ) { location -> "google.navigation:q=${location.latitude},${location.longitude}" }
     }
 
-    override fun onResume() {
-        super.onResume()
-        binding.placeMapView.onResume()
+    private fun launchGoogleMapsForStreetView() {
+        launchGoogleMapForCurrentMarker(failureMsgRes = R.string.unable_to_launch_street_view) {
+            location ->
+            "google.streetview:cbll=${location.latitude},${location.longitude}"
+        }
     }
 
-    override fun onPause() {
-        binding.placeMapView.onPause()
-        super.onPause()
-    }
-
-    override fun onLowMemory() {
-        super.onLowMemory()
-        binding.placeMapView.onLowMemory()
-    }
-
-    private suspend fun MapController.loadScene(scene: MapScene) {
-        mapSceneViewModel.intent(MapSceneIntent.LoadingScene(scene))
-        loadSceneFile(
-            scene.path,
-            listOf(SceneUpdate("global.sdk_api_key", BuildConfig.NEXTZEN_API_KEY))
-        )
-    }
-
-    private suspend fun MapController.initCameraPosition() {
-        mapReady.await()
-
-        moveCameraPositionTo(
-            lat = markerArgument.location.latitude,
-            lng = markerArgument.location.longitude,
-            zoom = MARKER_FOCUSED_ZOOM
-        )
-    }
-
-    override fun onSceneReady(sceneId: Int, sceneError: SceneError?) {
-        if (view == null) return
-
-        if (sceneError == null) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                mapSceneViewModel.intent(MapSceneIntent.SceneLoaded)
-            }
-            if (!mapReady.isCompleted) mapReady.complete(Unit)
-        } else {
-            Timber.e("Failed to load scene: $sceneId. Scene error: $sceneError")
+    private fun launchGoogleMapForCurrentMarker(
+        @StringRes failureMsgRes: Int,
+        uriStringFor: (Location) -> String
+    ) {
+        val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(uriStringFor(markerArgument.location)))
+        mapIntent.setPackage("com.google.android.apps.maps")
+        try {
+            startActivity(mapIntent)
+        } catch (ex: ActivityNotFoundException) {
+            Toast.makeText(requireContext(), getString(failureMsgRes), Toast.LENGTH_SHORT).show()
         }
     }
 

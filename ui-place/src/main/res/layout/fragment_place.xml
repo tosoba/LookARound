@@ -79,6 +79,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="14sp"
                 app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/street_view_fab"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -92,6 +93,7 @@
                 android:textSize="24sp"
                 android:textStyle="bold"
                 app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/street_view_fab"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/place_opening_hours_text_view" />
 
@@ -99,8 +101,11 @@
                 android:id="@+id/place_address_text_view"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
                 android:textSize="14sp"
                 app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/street_view_fab"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/place_name_text_view" />
 
@@ -111,8 +116,32 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/street_view_fab"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/place_address_text_view" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/street_view_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/streetview"
+                android:src="@drawable/ic_baseline_streetview_24"
+                app:fabSize="mini"
+                app:layout_constraintBottom_toTopOf="@id/navigate_fab"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_chainStyle="spread" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/navigate_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/navigate"
+                android:src="@drawable/ic_baseline_navigation_24"
+                app:fabSize="mini"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/street_view_fab" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
