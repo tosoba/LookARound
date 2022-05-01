@@ -86,7 +86,7 @@ fun View.setListBackgroundItemDrawableWith(
     background = backgroundDrawable
 }
 
-fun View.runOnPreDraw(action: () -> Unit) {
+fun View.runOnPreDrawOnce(action: () -> Unit) {
     val preDrawListener: OnPreDrawListener =
         object : OnPreDrawListener {
             override fun onPreDraw(): Boolean {

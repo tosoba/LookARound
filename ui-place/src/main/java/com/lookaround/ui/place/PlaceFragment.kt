@@ -70,7 +70,7 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
             requireContext().colorPalette.uiBackground.toArgb()
         )
 
-        initPlaceInfo()
+        binding.initPlaceInfo()
 
         mapController.launch {
             setSceneLoadListener(this@PlaceFragment)
@@ -138,62 +138,56 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
         )
     }
 
-    private fun initPlaceInfo() {
-        binding.placeInfoCardView.setCardBackgroundColor(
+    private fun FragmentPlaceBinding.initPlaceInfo() {
+        placeInfoCardView.setCardBackgroundColor(
             ContextCompat.getColor(
                 requireContext(),
                 if (requireContext().darkMode) R.color.cardview_dark_background
                 else R.color.cardview_light_background
             )
         )
-        binding.placeInfoCardView.runOnPreDraw {
-            val height = binding.placeInfoCardView.height
+        placeInfoCardView.runOnPreDrawOnce {
+            val height = placeInfoCardView.height
             val padding = requireContext().dpToPx(20f).toInt()
-            binding.placeNestedScrollView.setPadding(
+            placeNestedScrollView.setPadding(
                 padding,
-                height - binding.placeInfoCardView.marginTop + padding,
+                height - placeInfoCardView.marginTop + padding,
                 padding,
                 padding
             )
         }
 
-        markerArgument.tags["opening_hours"]?.let(binding.placeOpeningHoursTextView::setText)
-            ?: run { binding.placeOpeningHoursTextView.visibility = View.GONE }
-        binding.placeOpeningHoursTextView.setTextColor(
-            requireContext().colorPalette.textHelp.toArgb()
-        )
+        markerArgument.tags["opening_hours"]?.let(placeOpeningHoursTextView::setText)
+            ?: run { placeOpeningHoursTextView.visibility = View.GONE }
+        placeOpeningHoursTextView.setTextColor(requireContext().colorPalette.textHelp.toArgb())
 
-        binding.placeNameTextView.text = markerArgument.name
-        binding.placeNameTextView.setTextColor(requireContext().colorPalette.textPrimary.toArgb())
+        placeNameTextView.text = markerArgument.name
+        placeNameTextView.setTextColor(requireContext().colorPalette.textPrimary.toArgb())
 
-        markerArgument.address?.let(binding.placeAddressTextView::setText)
-            ?: run { binding.placeAddressTextView.visibility = View.GONE }
-        binding.placeAddressTextView.setTextColor(
-            requireContext().colorPalette.textSecondary.toArgb()
-        )
+        markerArgument.address?.let(placeAddressTextView::setText)
+            ?: run { placeAddressTextView.visibility = View.GONE }
+        placeAddressTextView.setTextColor(requireContext().colorPalette.textSecondary.toArgb())
 
-        binding.placeDistanceTextView.setTextColor(
-            requireContext().colorPalette.textSecondary.toArgb()
-        )
+        placeDistanceTextView.setTextColor(requireContext().colorPalette.textSecondary.toArgb())
         mainViewModel.locationReadyUpdates
             .map(markerArgument.location::preciseFormattedDistanceTo)
-            .onEach(binding.placeDistanceTextView::setText)
+            .onEach(placeDistanceTextView::setText)
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         markerArgument.tags["description"]?.let {
-            binding.placeDescriptionHeaderTextView.setTextColor(
+            placeDescriptionHeaderTextView.setTextColor(
                 requireContext().colorPalette.textPrimary.toArgb()
             )
-            binding.placeDescriptionTextView.text = it
-            binding.placeDescriptionTextView.setTextColor(
+            placeDescriptionTextView.text = it
+            placeDescriptionTextView.setTextColor(
                 requireContext().colorPalette.textSecondary.toArgb()
             )
         }
             ?: run {
-                binding.placeDescriptionHeaderTextView.visibility = View.GONE
-                binding.placeDescriptionTextView.visibility = View.GONE
-                binding.placeNoDescriptionTextView.visibility = View.VISIBLE
-                binding.placeNoDescriptionTextView.setTextColor(
+                placeDescriptionHeaderTextView.visibility = View.GONE
+                placeDescriptionTextView.visibility = View.GONE
+                placeNoDescriptionTextView.visibility = View.VISIBLE
+                placeNoDescriptionTextView.setTextColor(
                     requireContext().colorPalette.textSecondary.toArgb()
                 )
             }
