@@ -1,6 +1,5 @@
 package com.lookaround.ui.place
 
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -63,9 +62,9 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.placeBackButton.setOnClickListener { activity?.onBackPressed() }
-        binding.navigateFab.setOnClickListener { launchGoogleMapsForNavigation() }
-        binding.streetViewFab.setOnClickListener { launchGoogleMapsForStreetView() }
-        binding.placeGoogleMapsFab.setOnClickListener { launchGoogleMaps() }
+        binding.navigateFab.setOnClickListener { startGoogleMapsForNavigation() }
+        binding.streetViewFab.setOnClickListener { startGoogleMapsForStreetView() }
+        binding.placeGoogleMapsFab.setOnClickListener { startGoogleMaps() }
         binding.placeNestedScrollView.setBackgroundColor(
             requireContext().colorPalette.uiBackground.toArgb()
         )
@@ -148,12 +147,11 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
         )
         placeInfoCardView.runOnPreDrawOnce {
             val height = placeInfoCardView.height
-            val padding = requireContext().dpToPx(20f).toInt()
             placeNestedScrollView.setPadding(
-                padding,
-                height - placeInfoCardView.marginTop + padding,
-                padding,
-                padding
+                0,
+                height - placeInfoCardView.marginTop + requireContext().dpToPx(20f).toInt(),
+                0,
+                0
             )
         }
 
@@ -186,43 +184,127 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
             ?: run {
                 placeDescriptionHeaderTextView.visibility = View.GONE
                 placeDescriptionTextView.visibility = View.GONE
-                placeNoDescriptionTextView.visibility = View.VISIBLE
-                placeNoDescriptionTextView.setTextColor(
-                    requireContext().colorPalette.textSecondary.toArgb()
-                )
             }
+
+        if (markerArgument.hasContacts) {
+            placeContactsHeaderTextView.setTextColor(
+                requireContext().colorPalette.textPrimary.toArgb()
+            )
+
+            markerArgument.contactPhone?.let {
+                binding.placeContactPhone.setOnClickListener { _ ->
+                    startActivityOrShowFailureMsg(
+                        Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:${it.filterNot(Char::isWhitespace)}")
+                        },
+                        R.string.unable_to_launch_app_for_contact
+                    )
+                }
+            }
+                ?: run { binding.placeContactPhone.visibility = View.GONE }
+
+            markerArgument.contactWebsite?.let {
+                binding.placeContactWebsite.setOnClickListener { _ ->
+                    startActivityOrShowFailureMsg(
+                        Intent(Intent.ACTION_VIEW, it.uri),
+                        R.string.unable_to_launch_app_for_contact
+                    )
+                }
+            }
+                ?: run { binding.placeContactWebsite.visibility = View.GONE }
+
+            markerArgument.contactEmail?.let {
+                binding.placeContactEmail.setOnClickListener { _ ->
+                    try {
+                        val intent =
+                            Intent(
+                                "android.intent.action.SENDTO",
+                                Uri.fromParts("mailto", it, null)
+                            )
+                        startActivity(
+                            Intent.createChooser(intent, getString(R.string.select_email_client))
+                        )
+                    } catch (ex: Exception) {
+                        Toast.makeText(
+                                requireContext(),
+                                getString(R.string.unable_to_launch_app_for_contact),
+                                Toast.LENGTH_SHORT
+                            )
+                            .show()
+                    }
+                }
+            }
+                ?: run { binding.placeContactEmail.visibility = View.GONE }
+        } else {
+            binding.placeContactsHeaderTextView.visibility = View.GONE
+            binding.placeContactsLayout.visibility = View.GONE
+        }
+
+        markerArgument.tags["contact:facebook"]
+            ?.takeIf { it.startsWith("https://") }
+            ?.let {
+                binding.placeContactFacebook.setOnClickListener { _ ->
+                    startActivityOrShowFailureMsg(
+                        Intent(Intent.ACTION_VIEW, it.uri),
+                        R.string.unable_to_launch_app_for_contact
+                    )
+                }
+            }
+            ?: run { binding.placeContactFacebook.visibility = View.GONE }
+
+        markerArgument.tags["contact:instagram"]
+            ?.takeIf { it.startsWith("https://") }
+            ?.let {
+                binding.placeContactInstagram.setOnClickListener { _ ->
+                    startActivityOrShowFailureMsg(
+                        Intent(Intent.ACTION_VIEW, it.uri),
+                        R.string.unable_to_launch_app_for_contact
+                    )
+                }
+            }
+            ?: run { binding.placeContactInstagram.visibility = View.GONE }
+
+        if (!markerArgument.hasContacts && !markerArgument.tags.containsKey("description")) {
+            placeNoInformationTextView.visibility = View.VISIBLE
+            placeNoInformationTextView.setTextColor(
+                requireContext().colorPalette.textSecondary.toArgb()
+            )
+        }
     }
 
-    private fun launchGoogleMaps() {
-        launchGoogleMapForCurrentMarker(failureMsgRes = R.string.unable_to_launch_google_maps) {
-            marker ->
+    private fun startGoogleMaps() {
+        startGoogleMapForMarker(failureMsgRes = R.string.unable_to_launch_google_maps) { marker ->
             val query = Uri.encode(if (marker.address != null) marker.address else marker.name)
             "geo:${marker.location.latitude},${marker.location.longitude}?q=$query&z=21"
         }
     }
 
-    private fun launchGoogleMapsForNavigation() {
-        launchGoogleMapForCurrentMarker(
+    private fun startGoogleMapsForNavigation() {
+        startGoogleMapForMarker(
             failureMsgRes = R.string.unable_to_launch_google_maps_for_navigation
         ) { (_, location) -> "google.navigation:q=${location.latitude},${location.longitude}" }
     }
 
-    private fun launchGoogleMapsForStreetView() {
-        launchGoogleMapForCurrentMarker(failureMsgRes = R.string.unable_to_launch_street_view) {
+    private fun startGoogleMapsForStreetView() {
+        startGoogleMapForMarker(failureMsgRes = R.string.unable_to_launch_street_view) {
             (_, location) ->
             "google.streetview:cbll=${location.latitude},${location.longitude}"
         }
     }
 
-    private fun launchGoogleMapForCurrentMarker(
+    private fun startGoogleMapForMarker(
         @StringRes failureMsgRes: Int,
         uriStringFor: (Marker) -> String
     ) {
         val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(uriStringFor(markerArgument)))
         mapIntent.setPackage("com.google.android.apps.maps")
+        startActivityOrShowFailureMsg(mapIntent, failureMsgRes)
+    }
+
+    private fun startActivityOrShowFailureMsg(mapIntent: Intent, @StringRes failureMsgRes: Int) {
         try {
             startActivity(mapIntent)
-        } catch (ex: ActivityNotFoundException) {
+        } catch (ex: Exception) {
             Toast.makeText(requireContext(), getString(failureMsgRes), Toast.LENGTH_SHORT).show()
         }
     }

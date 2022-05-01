@@ -11,10 +11,13 @@
     <string name="more">More…</string>
     <string name="navigate">Navigate</string>
     <string name="streetview">StreetView</string>
+    <string name="unable_to_launch_app_for_contact">Unable to launch application for contact.</string>
     <string name="unable_to_launch_google_maps">Unable to launch Google Maps.</string>
     <string name="unable_to_launch_google_maps_for_navigation">Unable to launch Google Maps for navigation.</string>
     <string name="unable_to_launch_street_view">Unable to launch StreetView</string>
     <string name="show_on_google_maps">Show on Google Maps</string>
     <string name="description">Description</string>
-    <string name="no_description_available">No description available</string>
+    <string name="no_information_available">No information available</string>
+    <string name="contacts">Contacts</string>
+    <string name="select_email_client">Select an email client</string>
 </resources>
