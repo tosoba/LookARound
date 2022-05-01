@@ -98,6 +98,7 @@ private fun SearchBar(
         color = LookARoundTheme.colors.uiFloated,
         contentColor = LookARoundTheme.colors.textSecondary,
         shape = MaterialTheme.shapes.small,
+        elevation = 5.dp,
         modifier =
             modifier.fillMaxWidth().height(56.dp).padding(horizontal = 24.dp, vertical = 8.dp)
     ) {
