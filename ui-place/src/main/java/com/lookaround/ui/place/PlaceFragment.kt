@@ -1,6 +1,7 @@
 package com.lookaround.ui.place
 
 import android.content.Intent
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -25,6 +26,7 @@ import com.lookaround.core.android.view.theme.colorPalette
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
+import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.place.databinding.FragmentPlaceBinding
 import com.mapzen.tangram.MapController
 import com.mapzen.tangram.SceneError
@@ -65,9 +67,12 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
         binding.navigateFab.setOnClickListener { startGoogleMapsForNavigation() }
         binding.streetViewFab.setOnClickListener { startGoogleMapsForStreetView() }
         binding.placeGoogleMapsFab.setOnClickListener { startGoogleMaps() }
-        binding.placeNestedScrollView.setBackgroundColor(
-            requireContext().colorPalette.uiBackground.toArgb()
-        )
+        binding.placeNestedScrollView.apply {
+            mainViewModel.state.bitmapCache[MainState.BlurredBackgroundType.MAP]?.let { bitmap ->
+                background = BitmapDrawable(resources, bitmap)
+            }
+                ?: run { setBackgroundColor(requireContext().colorPalette.uiBackground.toArgb()) }
+        }
 
         binding.initPlaceInfo()
 

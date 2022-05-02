@@ -103,7 +103,8 @@ class CameraFragment :
         }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        mainViewModel.state.bitmapCache.get(javaClass.name)?.let { blurredBackground ->
+        mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA)?.let {
+            blurredBackground ->
             binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
         }
 
@@ -116,7 +117,8 @@ class CameraFragment :
                     googlePlayServicesNotAvailable,
                     locationDisabled,
                     pitchOutsideLimit,
-                    initializationFailure) ->
+                    initializationFailure
+                ) ->
                 mainViewModel.signal(MainSignal.ARDisabled)
                 binding.onARDisabled(
                     anyPermissionDenied = anyPermissionDenied,
@@ -145,8 +147,7 @@ class CameraFragment :
     internal fun initAR() {
         lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionGranted) }
 
-        mainViewModel
-            .locationReadyUpdates
+        mainViewModel.locationReadyUpdates
             .onEach { location ->
                 binding.arCameraView.povLocation = location
                 binding.arRadarView.povLocation = location
@@ -177,8 +178,7 @@ class CameraFragment :
 
         initCamera()
 
-        openGLRenderer
-            .previewStreamStates
+        openGLRenderer.previewStreamStates
             .distinctUntilChanged()
             .onEach { cameraViewModel.intent(CameraIntent.CameraStreamStateChanged(it)) }
             .launchIn(lifecycleScope)
@@ -290,7 +290,7 @@ class CameraFragment :
     private suspend fun blurAndUpdateViewsUsing(bitmap: Bitmap) {
         val blurred = withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
         val blurredDominantSwatch = withContext(Dispatchers.Default) { blurred.dominantSwatch }
-        mainViewModel.state.bitmapCache.put(this@CameraFragment.javaClass.name, blurred)
+        mainViewModel.state.bitmapCache.put(MainState.BlurredBackgroundType.CAMERA, blurred)
         with(binding) {
             val blurBackgroundDrawable = BitmapDrawable(resources, blurred)
             blurBackground.background = blurBackgroundDrawable
@@ -366,8 +366,7 @@ class CameraFragment :
             val lastMarkerIndexExclusive =
                 min(markers.value.size, firstMarkerIndex + FIRST_MARKER_INDEX_DIFF)
             val arMarkers =
-                markers
-                    .value
+                markers.value
                     .map(::SimpleARMarker)
                     .subList(firstMarkerIndex, lastMarkerIndexExclusive)
             cameraMarkerRenderer.setMarkers(arMarkers)
