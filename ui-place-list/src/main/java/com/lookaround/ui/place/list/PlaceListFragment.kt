@@ -23,6 +23,7 @@ import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapter
 import com.lookaround.core.android.view.recyclerview.locationRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.theme.Neutral7
 import com.lookaround.core.android.view.theme.Neutral8
+import com.lookaround.core.ext.getFieldValueByName
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainSignal
@@ -36,6 +37,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.imaginativeworld.whynotimagecarousel.ImageCarousel
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselListener
 import org.imaginativeworld.whynotimagecarousel.listener.CarouselOnScrollListener
 import org.imaginativeworld.whynotimagecarousel.model.CarouselItem
@@ -50,8 +52,6 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
 
     private val mainViewModel: MainViewModel by activityViewModels()
 
-    private var lastCarouselPosition: Int = 0
-
     private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks<UUID> by
         lazy(LazyThreadSafetyMode.NONE) {
             viewLifecycleOwner.lifecycleScope.locationRecyclerViewAdapterCallbacks(
@@ -59,33 +59,16 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
             )
         }
 
+    private var carouselLastPosition: Int = 0
+
     private val carouselRecyclerView: RecyclerView?
-        get() {
-            val f = binding.placeListRecyclerView::class.java.getDeclaredField("recyclerView")
-            f.isAccessible = true
-            return f.get(binding.placeListRecyclerView) as? RecyclerView
-        }
+        get() = binding.placeListRecyclerView.getFieldValueByName("recyclerView")
 
     private val carouselSnapHelper: LinearSnapHelper?
-        get() {
-            val f = binding.placeListRecyclerView::class.java.getDeclaredField("snapHelper")
-            f.isAccessible = true
-            return f.get(binding.placeListRecyclerView) as? LinearSnapHelper
-        }
+        get() = binding.placeListRecyclerView.getFieldValueByName("snapHelper")
 
-    private var items: List<Marker> = emptyList()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        savedInstanceState
-            ?.getInt(SavedStateKey.LAST_CAROUSEL_POSITION.name)
-            ?.let(::lastCarouselPosition::set)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.placeListRecyclerView.registerLifecycle(this)
-
-        binding.placeListRecyclerView.carouselListener =
+    private val carouselListener by
+        lazy(LazyThreadSafetyMode.NONE) {
             object : CarouselListener {
                 override fun onCreateViewHolder(
                     layoutInflater: LayoutInflater,
@@ -111,7 +94,7 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                                 userLocation.preciseFormattedDistanceTo(marker.location)
                         }
                         root.setOnClickListener {
-                            if (lastCarouselPosition != position) return@setOnClickListener
+                            if (carouselLastPosition != position) return@setOnClickListener
 
                             viewLifecycleOwner.lifecycleScope.launchWhenResumed {
                                 mainViewModel.signal(MainSignal.ShowPlaceFragment(marker))
@@ -120,9 +103,11 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                     }
                 }
             }
+        }
 
-        var firstScroll = true
-        binding.placeListRecyclerView.onScrollListener =
+    private val carouselOnScrollListener by
+        lazy(LazyThreadSafetyMode.NONE) {
+            var firstScroll = true
             object : CarouselOnScrollListener {
                 override fun onScrollStateChanged(
                     recyclerView: RecyclerView,
@@ -137,7 +122,7 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                     }
                     val marker = items.elementAtOrNull(position) ?: return
 
-                    lastCarouselPosition = position
+                    carouselLastPosition = position
                     viewLifecycleOwner.lifecycleScope.launch {
                         mainViewModel.signal(MainSignal.UpdateSelectedMarker(marker))
                     }
@@ -151,6 +136,21 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                     carouselItem: CarouselItem?
                 ) = Unit
             }
+        }
+
+    private var items: List<Marker> = emptyList()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState
+            ?.getInt(SavedStateKey.LAST_CAROUSEL_POSITION.name)
+            ?.let(::carouselLastPosition::set)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.placeListRecyclerView.registerLifecycle(this)
+        binding.placeListRecyclerView.carouselListener = carouselListener
+        binding.placeListRecyclerView.onScrollListener = carouselOnScrollListener
 
         var scrollPositionShouldBeRestored =
             savedInstanceState?.containsKey(SavedStateKey.LAST_CAROUSEL_POSITION.name) ?: false
@@ -164,25 +164,7 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                 binding.placeListRecyclerView.setData(items.map { CAROUSEL_ITEM_DUMMY })
                 if (scrollPositionShouldBeRestored) {
                     scrollPositionShouldBeRestored = false
-                    binding.placeListRecyclerView.postDelayed(
-                        {
-                            binding.placeListRecyclerView.currentPosition = lastCarouselPosition
-                            with(carouselRecyclerView ?: return@postDelayed) {
-                                val layoutManager =
-                                    layoutManager as? LinearLayoutManager ?: return@postDelayed
-                                val targetView =
-                                    layoutManager.findViewByPosition(lastCarouselPosition)
-                                        ?: return@postDelayed
-                                val distanceToSnapHorizontal =
-                                    carouselSnapHelper
-                                        ?.calculateDistanceToFinalSnap(layoutManager, targetView)
-                                        ?.firstOrNull()
-                                        ?: return@postDelayed
-                                scrollBy(distanceToSnapHorizontal, 0)
-                            }
-                        },
-                        500L
-                    )
+                    binding.placeListRecyclerView.restoreCarouselPosition()
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -190,7 +172,7 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(SavedStateKey.LAST_CAROUSEL_POSITION.name, lastCarouselPosition)
+        outState.putInt(SavedStateKey.LAST_CAROUSEL_POSITION.name, carouselLastPosition)
     }
 
     override fun onDestroy() {
@@ -203,9 +185,29 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
     }
 
     private fun scrollToPosition(position: Int) {
-        lastCarouselPosition = position
+        carouselLastPosition = position
         binding.placeListRecyclerView.postDelayed(
             { binding.placeListRecyclerView.currentPosition = position },
+            500L
+        )
+    }
+
+    private fun ImageCarousel.restoreCarouselPosition() {
+        postDelayed(
+            {
+                currentPosition = carouselLastPosition
+                with(carouselRecyclerView ?: return@postDelayed) {
+                    val layoutManager = layoutManager as? LinearLayoutManager ?: return@postDelayed
+                    val targetView =
+                        layoutManager.findViewByPosition(carouselLastPosition) ?: return@postDelayed
+                    val distanceToSnapHorizontal =
+                        carouselSnapHelper
+                            ?.calculateDistanceToFinalSnap(layoutManager, targetView)
+                            ?.firstOrNull()
+                            ?: return@postDelayed
+                    scrollBy(distanceToSnapHorizontal, 0)
+                }
+            },
             500L
         )
     }
