@@ -23,7 +23,12 @@ data class MainState(
     val autocompleteSearchQuery: String = "",
     val searchFocused: Boolean = false,
 ) : Parcelable {
-    @IgnoredOnParcel val bitmapCache = LruCache<String, Bitmap>(BITMAP_CACHE_SIZE)
+    @IgnoredOnParcel val bitmapCache = LruCache<BlurredBackgroundType, Bitmap>(BITMAP_CACHE_SIZE)
+
+    enum class BlurredBackgroundType {
+        CAMERA,
+        MAP
+    }
 
     internal fun copyWithLocationException(throwable: Throwable): MainState =
         copy(locationState = locationState.copyWithError(throwable))

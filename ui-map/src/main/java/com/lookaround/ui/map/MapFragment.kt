@@ -91,7 +91,8 @@ class MapFragment :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        mainViewModel.state.bitmapCache.get(javaClass.name)?.let { blurredBackground ->
+        mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.MAP)?.let {
+            blurredBackground ->
             binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
         }
 
@@ -384,7 +385,7 @@ class MapFragment :
                 val blurredBackground =
                     withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
                 mainViewModel.state.bitmapCache.put(
-                    this@MapFragment.javaClass.name,
+                    MainState.BlurredBackgroundType.MAP,
                     blurredBackground
                 )
                 val blurBackgroundDrawable = BitmapDrawable(resources, blurredBackground)
