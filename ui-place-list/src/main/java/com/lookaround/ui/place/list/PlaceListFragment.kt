@@ -9,6 +9,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -55,6 +57,20 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
             viewLifecycleOwner.lifecycleScope.locationRecyclerViewAdapterCallbacks(
                 mainViewModel.locationReadyUpdates
             )
+        }
+
+    private val carouselRecyclerView: RecyclerView?
+        get() {
+            val f = binding.placeListRecyclerView::class.java.getDeclaredField("recyclerView")
+            f.isAccessible = true
+            return f.get(binding.placeListRecyclerView) as? RecyclerView
+        }
+
+    private val carouselSnapHelper: LinearSnapHelper?
+        get() {
+            val f = binding.placeListRecyclerView::class.java.getDeclaredField("snapHelper")
+            f.isAccessible = true
+            return f.get(binding.placeListRecyclerView) as? LinearSnapHelper
         }
 
     private var items: List<Marker> = emptyList()
@@ -149,7 +165,22 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                 if (scrollPositionShouldBeRestored) {
                     scrollPositionShouldBeRestored = false
                     binding.placeListRecyclerView.postDelayed(
-                        { binding.placeListRecyclerView.currentPosition = lastCarouselPosition },
+                        {
+                            binding.placeListRecyclerView.currentPosition = lastCarouselPosition
+                            with(carouselRecyclerView ?: return@postDelayed) {
+                                val layoutManager =
+                                    layoutManager as? LinearLayoutManager ?: return@postDelayed
+                                val targetView =
+                                    layoutManager.findViewByPosition(lastCarouselPosition)
+                                        ?: return@postDelayed
+                                val distanceToSnapHorizontal =
+                                    carouselSnapHelper
+                                        ?.calculateDistanceToFinalSnap(layoutManager, targetView)
+                                        ?.firstOrNull()
+                                        ?: return@postDelayed
+                                scrollBy(distanceToSnapHorizontal, 0)
+                            }
+                        },
                         500L
                     )
                 }

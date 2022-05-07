@@ -6,6 +6,7 @@
     android:layout_margin="5dp"
     android:background="@drawable/rounded_view_background"
     android:clickable="true"
+    android:clipToPadding="false"
     android:elevation="6dp"
     android:focusable="true"
     android:foreground="@drawable/rounded_corners_ripple"
