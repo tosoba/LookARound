@@ -1,6 +1,5 @@
 rootProject.name = "LookARound"
 include(":app")
-include(":carousel-view")
 include(":core")
 include(":core-android")
 include(":repo-nominatim")
