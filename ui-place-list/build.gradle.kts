@@ -46,7 +46,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":carousel-view"))
     implementation(project(":core"))
     implementation(project(":core-android"))
     implementation(project(":ui-main"))
@@ -60,6 +59,8 @@ dependencies {
     implementation("com.google.accompanist:accompanist-coil:0.15.0")
     implementation("io.coil-kt:coil-compose:1.4.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
+    implementation("me.relex:circleindicator:2.1.6")
+    implementation("org.imaginativeworld.whynotimagecarousel:whynotimagecarousel:2.1.0")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.3.6")
