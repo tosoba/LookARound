@@ -1,5 +1,6 @@
 package com.lookaround.ui.place.list
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +17,7 @@ import androidx.viewbinding.ViewBinding
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.core.android.ext.darkMode
 import com.lookaround.core.android.ext.preciseFormattedDistanceTo
+import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.WithValue
@@ -88,6 +90,12 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                 ) {
                     val marker = items[position]
                     with(binding as PlaceListItemBinding) {
+                        root.setListBackgroundItemDrawableWith(
+                            contrastingColor =
+                                if (requireContext().darkMode) Color.parseColor("#ff121212")
+                                else Color.WHITE,
+                            alpha = 0xff
+                        )
                         placeNameText.text = marker.name
                         userLocationCallbacks.onBindViewHolder(marker.id) { userLocation ->
                             placeDistanceText.text =

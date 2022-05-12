@@ -51,7 +51,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
 
-    implementation("com.google.android.material:material:1.5.0")
+    implementation("com.google.android.material:material:1.6.0")
     implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
 
     implementation("androidx.compose.runtime:runtime:1.2.0-alpha07")
