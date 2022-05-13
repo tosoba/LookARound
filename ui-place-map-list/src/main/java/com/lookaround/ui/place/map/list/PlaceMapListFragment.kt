@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.LocationBitmapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
@@ -207,6 +208,13 @@ class PlaceMapListFragment :
                             .drop(1)
                             .distinctUntilChanged()
                             .debounce(500L)
+                            .combine(
+                                mainViewModel.filterSignals(
+                                    MainSignal.BottomSheetStateChanged::state
+                                )
+                            ) { height, state -> height to state }
+                            .filter { (_, state) -> state == BottomSheetBehavior.STATE_EXPANDED }
+                            .map { (height, _) -> height }
                             .onEach(::addTopSpacer)
                             .launchIn(scope)
                     }
@@ -236,6 +244,13 @@ class PlaceMapListFragment :
             .mapStates(MainState::markers)
             .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
             .distinctUntilChanged()
+            .combine(mainViewModel.filterSignals(MainSignal.BottomSheetStateChanged::state)) {
+                markers,
+                state ->
+                markers to state
+            }
+            .filter { (_, state) -> state == BottomSheetBehavior.STATE_EXPANDED }
+            .map { (markers, _) -> markers }
             .combine(searchQueryFlow.map { it.trim().lowercase() }.distinctUntilChanged()) {
                 markers,
                 query ->
@@ -252,8 +267,8 @@ class PlaceMapListFragment :
                 cancelBitmapJobs()
                 val mapItems = markers.map(PlaceMapsRecyclerViewAdapter.Item::Map)
                 placeMapsRecyclerViewAdapter.updateItems(
-                    if (placeMapsRecyclerViewAdapter.items.firstOrNull() is
-                            PlaceMapsRecyclerViewAdapter.Item.Spacer
+                    if (placeMapsRecyclerViewAdapter.items.firstOrNull()
+                            is PlaceMapsRecyclerViewAdapter.Item.Spacer
                     ) {
                         listOf(placeMapsRecyclerViewAdapter.items.first()) + mapItems
                     } else {
