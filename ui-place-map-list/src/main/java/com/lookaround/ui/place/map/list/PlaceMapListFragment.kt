@@ -208,13 +208,7 @@ class PlaceMapListFragment :
                             .drop(1)
                             .distinctUntilChanged()
                             .debounce(500L)
-                            .combine(
-                                mainViewModel.filterSignals(
-                                    MainSignal.BottomSheetStateChanged::state
-                                )
-                            ) { height, state -> height to state }
-                            .filter { (_, state) -> state == BottomSheetBehavior.STATE_EXPANDED }
-                            .map { (height, _) -> height }
+                            .filterBottomSheetExpanded
                             .onEach(::addTopSpacer)
                             .launchIn(scope)
                     }
@@ -244,13 +238,7 @@ class PlaceMapListFragment :
             .mapStates(MainState::markers)
             .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
             .distinctUntilChanged()
-            .combine(mainViewModel.filterSignals(MainSignal.BottomSheetStateChanged::state)) {
-                markers,
-                state ->
-                markers to state
-            }
-            .filter { (_, state) -> state == BottomSheetBehavior.STATE_EXPANDED }
-            .map { (markers, _) -> markers }
+            .filterBottomSheetExpanded
             .combine(searchQueryFlow.map { it.trim().lowercase() }.distinctUntilChanged()) {
                 markers,
                 query ->
@@ -434,6 +422,16 @@ class PlaceMapListFragment :
     override fun onRegionWillChange(animated: Boolean) = Unit
     override fun onRegionIsChanging() = Unit
     override fun onRegionDidChange(animated: Boolean) = Unit
+
+    private val <T> Flow<T>.filterBottomSheetExpanded: Flow<T>
+        get() =
+            combine(mainViewModel.filterSignals(MainSignal.BottomSheetStateChanged::state)) {
+                    item,
+                    state ->
+                    item to state
+                }
+                .filter { (_, state) -> state == BottomSheetBehavior.STATE_EXPANDED }
+                .map { (item, _) -> item }
 
     private enum class SavedStateKey {
         SEARCH_QUERY,
