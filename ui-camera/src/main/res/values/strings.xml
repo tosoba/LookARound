@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="permissions_required_for_ar">Camera and location permissions are required for AR to work.</string>
+    <string name="permissions_required_for_ar">Camera and location permissions are required for AR to work. You need to allow them in Settings manually.</string>
     <string name="grant_permissions">Grant permissions</string>
     <string name="page_up">Page up</string>
     <string name="page_down">Page down</string>

@@ -64,8 +64,7 @@ dependencies {
     kapt("androidx.hilt:hilt-compiler:1.0.0")
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
 
-    implementation("org.permissionsdispatcher:permissionsdispatcher:4.8.0")
-    kapt("org.permissionsdispatcher:permissionsdispatcher-processor:4.8.0")
+    implementation("com.guolindev.permissionx:permissionx:1.6.4")
 
     implementation("androidx.camera:camera-camera2:1.1.0-alpha10")
     implementation("androidx.camera:camera-lifecycle:1.1.0-alpha10")

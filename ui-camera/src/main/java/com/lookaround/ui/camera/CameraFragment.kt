@@ -41,22 +41,18 @@ import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
+import com.permissionx.guolindev.PermissionX
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import kotlin.math.min
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import permissions.dispatcher.NeedsPermission
-import permissions.dispatcher.OnNeverAskAgain
-import permissions.dispatcher.OnPermissionDenied
-import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
 
 @AndroidEntryPoint
 @WithFragmentBindings
 @FlowPreview
 @ExperimentalCoroutinesApi
-@RuntimePermissions
 class CameraFragment :
     Fragment(R.layout.fragment_camera), OrientationManager.OnOrientationChangedListener {
     private val binding: FragmentCameraBinding by viewBinding(FragmentCameraBinding::bind)
@@ -135,16 +131,53 @@ class CameraFragment :
         }
 
         initARWithPermissionCheck()
-
-        binding.grantPermissionsButton.setOnClickListener { initARWithPermissionCheck() }
     }
 
-    @NeedsPermission(
-        Manifest.permission.CAMERA,
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    )
-    internal fun initAR() {
+    private fun initARWithPermissionCheck() {
+        PermissionX.init(this)
+            .permissions(
+                Manifest.permission.CAMERA,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            .onExplainRequestReason { scope, deniedList ->
+                scope.showRequestReasonDialog(
+                    deniedList,
+                    getString(R.string.permissions_required_for_ar),
+                    getString(android.R.string.ok)
+                )
+            }
+            .onForwardToSettings { scope, deniedList ->
+                scope.showForwardToSettingsDialog(
+                    deniedList,
+                    getString(R.string.permissions_required_for_ar),
+                    getString(android.R.string.ok),
+                    getString(android.R.string.cancel)
+                )
+            }
+            .request { allGranted, _, deniedList ->
+                if (allGranted) {
+                    initAR()
+                    return@request
+                }
+
+                if (deniedList.contains(
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                    ) || deniedList.contains(Manifest.permission.ACCESS_FINE_LOCATION)
+                ) {
+                    lifecycleScope.launch {
+                        mainViewModel.intent(MainIntent.LocationPermissionDenied)
+                    }
+                }
+                if (deniedList.contains(Manifest.permission.CAMERA)) {
+                    lifecycleScope.launch {
+                        cameraViewModel.intent(CameraIntent.CameraPermissionDenied)
+                    }
+                }
+            }
+    }
+
+    private fun initAR() {
         lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionGranted) }
 
         mainViewModel.locationReadyUpdates
@@ -455,7 +488,7 @@ class CameraFragment :
         toggleARDisabledViewsVisibility(
             when {
                 initializationFailure -> cameraInitializationFailureTextView
-                anyPermissionDenied -> permissionsViewsGroup
+                anyPermissionDenied -> permissionsRequiredTextView
                 googlePlayServicesNotAvailable -> googlePlayServicesNotAvailableTextView
                 locationDisabled -> locationDisabledTextView
                 pitchOutsideLimit -> pitchOutsideLimitTextView
@@ -480,7 +513,7 @@ class CameraFragment :
                     pitchOutsideLimitTextView,
                     locationDisabledTextView,
                     googlePlayServicesNotAvailableTextView,
-                    permissionsViewsGroup
+                    permissionsRequiredTextView
                 )
                 .partition { visibleViewIds.contains(it.id) }
         gone.forEach { it.visibility = View.GONE }
@@ -512,44 +545,6 @@ class CameraFragment :
     override fun onDestroy() {
         openGLRenderer.shutdown()
         super.onDestroy()
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        onRequestPermissionsResult(requestCode, grantResults)
-    }
-
-    @Suppress("unused")
-    @OnPermissionDenied(Manifest.permission.CAMERA)
-    internal fun onCameraPermissionDenied() {
-        lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraPermissionDenied) }
-    }
-
-    @Suppress("unused")
-    @OnNeverAskAgain(Manifest.permission.CAMERA)
-    internal fun onCameraPermissionNeverAskAgain() {
-        lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraPermissionDenied) }
-    }
-
-    @Suppress("unused")
-    @OnPermissionDenied(
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    )
-    internal fun onLocationPermissionDenied() {
-        lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionDenied) }
-    }
-
-    @Suppress("unused")
-    @OnNeverAskAgain(
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION,
-    )
-    internal fun onLocationPermissionNeverAskAgain() {
-        lifecycleScope.launch { mainViewModel.intent(MainIntent.LocationPermissionDenied) }
     }
 
     override fun onOrientationChanged(orientation: Orientation) {
