@@ -13,8 +13,11 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.hoko.blur.HokoBlur
 import com.hoko.blur.processor.BlurProcessor
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
+import com.lookaround.core.android.ar.orientation.Orientation
+import com.lookaround.core.android.ar.orientation.OrientationManager
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.ext.MarkerPickResult
+import com.lookaround.core.android.map.UserLocationMapComponent
 import com.lookaround.core.android.map.clustering.ClusterManager
 import com.lookaround.core.android.map.clustering.DefaultClusterItem
 import com.lookaround.core.android.map.scene.MapSceneViewModel
@@ -26,6 +29,7 @@ import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.model.hasNoValueOrEmpty
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
+import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.map.databinding.FragmentMapBinding
@@ -34,7 +38,6 @@ import com.mapzen.tangram.networking.HttpHandler
 import com.mapzen.tangram.viewholder.GLViewHolderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import javax.inject.Inject
 import kotlin.coroutines.Continuation
@@ -51,7 +54,8 @@ class MapFragment :
     Fragment(R.layout.fragment_map),
     MapController.SceneLoadListener,
     MarkerPickListener,
-    MapChangeListener {
+    MapChangeListener,
+    OrientationManager.OnOrientationChangedListener {
     private val binding: FragmentMapBinding by viewBinding(FragmentMapBinding::bind)
 
     private val mapSceneViewModel: MapSceneViewModel by viewModels()
@@ -62,6 +66,16 @@ class MapFragment :
     private val mapController: Deferred<MapController> by
         lifecycleScope.lazyAsync { binding.map.init(mapTilesHttpHandler, glViewHolderFactory) }
     private val mapReady = CompletableDeferred<Unit>()
+
+    private val orientationManager: OrientationManager by
+        lazy(LazyThreadSafetyMode.NONE) {
+            OrientationManager(requireContext()).apply {
+                axisMode = OrientationManager.Mode.COMPASS
+                onOrientationChangedListener = this@MapFragment
+            }
+        }
+
+    private var userLocationMapComponent: UserLocationMapComponent? = null
 
     private val markerArgument: Marker? by nullableArgument(Arguments.MARKER.name)
     private var currentMarker: Marker? = null
@@ -131,6 +145,7 @@ class MapFragment :
                 latestMarkers?.let {
                     mapController.launch {
                         removeAllMarkers()
+                        userLocationMapComponent = UserLocationMapComponent(requireContext(), this)
                         addMarkerClusters(it)
                     }
                 }
@@ -153,6 +168,7 @@ class MapFragment :
     override fun onPause() {
         super.onPause()
         binding.map.onPause()
+        orientationManager.stopSensor()
     }
 
     override fun onLowMemory() {
@@ -189,12 +205,17 @@ class MapFragment :
     override fun onRegionDidChange(animated: Boolean) {
         if (unsetCurrentMarker) currentMarker = null else unsetCurrentMarker = true
         clusterManager?.onRegionDidChange(animated)
+        mapController.launch { userLocationMapComponent?.currentMapZoom = cameraPosition.zoom }
         if (!isRunningOnEmulator()) updateBlurBackground()
     }
 
     override fun onMarkerPickComplete(result: TangramMarkerPickResult?) {
         val markerPickResult = clusterManager?.onMarkerPickComplete(result)
         markerPickContinuations.poll()?.resume(markerPickResult)
+    }
+
+    override fun onOrientationChanged(orientation: Orientation) {
+        userLocationMapComponent?.rotation = orientation.azimuth.toDouble()
     }
 
     private suspend fun pickMarker(posX: Float, posY: Float): MarkerPickResult? =
@@ -332,6 +353,7 @@ class MapFragment :
 
                 mapController.launch {
                     removeAllMarkers()
+                    initUserLocationComponent()
                     if (loadable !is WithValue) return@launch
 
                     val markers = loadable.value.items
@@ -357,16 +379,24 @@ class MapFragment :
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
+    private var userLocationComponentJob: Job? = null
+    private fun MapController.initUserLocationComponent() {
+        userLocationComponentJob?.cancel()
+        userLocationMapComponent = UserLocationMapComponent(requireContext(), this)
+        userLocationComponentJob =
+            mainViewModel.locationReadyUpdates
+                .onEach { userLocationMapComponent?.location = it }
+                .launchIn(lifecycleScope)
+        orientationManager.startSensor(requireContext())
+    }
+
     private fun followUserLocation() {
-        mainViewModel.states
-            .map(MainState::locationState::get)
-            .filterIsInstance<WithValue<Location>>()
-            .distinctUntilChangedBy { Objects.hash(it.value.latitude, it.value.longitude) }
+        mainViewModel.locationReadyUpdates
             .onEach { location ->
                 mapController.launch {
                     moveCameraPositionTo(
-                        lat = location.value.latitude,
-                        lng = location.value.longitude,
+                        lat = location.latitude,
+                        lng = location.longitude,
                         zoom = MARKER_FOCUSED_ZOOM
                     )
                 }

@@ -156,7 +156,7 @@ fun MapController.addMarkerFor(
 val LngLat.latLon: LatLon
     get() = LatLon(latitude, longitude)
 
-val LatLon.lngLat: LngLat
+val Location.lngLat: LngLat
     get() = LngLat(longitude, latitude)
 
 val Location.latLon: LatLon
