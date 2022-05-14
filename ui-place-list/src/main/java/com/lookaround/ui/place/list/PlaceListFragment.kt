@@ -183,9 +183,9 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
         outState.putInt(SavedStateKey.LAST_CAROUSEL_POSITION.name, carouselLastPosition)
     }
 
-    override fun onDestroy() {
+    override fun onDestroyView() {
         userLocationCallbacks.onDetachedFromRecyclerView()
-        super.onDestroy()
+        super.onDestroyView()
     }
 
     fun scrollToPlace(uuid: UUID) {
