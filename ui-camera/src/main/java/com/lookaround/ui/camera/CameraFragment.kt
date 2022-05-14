@@ -455,6 +455,7 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.onLoadingStarted() {
+        binding.cameraLayout.setOnClickListener(null)
         hideARViews()
         toggleARDisabledViewsVisibility()
         blurBackground.visibility = View.VISIBLE
@@ -462,6 +463,7 @@ class CameraFragment :
     }
 
     private fun FragmentCameraBinding.onAREnabled(showingAnyMarkers: Boolean) {
+        binding.cameraLayout.setOnClickListener(null)
         toggleARDisabledViewsVisibility()
         loadingShimmerLayout.stopAndHide()
         blurBackground.visibility = View.GONE
@@ -488,13 +490,17 @@ class CameraFragment :
         toggleARDisabledViewsVisibility(
             when {
                 initializationFailure -> cameraInitializationFailureTextView
-                anyPermissionDenied -> permissionsRequiredTextView
                 googlePlayServicesNotAvailable -> googlePlayServicesNotAvailableTextView
                 locationDisabled -> locationDisabledTextView
                 pitchOutsideLimit -> pitchOutsideLimitTextView
+                anyPermissionDenied -> permissionsRequiredTextView
                 else -> throw IllegalStateException()
             }
         )
+        if (anyPermissionDenied) {
+            binding.cameraLayout.setOnClickListener { initARWithPermissionCheck() }
+        }
+
         latestARState = CameraARState.DISABLED
     }
 
@@ -513,7 +519,7 @@ class CameraFragment :
                     pitchOutsideLimitTextView,
                     locationDisabledTextView,
                     googlePlayServicesNotAvailableTextView,
-                    permissionsRequiredTextView
+                    permissionsRequiredTextView,
                 )
                 .partition { visibleViewIds.contains(it.id) }
         gone.forEach { it.visibility = View.GONE }
