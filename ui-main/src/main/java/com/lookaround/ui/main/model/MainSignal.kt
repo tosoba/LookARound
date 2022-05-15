@@ -2,6 +2,7 @@ package com.lookaround.ui.main.model
 
 import android.graphics.drawable.Drawable
 import androidx.fragment.app.Fragment
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.model.Marker
 import java.util.*
@@ -29,4 +30,7 @@ sealed interface MainSignal {
     data class UpdateSelectedMarker(val marker: Marker) : MainSignal
     data class ShowPlaceFragment(val marker: Marker) : MainSignal
     data class ShowMapFragment(val marker: Marker? = null) : MainSignal
+    data class PlaceListBottomSheetStateChanged(
+        @BottomSheetBehavior.State val state: Int,
+    ) : MainSignal
 }

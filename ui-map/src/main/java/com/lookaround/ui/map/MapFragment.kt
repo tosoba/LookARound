@@ -25,6 +25,7 @@ import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
 import com.lookaround.core.android.model.Marker
+import com.lookaround.core.android.model.Ready
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.model.hasNoValueOrEmpty
 import com.lookaround.core.delegate.lazyAsync
@@ -32,6 +33,7 @@ import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
+import com.lookaround.ui.main.userLocationFabVisibilityUpdates
 import com.lookaround.ui.map.databinding.FragmentMapBinding
 import com.mapzen.tangram.*
 import com.mapzen.tangram.networking.HttpHandler
@@ -151,6 +153,8 @@ class MapFragment :
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        initUserLocationFab()
     }
 
     override fun onDestroyView() {
@@ -388,6 +392,30 @@ class MapFragment :
                 .onEach { userLocationMapComponent?.location = it }
                 .launchIn(lifecycleScope)
         orientationManager.startSensor(requireContext())
+    }
+
+    private fun initUserLocationFab() {
+        binding.userLocationFab.setOnClickListener {
+            when (val userLocationState = mainViewModel.state.locationState) {
+                is Ready -> {
+                    mapController.launch {
+                        moveCameraPositionTo(
+                            lat = userLocationState.value.latitude,
+                            lng = userLocationState.value.longitude,
+                            zoom = cameraPosition.zoom
+                        )
+                    }
+                }
+                else -> return@setOnClickListener
+            }
+        }
+
+        mainViewModel
+            .userLocationFabVisibilityUpdates
+            .onEach {
+                binding.userLocationFab.visibility = if (it) View.VISIBLE else View.GONE
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun followUserLocation() {

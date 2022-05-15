@@ -2,6 +2,7 @@ package com.lookaround.ui.main
 
 import android.location.Location
 import androidx.annotation.StringRes
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
@@ -56,6 +57,25 @@ val MainViewModel.nearMeFabVisibilityUpdates: Flow<Boolean>
             ) { sheetState, isSnackbarShowing, noMarkers ->
                 noMarkers &&
                     !isSnackbarShowing &&
+                    sheetState != ViewPagerBottomSheetBehavior.STATE_EXPANDED &&
+                    sheetState != ViewPagerBottomSheetBehavior.STATE_DRAGGING &&
+                    sheetState != ViewPagerBottomSheetBehavior.STATE_SETTLING
+            }
+            .distinctUntilChanged()
+
+@FlowPreview
+@ExperimentalCoroutinesApi
+val MainViewModel.userLocationFabVisibilityUpdates: Flow<Boolean>
+    get() =
+        combine(
+                filterSignals(MainSignal.BottomSheetStateChanged::state),
+                filterSignals(MainSignal.PlaceListBottomSheetStateChanged::state),
+                filterSignals(MainSignal.SnackbarStatusChanged::isShowing).onStart { emit(false) },
+            ) { sheetState, placeListBottomSheetState, isSnackbarShowing ->
+                !isSnackbarShowing &&
+                    placeListBottomSheetState != BottomSheetBehavior.STATE_EXPANDED &&
+                    placeListBottomSheetState != BottomSheetBehavior.STATE_DRAGGING &&
+                    placeListBottomSheetState != BottomSheetBehavior.STATE_SETTLING &&
                     sheetState != ViewPagerBottomSheetBehavior.STATE_EXPANDED &&
                     sheetState != ViewPagerBottomSheetBehavior.STATE_DRAGGING &&
                     sheetState != ViewPagerBottomSheetBehavior.STATE_SETTLING

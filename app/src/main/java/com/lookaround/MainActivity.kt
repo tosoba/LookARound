@@ -192,8 +192,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             .launchIn(lifecycleScope)
 
         lifecycleScope.launchWhenResumed {
-            viewModel.filterSignals<MainSignal.ShowPlaceFragment>().collect { (marker)
-                ->
+            viewModel.filterSignals<MainSignal.ShowPlaceFragment>().collect { (marker) ->
                 mainFragmentContainerViewTransaction(FragmentTransactionType.ADD) {
                     PlaceFragment.new(marker)
                 }
@@ -602,6 +601,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             .filterSignals<MainSignal.HidePlacesListBottomSheet>()
             .onEach { placeListBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN }
             .launchIn(lifecycleScope)
+
+        placeListBottomSheetBehavior.addBottomSheetCallback(
+            object : BottomSheetBehavior.BottomSheetCallback() {
+                override fun onStateChanged(bottomSheet: View, newState: Int) {
+                    lifecycleScope.launch {
+                        viewModel.signal(MainSignal.PlaceListBottomSheetStateChanged(newState))
+                    }
+                }
+                override fun onSlide(bottomSheet: View, slideOffset: Float) = Unit
+            }
+        )
     }
 
     private fun initBottomNavigationView() {
