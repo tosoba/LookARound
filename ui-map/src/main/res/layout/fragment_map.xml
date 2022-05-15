@@ -19,6 +19,19 @@
         android:layout_height="match_parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/compass_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="140dp"
+        android:layout_marginRight="15dp"
+        android:background="@drawable/round_white_button"
+        android:contentDescription="@string/compass"
+        android:src="@drawable/ic_compass_needle_48dp"
+        app:fabSize="mini"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/user_location_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

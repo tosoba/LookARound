@@ -44,6 +44,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import javax.inject.Inject
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlin.math.PI
+import kotlin.math.abs
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -155,6 +157,7 @@ class MapFragment :
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         initUserLocationFab()
+        initCompassFab()
     }
 
     override fun onDestroyView() {
@@ -205,12 +208,28 @@ class MapFragment :
     }
 
     override fun onRegionWillChange(animated: Boolean) = Unit
-    override fun onRegionIsChanging() = Unit
+
+    override fun onRegionIsChanging() {
+        mapController.launch { updateCompassFab() }
+    }
+
     override fun onRegionDidChange(animated: Boolean) {
         if (unsetCurrentMarker) currentMarker = null else unsetCurrentMarker = true
         clusterManager?.onRegionDidChange(animated)
-        mapController.launch { userLocationMapComponent?.currentMapZoom = cameraPosition.zoom }
+        mapController.launch {
+            userLocationMapComponent?.currentMapZoom = cameraPosition.zoom
+            updateCompassFab()
+        }
         if (!isRunningOnEmulator()) updateBlurBackground()
+    }
+
+    private fun MapController.updateCompassFab() {
+        binding.compassFab.rotation = (180 * cameraPosition.rotation / PI).toFloat()
+        binding.compassFab.rotationX = (180 * cameraPosition.tilt / PI).toFloat()
+        val margin = 2 * PI / 180
+        binding.compassFab.visibility =
+            if (abs(cameraPosition.rotation) < margin && cameraPosition.tilt < margin) View.GONE
+            else View.VISIBLE
     }
 
     override fun onMarkerPickComplete(result: TangramMarkerPickResult?) {
@@ -410,11 +429,8 @@ class MapFragment :
             }
         }
 
-        mainViewModel
-            .userLocationFabVisibilityUpdates
-            .onEach {
-                binding.userLocationFab.visibility = if (it) View.VISIBLE else View.GONE
-            }
+        mainViewModel.userLocationFabVisibilityUpdates
+            .onEach { binding.userLocationFab.visibility = if (it) View.VISIBLE else View.GONE }
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
@@ -430,6 +446,22 @@ class MapFragment :
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    private fun initCompassFab() {
+        binding.compassFab.setOnClickListener {
+            mapController.launch {
+                updateCameraPosition(
+                    CameraUpdateFactory.newCameraPosition(
+                        CameraPosition().apply {
+                            set(cameraPosition)
+                            tilt = 0f
+                            rotation = 0f
+                        }
+                    )
+                )
+            }
+        }
     }
 
     private var blurBackgroundJob: Job? = null

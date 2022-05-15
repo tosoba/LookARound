@@ -6,4 +6,8 @@
     <dimen name="cluster_icon_padding">8dp</dimen>
 
     <dimen name="rounded_corners_radius">20dp</dimen>
+
+    <dimen name="round_button_radius">96dp</dimen>
+    <dimen name="round_button_padding">6dp</dimen>
+    <dimen name="round_button_inset">6dp</dimen>
 </resources>

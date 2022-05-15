@@ -2,4 +2,5 @@
 <resources>
     <string name="blurred_map">blurred map</string>
     <string name="user_location">user_location</string>
+    <string name="compass">compass</string>
 </resources>
