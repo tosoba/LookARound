@@ -314,10 +314,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         binding.drawerNavigationView.setNavigationItemSelectedListener {
             if (lifecycle.isResumed)
                 when (it.itemId) {
-                    R.id.drawer_nav_map -> mainFragmentContainerViewTransaction<MapFragment>()
-                    R.id.drawer_nav_about -> mainFragmentContainerViewTransaction<AboutFragment>()
-                    R.id.drawer_nav_settings ->
+                    R.id.drawer_nav_map -> {
+                        mainFragmentContainerViewTransaction<MapFragment>()
+                    }
+                    R.id.drawer_nav_about -> {
+                        hideViewsOnARNotEnabled()
+                        mainFragmentContainerViewTransaction<AboutFragment>()
+                    }
+                    R.id.drawer_nav_settings -> {
+                        hideViewsOnARNotEnabled()
                         mainFragmentContainerViewTransaction<SettingsFragment>()
+                    }
                 }
             binding.mainDrawerLayout.closeDrawer(Gravity.LEFT)
             true
