@@ -110,8 +110,8 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.3.5")
     implementation("androidx.navigation:navigation-ui-ktx:2.3.5")
 
-    implementation("androidx.appcompat:appcompat:1.4.0-rc01")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
+    implementation("androidx.appcompat:appcompat:1.4.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.3")
     implementation("com.google.android.material:material:1.6.0")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
     implementation("biz.laenger.android:vpbs:0.0.6")

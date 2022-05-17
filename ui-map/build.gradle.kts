@@ -66,8 +66,8 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.3.6")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
 
-    implementation("androidx.appcompat:appcompat:1.4.0-rc01")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
+    implementation("androidx.appcompat:appcompat:1.4.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.3")
     implementation("com.google.android.material:material:1.6.0")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
     implementation("com.facebook.shimmer:shimmer:0.5.0")

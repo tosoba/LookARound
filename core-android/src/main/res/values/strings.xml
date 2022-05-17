@@ -20,4 +20,5 @@
     <string name="no_information_available">No information available</string>
     <string name="contacts">Contacts</string>
     <string name="select_email_client">Select an email client</string>
+    <string name="about">About</string>
 </resources>
