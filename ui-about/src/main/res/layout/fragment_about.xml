@@ -23,11 +23,19 @@
             app:layout_scrollFlags="scroll|snap|exitUntilCollapsed"
             app:titleEnabled="true">
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                app:layout_collapseMode="parallax"
+                app:layout_collapseParallaxMultiplier="0.7" />
+
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/about_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:layout_marginTop="40dp"
                 android:background="@android:color/transparent"
+                app:layout_collapseMode="pin"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Dark"
                 app:title="@string/about" />
 
@@ -46,7 +54,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ABOUT" />
+            android:text="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" />
 
     </androidx.core.widget.NestedScrollView>
 
