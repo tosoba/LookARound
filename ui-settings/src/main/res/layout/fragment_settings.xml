@@ -38,6 +38,7 @@
                 android:layout_marginTop="40dp"
                 android:background="@android:color/transparent"
                 app:layout_collapseMode="pin"
+                app:navigationIcon="?attr/homeAsUpIndicator"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Dark"
                 app:title="@string/settings" />
 
