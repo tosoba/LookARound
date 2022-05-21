@@ -7,7 +7,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.lookaround.core.android.ext.fadeSetVisibility
 import com.lookaround.ui.about.databinding.FragmentAboutBinding
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainState
@@ -53,9 +55,23 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
                     }
             }
             .attach()
+
+        binding.aboutTabLayout.addOnTabSelectedListener(
+            object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab) {
+                    binding.githubFab.fadeSetVisibility(
+                        if (tab.position == 0) View.VISIBLE else View.GONE
+                    )
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab) = Unit
+                override fun onTabReselected(tab: TabLayout.Tab) = Unit
+            }
+        )
+
+        binding.githubFab.setOnClickListener {}
     }
 
-    class GeneralFragment : Fragment(R.layout.fragment_general) {}
-
-    class DonateFragment : Fragment(R.layout.fragment_donate) {}
+    class GeneralFragment : Fragment(R.layout.fragment_general)
+    class DonateFragment : Fragment(R.layout.fragment_donate)
 }

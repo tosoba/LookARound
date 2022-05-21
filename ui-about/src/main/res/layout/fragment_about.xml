@@ -75,4 +75,13 @@
         android:background="@android:color/transparent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/github_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_margin="20sp"
+        android:drawableLeft="@drawable/ic_baseline_code_24"
+        android:text="@string/source_code" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
