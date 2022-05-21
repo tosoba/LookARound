@@ -3,7 +3,10 @@ package com.lookaround.ui.camera.model
 import androidx.camera.view.PreviewView
 
 sealed interface CameraIntent {
-    object CameraViewCreated : CameraIntent
+    object CameraViewCreated : CameraIntent, (CameraState) -> CameraState {
+        override fun invoke(state: CameraState): CameraState =
+            state.copy(previewState = CameraPreviewState.Initial)
+    }
 
     data class CameraStreamStateChanged(val streamState: PreviewView.StreamState) : CameraIntent
 

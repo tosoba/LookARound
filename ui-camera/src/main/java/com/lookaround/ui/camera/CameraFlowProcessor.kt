@@ -20,9 +20,6 @@ class CameraFlowProcessor @Inject constructor() :
         signal: suspend (CameraSignal) -> Unit
     ): Flow<(CameraState) -> CameraState> =
         merge(
-            intents.filterIsInstance<CameraIntent.CameraViewCreated>().map {
-                CameraPreviewStateUpdate(CameraPreviewState.Initial)
-            },
             intents.filterIsInstance<CameraIntent.CameraStreamStateChanged>().map { (streamState) ->
                 CameraPreviewStateUpdate(CameraPreviewState.Active(streamState))
             },

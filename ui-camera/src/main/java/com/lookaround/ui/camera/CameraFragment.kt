@@ -445,7 +445,8 @@ class CameraFragment :
                         override fun onTransitionPause(transition: Transition) = Unit
                         override fun onTransitionResume(transition: Transition) = Unit
                         override fun onTransitionEnd(transition: Transition) {
-                            arRadarView.markerRenderer = radarMarkerRenderer
+                            arRadarView.markerRenderer =
+                                radarMarkerRenderer.also { it.enlarged = enlarged }
                         }
                     }
                 )
