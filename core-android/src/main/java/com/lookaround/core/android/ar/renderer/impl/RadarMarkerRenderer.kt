@@ -13,11 +13,11 @@ class RadarMarkerRenderer : MarkerRenderer {
         if (disabled) return
         markers.forEach { marker ->
             val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-            paint.color = 0x44FFFFFF
+            paint.color = 0x44000000
             canvas.drawCircle(marker.x, marker.y, 5f, paint)
-            paint.color = 0x33FFFFFF
+            paint.color = 0x33000000
             canvas.drawCircle(marker.x, marker.y, 4f, paint)
-            paint.color = 0x66FFFFFF
+            paint.color = 0x66000000
             canvas.drawCircle(marker.x, marker.y, 3f, paint)
             paint.color = -0x66000001
             canvas.drawCircle(marker.x, marker.y, 2f, paint)
