@@ -88,9 +88,15 @@ internal class PlaceMapsRecyclerViewAdapter(
                             )
                         }
                     )
-                },
-                onBitmapLoaded = binding.placeMapImage::setImageBitmap
-            )
+                }
+            ) {
+                with(binding.placeMapImage) {
+                    animate().alpha(0f).setDuration(250L).withEndAction {
+                        setImageBitmap(it)
+                        animate().alpha(1f).duration = 250L
+                    }
+                }
+            }
         }
 
         userLocationCallbacks.onBindViewHolder(item.marker.id) { userLocation ->
