@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.os.Parcelable
 import androidx.collection.LruCache
+import androidx.palette.graphics.Palette
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.model.Empty
 import com.lookaround.core.android.model.Loadable
@@ -23,7 +24,7 @@ data class MainState(
     val autocompleteSearchQuery: String = "",
     val searchFocused: Boolean = false,
 ) : Parcelable {
-    @IgnoredOnParcel val bitmapCache = LruCache<BlurredBackgroundType, Bitmap>(BITMAP_CACHE_SIZE)
+    @IgnoredOnParcel val bitmapCache = LruCache<BlurredBackgroundType, Pair<Bitmap, Palette>>(BITMAP_CACHE_SIZE)
 
     enum class BlurredBackgroundType {
         CAMERA,

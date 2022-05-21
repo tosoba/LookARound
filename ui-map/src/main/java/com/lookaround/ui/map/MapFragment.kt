@@ -110,7 +110,7 @@ class MapFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.MAP)?.let {
-            blurredBackground ->
+            (blurredBackground) ->
             binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
         }
 
@@ -472,15 +472,20 @@ class MapFragment :
                 mapReady.await()
 
                 val bitmap = mapController.await().captureFrame(true)
-                val blurredBackground =
-                    withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
+                val (blurred, palette) =
+                    withContext(Dispatchers.Default) {
+                        val blurred = blurProcessor.blur(bitmap)
+                        blurred to blurred.palette
+                    }
                 mainViewModel.state.bitmapCache.put(
                     MainState.BlurredBackgroundType.MAP,
-                    blurredBackground
+                    blurred to palette
                 )
-                val blurBackgroundDrawable = BitmapDrawable(resources, blurredBackground)
+                val blurBackgroundDrawable = BitmapDrawable(resources, blurred)
                 binding.blurBackground.background = blurBackgroundDrawable
-                mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurBackgroundDrawable))
+                mainViewModel.signal(
+                    MainSignal.BlurBackgroundUpdated(blurBackgroundDrawable, palette)
+                )
                 val dominantSwatch =
                     withContext(Dispatchers.Default) { bitmap.dominantSwatch } ?: return@launch
                 val contrastingColor = colorContrastingTo(dominantSwatch.rgb)

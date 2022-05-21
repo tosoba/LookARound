@@ -60,6 +60,7 @@ dependencies {
     implementation("com.github.skydoves:landscapist-coil:1.4.8")
     implementation("com.github.bumptech.glide:glide:4.13.1")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
+    implementation("androidx.palette:palette:1.0.0")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.3.6")

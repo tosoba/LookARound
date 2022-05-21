@@ -53,6 +53,7 @@ dependencies {
 
     implementation("com.google.android.material:material:1.6.0")
     implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
+    implementation("androidx.palette:palette:1.0.0")
 
     implementation("androidx.compose.runtime:runtime:1.2.0-alpha07")
     implementation("androidx.compose.compiler:compiler:1.2.0-alpha07")

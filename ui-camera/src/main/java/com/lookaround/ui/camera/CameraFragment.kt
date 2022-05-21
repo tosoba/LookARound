@@ -100,7 +100,7 @@ class CameraFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA)?.let {
-            blurredBackground ->
+            (blurredBackground) ->
             binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
         }
 
@@ -321,14 +321,20 @@ class CameraFragment :
     }
 
     private suspend fun blurAndUpdateViewsUsing(bitmap: Bitmap) {
-        val blurred = withContext(Dispatchers.Default) { blurProcessor.blur(bitmap) }
-        val blurredDominantSwatch = withContext(Dispatchers.Default) { blurred.dominantSwatch }
-        mainViewModel.state.bitmapCache.put(MainState.BlurredBackgroundType.CAMERA, blurred)
+        val (blurred, palette) =
+            withContext(Dispatchers.Default) {
+                val blurred = blurProcessor.blur(bitmap)
+                blurred to blurred.palette
+            }
+        mainViewModel.state.bitmapCache.put(
+            MainState.BlurredBackgroundType.CAMERA,
+            blurred to palette
+        )
         with(binding) {
             val blurBackgroundDrawable = BitmapDrawable(resources, blurred)
             blurBackground.background = blurBackgroundDrawable
-            mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurBackgroundDrawable))
-            val textColor = blurredDominantSwatch?.bodyTextColor ?: return
+            mainViewModel.signal(MainSignal.BlurBackgroundUpdated(blurBackgroundDrawable, palette))
+            val textColor = palette.dominantSwatch?.bodyTextColor ?: return
             locationDisabledTextView.setTextColor(textColor)
             permissionsRequiredTextView.setTextColor(textColor)
             pitchOutsideLimitTextView.setTextColor(textColor)

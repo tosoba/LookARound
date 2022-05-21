@@ -68,8 +68,9 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
         binding.streetViewFab.setOnClickListener { startGoogleMapsForStreetView() }
         binding.placeGoogleMapsFab.setOnClickListener { startGoogleMaps() }
         binding.placeNestedScrollView.apply {
-            mainViewModel.state.bitmapCache[MainState.BlurredBackgroundType.MAP]?.let { bitmap ->
-                background = BitmapDrawable(resources, bitmap)
+            mainViewModel.state.bitmapCache[MainState.BlurredBackgroundType.MAP]?.let {
+                (blurredBackground) ->
+                background = BitmapDrawable(resources, blurredBackground)
             }
                 ?: run { setBackgroundColor(requireContext().colorPalette.uiBackground.toArgb()) }
         }

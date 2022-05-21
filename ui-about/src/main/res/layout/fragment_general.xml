@@ -10,18 +10,24 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/general_hi_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingBottom="20dp"
+            android:shadowColor="@android:color/darker_gray"
+            android:shadowRadius="5"
             android:text="@string/hi"
-            android:textSize="35sp"
+            android:textSize="45sp"
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/general_info_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:shadowColor="@android:color/darker_gray"
+            android:shadowRadius="5"
             android:text="@string/app_description"
-            android:textSize="16sp" />
+            android:textSize="18sp" />
 
     </LinearLayout>
 

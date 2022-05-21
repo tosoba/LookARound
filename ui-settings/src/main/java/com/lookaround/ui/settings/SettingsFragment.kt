@@ -24,7 +24,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA)?.let {
-            blurredBackground ->
+            (blurredBackground) ->
             binding.settingsCoordinatorLayout.background =
                 BitmapDrawable(resources, blurredBackground)
         }

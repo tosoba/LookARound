@@ -1,6 +1,7 @@
 package com.lookaround
 
 import android.annotation.SuppressLint
+import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
@@ -357,12 +358,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 private var open: Boolean = initiallyOpen
 
                 init {
-                    viewModel
-                        .filterSignals(MainSignal.BlurBackgroundUpdated::drawable)
+                    viewModel.signals
+                        .filterIsInstance<MainSignal.BlurBackgroundUpdated>()
                         .filter {
                             lifecycle.isResumed && !open && lastState == DrawerLayout.STATE_IDLE
                         }
-                        .onEach { binding.drawerNavigationView.background = it }
+                        .onEach { (drawable, palette) ->
+                            binding.drawerNavigationView.background = drawable
+                            val swatch = palette.dominantSwatch ?: return@onEach
+                            binding.drawerNavigationView.itemTextColor =
+                                ColorStateList.valueOf(swatch.bodyTextColor)
+                        }
                         .launchIn(lifecycleScope)
                 }
 

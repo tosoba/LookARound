@@ -107,5 +107,8 @@ private fun nv21BytesToBitmap(
     return bitmap
 }
 
+val Bitmap.palette: Palette
+    get() = Palette.from(this).generate()
+
 val Bitmap.dominantSwatch: Palette.Swatch?
     get() = Palette.from(this).generate().dominantSwatch

@@ -11,6 +11,7 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.lookaround.core.android.ext.fadeSetVisibility
 import com.lookaround.ui.about.databinding.FragmentAboutBinding
+import com.lookaround.ui.about.databinding.FragmentGeneralBinding
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainState
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,8 +29,13 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA)?.let {
-            blurredBackground ->
+            (blurredBackground, palette) ->
             binding.aboutCoordinatorLayout.background = BitmapDrawable(resources, blurredBackground)
+            val dominantSwatch = palette.dominantSwatch ?: return@let
+            binding.aboutTabLayout.setTabTextColors(
+                dominantSwatch.titleTextColor,
+                dominantSwatch.bodyTextColor
+            )
         }
 
         binding.aboutToolbar.setNavigationOnClickListener { activity?.onBackPressed() }
@@ -72,6 +78,19 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
         binding.githubFab.setOnClickListener {}
     }
 
-    class GeneralFragment : Fragment(R.layout.fragment_general)
+    class GeneralFragment : Fragment(R.layout.fragment_general) {
+        private val binding: FragmentGeneralBinding by viewBinding(FragmentGeneralBinding::bind)
+
+        private val mainViewModel: MainViewModel by activityViewModels()
+
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA)?.let {
+                (_, palette) ->
+                val dominantSwatch = palette.dominantSwatch ?: return@let
+                binding.generalHiTextView.setTextColor(dominantSwatch.bodyTextColor)
+                binding.generalInfoTextView.setTextColor(dominantSwatch.bodyTextColor)
+            }
+        }
+    }
     class DonateFragment : Fragment(R.layout.fragment_donate)
 }
