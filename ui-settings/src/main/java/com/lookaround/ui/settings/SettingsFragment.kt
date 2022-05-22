@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.preference.PreferenceFragmentCompat
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainState
@@ -30,5 +31,11 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         }
 
         binding.settingsToolbar.setNavigationOnClickListener { activity?.onBackPressed() }
+    }
+
+    class PreferencesFragment : PreferenceFragmentCompat() {
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            setPreferencesFromResource(R.xml.root_preferences, rootKey)
+        }
     }
 }
