@@ -35,7 +35,7 @@ android {
 
     buildFeatures { compose = true }
 
-    composeOptions { kotlinCompilerExtensionVersion = "1.2.0-alpha07" }
+    composeOptions { kotlinCompilerExtensionVersion = "1.2.0-beta02" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -84,18 +84,19 @@ dependencies {
     implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
     implementation("androidx.palette:palette:1.0.0")
 
-    implementation("androidx.compose.runtime:runtime:1.2.0-alpha07")
-    implementation("androidx.compose.compiler:compiler:1.2.0-alpha07")
-    implementation("androidx.compose.ui:ui:1.2.0-alpha07")
-    implementation("androidx.compose.ui:ui-tooling:1.2.0-alpha07")
-    implementation("androidx.compose.foundation:foundation:1.2.0-alpha07")
-    implementation("androidx.compose.material:material:1.2.0-alpha07")
-    implementation("androidx.compose.material:material-icons-core:1.2.0-alpha07")
-    implementation("androidx.compose.material:material-icons-extended:1.2.0-alpha07")
+    implementation("androidx.compose.runtime:runtime:1.2.0-beta02")
+    implementation("androidx.compose.compiler:compiler:1.2.0-beta02")
+    implementation("androidx.compose.ui:ui:1.2.0-beta02")
+    implementation("androidx.compose.ui:ui-tooling:1.2.0-beta02")
+    implementation("androidx.compose.foundation:foundation:1.2.0-beta02")
+    implementation("androidx.compose.material:material:1.2.0-beta02")
+    implementation("androidx.compose.material:material-icons-core:1.2.0-beta02")
+    implementation("androidx.compose.material:material-icons-extended:1.2.0-beta02")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.3.6")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
+    implementation("androidx.preference:preference:1.2.0")
 
     implementation("com.google.dagger:hilt-android:2.40")
     kapt("com.google.dagger:hilt-android-compiler:2.40")
