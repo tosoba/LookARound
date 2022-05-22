@@ -1,42 +1,30 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
-        app:title="@string/messages_header">
+        app:title="@string/preferences_ar_header">
 
-        <EditTextPreference
+        <SeekBarPreference
+            android:max="10"
+            app:defaultValue="5"
             app:iconSpaceReserved="false"
-            app:key="signature"
-            app:title="@string/signature_title"
-            app:useSimpleSummaryProvider="true" />
-
-        <ListPreference
-            app:defaultValue="reply"
-            app:entries="@array/reply_entries"
-            app:entryValues="@array/reply_values"
-            app:iconSpaceReserved="false"
-            app:key="reply"
-            app:title="@string/reply_title"
-            app:useSimpleSummaryProvider="true" />
+            app:key="smooth_factor"
+            app:min="1"
+            app:summary="@string/preference_sensitivity_summary"
+            app:title="@string/preference_sensitivity_title" />
 
     </PreferenceCategory>
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
-        app:title="@string/sync_header">
+        app:title="@string/preferences_cache_header">
 
-        <SwitchPreferenceCompat
+        <Preference
             app:iconSpaceReserved="false"
-            app:key="sync"
-            app:title="@string/sync_title" />
-
-        <SwitchPreferenceCompat
-            app:dependency="sync"
-            app:iconSpaceReserved="false"
-            app:key="attachment"
-            app:summaryOff="@string/attachment_summary_off"
-            app:summaryOn="@string/attachment_summary_on"
-            app:title="@string/attachment_title" />
+            app:key="clear_cache"
+            app:summary="@string/preference_clear_cache_summary"
+            app:title="@string/preference_clear_cache_title" />
 
     </PreferenceCategory>
 
