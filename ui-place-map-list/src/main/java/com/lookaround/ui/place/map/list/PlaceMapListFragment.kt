@@ -7,9 +7,14 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -227,6 +232,15 @@ class PlaceMapListFragment :
                         onTextFieldValueChange = {
                             searchQueryFlow.value = it.text
                             searchQuery = it.text
+                        },
+                        leadingUnfocused = {
+                            IconButton(onClick = { requireActivity().onBackPressed() }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ArrowBack,
+                                    tint = LookARoundTheme.colors.iconPrimary,
+                                    contentDescription = stringResource(R.string.back)
+                                )
+                            }
                         },
                         modifier = Modifier.onSizeChanged { topSpacerHeightPx.value = it.height }
                     )

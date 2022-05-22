@@ -6,9 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -112,6 +117,15 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                             onTextFieldValueChange = {
                                 searchQueryFlow.value = it.text
                                 searchQuery = it.text
+                            },
+                            leadingUnfocused = {
+                                IconButton(onClick = { requireActivity().onBackPressed() }) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.ArrowBack,
+                                        tint = LookARoundTheme.colors.iconPrimary,
+                                        contentDescription = stringResource(R.string.back)
+                                    )
+                                }
                             }
                         )
                         PlaceCategoriesRecyclerView(searchQueryFlow, topSpacerHeightPx.value)
@@ -228,8 +242,8 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                         when (val item = placeTypeListItems[index]) {
                             is PlaceTypeListItem.PlaceCategory -> {
                                 if (index + 1 == placeTypeListItems.size ||
-                                        placeTypeListItems[index + 1] is
-                                            PlaceTypeListItem.PlaceCategory
+                                        placeTypeListItems[index + 1]
+                                            is PlaceTypeListItem.PlaceCategory
                                 ) {
                                     placeTypeListItems.removeAt(index)
                                 }

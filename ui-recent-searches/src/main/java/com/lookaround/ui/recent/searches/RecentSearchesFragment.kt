@@ -6,9 +6,14 @@ import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -109,10 +114,10 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
             searchFocused = getBoolean(SavedStateKey.SEARCH_FOCUSED.name)
         }
     }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val emptyRecentSearchesFlow =
-            recentSearchesViewModel
-                .states
+            recentSearchesViewModel.states
                 .map { it.searches.hasNoValueOrEmpty() }
                 .distinctUntilChanged()
 
@@ -154,6 +159,15 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                                 )
                             }
                         },
+                        leadingUnfocused = {
+                            IconButton(onClick = { requireActivity().onBackPressed() }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ArrowBack,
+                                    tint = LookARoundTheme.colors.iconPrimary,
+                                    contentDescription = stringResource(R.string.back)
+                                )
+                            }
+                        },
                         modifier = Modifier.onSizeChanged { topSpacerHeightPx.value = it.height }
                     )
                 }
@@ -169,8 +183,8 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
             .onEach {
                 val recentSearchItems = it.map(RecentSearchesRecyclerViewAdapter.Item::Search)
                 recentSearchesRecyclerViewAdapter.updateItems(
-                    if (recentSearchesRecyclerViewAdapter.items.firstOrNull() is
-                            RecentSearchesRecyclerViewAdapter.Item.Spacer
+                    if (recentSearchesRecyclerViewAdapter.items.firstOrNull()
+                            is RecentSearchesRecyclerViewAdapter.Item.Spacer
                     ) {
                         listOf(recentSearchesRecyclerViewAdapter.items.first()) + recentSearchItems
                     } else {
@@ -206,8 +220,8 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
     }
 
     private fun addTopSpacer(height: Int) {
-        if (recentSearchesRecyclerViewAdapter.items.firstOrNull() is
-                RecentSearchesRecyclerViewAdapter.Item.Spacer
+        if (recentSearchesRecyclerViewAdapter.items.firstOrNull()
+                is RecentSearchesRecyclerViewAdapter.Item.Spacer
         ) {
             binding.recentSearchesRecyclerView.visibility = View.VISIBLE
             return
