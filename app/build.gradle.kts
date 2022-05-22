@@ -83,6 +83,7 @@ dependencies {
     implementation("io.github.hokofly:hoko-blur:1.3.7")
     implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
     implementation("androidx.palette:palette:1.0.0")
+    implementation("de.hdodenhof:circleimageview:3.1.0")
 
     implementation("androidx.compose.runtime:runtime:1.2.0-beta02")
     implementation("androidx.compose.compiler:compiler:1.2.0-beta02")
