@@ -5,13 +5,16 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.lookaround.core.android.map.LocationBitmapCaptureCache
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainState
 import com.lookaround.ui.settings.databinding.FragmentSettingsBinding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 
@@ -33,9 +36,19 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         binding.settingsToolbar.setNavigationOnClickListener { activity?.onBackPressed() }
     }
 
+    @AndroidEntryPoint
+    @WithFragmentBindings
     class PreferencesFragment : PreferenceFragmentCompat() {
+        @Inject internal lateinit var locationBitmapCaptureCache: LocationBitmapCaptureCache
+
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
+            findPreference<Preference>(getString(R.string.preference_clear_cache_key))?.apply {
+                setOnPreferenceClickListener {
+                    locationBitmapCaptureCache.clear()
+                    true
+                }
+            }
         }
     }
 }

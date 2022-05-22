@@ -53,11 +53,13 @@ dependencies {
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
     implementation("io.github.hokofly:hoko-blur:1.3.7")
     implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
+    implementation("androidx.palette:palette:1.0.0")
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.3.6")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.4.0")
+    implementation("androidx.preference:preference:1.2.0")
 
     implementation("com.google.dagger:hilt-android:2.40")
     kapt("com.google.dagger:hilt-android-compiler:2.40")
@@ -69,7 +71,6 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.1.0-alpha10")
     implementation("androidx.camera:camera-lifecycle:1.1.0-alpha10")
     implementation("androidx.camera:camera-view:1.0.0-alpha30")
-    implementation("androidx.palette:palette:1.0.0")
 
     implementation("com.google.android.gms:play-services-location:19.0.1")
     implementation("com.github.jintin:FancyLocationProvider:2.0.0")

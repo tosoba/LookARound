@@ -1,6 +1,7 @@
 package com.lookaround.ui.camera
 
 import android.Manifest
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -14,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import androidx.transition.AutoTransition
 import androidx.transition.Transition
 import androidx.transition.TransitionManager
@@ -65,11 +67,24 @@ class CameraFragment :
     private val radarMarkerRenderer: RadarMarkerRenderer by
         lazy(LazyThreadSafetyMode.NONE, ::RadarMarkerRenderer)
 
+    private val defaultSharedPreferences by
+        lazy(LazyThreadSafetyMode.NONE) {
+            PreferenceManager.getDefaultSharedPreferences(requireContext())
+        }
+
+    private val SharedPreferences.smoothFactor: Float?
+        get() =
+            getInt(getString(R.string.preference_sensitivity_key), -1)
+                .toFloat()
+                .takeIf { it > 0f }
+                ?.let { 0.02f * it }
+
     private val orientationManager: OrientationManager by
         lazy(LazyThreadSafetyMode.NONE) {
             OrientationManager(requireContext()).apply {
                 axisMode = OrientationManager.Mode.AR
                 onOrientationChangedListener = this@CameraFragment
+                defaultSharedPreferences.smoothFactor?.let { smoothFactor = it }
             }
         }
 
@@ -545,6 +560,7 @@ class CameraFragment :
 
     override fun onResume() {
         super.onResume()
+        defaultSharedPreferences.smoothFactor?.let { orientationManager.smoothFactor = it }
         orientationManager.startSensor(requireContext())
     }
 

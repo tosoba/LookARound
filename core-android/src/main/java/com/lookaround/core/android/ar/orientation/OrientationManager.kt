@@ -23,6 +23,7 @@ class OrientationManager : SensorEventListener {
     private var orientation = Orientation()
     private var oldOrientation: Orientation? = null
     private var sensorRunning: Boolean = false
+    var smoothFactor: Float = SMOOTH_FACTOR
 
     var onOrientationChangedListener: OnOrientationChangedListener? = null
     var axisMode: Mode = Mode.COMPASS
@@ -132,7 +133,7 @@ class OrientationManager : SensorEventListener {
             if (abs(newValue - oldValue) > SMOOTH_THRESHOLD) {
                 newValue
             } else {
-                oldValue + SMOOTH_FACTOR * (newValue - oldValue)
+                oldValue + smoothFactor * (newValue - oldValue)
             }
         } else {
             if (CIRCLE - abs(newValue - oldValue) > SMOOTH_THRESHOLD) {
@@ -140,10 +141,10 @@ class OrientationManager : SensorEventListener {
             } else {
                 if (oldValue > newValue) {
                     ((oldValue +
-                        (SMOOTH_FACTOR * ((CIRCLE + newValue - oldValue) % CIRCLE)) +
+                        (smoothFactor * ((CIRCLE + newValue - oldValue) % CIRCLE)) +
                         CIRCLE) % CIRCLE)
                 } else {
-                    ((oldValue - SMOOTH_FACTOR * ((CIRCLE - newValue + oldValue) % CIRCLE) +
+                    ((oldValue - smoothFactor * ((CIRCLE - newValue + oldValue) % CIRCLE) +
                         CIRCLE) % CIRCLE)
                 }
             }

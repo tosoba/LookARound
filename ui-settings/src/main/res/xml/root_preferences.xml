@@ -9,8 +9,9 @@
             android:max="10"
             app:defaultValue="5"
             app:iconSpaceReserved="false"
-            app:key="smooth_factor"
+            app:key="@string/preference_sensitivity_key"
             app:min="1"
+            app:showSeekBarValue="true"
             app:summary="@string/preference_sensitivity_summary"
             app:title="@string/preference_sensitivity_title" />
 
@@ -22,7 +23,7 @@
 
         <Preference
             app:iconSpaceReserved="false"
-            app:key="clear_cache"
+            app:key="@string/preference_clear_cache_key"
             app:summary="@string/preference_clear_cache_summary"
             app:title="@string/preference_clear_cache_title" />
 

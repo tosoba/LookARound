@@ -24,4 +24,6 @@
     <string name="settings">Settings</string>
     <string name="donate">Donate</string>
     <string name="general">General</string>
+    <string name="preference_clear_cache_key">clear_cache</string>
+    <string name="preference_sensitivity_key">smooth_factor</string>
 </resources>
