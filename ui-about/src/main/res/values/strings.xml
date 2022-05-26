@@ -2,4 +2,6 @@
     <string name="hi">Hi!</string>
     <string name="app_description">This app allows users to search for places and display them on AR camera and map views.\n\nIt was written:\n- for fun\n- as a learning experience\n- to eventually become a part of my apps portfolio.\n\nFeel free to check out the source code.</string>
     <string name="source_code">Source code</string>
+    <string name="btc_address">bc1qvhxxjfywzzca86sgwu4fn3m5f7quvwl0xdm8su</string>
+    <string name="address_copied">Address copied to clipboard.</string>
 </resources>
