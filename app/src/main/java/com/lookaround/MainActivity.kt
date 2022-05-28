@@ -227,15 +227,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     override fun onResume() {
         super.onResume()
-
-        if (viewsInteractionEnabled) {
-            binding.bottomNavigationView.visibility = View.VISIBLE
-            if (!viewModel.state.markers.hasValue) {
-                binding.nearMeFab.visibility = View.VISIBLE
-            }
-            binding.searchBarView.visibility = View.VISIBLE
-        }
-
         lifecycleScope.launchWhenResumed {
             signalTopFragmentChanged()
             viewModel.signal(MainSignal.BottomSheetStateChanged(bottomSheetBehavior.state))
@@ -288,13 +279,16 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     }
 
     private fun showViewsOnAREnabled() {
-        binding.searchBarView.visibility = View.VISIBLE
         binding.bottomNavigationView.visibility = View.VISIBLE
-        if (viewModel.state.markers !is WithValue) {
-            binding.nearMeFab.visibility = View.VISIBLE
+        val lastLiveBottomSheetState = viewModel.state.lastLiveBottomSheetState
+        if (lastLiveBottomSheetState != ViewPagerBottomSheetBehavior.STATE_EXPANDED) {
+            binding.searchBarView.visibility = View.VISIBLE
+            if (viewModel.state.markers !is WithValue) {
+                binding.nearMeFab.visibility = View.VISIBLE
+            }
         }
         binding.bottomSheetViewPager.visibility = View.VISIBLE
-        bottomSheetBehavior.state = viewModel.state.lastLiveBottomSheetState
+        bottomSheetBehavior.state = lastLiveBottomSheetState
     }
 
     private fun hideViewsOnARNotEnabled() {
