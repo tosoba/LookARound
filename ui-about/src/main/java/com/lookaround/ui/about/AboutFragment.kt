@@ -12,15 +12,13 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewbinding.ViewBinding
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.lookaround.core.android.ext.fadeSetVisibility
-import com.lookaround.ui.about.databinding.FragmentAboutBinding
-import com.lookaround.ui.about.databinding.FragmentDonateBinding
-import com.lookaround.ui.about.databinding.FragmentGeneralBinding
-import com.lookaround.ui.about.databinding.WalletItemBinding
+import com.lookaround.ui.about.databinding.*
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainState
 import dagger.hilt.android.AndroidEntryPoint
@@ -145,16 +143,35 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
         private class WalletsAdapter(
             private val wallets: List<Wallet>,
             @ColorInt private val textColor: Int?,
-        ) : RecyclerView.Adapter<WalletViewHolder>() {
+        ) : RecyclerView.Adapter<WalletsAdapter.ViewHolder>() {
 
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WalletViewHolder =
-                WalletViewHolder(
-                    WalletItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
+                ViewHolder(
+                    if (viewType == ViewType.HEADER.ordinal) {
+                        HeaderItemBinding.inflate(
+                            LayoutInflater.from(parent.context),
+                            parent,
+                            false
+                        )
+                    } else {
+                        WalletItemBinding.inflate(
+                            LayoutInflater.from(parent.context),
+                            parent,
+                            false
+                        )
+                    }
                 )
 
-            override fun onBindViewHolder(holder: WalletViewHolder, position: Int) {
-                val wallet = wallets[position]
-                with(holder.binding) {
+            override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+                if (position == 0) {
+                    with(holder.binding as HeaderItemBinding) {
+                        textColor?.let(donateCryptoTextView::setTextColor)
+                    }
+                    return
+                }
+
+                val wallet = wallets[position - 1]
+                with(holder.binding as WalletItemBinding) {
                     walletLogoImageView.setImageDrawable(
                         ContextCompat.getDrawable(holder.binding.root.context, wallet.drawableRes)
                     )
@@ -170,12 +187,20 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
                     }
                 }
             }
+            override fun getItemViewType(position: Int): Int {
+                return if (position == 0) ViewType.HEADER.ordinal else ViewType.WALLET.ordinal
+            }
 
-            override fun getItemCount(): Int = wallets.size
+            override fun getItemCount(): Int = wallets.size + 1
+
+            private enum class ViewType {
+                HEADER,
+                WALLET
+            }
+
+            private class ViewHolder(val binding: ViewBinding) :
+                RecyclerView.ViewHolder(binding.root)
         }
-
-        private class WalletViewHolder(val binding: WalletItemBinding) :
-            RecyclerView.ViewHolder(binding.root)
 
         private data class Wallet(val address: String, @DrawableRes val drawableRes: Int)
     }

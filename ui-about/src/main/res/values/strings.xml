@@ -15,4 +15,5 @@
     <string name="xrp_address">rhCbapPbr1cAwVYqFR9VZJe1rzTPYe8BNJ</string>
     <string name="algo_address">SSE5JHDJ252MKIED32YKVVCYS7JUNO2B5V5QOLJZY4DLQTT5UQFC6LYFDA</string>
     <string name="address_copied">Address copied to clipboard.</string>
+    <string name="donate_crypto">There are no ads in this app. Crypto donations are welcome though.</string>
 </resources>
