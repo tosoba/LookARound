@@ -502,7 +502,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             .debounce(500L)
             .onEach { sheetState ->
                 when (sheetState) {
-                    ViewPagerBottomSheetBehavior.STATE_EXPANDED -> setSearchbarVisibility(View.GONE)
+                    ViewPagerBottomSheetBehavior.STATE_EXPANDED -> {
+                        setSearchbarVisibility(View.GONE)
+                        binding.bottomSheetViewPager.visibility = View.VISIBLE
+                    }
                     ViewPagerBottomSheetBehavior.STATE_HIDDEN -> {
                         if (viewsInteractionEnabled) setSearchbarVisibility(View.VISIBLE)
                         binding.bottomNavigationView.selectedItemId = R.id.action_unchecked

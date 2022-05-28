@@ -115,7 +115,15 @@ class MapFragment :
         }
 
         lifecycleScope.launchWhenResumed {
-            mainViewModel.signal(MainSignal.ToggleSearchBarVisibility(View.VISIBLE))
+            mainViewModel.signal(
+                if (mainViewModel.state.lastLiveBottomSheetState !=
+                        ViewPagerBottomSheetBehavior.STATE_EXPANDED
+                ) {
+                    MainSignal.ToggleSearchBarVisibility(View.VISIBLE)
+                } else {
+                    MainSignal.BottomSheetStateChanged(ViewPagerBottomSheetBehavior.STATE_EXPANDED)
+                }
+            )
         }
 
         mapController.launch {
