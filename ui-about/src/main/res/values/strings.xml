@@ -3,5 +3,16 @@
     <string name="app_description">This app allows users to search for places and display them on AR camera and map views.\n\nIt was written:\n- for fun\n- as a learning experience\n- to eventually become a part of my apps portfolio.\n\nFeel free to check out the source code.</string>
     <string name="source_code">Source code</string>
     <string name="btc_address">bc1qvhxxjfywzzca86sgwu4fn3m5f7quvwl0xdm8su</string>
+    <string name="eth_address">0x5524a565299Ad977598952304a76027Bd6C63CBB</string>
+    <string name="bnb_address">0x5524a565299Ad977598952304a76027Bd6C63CBB</string>
+    <string name="ada_address">addr1qy4xg6cunuaqx675xm6m2m592tpcymcnvf489zvr48qlakd6t04kqsj5gnq6sy02dhlmxlpz83ncxagkp3uxpeh6hlhqyl3dqf</string>
+    <string name="xmr_address">4BBymutb3vE3S4dYUHTgiN1on9aptE743A6H6WrVLCBj25oqdeiSVfYjJWn6suvLBwZ34Ws41SvMwE4AVbyovf9wJyYKc8U</string>
+    <string name="sol_address">8taDYPsTiQNbXKThyXuppSkaE9CpAzQncoD29bSpjHgA</string>
+    <string name="xlm_address">GAI3DGPW7UGPR6WCO34GYPZE6M3EYGJN6PHQKRJ57Y3E7NZOONXCKYK6</string>
+    <string name="usdt_address">TA63RbgTVsJKP2yZqJZqadY38Zasgif66Z</string>
+    <string name="xtz_address">tz1PE5iq4Et33UofRfpZBSLEiyNJbPVBfcpL</string>
+    <string name="vet_address">0xCf0994869445a58c68A7B6e1a44FabF3D05643F7</string>
+    <string name="xrp_address">rhCbapPbr1cAwVYqFR9VZJe1rzTPYe8BNJ</string>
+    <string name="algo_address">SSE5JHDJ252MKIED32YKVVCYS7JUNO2B5V5QOLJZY4DLQTT5UQFC6LYFDA</string>
     <string name="address_copied">Address copied to clipboard.</string>
 </resources>

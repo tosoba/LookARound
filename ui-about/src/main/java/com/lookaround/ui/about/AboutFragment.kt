@@ -110,7 +110,27 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
                 WalletsAdapter(
                     wallets =
                         listOf(
-                            Wallet(getString(R.string.btc_address), R.drawable.ic_bitcoin_btc_logo)
+                            Wallet(getString(R.string.btc_address), R.drawable.ic_bitcoin_btc_logo),
+                            Wallet(
+                                getString(R.string.eth_address),
+                                R.drawable.ic_ethereum_eth_logo
+                            ),
+                            Wallet(getString(R.string.bnb_address), R.drawable.ic_bnb_bnb_logo),
+                            Wallet(getString(R.string.ada_address), R.drawable.ic_cardano_ada_logo),
+                            Wallet(getString(R.string.sol_address), R.drawable.ic_solana_sol_logo),
+                            Wallet(getString(R.string.xrp_address), R.drawable.ic_xrp_xrp_logo),
+                            Wallet(getString(R.string.xmr_address), R.drawable.ic_monero_xmr_logo),
+                            Wallet(
+                                getString(R.string.usdt_address),
+                                R.drawable.ic_tether_usdt_logo
+                            ),
+                            Wallet(getString(R.string.xlm_address), R.drawable.ic_stellar_xlm_logo),
+                            Wallet(
+                                getString(R.string.algo_address),
+                                R.drawable.ic_algorand_algo_logo
+                            ),
+                            Wallet(getString(R.string.btc_address), R.drawable.ic_tezos_xtz_logo),
+                            Wallet(getString(R.string.btc_address), R.drawable.ic_vechain_vet_logo),
                         ),
                     textColor =
                         mainViewModel.state.bitmapCache

@@ -13,10 +13,11 @@
 
     <ImageView
         android:id="@+id/wallet_logo_image_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_gravity="center_vertical"
-        android:contentDescription="@string/donate" />
+        android:contentDescription="@string/donate"
+        android:scaleType="center" />
 
     <com.lookaround.core.android.view.textview.MarqueeTextView
         android:id="@+id/wallet_address_text_view"
@@ -32,12 +33,5 @@
         app:edgeEffectEnabled="true"
         app:edgeEffectWidth="20"
         app:pauseDuration="3000" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:contentDescription="@string/donate"
-        android:src="@drawable/ic_baseline_content_copy_24" />
 
 </LinearLayout>
