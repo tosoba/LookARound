@@ -227,10 +227,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     override fun onResume() {
         super.onResume()
-        lifecycleScope.launchWhenResumed {
-            signalTopFragmentChanged()
-            viewModel.signal(MainSignal.BottomSheetStateChanged(bottomSheetBehavior.state))
-        }
+        lifecycleScope.launchWhenResumed { signalTopFragmentChanged() }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
