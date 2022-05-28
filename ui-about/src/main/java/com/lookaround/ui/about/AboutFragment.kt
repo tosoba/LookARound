@@ -139,7 +139,7 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
                         ContextCompat.getDrawable(holder.binding.root.context, wallet.drawableRes)
                     )
                     walletAddressTextView.text = wallet.address
-                    textColor?.let { walletAddressTextView.setTextColor(it) }
+                    textColor?.let(walletAddressTextView::setTextColor)
                     root.setOnClickListener {
                         Toast.makeText(
                                 holder.binding.root.context,

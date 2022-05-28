@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clickable="true"
@@ -17,16 +18,20 @@
         android:layout_gravity="center_vertical"
         android:contentDescription="@string/donate" />
 
-    <TextView
+    <com.lookaround.core.android.view.textview.MarqueeTextView
         android:id="@+id/wallet_address_text_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginHorizontal="10dp"
+        android:layout_marginLeft="5dp"
         android:layout_weight="1"
-        android:ellipsize="marquee"
-        android:maxLines="1"
-        android:scrollHorizontally="true" />
+        android:textColor="#fff"
+        app:centerText="false"
+        app:edgeEffectColor="#fff"
+        app:edgeEffectEnabled="true"
+        app:edgeEffectWidth="20"
+        app:pauseDuration="3000" />
 
     <ImageView
         android:layout_width="wrap_content"
