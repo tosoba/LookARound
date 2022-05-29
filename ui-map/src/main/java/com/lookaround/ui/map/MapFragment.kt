@@ -130,7 +130,7 @@ class MapFragment :
             setSceneLoadListener(this@MapFragment)
             setMapChangeListener(this@MapFragment)
             setMarkerPickListener(this@MapFragment)
-            loadScene(if (requireContext().darkMode) MapScene.DARK else MapScene.LIGHT)
+            loadScene(if (darkMode) MapScene.DARK else MapScene.LIGHT)
             setSingleTapResponder()
             zoomOnDoubleTap()
             val cameraPositionInitialized = initCameraPosition(savedInstanceState)

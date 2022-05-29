@@ -77,7 +77,7 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                     parent: ViewGroup
                 ): ViewBinding =
                     PlaceListItemBinding.inflate(layoutInflater, parent, false).apply {
-                        if (!parent.context.darkMode) {
+                        if (!darkMode) {
                             placeNameText.setTextColor(Neutral8.toArgb())
                             placeDistanceText.setTextColor(Neutral7.toArgb())
                         }
@@ -92,8 +92,7 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                     with(binding as PlaceListItemBinding) {
                         root.setListBackgroundItemDrawableWith(
                             contrastingColor =
-                                if (requireContext().darkMode) Color.parseColor("#ff121212")
-                                else Color.WHITE,
+                                if (darkMode) Color.parseColor("#ff121212") else Color.WHITE,
                             alpha = 0xff
                         )
                         placeNameText.text = marker.name

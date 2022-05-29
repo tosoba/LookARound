@@ -72,14 +72,14 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
                 (blurredBackground) ->
                 background = BitmapDrawable(resources, blurredBackground)
             }
-                ?: run { setBackgroundColor(requireContext().colorPalette.uiBackground.toArgb()) }
+                ?: run { setBackgroundColor(colorPalette.uiBackground.toArgb()) }
         }
 
         binding.initPlaceInfo()
 
         mapController.launch {
             setSceneLoadListener(this@PlaceFragment)
-            loadScene(if (requireContext().darkMode) MapScene.DARK else MapScene.LIGHT)
+            loadScene(if (darkMode) MapScene.DARK else MapScene.LIGHT)
             initCameraPosition()
             touchInput.setAllGesturesDisabled()
             addMarkerFor(markerArgument.location)
@@ -147,7 +147,7 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
         placeInfoCardView.setCardBackgroundColor(
             ContextCompat.getColor(
                 requireContext(),
-                if (requireContext().darkMode) R.color.cardview_dark_background
+                if (darkMode) R.color.cardview_dark_background
                 else R.color.cardview_light_background
             )
         )
@@ -163,29 +163,25 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
 
         markerArgument.tags["opening_hours"]?.let(placeOpeningHoursTextView::setText)
             ?: run { placeOpeningHoursTextView.visibility = View.GONE }
-        placeOpeningHoursTextView.setTextColor(requireContext().colorPalette.textHelp.toArgb())
+        placeOpeningHoursTextView.setTextColor(colorPalette.textHelp.toArgb())
 
         placeNameTextView.text = markerArgument.name
-        placeNameTextView.setTextColor(requireContext().colorPalette.textPrimary.toArgb())
+        placeNameTextView.setTextColor(colorPalette.textPrimary.toArgb())
 
         markerArgument.address?.let(placeAddressTextView::setText)
             ?: run { placeAddressTextView.visibility = View.GONE }
-        placeAddressTextView.setTextColor(requireContext().colorPalette.textSecondary.toArgb())
+        placeAddressTextView.setTextColor(colorPalette.textSecondary.toArgb())
 
-        placeDistanceTextView.setTextColor(requireContext().colorPalette.textSecondary.toArgb())
+        placeDistanceTextView.setTextColor(colorPalette.textSecondary.toArgb())
         mainViewModel.locationReadyUpdates
             .map(markerArgument.location::preciseFormattedDistanceTo)
             .onEach(placeDistanceTextView::setText)
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         markerArgument.tags["description"]?.let {
-            placeDescriptionHeaderTextView.setTextColor(
-                requireContext().colorPalette.textPrimary.toArgb()
-            )
+            placeDescriptionHeaderTextView.setTextColor(colorPalette.textPrimary.toArgb())
             placeDescriptionTextView.text = it
-            placeDescriptionTextView.setTextColor(
-                requireContext().colorPalette.textSecondary.toArgb()
-            )
+            placeDescriptionTextView.setTextColor(colorPalette.textSecondary.toArgb())
         }
             ?: run {
                 placeDescriptionHeaderTextView.visibility = View.GONE
@@ -193,9 +189,7 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
             }
 
         if (markerArgument.hasContacts) {
-            placeContactsHeaderTextView.setTextColor(
-                requireContext().colorPalette.textPrimary.toArgb()
-            )
+            placeContactsHeaderTextView.setTextColor(colorPalette.textPrimary.toArgb())
 
             markerArgument.contactPhone?.let {
                 binding.placeContactPhone.setOnClickListener { _ ->
@@ -272,9 +266,7 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
 
         if (!markerArgument.hasContacts && !markerArgument.tags.containsKey("description")) {
             placeNoInformationTextView.visibility = View.VISIBLE
-            placeNoInformationTextView.setTextColor(
-                requireContext().colorPalette.textSecondary.toArgb()
-            )
+            placeNoInformationTextView.setTextColor(colorPalette.textSecondary.toArgb())
         }
     }
 

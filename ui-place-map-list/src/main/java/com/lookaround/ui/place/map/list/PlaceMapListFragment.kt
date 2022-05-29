@@ -166,7 +166,7 @@ class PlaceMapListFragment :
         mapController.launch {
             setSceneLoadListener(this@PlaceMapListFragment)
             setMapChangeListener(this@PlaceMapListFragment)
-            loadScene(if (requireContext().darkMode) MapScene.DARK else MapScene.LIGHT)
+            loadScene(if (darkMode) MapScene.DARK else MapScene.LIGHT)
         }
 
         viewModel

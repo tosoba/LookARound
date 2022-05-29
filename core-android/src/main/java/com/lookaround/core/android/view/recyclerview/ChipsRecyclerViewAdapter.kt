@@ -49,13 +49,10 @@ class ChipsRecyclerViewAdapter<I>(
                     } else {
                         root.setListBackgroundItemDrawableWith(
                             contrastingColor =
-                                if (parent.context.darkMode) Color.parseColor("#ff121212")
-                                else Color.WHITE,
+                                if (darkMode) Color.parseColor("#ff121212") else Color.WHITE,
                             alpha = 0xff
                         )
-                        if (!parent.context.darkMode) {
-                            chipLabelTextView.setTextColor(Neutral7.toArgb())
-                        }
+                        if (!darkMode) chipLabelTextView.setTextColor(Neutral7.toArgb())
                     }
                     chipLabelTextView.textSize = 16f
                 }

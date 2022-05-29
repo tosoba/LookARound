@@ -9,7 +9,7 @@ import android.util.TypedValue
 import android.view.Surface
 import android.view.WindowInsets
 import android.view.WindowManager
-import androidx.preference.PreferenceManager
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.lookaround.core.android.R
@@ -150,24 +150,21 @@ fun isRunningOnEmulator(): Boolean {
 val Context.uiMode: Int
     get() = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 
-val Context.darkMode: Boolean
-    get() =
-        when (PreferenceManager.getDefaultSharedPreferences(this)
-                .getString(
-                    getString(R.string.preference_theme_key),
-                    getString(R.string.preference_theme_system_value)
-                )
-        ) {
-            getString(R.string.preference_theme_light_value) -> {
-                false
-            }
-            getString(R.string.preference_theme_dark_value) -> {
-                true
-            }
-            getString(R.string.preference_theme_system_value) -> {
-                uiMode == Configuration.UI_MODE_NIGHT_YES
-            }
-            else -> {
-                throw IllegalStateException()
-            }
+val darkMode: Boolean
+    get() = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
+
+fun Context.setNightMode(pref: String) {
+    AppCompatDelegate.setDefaultNightMode(
+        when (pref) {
+            getString(R.string.preference_theme_light_value) -> AppCompatDelegate.MODE_NIGHT_NO
+            getString(R.string.preference_theme_dark_value) -> AppCompatDelegate.MODE_NIGHT_YES
+            getString(R.string.preference_theme_system_value) ->
+                if (uiMode == Configuration.UI_MODE_NIGHT_YES) {
+                    AppCompatDelegate.MODE_NIGHT_YES
+                } else {
+                    AppCompatDelegate.MODE_NIGHT_NO
+                }
+            else -> throw IllegalStateException()
         }
+    )
+}

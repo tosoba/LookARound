@@ -8,6 +8,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.lookaround.core.android.ext.setNightMode
 import com.lookaround.core.android.map.LocationBitmapCaptureCache
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.model.MainState
@@ -46,6 +47,12 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             findPreference<Preference>(getString(R.string.preference_clear_cache_key))?.apply {
                 setOnPreferenceClickListener {
                     locationBitmapCaptureCache.clear()
+                    true
+                }
+            }
+            findPreference<Preference>(getString(R.string.preference_theme_key))?.apply {
+                setOnPreferenceChangeListener { _, newValue ->
+                    requireContext().setNightMode(newValue as String)
                     true
                 }
             }
