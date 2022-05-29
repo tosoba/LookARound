@@ -3,6 +3,21 @@
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
+        app:title="@string/preferences_theme_header">
+
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:key="@string/preference_theme_key"
+            android:defaultValue="@string/preference_theme_system_value"
+            android:entries="@array/preference_theme_labels"
+            android:entryValues="@array/preference_theme_values"
+            app:summary="@string/preference_theme_summary"
+            app:title="@string/preference_theme_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
         app:title="@string/preferences_ar_header">
 
         <SeekBarPreference

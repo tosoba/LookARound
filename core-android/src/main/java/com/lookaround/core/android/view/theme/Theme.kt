@@ -6,8 +6,14 @@ import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.preference.PreferenceManager
+import com.fredporciuncula.flow.preferences.FlowSharedPreferences
+import com.lookaround.core.android.R
 import com.lookaround.core.android.ext.darkMode
 import com.lookaround.core.android.view.LocalSysUiController
+import kotlinx.coroutines.flow.filterNotNull
 
 private val LightColorPalette =
     LookARoundColors(
@@ -61,8 +67,24 @@ val Context.colorPalette: LookARoundColors
     get() = if (darkMode) DarkColorPalette else LightColorPalette
 
 @Composable
-fun LookARoundTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
-    val colors = if (darkTheme) DarkColorPalette else LightColorPalette
+fun LookARoundTheme(darkTheme: Boolean? = null, content: @Composable () -> Unit) {
+    val preferences =
+        FlowSharedPreferences(PreferenceManager.getDefaultSharedPreferences(LocalContext.current))
+    val themePreferenceKey = stringResource(id = R.string.preference_theme_key)
+    val systemTheme = stringResource(id = R.string.preference_theme_system_value)
+    val themePreferenceFlow = remember {
+        preferences.getString(themePreferenceKey, systemTheme).asFlow().filterNotNull()
+    }
+    val themePreferenceState = themePreferenceFlow.collectAsState(initial = systemTheme)
+    val userDarkTheme =
+        darkTheme
+            ?: when (themePreferenceState.value) {
+                stringResource(id = R.string.preference_theme_light_value) -> false
+                stringResource(id = R.string.preference_theme_dark_value) -> true
+                systemTheme -> isSystemInDarkTheme()
+                else -> throw IllegalStateException()
+            }
+    val colors = if (userDarkTheme) DarkColorPalette else LightColorPalette
 
     val sysUiController = LocalSysUiController.current
     SideEffect {
@@ -73,7 +95,7 @@ fun LookARoundTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Compos
 
     ProvideLookARoundColors(colors) {
         MaterialTheme(
-            colors = debugColors(darkTheme),
+            colors = debugColors(userDarkTheme),
             typography = Typography,
             shapes = Shapes,
             content = content

@@ -9,8 +9,10 @@ import android.util.TypedValue
 import android.view.Surface
 import android.view.WindowInsets
 import android.view.WindowManager
+import androidx.preference.PreferenceManager
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.lookaround.core.android.R
 import java.io.File
 import kotlin.math.ceil
 
@@ -149,4 +151,23 @@ val Context.uiMode: Int
     get() = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 
 val Context.darkMode: Boolean
-    get() = uiMode == Configuration.UI_MODE_NIGHT_YES
+    get() =
+        when (PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(
+                    getString(R.string.preference_theme_key),
+                    getString(R.string.preference_theme_system_value)
+                )
+        ) {
+            getString(R.string.preference_theme_light_value) -> {
+                false
+            }
+            getString(R.string.preference_theme_dark_value) -> {
+                true
+            }
+            getString(R.string.preference_theme_system_value) -> {
+                uiMode == Configuration.UI_MODE_NIGHT_YES
+            }
+            else -> {
+                throw IllegalStateException()
+            }
+        }

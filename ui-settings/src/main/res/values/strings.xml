@@ -5,4 +5,7 @@
     <string name="preference_sensitivity_summary">AR view sensitivity - smaller values result in slower/smoother marker movement, higher values result in faster/jittery marker movement</string>
     <string name="preference_clear_cache_title">Clear cache</string>
     <string name="preference_clear_cache_summary">Clears app cache - mainly map images in places list</string>
+    <string name="preferences_theme_header">Theme</string>
+    <string name="preference_theme_summary">Switch between light and dark theme</string>
+    <string name="preference_theme_title">Theme</string>
 </resources>

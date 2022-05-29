@@ -102,10 +102,11 @@ dependencies {
     implementation("com.google.accompanist:accompanist-insets:0.20.1")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
-
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.fragment:fragment-ktx:1.3.6")
     implementation("androidx.concurrent:concurrent-futures:1.1.0")
+    implementation("com.fredporciuncula:flow-preferences:1.7.0")
+    implementation("androidx.preference:preference:1.2.0")
 
     implementation("androidx.navigation:navigation-fragment-ktx:2.3.5")
     implementation("androidx.navigation:navigation-ui-ktx:2.3.5")

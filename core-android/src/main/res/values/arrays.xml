@@ -1,0 +1,13 @@
+<resources>
+    <string-array name="preference_theme_labels">
+        <item>@string/preference_theme_system_label</item>
+        <item>@string/preference_theme_light_label</item>
+        <item>@string/preference_theme_dark_label</item>
+    </string-array>
+
+    <string-array name="preference_theme_values">
+        <item>@string/preference_theme_system_value</item>
+        <item>@string/preference_theme_light_value</item>
+        <item>@string/preference_theme_dark_value</item>
+    </string-array>
+</resources>
