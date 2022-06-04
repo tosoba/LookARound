@@ -607,8 +607,9 @@ class CameraFragment :
     }
 
     private fun onMarkerPressed(marker: ARMarker) {
-        Timber.tag("MP")
-            .d("Pressed marker with id: ${marker.wrapped.id}; name: ${marker.wrapped.name}")
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            mainViewModel.signal(MainSignal.ShowMapFragment(marker.wrapped))
+        }
     }
 
     private fun FragmentCameraBinding.showARViews(showRadar: Boolean) {
