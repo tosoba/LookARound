@@ -17,7 +17,7 @@
         android:layout_height="50dp"
         android:layout_gravity="center_vertical"
         android:contentDescription="@string/donate"
-        android:scaleType="center" />
+        android:scaleType="fitCenter" />
 
     <com.lookaround.core.android.view.textview.MarqueeTextView
         android:id="@+id/wallet_address_text_view"
