@@ -92,7 +92,11 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                     with(binding as PlaceListItemBinding) {
                         root.setListBackgroundItemDrawableWith(
                             contrastingColor =
-                                if (darkMode) Color.parseColor("#ff121212") else Color.WHITE,
+                                if (darkMode) {
+                                    binding.root.context.getColor(R.color.dark_gray_background)
+                                } else {
+                                    Color.WHITE
+                                },
                             alpha = 0xff
                         )
                         placeNameText.text = marker.name

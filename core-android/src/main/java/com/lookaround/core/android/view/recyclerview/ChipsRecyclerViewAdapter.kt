@@ -49,7 +49,8 @@ class ChipsRecyclerViewAdapter<I>(
                     } else {
                         root.setListBackgroundItemDrawableWith(
                             contrastingColor =
-                                if (darkMode) Color.parseColor("#ff121212") else Color.WHITE,
+                                if (darkMode) parent.context.getColor(R.color.dark_gray_background)
+                                else Color.WHITE,
                             alpha = 0xff
                         )
                         if (!darkMode) chipLabelTextView.setTextColor(Neutral7.toArgb())

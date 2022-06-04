@@ -19,6 +19,7 @@ private val LightColorPalette =
         textHelp = Neutral6,
         textInteractive = Neutral0,
         textLink = Ocean11,
+        iconPrimary = Neutral8,
         iconSecondary = Neutral7,
         iconInteractive = Neutral0,
         iconInteractiveInactive = Neutral1,
