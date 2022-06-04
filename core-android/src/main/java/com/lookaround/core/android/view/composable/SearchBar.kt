@@ -21,15 +21,19 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.insets.statusBarsPadding
 import com.lookaround.core.android.R
+import com.lookaround.core.android.ext.darkMode
 import com.lookaround.core.android.view.theme.LookARoundTheme
+import com.lookaround.core.android.view.theme.Neutral1
 
 @Composable
 fun SearchBar(
@@ -121,6 +125,10 @@ private fun SearchBar(
                 }
                 BasicTextField(
                     value = value,
+                    textStyle =
+                        if (darkMode) TextStyle.Default.copy(color = Neutral1)
+                        else TextStyle.Default,
+                    cursorBrush = if (darkMode) SolidColor(Neutral1) else SolidColor(Color.Black),
                     onValueChange = onTextValueChange,
                     keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
