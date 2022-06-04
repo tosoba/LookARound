@@ -126,6 +126,15 @@ class MapFragment :
             )
         }
 
+        currentMarker
+            ?.id
+            ?.takeIf { savedInstanceState == null }
+            ?.let {
+                lifecycleScope.launchWhenResumed {
+                    mainViewModel.signal(MainSignal.ShowPlaceInBottomSheet(it))
+                }
+            }
+
         mapController.launch {
             setSceneLoadListener(this@MapFragment)
             setMapChangeListener(this@MapFragment)

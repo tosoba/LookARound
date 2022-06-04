@@ -140,6 +140,7 @@ class PlaceMapListFragment :
                     )
             ) { marker ->
                 viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+                    mainViewModel.signal(MainSignal.HideBottomSheet)
                     mainViewModel.signal(MainSignal.ShowMapFragment(marker))
                 }
             }
