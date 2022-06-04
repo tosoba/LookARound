@@ -3,8 +3,7 @@
     android:id="@+id/donate_crypto_text_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingHorizontal="20dp"
-    android:paddingVertical="5dp"
+    android:layout_margin="25dp"
     android:text="@string/donate_crypto"
     android:textColor="@android:color/white"
     android:textSize="18sp" />
