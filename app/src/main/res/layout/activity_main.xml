@@ -78,6 +78,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="left"
         android:background="@drawable/background"
+        app:insetForeground="@null"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/drawer_header"
         app:menu="@menu/drawer_menu" />
