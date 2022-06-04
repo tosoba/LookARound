@@ -3,6 +3,7 @@ package com.lookaround.ui.recent.searches
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -65,8 +66,9 @@ class RecentSearchesRecyclerViewAdapter(
             }
             SearchType.AUTOCOMPLETE -> {
                 binding.recentSearchImage.setImageDrawable(
-                    ContextCompat.getDrawable(binding.root.context, R.drawable.search)
+                    ContextCompat.getDrawable(binding.root.context, R.drawable.text_search)
                 )
+                binding.recentSearchImage.scaleType = ImageView.ScaleType.CENTER_INSIDE
             }
         }
         binding.recentSearchNameText.text =
