@@ -1,5 +1,8 @@
 package com.lookaround.ui.about
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -178,6 +181,13 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
                     walletAddressTextView.text = wallet.address
                     textColor?.let(walletAddressTextView::setTextColor)
                     root.setOnClickListener {
+                        val clipboard =
+                            holder.binding.root.context.getSystemService(Context.CLIPBOARD_SERVICE)
+                                as ClipboardManager
+                        val clip =
+                            ClipData.newPlainText("address", wallet.address)
+                                ?: return@setOnClickListener
+                        clipboard.setPrimaryClip(clip)
                         Toast.makeText(
                                 holder.binding.root.context,
                                 holder.binding.root.context.getString(R.string.address_copied),
