@@ -8,7 +8,10 @@ import android.view.View
 import android.view.ViewTreeObserver.OnPreDrawListener
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
+import androidx.annotation.ColorRes
 import androidx.annotation.IntRange
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
 import com.facebook.shimmer.ShimmerFrameLayout
@@ -96,4 +99,10 @@ fun View.runOnPreDrawOnce(action: () -> Unit) {
             }
         }
     viewTreeObserver.addOnPreDrawListener(preDrawListener)
+}
+
+fun AlertDialog.setButtonsTextColor(@ColorRes colorRes: Int) {
+    val color = ContextCompat.getColor(context, colorRes)
+    getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(color)
+    getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(color)
 }

@@ -23,7 +23,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.lookaround.core.android.ext.addCollapseTopViewOnScrollListener
+import com.lookaround.core.android.ext.darkMode
 import com.lookaround.core.android.ext.scrollToTopAndShow
+import com.lookaround.core.android.ext.setButtonsTextColor
 import com.lookaround.core.android.model.*
 import com.lookaround.core.android.view.composable.*
 import com.lookaround.core.android.view.recyclerview.LoadMoreRecyclerViewScrollListener
@@ -69,7 +71,11 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                         mainViewModel.locationReadyUpdates
                     ),
                 onItemLongClicked = { (id, label, type) ->
-                    AlertDialog.Builder(requireContext())
+                    AlertDialog.Builder(
+                            requireContext(),
+                            if (darkMode) android.R.style.Theme_DeviceDefault_Dialog_Alert
+                            else android.R.style.Theme_DeviceDefault_Light_Dialog_Alert
+                        )
                         .setTitle(label)
                         .setMessage(getString(R.string.remove_from_recent_searches))
                         .setCancelable(true)
@@ -82,6 +88,11 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                         }
                         .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                             dialog.dismiss()
+                        }
+                        .create()
+                        .apply {
+                            if (!darkMode) return@apply
+                            setOnShowListener { setButtonsTextColor(R.color.colorAccent) }
                         }
                         .show()
                 }
@@ -240,7 +251,11 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
 
     private fun initRemoveAllSearchesFab() {
         binding.clearAllRecentSearchesFab.setOnClickListener {
-            AlertDialog.Builder(requireContext())
+            AlertDialog.Builder(
+                    requireContext(),
+                    if (darkMode) android.R.style.Theme_Material_Dialog_NoActionBar
+                    else android.R.style.Theme_Material_Light_Dialog_NoActionBar
+                )
                 .setTitle(getString(R.string.all_searches))
                 .setMessage(getString(R.string.remove_all_recent_searches))
                 .setCancelable(true)
@@ -250,6 +265,11 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
                     }
                 }
                 .setNegativeButton(getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
+                .create()
+                .apply {
+                    if (!darkMode) return@apply
+                    setOnShowListener { setButtonsTextColor(R.color.colorAccent) }
+                }
                 .show()
         }
     }
