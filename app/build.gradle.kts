@@ -42,9 +42,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+    kotlinOptions { jvmTarget = "1.8" }
 
     buildFeatures { viewBinding = true }
 }
@@ -84,6 +82,7 @@ dependencies {
     implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
     implementation("androidx.palette:palette:1.0.0")
     implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation("net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:3.0.0-RC3")
 
     implementation("androidx.compose.runtime:runtime:1.2.0-beta02")
     implementation("androidx.compose.compiler:compiler:1.2.0-beta02")

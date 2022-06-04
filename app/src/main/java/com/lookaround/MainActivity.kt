@@ -67,6 +67,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent.setEventListener
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEventListener
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -116,6 +118,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 if (menuItem.itemId == R.id.action_unchecked || !menuItem.isVisible) {
                     return@OnItemSelectedListener true
                 }
+
+                hideKeyboard()
 
                 binding.bottomSheetViewPager.setCurrentItem(
                     bottomSheetViewPagerAdapter.fragmentFactories.indexOf(
@@ -183,7 +187,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         viewModel
             .filterSignals(MainSignal.ToggleSearchBarVisibility::targetVisibility)
             .filter { viewsInteractionEnabled }
-            .onEach(::setSearchbarVisibility)
+            .onEach {
+                if (it == View.GONE) hideKeyboard()
+                setSearchbarVisibility(it)
+            }
             .launchIn(lifecycleScope)
 
         viewModel.locationUpdateFailureUpdates
@@ -534,6 +541,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                             return
                         }
 
+                        hideKeyboard()
+
                         binding.bottomNavigationView.selectedItemId =
                             when (bottomSheetViewPagerAdapter.fragmentFactories[position]) {
                                 MainFragmentFactory.PLACE_CATEGORIES -> R.id.action_place_categories
@@ -655,6 +664,27 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                     }
                 }
                 .launchIn(lifecycleScope)
+
+            setEventListener(
+                this@MainActivity,
+                KeyboardVisibilityEventListener { open ->
+                    if (currentTopFragment !is CameraFragment) {
+                        return@KeyboardVisibilityEventListener
+                    }
+
+                    if (open) {
+                        alpha = 0f
+                        background =
+                            ContextCompat.getDrawable(
+                                this@MainActivity,
+                                R.drawable.rounded_view_background
+                            )
+                        animate().alpha(1f).duration = 250L
+                    } else {
+                        setBackgroundColor(Color.TRANSPARENT)
+                    }
+                }
+            )
 
             if (currentTopFragment is MapFragment) visibility = View.VISIBLE
         }
