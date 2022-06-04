@@ -681,7 +681,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                             )
                         animate().alpha(1f).duration = 250L
                     } else {
+                        alpha = 0f
                         setBackgroundColor(Color.TRANSPARENT)
+                        animate().alpha(1f).duration = 250L
                     }
                 }
             )
