@@ -186,6 +186,10 @@ constructor(
         dao.deleteById(id)
     }
 
+    override suspend fun deleteAll() {
+        dao.deleteAll()
+    }
+
     companion object {
         private const val USE_CLOSEST_RESULTS_LIMIT_METERS = 100f
     }

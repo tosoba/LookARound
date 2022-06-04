@@ -4,6 +4,7 @@ import com.lookaround.core.android.architecture.FlowProcessor
 import com.lookaround.core.android.model.Empty
 import com.lookaround.core.android.model.Ready
 import com.lookaround.core.usecase.DeleteSearch
+import com.lookaround.core.usecase.DeleteSearches
 import com.lookaround.core.usecase.GetSearchesCount
 import com.lookaround.core.usecase.RecentSearchesFlow
 import com.lookaround.ui.recent.searches.model.*
@@ -19,6 +20,7 @@ constructor(
     private val recentSearchesFlow: RecentSearchesFlow,
     private val getSearchesCount: GetSearchesCount,
     private val deleteSearch: DeleteSearch,
+    private val deleteSearches: DeleteSearches,
 ) : FlowProcessor<RecentSearchesIntent, RecentSearchesState, RecentSearchesSignal> {
     override fun updates(
         coroutineScope: CoroutineScope,
@@ -80,6 +82,11 @@ constructor(
         intents
             .filterIsInstance<RecentSearchesIntent.DeleteSearch>()
             .onEach { (id, type) -> deleteSearch(id, type) }
+            .launchIn(coroutineScope)
+
+        intents
+            .filterIsInstance<RecentSearchesIntent.DeleteSearches>()
+            .onEach { deleteSearches() }
             .launchIn(coroutineScope)
     }
 }

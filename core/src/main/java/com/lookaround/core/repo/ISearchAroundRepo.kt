@@ -26,4 +26,6 @@ interface ISearchAroundRepo {
     suspend fun searchResults(searchId: Long): List<NodeDTO>
 
     suspend fun deleteSearch(id: Long)
+
+    suspend fun deleteAll()
 }

@@ -116,6 +116,8 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        initRemoveAllSearchesFab()
+
         val emptyRecentSearchesFlow =
             recentSearchesViewModel.states
                 .map { it.searches.hasNoValueOrEmpty() }
@@ -233,6 +235,22 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
         )
         binding.recentSearchesRecyclerView.apply {
             if (wasNotScrolled) scrollToTopAndShow() else visibility = View.VISIBLE
+        }
+    }
+
+    private fun initRemoveAllSearchesFab() {
+        binding.clearAllRecentSearchesFab.setOnClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.all_searches))
+                .setMessage(getString(R.string.remove_all_recent_searches))
+                .setCancelable(true)
+                .setPositiveButton(getString(R.string.remove)) { _, _ ->
+                    lifecycleScope.launch {
+                        recentSearchesViewModel.intent(RecentSearchesIntent.DeleteSearches)
+                    }
+                }
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
+                .show()
         }
     }
 
