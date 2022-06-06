@@ -109,10 +109,11 @@ class MapFragment :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.MAP)?.let {
-            (blurredBackground) ->
-            binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
-        }
+        (mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.MAP)
+                ?: mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA))
+            ?.let { (blurredBackground) ->
+                binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
+            }
 
         lifecycleScope.launchWhenResumed {
             mainViewModel.signal(
