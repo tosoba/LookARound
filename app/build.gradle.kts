@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":ui-place-categories"))
     implementation(project(":ui-recent-searches"))
     implementation(project(":ui-settings"))
+    implementation(project(":viewpager-bottom-sheet-behavior"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
@@ -79,7 +80,6 @@ dependencies {
     implementation("com.google.accompanist:accompanist-insets:0.20.1")
     implementation("com.google.accompanist:accompanist-coil:0.15.0")
     implementation("io.github.hokofly:hoko-blur:1.3.7")
-    implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
     implementation("androidx.palette:palette:1.0.0")
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:3.0.0-RC3")

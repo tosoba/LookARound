@@ -45,6 +45,7 @@ android {
 dependencies {
     implementation(project(":core"))
     implementation(project(":core-android"))
+    implementation(project(":viewpager-bottom-sheet-behavior"))
 
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
 
@@ -52,7 +53,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
 
     implementation("com.google.android.material:material:1.6.0")
-    implementation("com.github.xcc3641:ExViewPagerBottomSheet:1.3")
     implementation("androidx.palette:palette:1.0.0")
 
     implementation("androidx.compose.runtime:runtime:1.2.0-beta02")
