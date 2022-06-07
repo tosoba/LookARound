@@ -98,8 +98,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     private val shouldUpdateLastLiveBottomSheetState: Boolean
         get() =
-            viewsInteractionEnabled &&
-                bottomSheetBehavior.state != ViewPagerBottomSheetBehavior.STATE_SETTLING
+            bottomSheetBehavior.state != ViewPagerBottomSheetBehavior.STATE_SETTLING &&
+                viewsInteractionEnabled
 
     private val viewsInteractionEnabled: Boolean
         get() =
@@ -721,7 +721,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     }
 
     private fun onBottomSheetStateChanged(@ViewPagerBottomSheetBehavior.State sheetState: Int) {
-        if (sheetState != ViewPagerBottomSheetBehavior.STATE_SETTLING && viewsInteractionEnabled) {
+        if (shouldUpdateLastLiveBottomSheetState) {
             lifecycleScope.launch {
                 viewModel.intent(MainIntent.LiveBottomSheetStateChanged(sheetState))
             }
