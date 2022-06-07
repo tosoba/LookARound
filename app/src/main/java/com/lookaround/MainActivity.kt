@@ -543,13 +543,16 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
                         hideKeyboard()
 
-                        binding.bottomNavigationView.selectedItemId =
+                        val selectedItemId =
                             when (bottomSheetViewPagerAdapter.fragmentFactories[position]) {
                                 MainFragmentFactory.PLACE_CATEGORIES -> R.id.action_place_categories
                                 MainFragmentFactory.PLACE_MAP_LIST -> R.id.action_place_map_list
                                 MainFragmentFactory.RECENT_SEARCHES -> R.id.action_recent_searches
                                 else -> throw IllegalArgumentException()
                             }
+                        if (binding.bottomNavigationView.selectedItemId != selectedItemId) {
+                            binding.bottomNavigationView.selectedItemId = selectedItemId
+                        }
                     }
                 }
             )
