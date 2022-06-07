@@ -115,18 +115,6 @@ class MapFragment :
                 binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
             }
 
-        lifecycleScope.launchWhenResumed {
-            mainViewModel.signal(
-                if (mainViewModel.state.lastLiveBottomSheetState !=
-                        ViewPagerBottomSheetBehavior.STATE_EXPANDED
-                ) {
-                    MainSignal.ToggleSearchBarVisibility(View.VISIBLE)
-                } else {
-                    MainSignal.BottomSheetStateChanged(ViewPagerBottomSheetBehavior.STATE_EXPANDED)
-                }
-            )
-        }
-
         currentMarker
             ?.id
             ?.takeIf { savedInstanceState == null }
@@ -147,6 +135,17 @@ class MapFragment :
             syncMarkerChangesWithMap(cameraPositionInitialized)
         }
 
+        lifecycleScope.launchWhenResumed {
+            mainViewModel.signal(
+                if (mainViewModel.state.lastLiveBottomSheetState !=
+                    ViewPagerBottomSheetBehavior.STATE_EXPANDED
+                ) {
+                    MainSignal.ToggleSearchBarVisibility(View.VISIBLE)
+                } else {
+                    MainSignal.BottomSheetStateChanged(ViewPagerBottomSheetBehavior.STATE_EXPANDED)
+                }
+            )
+        }
         initBlurringOnBottomSheetStateChanged()
 
         mapSceneViewModel
@@ -516,6 +515,12 @@ class MapFragment :
 
         mainViewModel
             .filterSignals(MainSignal.BottomSheetStateChanged::state)
+            .debounce(250L)
+            .filter {
+                it == ViewPagerBottomSheetBehavior.STATE_EXPANDED ||
+                    it == ViewPagerBottomSheetBehavior.STATE_HIDDEN
+            }
+            .distinctUntilChanged()
             .onEach { sheetState ->
                 binding.blurBackground.fadeSetVisibility(
                     when (sheetState) {

@@ -138,6 +138,15 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                     placeListBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
                     binding.bottomSheetViewPager.visibility = View.VISIBLE
                     bottomSheetBehavior.state = ViewPagerBottomSheetBehavior.STATE_EXPANDED
+                    if (currentTopFragment is MapFragment) {
+                        lifecycleScope.launch {
+                            viewModel.signal(
+                                MainSignal.BottomSheetStateChanged(
+                                    ViewPagerBottomSheetBehavior.STATE_EXPANDED
+                                )
+                            )
+                        }
+                    }
                 }
 
                 true
