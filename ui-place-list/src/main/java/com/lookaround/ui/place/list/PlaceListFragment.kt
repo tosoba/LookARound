@@ -159,7 +159,6 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.placeListRecyclerView.registerLifecycle(this)
         binding.placeListRecyclerView.carouselListener = carouselListener
         binding.placeListRecyclerView.onScrollListener = carouselOnScrollListener
 
@@ -197,30 +196,40 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
 
     private fun scrollToPosition(position: Int) {
         carouselLastPosition = position
-        binding.placeListRecyclerView.postDelayed(
-            { binding.placeListRecyclerView.currentPosition = position },
-            500L
-        )
+        with(binding.placeListRecyclerView) {
+            postDelayed(
+                {
+                    smoothScrollEnabled = false
+                    currentPosition = position
+                    smoothScrollEnabled = true
+                    currentPosition = position
+                    carouselRecyclerView?.snapToPosition(position)
+                },
+                500L
+            )
+        }
     }
 
     private fun ImageCarousel.restoreCarouselPosition() {
         postDelayed(
             {
                 currentPosition = carouselLastPosition
-                with(carouselRecyclerView ?: return@postDelayed) {
-                    val layoutManager = layoutManager as? LinearLayoutManager ?: return@postDelayed
-                    val targetView =
-                        layoutManager.findViewByPosition(carouselLastPosition) ?: return@postDelayed
-                    val distanceToSnapHorizontal =
-                        carouselSnapHelper
-                            ?.calculateDistanceToFinalSnap(layoutManager, targetView)
-                            ?.firstOrNull()
-                            ?: return@postDelayed
-                    scrollBy(distanceToSnapHorizontal, 0)
-                }
+                carouselRecyclerView?.snapToPosition(carouselLastPosition)
             },
             500L
         )
+    }
+
+    private fun RecyclerView.snapToPosition(position: Int) {
+        val layoutManager = layoutManager as? LinearLayoutManager ?: return
+        val targetView = layoutManager.findViewByPosition(position) ?: return
+        val distanceToSnapHorizontal =
+            carouselSnapHelper
+                ?.calculateDistanceToFinalSnap(layoutManager, targetView)
+                ?.firstOrNull()
+                ?: return
+        scrollBy(distanceToSnapHorizontal, 0)
+        return
     }
 
     private enum class SavedStateKey {
