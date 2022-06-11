@@ -49,6 +49,8 @@
             app:elevation="0dp"
             app:itemHorizontalTranslationEnabled="false"
             app:itemIconTint="@drawable/bottom_nav_view_item_colors"
+            app:itemTextAppearanceActive="@style/bottom_nav_text_appearance_active"
+            app:itemTextAppearanceInactive="@style/bottom_nav_text_appearance_inactive"
             app:itemTextColor="@drawable/bottom_nav_view_item_colors"
             app:menu="@menu/main_bottom_nav_menu" />
 
@@ -78,9 +80,9 @@
         android:layout_height="match_parent"
         android:layout_gravity="left"
         android:background="@drawable/background"
-        app:insetForeground="@null"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/drawer_header"
+        app:insetForeground="@null"
         app:menu="@menu/drawer_menu" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

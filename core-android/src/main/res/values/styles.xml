@@ -20,4 +20,21 @@
         <item name="android:shadowColor">@android:color/black</item>
     </style>
 
+    <style name="bottom_nav_text_appearance_active">
+        <item name="android:shadowDy">0</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowRadius">1</item>
+        <item name="android:shadowColor">@android:color/black</item>
+        <item name="android:textSize">16sp</item>
+
+    </style>
+
+    <style name="bottom_nav_text_appearance_inactive">
+        <item name="android:shadowDy">0</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowRadius">1</item>
+        <item name="android:shadowColor">@android:color/black</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
 </resources>
