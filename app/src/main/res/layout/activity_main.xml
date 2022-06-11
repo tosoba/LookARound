@@ -81,6 +81,7 @@
         android:layout_gravity="left"
         android:background="@drawable/background"
         android:fitsSystemWindows="true"
+        app:itemTextAppearance="@style/text_appearance_shadow_radius_1"
         app:headerLayout="@layout/drawer_header"
         app:insetForeground="@null"
         app:menu="@menu/drawer_menu" />
