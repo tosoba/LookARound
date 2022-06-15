@@ -20,11 +20,12 @@
         <item name="android:shadowColor">@android:color/black</item>
     </style>
 
-    <style name="text_appearance_shadow_radius_1">
+    <style name="text_appearance_drawer_menu_item">
         <item name="android:shadowDy">0</item>
         <item name="android:shadowDx">0</item>
-        <item name="android:shadowRadius">1</item>
+        <item name="android:shadowRadius">.5</item>
         <item name="android:shadowColor">@android:color/darker_gray</item>
+        <item name="android:textSize">16sp</item>
     </style>
 
     <style name="bottom_nav_text_appearance_active">
