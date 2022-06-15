@@ -81,9 +81,9 @@
         android:layout_gravity="left"
         android:background="@drawable/background"
         android:fitsSystemWindows="true"
-        app:itemTextAppearance="@style/text_appearance_drawer_menu_item"
         app:headerLayout="@layout/drawer_header"
         app:insetForeground="@null"
+        app:itemTextAppearance="@style/text_appearance_drawer_menu_item"
         app:menu="@menu/drawer_menu" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
