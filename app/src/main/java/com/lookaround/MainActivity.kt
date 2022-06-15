@@ -1,14 +1,13 @@
 package com.lookaround
 
 import android.annotation.SuppressLint
-import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
+import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
@@ -381,15 +380,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                         .filter {
                             lifecycle.isResumed && !open && lastState == DrawerLayout.STATE_IDLE
                         }
-                        .onEach { (drawable, palette) ->
-                            binding.drawerNavigationView.background = drawable
-                            val swatch = palette.dominantSwatch ?: return@onEach
-                            val colorStateList = ColorStateList.valueOf(swatch.bodyTextColor)
-                            binding.drawerNavigationView
-                                .getHeaderView(0)
-                                ?.findViewById<TextView>(R.id.drawer_header_app_name_text_view)
-                                ?.setTextColor(swatch.bodyTextColor)
-                            binding.drawerNavigationView.itemTextColor = colorStateList
+                        .onEach { (drawable) ->
+                            binding.drawerNavigationView.background =
+                                LayerDrawable(
+                                    arrayOf(
+                                        drawable,
+                                        ContextCompat.getDrawable(
+                                            this@MainActivity,
+                                            R.drawable.top_dark_gradient
+                                        )
+                                    )
+                                )
                         }
                         .launchIn(lifecycleScope)
                 }
