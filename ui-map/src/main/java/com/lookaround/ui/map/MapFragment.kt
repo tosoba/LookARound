@@ -187,11 +187,15 @@ class MapFragment :
     override fun onResume() {
         super.onResume()
         binding.map.onResume()
+        lifecycleScope.launchWhenResumed { mainViewModel.signal(MainSignal.MapFragmentResumed) }
     }
 
     override fun onPause() {
         super.onPause()
         binding.map.onPause()
+        binding.blurBackground.visibility = View.VISIBLE
+        binding.userLocationFab.visibility = View.GONE
+        binding.userLocationFab.visibility = View.GONE
         orientationManager.stopSensor()
     }
 
@@ -501,6 +505,14 @@ class MapFragment :
     }
 
     private fun initBlurringOnBottomSheetStateChanged() {
+        if (mainViewModel.state.lastLiveBottomSheetState !=
+                ViewPagerBottomSheetBehavior.STATE_HIDDEN
+        ) {
+            binding.blurBackground.visibility = View.GONE
+            binding.userLocationFab.visibility = View.GONE
+            binding.compassFab.visibility = View.GONE
+        }
+
         if (isRunningOnEmulator()) return
 
         mainViewModel

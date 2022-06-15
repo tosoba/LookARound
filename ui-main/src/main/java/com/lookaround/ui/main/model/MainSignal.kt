@@ -34,4 +34,5 @@ sealed interface MainSignal {
     data class PlaceListBottomSheetStateChanged(
         @BottomSheetBehavior.State val state: Int,
     ) : MainSignal
+    object MapFragmentResumed : MainSignal
 }
