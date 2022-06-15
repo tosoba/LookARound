@@ -4,6 +4,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.location.Location
 import android.os.Bundle
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -109,11 +110,11 @@ class MapFragment :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        (mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.MAP)
-                ?: mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA))
-            ?.let { (blurredBackground) ->
-                binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
-            }
+        binding.blurBackground.background =
+            (mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.MAP)
+                    ?: mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA))
+                ?.let { (blurredBackground) -> BitmapDrawable(resources, blurredBackground) }
+                ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
 
         currentMarker
             ?.id

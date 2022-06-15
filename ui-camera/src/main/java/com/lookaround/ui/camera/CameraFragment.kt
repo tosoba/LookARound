@@ -46,10 +46,10 @@ import com.lookaround.ui.main.model.MainState
 import com.permissionx.guolindev.PermissionX
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import kotlin.math.min
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
+import kotlin.math.min
 
 @AndroidEntryPoint
 @WithFragmentBindings
@@ -114,10 +114,12 @@ class CameraFragment :
         }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA)?.let {
-            (blurredBackground) ->
-            binding.blurBackground.background = BitmapDrawable(resources, blurredBackground)
-        }
+        binding.blurBackground.background =
+            mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA)?.let {
+                (blurredBackground) ->
+                BitmapDrawable(resources, blurredBackground)
+            }
+                ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
 
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
 
