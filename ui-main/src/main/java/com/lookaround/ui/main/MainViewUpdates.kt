@@ -68,19 +68,19 @@ val MainViewModel.nearMeFabVisibilityUpdates: Flow<Boolean>
 val MainViewModel.userLocationFabVisibilityUpdates: Flow<Boolean>
     get() =
         combine(
-                filterSignals(MainSignal.BottomSheetStateChanged::state),
-                filterSignals(MainSignal.PlaceListBottomSheetStateChanged::state),
+                filterSignals(MainSignal.BottomSheetStateChanged::state).onStart {
+                    emit(ViewPagerBottomSheetBehavior.STATE_HIDDEN)
+                },
+                filterSignals(MainSignal.PlaceListBottomSheetStateChanged::state).onStart {
+                    emit(BottomSheetBehavior.STATE_HIDDEN)
+                },
                 filterSignals(MainSignal.SnackbarStatusChanged::isShowing).onStart { emit(false) },
             ) { sheetState, placeListBottomSheetState, isSnackbarShowing ->
                 !isSnackbarShowing &&
-                    placeListBottomSheetState != BottomSheetBehavior.STATE_EXPANDED &&
-                    placeListBottomSheetState != BottomSheetBehavior.STATE_DRAGGING &&
-                    placeListBottomSheetState != BottomSheetBehavior.STATE_SETTLING &&
-                    sheetState != ViewPagerBottomSheetBehavior.STATE_EXPANDED &&
-                    sheetState != ViewPagerBottomSheetBehavior.STATE_DRAGGING &&
-                    sheetState != ViewPagerBottomSheetBehavior.STATE_SETTLING
+                    placeListBottomSheetState == BottomSheetBehavior.STATE_HIDDEN &&
+                    sheetState == ViewPagerBottomSheetBehavior.STATE_HIDDEN
             }
-            .distinctUntilChanged()
+            .debounce(250L)
 
 @FlowPreview
 @ExperimentalCoroutinesApi

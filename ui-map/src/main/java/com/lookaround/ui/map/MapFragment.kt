@@ -138,7 +138,7 @@ class MapFragment :
         lifecycleScope.launchWhenResumed {
             mainViewModel.signal(
                 if (mainViewModel.state.lastLiveBottomSheetState !=
-                    ViewPagerBottomSheetBehavior.STATE_EXPANDED
+                        ViewPagerBottomSheetBehavior.STATE_EXPANDED
                 ) {
                     MainSignal.ToggleSearchBarVisibility(View.VISIBLE)
                 } else {
@@ -447,20 +447,10 @@ class MapFragment :
         }
 
         mainViewModel.userLocationFabVisibilityUpdates
-            .onEach { binding.userLocationFab.visibility = if (it) View.VISIBLE else View.GONE }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-    }
-
-    private fun followUserLocation() {
-        mainViewModel.locationReadyUpdates
-            .onEach { location ->
-                mapController.launch {
-                    moveCameraPositionTo(
-                        lat = location.latitude,
-                        lng = location.longitude,
-                        zoom = MARKER_FOCUSED_ZOOM
-                    )
-                }
+            .onEach { visible ->
+                binding.userLocationFab.visibility = if (visible) View.VISIBLE else View.GONE
+                if (!visible) binding.compassFab.visibility = View.GONE
+                else mapController.launch { updateCompassFab() }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
@@ -515,11 +505,11 @@ class MapFragment :
 
         mainViewModel
             .filterSignals(MainSignal.BottomSheetStateChanged::state)
-            .debounce(250L)
             .filter {
                 it == ViewPagerBottomSheetBehavior.STATE_EXPANDED ||
                     it == ViewPagerBottomSheetBehavior.STATE_HIDDEN
             }
+            .debounce(250L)
             .distinctUntilChanged()
             .onEach { sheetState ->
                 binding.blurBackground.fadeSetVisibility(
