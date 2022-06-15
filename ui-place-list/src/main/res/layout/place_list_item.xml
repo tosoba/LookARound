@@ -16,7 +16,7 @@
         android:layout_marginHorizontal="8dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textSize="18sp"
+        android:textSize="17sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@id/place_distance_text"
         app:layout_constraintLeft_toLeftOf="parent"

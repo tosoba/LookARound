@@ -19,7 +19,6 @@ import com.lookaround.core.ext.titleCaseWithSpacesInsteadOfUnderscores
 import com.lookaround.core.model.SearchType
 import com.lookaround.ui.recent.searches.databinding.RecentSearchListItemBinding
 import com.lookaround.ui.recent.searches.model.RecentSearchModel
-import java.util.*
 
 class RecentSearchesRecyclerViewAdapter(
     private val userLocationCallbacks: LocationRecyclerViewAdapterCallbacks<Long>,
@@ -73,7 +72,8 @@ class RecentSearchesRecyclerViewAdapter(
         }
         binding.recentSearchNameText.text =
             item.search.label.titleCaseWithSpacesInsteadOfUnderscores
-        binding.recentSearchTimestampText.text = TimeAgo.using(item.search.lastSearchedAt.time)
+        binding.recentSearchTimestampText.text =
+            TimeAgo.using(item.search.lastSearchedAt.time).replace("about", "")
         item.search.location?.let {
             userLocationCallbacks.onBindViewHolder(item.search.id) { userLocation ->
                 binding.recentSearchDistanceText.text = userLocation.roundedFormattedDistanceTo(it)

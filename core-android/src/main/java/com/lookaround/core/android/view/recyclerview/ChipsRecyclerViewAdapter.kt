@@ -55,7 +55,6 @@ class ChipsRecyclerViewAdapter<I>(
                         )
                         if (!darkMode) chipLabelTextView.setTextColor(Neutral7.toArgb())
                     }
-                    chipLabelTextView.textSize = 16f
                 }
         )
 
