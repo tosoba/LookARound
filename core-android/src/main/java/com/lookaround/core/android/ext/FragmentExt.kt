@@ -8,13 +8,17 @@ import androidx.fragment.app.FragmentTransaction
 import com.lookaround.core.android.R
 import kotlin.properties.ReadOnlyProperty
 
-fun FragmentTransaction.setSlideInFromBottom() {
+fun FragmentTransaction.setSlideVerticallyAnimations() {
     setCustomAnimations(
         R.anim.slide_in_bottom,
         R.anim.slide_out_top,
         R.anim.slide_in_top,
         R.anim.slide_out_bottom
     )
+}
+
+fun FragmentTransaction.setFadeAnimations() {
+    setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
 }
 
 inline fun <reified T> nullableArgument(name: String? = null): ReadOnlyProperty<Fragment, T?> =

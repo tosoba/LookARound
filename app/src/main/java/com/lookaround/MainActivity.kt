@@ -420,7 +420,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     ) {
         if (currentTopFragment is F) return
         fragmentTransaction {
-            setSlideInFromBottom()
+            setFadeAnimations()
             when (transactionType) {
                 FragmentTransactionType.ADD -> add(R.id.main_fragment_container_view, factory())
                 FragmentTransactionType.REPLACE ->
