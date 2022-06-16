@@ -61,6 +61,7 @@ fun View.slideSetVisibility(
 
 fun View.fadeSetVisibility(visibility: Int) {
     animate()
+        .setDuration(250L)
         .alpha(if (visibility == View.GONE) 0f else 1f)
         .setListener(
             object : Animator.AnimatorListener {

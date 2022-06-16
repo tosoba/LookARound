@@ -97,9 +97,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
 
     private val shouldUpdateLastLiveBottomSheetState: Boolean
-        get() =
-            bottomSheetBehavior.state != ViewPagerBottomSheetBehavior.STATE_SETTLING &&
+        get() {
+            val bottomSheetState = bottomSheetBehavior.state
+            return (bottomSheetState == ViewPagerBottomSheetBehavior.STATE_EXPANDED ||
+                bottomSheetState == ViewPagerBottomSheetBehavior.STATE_HIDDEN) &&
                 viewsInteractionEnabled
+        }
 
     private val viewsInteractionEnabled: Boolean
         get() =

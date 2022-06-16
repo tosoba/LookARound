@@ -9,8 +9,6 @@ import com.hoko.blur.processor.BlurProcessor
 import java.io.ByteArrayOutputStream
 import java.nio.ReadOnlyBufferException
 import kotlin.experimental.inv
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 val ImageProxy.bitmap: Bitmap?
     @SuppressLint("UnsafeOptInUsageError")
@@ -20,7 +18,7 @@ val ImageProxy.bitmap: Bitmap?
         }
     }
 
-private val Image.yuv420888ToNv21: ByteArray
+private val Image.yuv420888ToNv21: ByteArray?
     get() {
         val ySize = width * height
         val uvSize = width * height / 4
@@ -29,7 +27,8 @@ private val Image.yuv420888ToNv21: ByteArray
         val uBuffer = planes[1].buffer // U
         val vBuffer = planes[2].buffer // V
         var rowStride = planes[0].rowStride
-        assert(planes[0].pixelStride == 1)
+        if (planes[0].pixelStride != 1) return null
+
         var pos = 0
         if (rowStride == width) { // likely
             yBuffer.get(nv21, 0, ySize)
@@ -45,8 +44,8 @@ private val Image.yuv420888ToNv21: ByteArray
         }
         rowStride = planes[2].rowStride
         val pixelStride = planes[2].pixelStride
-        assert(rowStride == planes[1].rowStride)
-        assert(pixelStride == planes[1].pixelStride)
+        if (rowStride != planes[1].rowStride || pixelStride != planes[1].pixelStride) return null
+
         if (pixelStride == 2 && rowStride == width && uBuffer.get(0) == vBuffer.get(1)) {
             // maybe V an U planes overlap as per NV21, which means vBuffer[1] is alias of
             // uBuffer[0]
@@ -113,8 +112,7 @@ private fun nv21BytesToBitmap(
 val Bitmap.palette: Palette
     get() = Palette.from(this).generate()
 
-suspend fun BlurProcessor.blurAndGeneratePalette(bitmap: Bitmap): Pair<Bitmap, Palette> =
-    withContext(Dispatchers.Default) {
-        val blurred = blur(bitmap)
-        blurred to blurred.palette
-    }
+fun BlurProcessor.blurAndGeneratePalette(bitmap: Bitmap): Pair<Bitmap, Palette> {
+    val blurred = blur(bitmap)
+    return blurred to blurred.palette
+}

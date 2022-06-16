@@ -488,7 +488,10 @@ class MapFragment :
                 mapReady.await()
 
                 val bitmap = mapController.await().captureFrame(true)
-                val (blurred, palette) = blurProcessor.blurAndGeneratePalette(bitmap)
+                val (blurred, palette) =
+                    withContext(Dispatchers.Default) {
+                        blurProcessor.blurAndGeneratePalette(bitmap)
+                    }
                 mainViewModel.state.bitmapCache.put(BlurredBackgroundType.MAP, blurred to palette)
                 val blurBackgroundDrawable = BitmapDrawable(resources, blurred)
                 binding.blurBackground.background = blurBackgroundDrawable

@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.*
 internal fun arEnabledUpdates(
     mainViewModel: MainViewModel,
     cameraViewModel: CameraViewModel
-): Flow<Boolean> =
+): Flow<ARUpdate> =
     combine(
             mainViewModel
                 .mapStates(MainState::locationState)
@@ -46,13 +46,12 @@ internal fun arEnabledUpdates(
                     )
                 }
                 .distinctUntilChanged(),
-            mainViewModel
-                .states
+            mainViewModel.states
                 .map { it.markers.hasValue }
                 .onStart { emit(mainViewModel.state.markers.hasValue) }
                 .distinctUntilChanged()
         ) { locationState, previewState, pitchWithinLimit, obscuredUpdate, showingAnyMarkers ->
-            AREnabledUpdate(
+            ARUpdate.Enabled(
                 enabled =
                     locationState is Ready &&
                         previewState.isLive &&
@@ -61,11 +60,13 @@ internal fun arEnabledUpdates(
                 showingAnyMarkers = showingAnyMarkers
             )
         }
-        .distinctUntilChangedBy(AREnabledUpdate::enabled)
-        .filter(AREnabledUpdate::enabled::get)
-        .map(AREnabledUpdate::showingAnyMarkers::get)
+        .distinctUntilChangedBy(ARUpdate.Enabled::enabled)
+        .filter(ARUpdate.Enabled::enabled::get)
 
-private data class AREnabledUpdate(val enabled: Boolean, val showingAnyMarkers: Boolean)
+sealed interface ARUpdate {
+    object Loading : ARUpdate
+    data class Enabled(val enabled: Boolean, val showingAnyMarkers: Boolean) : ARUpdate
+}
 
 private val CameraPreviewState.isLoading: Boolean
     get() =
@@ -80,7 +81,7 @@ private val CameraPreviewState.isLive: Boolean
 internal fun loadingStartedUpdates(
     mainViewModel: MainViewModel,
     cameraViewModel: CameraViewModel
-): Flow<Unit> =
+): Flow<ARUpdate> =
     mainViewModel
         .mapStates(MainState::locationState)
         .combine(cameraViewModel.mapStates(CameraState::previewState)) { locationState, previewState
@@ -89,7 +90,7 @@ internal fun loadingStartedUpdates(
         }
         .distinctUntilChanged()
         .filter { it }
-        .map {}
+        .map { ARUpdate.Loading }
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -117,8 +118,7 @@ internal fun arDisabledUpdates(
                     )
                 }
                 .distinctUntilChanged(),
-            mainViewModel
-                .states
+            mainViewModel.states
                 .map { it.markers.hasValue }
                 .onStart { emit(mainViewModel.state.markers.hasValue) }
                 .distinctUntilChanged()
@@ -171,10 +171,7 @@ internal fun cameraObscuredUpdates(
                 .filter(CameraPreviewState::isLive::get),
         ) { sheetState, drawerOpen, _ ->
             CameraObscuredUpdate(
-                obscuredByBottomSheet =
-                    sheetState == ViewPagerBottomSheetBehavior.STATE_EXPANDED ||
-                        sheetState == ViewPagerBottomSheetBehavior.STATE_DRAGGING ||
-                        sheetState == ViewPagerBottomSheetBehavior.STATE_SETTLING,
+                obscuredByBottomSheet = sheetState != ViewPagerBottomSheetBehavior.STATE_HIDDEN,
                 obscuredByDrawer = drawerOpen,
             )
         }

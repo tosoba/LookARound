@@ -23,6 +23,7 @@ import androidx.transition.TransitionManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.hoko.blur.HokoBlur
 import com.hoko.blur.processor.BlurProcessor
+import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
 import com.lookaround.core.android.ar.marker.ARMarker
 import com.lookaround.core.android.ar.marker.SimpleARMarker
 import com.lookaround.core.android.ar.orientation.Orientation
@@ -104,6 +105,8 @@ class CameraFragment :
 
     private var latestARState: CameraARState = CameraARState.INITIAL
 
+    private val blurBackgroundVisibilityFlow = MutableSharedFlow<Int>()
+
     private val blurProcessor: BlurProcessor by
         lazy(LazyThreadSafetyMode.NONE) {
             HokoBlur.with(requireContext())
@@ -122,6 +125,12 @@ class CameraFragment :
             }
                 ?: run { requireContext().getBlurredBackground(BlurredBackgroundType.CAMERA) }
                     ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
+
+        blurBackgroundVisibilityFlow
+            .debounce(250L)
+            .distinctUntilChanged()
+            .onEach(binding.blurBackground::fadeSetVisibility)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
 
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
 
@@ -206,23 +215,30 @@ class CameraFragment :
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
-        loadingStartedUpdates(mainViewModel, cameraViewModel)
+        merge(
+                loadingStartedUpdates(mainViewModel, cameraViewModel),
+                arEnabledUpdates(mainViewModel, cameraViewModel)
+            )
+            .debounce(250L)
+            .distinctUntilChanged()
             .onEach {
-                mainViewModel.signal(MainSignal.ARLoading)
-                binding.onLoadingStarted()
-                latestARState = CameraARState.LOADING
+                latestARState =
+                    when (it) {
+                        is ARUpdate.Enabled -> {
+                            mainViewModel.signal(MainSignal.AREnabled)
+                            binding.onAREnabled(it.showingAnyMarkers)
+                            CameraARState.ENABLED
+                        }
+                        is ARUpdate.Loading -> {
+                            mainViewModel.signal(MainSignal.ARLoading)
+                            binding.onLoadingStarted()
+                            CameraARState.LOADING
+                        }
+                    }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         binding.initARViews()
-
-        arEnabledUpdates(mainViewModel, cameraViewModel)
-            .onEach { showingAnyMarkers ->
-                mainViewModel.signal(MainSignal.AREnabled)
-                binding.onAREnabled(showingAnyMarkers)
-                latestARState = CameraARState.ENABLED
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun FragmentCameraBinding.initARViews() {
@@ -274,7 +290,22 @@ class CameraFragment :
             cameraViewObscuredUpdates(mainViewModel, cameraViewModel).collectIndexed {
                 index,
                 (obscured, showingAnyMarkers) ->
-                openGLRenderer.setBlurEnabled(enabled = obscured, animated = !obscured || index > 0)
+                val useDynamicBlur =
+                    defaultSharedPreferences.getBoolean(
+                        getString(R.string.preference_dynamic_camera_blur_key),
+                        false
+                    )
+                if (useDynamicBlur) {
+                    if (obscured) binding.blurBackground.visibility = View.GONE
+                    openGLRenderer.setBlurEnabled(
+                        enabled = obscured,
+                        animated = !obscured || index > 0
+                    )
+                } else {
+                    openGLRenderer.setBlurEnabled(enabled = false, animated = false)
+                    blurBackgroundVisibilityFlow.emit(if (obscured) View.VISIBLE else View.GONE)
+                }
+
                 if (obscured) disableAR() else enableAR(showingAnyMarkers)
             }
         }
@@ -314,10 +345,15 @@ class CameraFragment :
                 imageFlow
                     .map(ImageProxy::bitmap::get)
                     .filterNotNull()
-                    .filter { latestARState == CameraARState.ENABLED && !isRunningOnEmulator() }
+                    .filter {
+                        !isRunningOnEmulator() &&
+                            mainViewModel.state.lastLiveBottomSheetState ==
+                                ViewPagerBottomSheetBehavior.STATE_HIDDEN &&
+                            latestARState == CameraARState.ENABLED
+                    }
+                    .map(blurProcessor::blurAndGeneratePalette)
                     .flowOn(Dispatchers.Default)
-                    .collect { bitmap ->
-                        val (blurred, palette) = blurProcessor.blurAndGeneratePalette(bitmap)
+                    .collect { (blurred, palette) ->
                         updateContrastingColorUsing(palette)
                         blurAndUpdateViewsUsing(blurred, palette)
                         if (initial) {
@@ -484,7 +520,7 @@ class CameraFragment :
         binding.cameraLayout.setOnClickListener(null)
         hideARViews()
         toggleARDisabledViewsVisibility()
-        blurBackground.visibility = View.VISIBLE
+        viewLifecycleOwner.lifecycleScope.launch { blurBackgroundVisibilityFlow.emit(View.VISIBLE) }
         loadingShimmerLayout.showAndStart()
     }
 
@@ -492,7 +528,7 @@ class CameraFragment :
         binding.cameraLayout.setOnClickListener(null)
         toggleARDisabledViewsVisibility()
         loadingShimmerLayout.stopAndHide()
-        blurBackground.visibility = View.GONE
+        viewLifecycleOwner.lifecycleScope.launch { blurBackgroundVisibilityFlow.emit(View.GONE) }
         enableAR(showingAnyMarkers)
     }
 
@@ -512,7 +548,7 @@ class CameraFragment :
     ) {
         disableAR()
         loadingShimmerLayout.stopAndHide()
-        blurBackground.visibility = View.VISIBLE
+        viewLifecycleOwner.lifecycleScope.launch { blurBackgroundVisibilityFlow.emit(View.VISIBLE) }
         toggleARDisabledViewsVisibility(
             when {
                 initializationFailure -> cameraInitializationFailureTextView

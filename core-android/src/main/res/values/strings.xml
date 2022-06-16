@@ -27,6 +27,7 @@
 
     <string name="preference_clear_cache_key">clear_cache</string>
     <string name="preference_sensitivity_key">smooth_factor</string>
+    <string name="preference_dynamic_camera_blur_key">dynamic_camera_blur</string>
     <string name="preference_theme_key">theme</string>
     <string name="preference_theme_system_value">system</string>
     <string name="preference_theme_light_value">light</string>

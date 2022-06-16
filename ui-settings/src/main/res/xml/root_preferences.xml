@@ -6,11 +6,11 @@
         app:title="@string/preferences_theme_header">
 
         <ListPreference
-            app:iconSpaceReserved="false"
-            app:key="@string/preference_theme_key"
             android:defaultValue="@string/preference_theme_system_value"
             android:entries="@array/preference_theme_labels"
             android:entryValues="@array/preference_theme_values"
+            app:iconSpaceReserved="false"
+            app:key="@string/preference_theme_key"
             app:summary="@string/preference_theme_summary"
             app:title="@string/preference_theme_title" />
 
@@ -29,6 +29,13 @@
             app:showSeekBarValue="true"
             app:summary="@string/preference_sensitivity_summary"
             app:title="@string/preference_sensitivity_title" />
+
+        <CheckBoxPreference
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="@string/preference_dynamic_camera_blur_key"
+            app:summary="@string/preference_dynamic_camera_blur_summary"
+            app:title="@string/preference_dynamic_camera_blur_title" />
 
     </PreferenceCategory>
 
