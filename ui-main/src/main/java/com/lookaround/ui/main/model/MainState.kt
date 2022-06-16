@@ -6,10 +6,7 @@ import android.os.Parcelable
 import androidx.collection.LruCache
 import androidx.palette.graphics.Palette
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
-import com.lookaround.core.android.model.Empty
-import com.lookaround.core.android.model.Loadable
-import com.lookaround.core.android.model.Marker
-import com.lookaround.core.android.model.ParcelableSortedSet
+import com.lookaround.core.android.model.*
 import com.lookaround.ui.main.R
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -24,12 +21,8 @@ data class MainState(
     val autocompleteSearchQuery: String = "",
     val searchFocused: Boolean = false,
 ) : Parcelable {
-    @IgnoredOnParcel val bitmapCache = LruCache<BlurredBackgroundType, Pair<Bitmap, Palette>>(BITMAP_CACHE_SIZE)
-
-    enum class BlurredBackgroundType {
-        CAMERA,
-        MAP
-    }
+    @IgnoredOnParcel
+    val bitmapCache = LruCache<BlurredBackgroundType, Pair<Bitmap, Palette>>(BITMAP_CACHE_SIZE)
 
     internal fun copyWithLocationException(throwable: Throwable): MainState =
         copy(locationState = locationState.copyWithError(throwable))

@@ -2,7 +2,11 @@ package com.lookaround.core.android.ext
 
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.RectF
+import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
 import android.os.Build
 import android.util.Size
 import android.util.TypedValue
@@ -10,9 +14,11 @@ import android.view.Surface
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.FileProvider
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.lookaround.core.android.R
+import com.lookaround.core.android.model.BlurredBackgroundType
 import java.io.File
 import kotlin.math.ceil
 
@@ -167,4 +173,35 @@ fun Context.setNightMode(pref: String) {
             else -> throw IllegalStateException()
         }
     )
+}
+
+fun Context.storeBlurredBackground(bitmap: Bitmap, type: BlurredBackgroundType) {
+    storeBitmap(bitmap, "${type.name.lowercase()}.jpg")
+}
+
+fun Context.getBlurredBackground(type: BlurredBackgroundType): BitmapDrawable? =
+    getBitmap("${type.name.lowercase()}.jpg")?.let { BitmapDrawable(resources, it) }
+
+private fun Context.storeBitmap(bitmap: Bitmap, name: String) {
+    contentResolver.openOutputStream(getUriForFile(createImageFile(name)))?.use {
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+    }
+}
+
+private fun Context.getBitmap(name: String): Bitmap? =
+    try {
+        contentResolver
+            .openInputStream(getUriForFile(createImageFile(name)))
+            ?.use(BitmapFactory::decodeStream)
+    } catch (ex: Exception) {
+        null
+    }
+
+private fun Context.getUriForFile(file: File): Uri =
+    FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+
+private fun Context.createImageFile(name: String): File {
+    val imagesDir = File(filesDir, "images")
+    if (!imagesDir.exists()) imagesDir.mkdir()
+    return File(imagesDir, name)
 }

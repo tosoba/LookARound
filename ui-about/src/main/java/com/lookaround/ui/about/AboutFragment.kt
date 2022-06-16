@@ -23,7 +23,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.lookaround.core.android.ext.fadeSetVisibility
 import com.lookaround.ui.about.databinding.*
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.ui.main.model.MainState
+import com.lookaround.core.android.model.BlurredBackgroundType
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,7 +38,7 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
     private val mainViewModel: MainViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA)?.let {
+        mainViewModel.state.bitmapCache.get(BlurredBackgroundType.CAMERA)?.let {
             (blurredBackground, palette) ->
             binding.aboutCoordinatorLayout.background = BitmapDrawable(resources, blurredBackground)
             val dominantSwatch = palette.dominantSwatch ?: return@let
@@ -93,7 +93,7 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
         private val mainViewModel: MainViewModel by activityViewModels()
 
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA)?.let {
+            mainViewModel.state.bitmapCache.get(BlurredBackgroundType.CAMERA)?.let {
                 (_, palette) ->
                 val dominantSwatch = palette.dominantSwatch ?: return@let
                 binding.generalHiTextView.setTextColor(dominantSwatch.bodyTextColor)
@@ -135,7 +135,7 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
                         ),
                     textColor =
                         mainViewModel.state.bitmapCache
-                            .get(MainState.BlurredBackgroundType.CAMERA)
+                            .get(BlurredBackgroundType.CAMERA)
                             ?.let { (_, palette) ->
                                 val dominantSwatch = palette.dominantSwatch ?: return
                                 dominantSwatch.bodyTextColor

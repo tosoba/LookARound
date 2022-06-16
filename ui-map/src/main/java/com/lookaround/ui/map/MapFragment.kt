@@ -25,6 +25,7 @@ import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
+import com.lookaround.core.android.model.BlurredBackgroundType
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.model.Ready
 import com.lookaround.core.android.model.WithValue
@@ -111,10 +112,12 @@ class MapFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.blurBackground.background =
-            (mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.MAP)
-                    ?: mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA))
-                ?.let { (blurredBackground) -> BitmapDrawable(resources, blurredBackground) }
-                ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
+            mainViewModel.state.bitmapCache.get(BlurredBackgroundType.MAP)?.let {
+                (blurredBackground) ->
+                BitmapDrawable(resources, blurredBackground)
+            }
+                ?: run { requireContext().getBlurredBackground(BlurredBackgroundType.MAP) }
+                    ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
 
         currentMarker
             ?.id
@@ -477,6 +480,7 @@ class MapFragment :
     }
 
     private var blurBackgroundJob: Job? = null
+    private var initialBlurBackgroundUpdate = true
     private fun updateBlurBackground() {
         blurBackgroundJob?.cancel()
         blurBackgroundJob =
@@ -484,24 +488,24 @@ class MapFragment :
                 mapReady.await()
 
                 val bitmap = mapController.await().captureFrame(true)
-                val (blurred, palette) =
-                    withContext(Dispatchers.Default) {
-                        val blurred = blurProcessor.blur(bitmap)
-                        blurred to blurred.palette
-                    }
-                mainViewModel.state.bitmapCache.put(
-                    MainState.BlurredBackgroundType.MAP,
-                    blurred to palette
-                )
+                val (blurred, palette) = blurProcessor.blurAndGeneratePalette(bitmap)
+                mainViewModel.state.bitmapCache.put(BlurredBackgroundType.MAP, blurred to palette)
                 val blurBackgroundDrawable = BitmapDrawable(resources, blurred)
                 binding.blurBackground.background = blurBackgroundDrawable
                 mainViewModel.signal(
                     MainSignal.BlurBackgroundUpdated(blurBackgroundDrawable, palette)
                 )
-                val dominantSwatch =
-                    withContext(Dispatchers.Default) { bitmap.dominantSwatch } ?: return@launch
+
+                val dominantSwatch = palette.dominantSwatch ?: return@launch
                 val contrastingColor = colorContrastingTo(dominantSwatch.rgb)
                 mainViewModel.signal(MainSignal.ContrastingColorUpdated(contrastingColor))
+
+                if (initialBlurBackgroundUpdate) {
+                    withContext(Dispatchers.IO) {
+                        requireContext().storeBlurredBackground(blurred, BlurredBackgroundType.MAP)
+                    }
+                    initialBlurBackgroundUpdate = false
+                }
             }
     }
 

@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.palette.graphics.Palette
 import androidx.preference.PreferenceManager
 import androidx.transition.AutoTransition
 import androidx.transition.Transition
@@ -46,10 +47,10 @@ import com.lookaround.ui.main.model.MainState
 import com.permissionx.guolindev.PermissionX
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import kotlin.math.min
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
-import kotlin.math.min
 
 @AndroidEntryPoint
 @WithFragmentBindings
@@ -115,11 +116,12 @@ class CameraFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.blurBackground.background =
-            mainViewModel.state.bitmapCache.get(MainState.BlurredBackgroundType.CAMERA)?.let {
+            mainViewModel.state.bitmapCache.get(BlurredBackgroundType.CAMERA)?.let {
                 (blurredBackground) ->
                 BitmapDrawable(resources, blurredBackground)
             }
-                ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
+                ?: run { requireContext().getBlurredBackground(BlurredBackgroundType.CAMERA) }
+                    ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
 
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }
 
@@ -303,6 +305,7 @@ class CameraFragment :
     }
 
     private fun initCamera() {
+        var initial = true
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val (preview, _, imageFlow) = cameraInitializationResult.await()
@@ -314,8 +317,16 @@ class CameraFragment :
                     .filter { latestARState == CameraARState.ENABLED && !isRunningOnEmulator() }
                     .flowOn(Dispatchers.Default)
                     .collect { bitmap ->
-                        launch { updateContrastingColorUsing(bitmap) }
-                        blurAndUpdateViewsUsing(bitmap)
+                        val (blurred, palette) = blurProcessor.blurAndGeneratePalette(bitmap)
+                        updateContrastingColorUsing(palette)
+                        blurAndUpdateViewsUsing(blurred, palette)
+                        if (initial) {
+                            withContext(Dispatchers.IO) {
+                                requireContext()
+                                    .storeBlurredBackground(blurred, BlurredBackgroundType.CAMERA)
+                            }
+                            initial = false
+                        }
                     }
             } catch (ex: Exception) {
                 Timber.tag("CAMERA_INIT").e(ex)
@@ -324,9 +335,8 @@ class CameraFragment :
         }
     }
 
-    private suspend fun updateContrastingColorUsing(bitmap: Bitmap) {
-        val dominantSwatch = withContext(Dispatchers.Default) { bitmap.dominantSwatch } ?: return
-        val contrastingColor = colorContrastingTo(dominantSwatch.rgb)
+    private suspend fun updateContrastingColorUsing(palette: Palette) {
+        val contrastingColor = colorContrastingTo(palette.dominantSwatch?.rgb ?: return)
         withContext(Dispatchers.Main) {
             openGLRenderer.setContrastingColor(
                 red = Color.red(contrastingColor),
@@ -337,16 +347,8 @@ class CameraFragment :
         }
     }
 
-    private suspend fun blurAndUpdateViewsUsing(bitmap: Bitmap) {
-        val (blurred, palette) =
-            withContext(Dispatchers.Default) {
-                val blurred = blurProcessor.blur(bitmap)
-                blurred to blurred.palette
-            }
-        mainViewModel.state.bitmapCache.put(
-            MainState.BlurredBackgroundType.CAMERA,
-            blurred to palette
-        )
+    private suspend fun blurAndUpdateViewsUsing(blurred: Bitmap, palette: Palette) {
+        mainViewModel.state.bitmapCache.put(BlurredBackgroundType.CAMERA, blurred to palette)
         with(binding) {
             val blurBackgroundDrawable = BitmapDrawable(resources, blurred)
             blurBackground.background = blurBackgroundDrawable

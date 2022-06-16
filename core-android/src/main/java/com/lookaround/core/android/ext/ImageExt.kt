@@ -5,9 +5,12 @@ import android.graphics.*
 import android.media.Image
 import androidx.camera.core.ImageProxy
 import androidx.palette.graphics.Palette
+import com.hoko.blur.processor.BlurProcessor
 import java.io.ByteArrayOutputStream
 import java.nio.ReadOnlyBufferException
 import kotlin.experimental.inv
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 val ImageProxy.bitmap: Bitmap?
     @SuppressLint("UnsafeOptInUsageError")
@@ -110,5 +113,8 @@ private fun nv21BytesToBitmap(
 val Bitmap.palette: Palette
     get() = Palette.from(this).generate()
 
-val Bitmap.dominantSwatch: Palette.Swatch?
-    get() = Palette.from(this).generate().dominantSwatch
+suspend fun BlurProcessor.blurAndGeneratePalette(bitmap: Bitmap): Pair<Bitmap, Palette> =
+    withContext(Dispatchers.Default) {
+        val blurred = blur(bitmap)
+        blurred to blurred.palette
+    }
