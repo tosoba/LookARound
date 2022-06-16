@@ -129,7 +129,7 @@ class CameraFragment :
         blurBackgroundVisibilityFlow
             .debounce(250L)
             .distinctUntilChanged()
-            .onEach(binding.blurBackground::fadeSetVisibility)
+            .onEach(binding.blurBackground::setVisibility)
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         lifecycleScope.launch { cameraViewModel.intent(CameraIntent.CameraViewCreated) }

@@ -60,14 +60,20 @@ fun View.slideSetVisibility(
 }
 
 fun View.fadeSetVisibility(visibility: Int) {
+    if (this.visibility == visibility) return
     animate()
         .setDuration(250L)
         .alpha(if (visibility == View.GONE) 0f else 1f)
         .setListener(
             object : Animator.AnimatorListener {
-                override fun onAnimationStart(animation: Animator?) = Unit
+                override fun onAnimationStart(animation: Animator?) {
+                    if (visibility == View.VISIBLE) {
+                        alpha = 0f
+                        this@fadeSetVisibility.visibility = visibility
+                    }
+                }
                 override fun onAnimationEnd(animation: Animator?) {
-                    this@fadeSetVisibility.visibility = visibility
+                    if (visibility == View.GONE) this@fadeSetVisibility.visibility = visibility
                 }
                 override fun onAnimationCancel(animation: Animator?) = Unit
                 override fun onAnimationRepeat(animation: Animator?) = Unit
