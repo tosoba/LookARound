@@ -341,14 +341,14 @@ class CameraFragment :
             try {
                 val (preview, _, imageFlow) = cameraInitializationResult.await()
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
+                if (isRunningOnEmulator()) return@launch
 
                 imageFlow
                     .map(ImageProxy::bitmap::get)
                     .filterNotNull()
                     .filter {
-                        !isRunningOnEmulator() &&
-                            mainViewModel.state.lastLiveBottomSheetState ==
-                                ViewPagerBottomSheetBehavior.STATE_HIDDEN &&
+                        mainViewModel.state.lastLiveBottomSheetState ==
+                            ViewPagerBottomSheetBehavior.STATE_HIDDEN &&
                             latestARState == CameraARState.ENABLED
                     }
                     .map(blurProcessor::blurAndGeneratePalette)
