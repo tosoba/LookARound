@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,9 +22,9 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.lookaround.core.android.ext.fadeSetVisibility
+import com.lookaround.core.android.model.BlurredBackgroundType
 import com.lookaround.ui.about.databinding.*
 import com.lookaround.ui.main.MainViewModel
-import com.lookaround.core.android.model.BlurredBackgroundType
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -93,12 +94,13 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
         private val mainViewModel: MainViewModel by activityViewModels()
 
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            mainViewModel.state.bitmapCache.get(BlurredBackgroundType.CAMERA)?.let {
-                (_, palette) ->
+            mainViewModel.state.bitmapCache.get(BlurredBackgroundType.CAMERA)?.let { (_, palette) ->
                 val dominantSwatch = palette.dominantSwatch ?: return@let
                 binding.generalHiTextView.setTextColor(dominantSwatch.bodyTextColor)
                 binding.generalInfoTextView.setTextColor(dominantSwatch.bodyTextColor)
             }
+
+            binding.appIconCreditTextView.movementMethod = LinkMovementMethod.getInstance()
         }
     }
 
@@ -130,12 +132,11 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
                             Wallet(getString(R.string.btc_address), R.drawable.ic_vechain_vet_logo),
                         ),
                     textColor =
-                        mainViewModel.state.bitmapCache
-                            .get(BlurredBackgroundType.CAMERA)
-                            ?.let { (_, palette) ->
-                                val dominantSwatch = palette.dominantSwatch ?: return
-                                dominantSwatch.bodyTextColor
-                            }
+                        mainViewModel.state.bitmapCache.get(BlurredBackgroundType.CAMERA)?.let {
+                            (_, palette) ->
+                            val dominantSwatch = palette.dominantSwatch ?: return
+                            dominantSwatch.bodyTextColor
+                        }
                 )
         }
 

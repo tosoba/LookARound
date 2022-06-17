@@ -1,6 +1,6 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="hi">Hi!</string>
-    <string name="app_description">This app allows users to search for places and display them on AR camera and map views.\n\nIt was written:\n- for fun\n- as a learning experience\n- to eventually become a part of my apps portfolio.\n\nFeel free to check out the source code.</string>
+    <string name="app_description" tools:ignore="TypographyDashes">This app allows users to search for places and display them using AR camera and map views.\n\nIt was written:\n- for fun\n- as a learning experience\n- to eventually become a part of my apps portfolio.\n\nFeel free to check out the source code and submit an issue in case the app malfunctions (because let\'s face it – at some point it most likely will).</string>
     <string name="source_code">Source code</string>
     <string name="btc_address">1AS9FQCUJBdB3rnNCRwBB5BiHfvxKz4CbZ</string>
     <string name="eth_address">0x86be23De1ba6806e165a47888319356D1bD97a17</string>
@@ -15,4 +15,5 @@
     <string name="algo_address">HAKULCU5URYMQ54RA2LJNGOGEKULM2FECXQYC3E5KNW67ETBYC563T75AM</string>
     <string name="address_copied">Address copied to clipboard.</string>
     <string name="donate_crypto">There are no ads in this app. Crypto donations are welcome though.</string>
+    <string name="app_icon_credit">Icons similar to the one used in this app: \n<a href="https://www.flaticon.com/free-icons/application" title="application icons">Application icons created by Kalashnyk - Flaticon</a></string>
 </resources>

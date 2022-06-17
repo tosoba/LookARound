@@ -29,6 +29,16 @@
             android:text="@string/app_description"
             android:textSize="18sp" />
 
+        <TextView
+            android:id="@+id/app_icon_credit_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:shadowColor="@android:color/darker_gray"
+            android:shadowRadius="5"
+            android:text="@string/app_icon_credit"
+            android:textSize="14sp" />
+
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>
