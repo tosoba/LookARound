@@ -121,10 +121,6 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
                             Wallet(getString(R.string.sol_address), R.drawable.ic_solana_sol_logo),
                             Wallet(getString(R.string.xrp_address), R.drawable.ic_xrp_xrp_logo),
                             Wallet(getString(R.string.xmr_address), R.drawable.ic_monero_xmr_logo),
-                            Wallet(
-                                getString(R.string.usdt_address),
-                                R.drawable.ic_tether_usdt_logo
-                            ),
                             Wallet(getString(R.string.xlm_address), R.drawable.ic_stellar_xlm_logo),
                             Wallet(
                                 getString(R.string.algo_address),
