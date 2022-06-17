@@ -127,7 +127,6 @@ class CameraFragment :
                     ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
 
         blurBackgroundVisibilityFlow
-            .debounce(250L)
             .distinctUntilChanged()
             .onEach(binding.blurBackground::setVisibility)
             .launchIn(viewLifecycleOwner.lifecycleScope)
