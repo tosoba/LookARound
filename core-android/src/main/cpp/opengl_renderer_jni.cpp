@@ -447,8 +447,8 @@ void main() {
         //                       (-1,-1)  (1,-1)  (3,-1)
         static constexpr GLfloat VERTICES[] = {-1.f, -1.f, 3.f, -1.f, -1.f, 3.f};
 
-        static constexpr GLfloat MAX_LOD = 3.f;
-        static constexpr GLfloat MIN_LOD = -3.f;
+        static constexpr GLfloat MAX_LOD = 2.f;
+        static constexpr GLfloat MIN_LOD = -2.f;
         static constexpr GLint BLUR_ANIMATION_FRAMES = 18;
         static constexpr GLfloat LOD_INCREMENT = (NativeContext::MAX_LOD - NativeContext::MIN_LOD) /
                                                  (GLfloat) NativeContext::BLUR_ANIMATION_FRAMES;
