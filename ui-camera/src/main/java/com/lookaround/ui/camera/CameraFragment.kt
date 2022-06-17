@@ -292,7 +292,7 @@ class CameraFragment :
                 val useDynamicBlur =
                     defaultSharedPreferences.getBoolean(
                         getString(R.string.preference_dynamic_camera_blur_key),
-                        false
+                        true
                     )
                 if (useDynamicBlur) {
                     if (obscured) binding.blurBackground.visibility = View.GONE

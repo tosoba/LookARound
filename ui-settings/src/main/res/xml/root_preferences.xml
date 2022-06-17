@@ -31,7 +31,7 @@
             app:title="@string/preference_sensitivity_title" />
 
         <CheckBoxPreference
-            app:defaultValue="false"
+            app:defaultValue="true"
             app:iconSpaceReserved="false"
             app:key="@string/preference_dynamic_camera_blur_key"
             app:summary="@string/preference_dynamic_camera_blur_summary"
