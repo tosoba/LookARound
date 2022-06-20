@@ -219,7 +219,6 @@ class CameraFragment :
                 arEnabledUpdates(mainViewModel, cameraViewModel)
             )
             .debounce(250L)
-            .distinctUntilChanged()
             .onEach {
                 latestARState =
                     when (it) {
