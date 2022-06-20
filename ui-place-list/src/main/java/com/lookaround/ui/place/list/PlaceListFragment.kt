@@ -203,7 +203,6 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                     currentPosition = position
                     smoothScrollEnabled = true
                     currentPosition = position
-                    carouselRecyclerView?.snapToPosition(position)
                 },
                 500L
             )
