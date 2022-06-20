@@ -19,7 +19,6 @@ import com.lookaround.core.android.ext.darkMode
 import com.lookaround.core.android.ext.preciseFormattedDistanceTo
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith
 import com.lookaround.core.android.model.Marker
-import com.lookaround.core.android.model.ParcelableSortedSet
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.view.recyclerview.LocationRecyclerViewAdapterCallbacks
 import com.lookaround.core.android.view.recyclerview.locationRecyclerViewAdapterCallbacks
@@ -166,9 +165,8 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
             savedInstanceState?.containsKey(SavedStateKey.LAST_CAROUSEL_POSITION.name) ?: false
         mainViewModel
             .mapStates(MainState::markers)
-            .filterIsInstance<WithValue<ParcelableSortedSet<Marker>>>()
             .distinctUntilChanged()
-            .map { it.value.toList() }
+            .map { if (it is WithValue) it.value.toList() else emptyList() }
             .onEach {
                 items = it
                 binding.placeListRecyclerView.setData(items.map { CAROUSEL_ITEM_DUMMY })
