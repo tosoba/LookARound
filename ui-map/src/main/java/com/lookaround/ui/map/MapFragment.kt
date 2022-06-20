@@ -191,6 +191,9 @@ class MapFragment :
     override fun onResume() {
         super.onResume()
         binding.map.onResume()
+        binding.blurBackground.visibility = View.GONE
+        binding.userLocationFab.visibility = View.VISIBLE
+        mapController.launch { updateCompassFab() }
         lifecycleScope.launchWhenResumed { mainViewModel.signal(MainSignal.MapFragmentResumed) }
     }
 
@@ -199,7 +202,7 @@ class MapFragment :
         binding.map.onPause()
         binding.blurBackground.visibility = View.VISIBLE
         binding.userLocationFab.visibility = View.GONE
-        binding.userLocationFab.visibility = View.GONE
+        binding.compassFab.visibility = View.GONE
         orientationManager.stopSensor()
     }
 
