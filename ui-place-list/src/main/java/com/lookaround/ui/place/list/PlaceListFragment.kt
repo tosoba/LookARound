@@ -166,10 +166,10 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
         mainViewModel
             .mapStates(MainState::markers)
             .distinctUntilChanged()
-            .map { if (it is WithValue) it.value.toList() else emptyList() }
-            .onEach {
-                items = it
-                binding.placeListRecyclerView.setData(items.map { CAROUSEL_ITEM_DUMMY })
+            .map { if (it is WithValue) it.value else emptySet() }
+            .onEach { markers ->
+                items = markers.toList()
+                binding.placeListRecyclerView.setData(markers.map { CAROUSEL_ITEM_DUMMY })
                 if (scrollPositionShouldBeRestored) {
                     scrollPositionShouldBeRestored = false
                     binding.placeListRecyclerView.restoreCarouselPosition()
@@ -189,18 +189,23 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
     }
 
     fun scrollToPlace(uuid: UUID) {
-        items.indexOfFirst { it.id == uuid }.takeUnless { it == -1 }?.let(::scrollToPosition)
+        scrollToPosition(
+            when (val markers = mainViewModel.state.markers) {
+                is WithValue -> markers.value.indexOfFirst { it.id == uuid }
+                else -> return
+            }
+        )
     }
 
     private fun scrollToPosition(position: Int) {
         carouselLastPosition = position
         with(binding.placeListRecyclerView) {
+            smoothScrollEnabled = false
+            currentPosition = position
             postDelayed(
                 {
-                    smoothScrollEnabled = false
-                    currentPosition = position
+                    carouselRecyclerView?.snapToPosition(position)
                     smoothScrollEnabled = true
-                    currentPosition = position
                 },
                 500L
             )
@@ -226,7 +231,6 @@ class PlaceListFragment : Fragment(R.layout.fragment_place_list) {
                 ?.firstOrNull()
                 ?: return
         scrollBy(distanceToSnapHorizontal, 0)
-        return
     }
 
     private enum class SavedStateKey {
