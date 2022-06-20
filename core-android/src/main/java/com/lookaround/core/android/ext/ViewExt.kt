@@ -73,7 +73,10 @@ fun View.fadeSetVisibility(visibility: Int) {
                     }
                 }
                 override fun onAnimationEnd(animation: Animator?) {
-                    if (visibility == View.GONE) this@fadeSetVisibility.visibility = visibility
+                    if (visibility == View.GONE) {
+                        this@fadeSetVisibility.visibility = visibility
+                    }
+                    alpha = 1f
                 }
                 override fun onAnimationCancel(animation: Animator?) = Unit
                 override fun onAnimationRepeat(animation: Animator?) = Unit

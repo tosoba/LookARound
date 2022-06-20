@@ -233,13 +233,16 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
 
         lifecycleScope.launchWhenResumed {
-            viewModel.filterSignals<MainSignal.MapFragmentResumed>().collect {
-                binding.bottomNavigationView.visibility = View.VISIBLE
-                if (!viewModel.state.markers.hasValue) {
-                    binding.nearMeFab.visibility = View.VISIBLE
+            viewModel
+                .filterSignals<MainSignal.MapFragmentResumed>()
+                .filter { currentTopFragment is MapFragment }
+                .collect {
+                    binding.bottomNavigationView.visibility = View.VISIBLE
+                    if (!viewModel.state.markers.hasValue) {
+                        binding.nearMeFab.visibility = View.VISIBLE
+                    }
+                    binding.searchBarView.visibility = View.VISIBLE
                 }
-                binding.searchBarView.visibility = View.VISIBLE
-            }
         }
 
         launchPlacesLoadingSnackbarUpdates()

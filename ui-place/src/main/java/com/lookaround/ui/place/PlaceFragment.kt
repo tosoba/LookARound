@@ -21,12 +21,12 @@ import com.lookaround.core.android.map.scene.MapSceneViewModel
 import com.lookaround.core.android.map.scene.model.MapScene
 import com.lookaround.core.android.map.scene.model.MapSceneIntent
 import com.lookaround.core.android.map.scene.model.MapSceneSignal
+import com.lookaround.core.android.model.BlurredBackgroundType
 import com.lookaround.core.android.model.Marker
 import com.lookaround.core.android.view.theme.colorPalette
 import com.lookaround.core.delegate.lazyAsync
 import com.lookaround.ui.main.MainViewModel
 import com.lookaround.ui.main.locationReadyUpdates
-import com.lookaround.core.android.model.BlurredBackgroundType
 import com.lookaround.ui.place.databinding.FragmentPlaceBinding
 import com.mapzen.tangram.MapController
 import com.mapzen.tangram.SceneError
@@ -68,8 +68,7 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
         binding.streetViewFab.setOnClickListener { startGoogleMapsForStreetView() }
         binding.placeGoogleMapsFab.setOnClickListener { startGoogleMaps() }
         binding.placeNestedScrollView.apply {
-            mainViewModel.state.bitmapCache[BlurredBackgroundType.MAP]?.let {
-                (blurredBackground) ->
+            mainViewModel.state.bitmapCache[BlurredBackgroundType.MAP]?.let { (blurredBackground) ->
                 background = BitmapDrawable(resources, blurredBackground)
             }
                 ?: run { setBackgroundColor(colorPalette.uiBackground.toArgb()) }
@@ -272,7 +271,7 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
 
     private fun startGoogleMaps() {
         startGoogleMapForMarker(failureMsgRes = R.string.unable_to_launch_google_maps) { marker ->
-            val query = Uri.encode(if (marker.address != null) marker.address else marker.name)
+            val query = Uri.encode(marker.name)
             "geo:${marker.location.latitude},${marker.location.longitude}?q=$query&z=21"
         }
     }
