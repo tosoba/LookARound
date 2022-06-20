@@ -89,11 +89,15 @@ internal class PlaceMapsRecyclerViewAdapter(
                         }
                     )
                 }
-            ) {
+            ) { bitmap, fromCache ->
                 with(binding.placeMapImage) {
-                    animate().alpha(0f).setDuration(250L).withEndAction {
-                        setImageBitmap(it)
-                        animate().alpha(1f).duration = 250L
+                    if (fromCache) {
+                        setImageBitmap(bitmap)
+                    } else {
+                        animate().alpha(0f).setDuration(500L).withEndAction {
+                            setImageBitmap(bitmap)
+                            animate().alpha(1f).duration = 500L
+                        }
                     }
                 }
             }
@@ -136,7 +140,7 @@ internal class PlaceMapsRecyclerViewAdapter(
             uuid: UUID,
             location: Location,
             onBitmapLoadingStarted: () -> Unit,
-            onBitmapLoaded: (bitmap: Bitmap) -> Unit
+            onBitmapLoaded: (bitmap: Bitmap, fromCache: Boolean) -> Unit
         )
         fun onDetachedFromRecyclerView()
     }

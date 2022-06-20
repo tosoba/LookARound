@@ -94,7 +94,7 @@ class PlaceMapListFragment :
                             uuid: UUID,
                             location: Location,
                             onBitmapLoadingStarted: () -> Unit,
-                            onBitmapLoaded: (bitmap: Bitmap) -> Unit
+                            onBitmapLoaded: (bitmap: Bitmap, fromCache: Boolean) -> Unit
                         ) {
                             loadBitmap(uuid, location, onBitmapLoadingStarted, onBitmapLoaded)
                             if (!reloadBitmapJobs.containsKey(uuid)) {
@@ -117,15 +117,15 @@ class PlaceMapListFragment :
                             uuid: UUID,
                             location: Location,
                             onBitmapLoadingStarted: () -> Unit,
-                            onBitmapLoaded: (bitmap: Bitmap) -> Unit
+                            onBitmapLoaded: (bitmap: Bitmap, fromCache: Boolean) -> Unit
                         ) {
                             loadBitmapJobs.remove(uuid)?.cancel()
                             onBitmapLoadingStarted()
                             loadBitmapJobs[uuid] =
                                 viewLifecycleOwner.lifecycleScope
                                     .launch {
-                                        val bitmap = getBitmapFor(location)
-                                        onBitmapLoaded(bitmap)
+                                        val (bitmap, fromCache) = getBitmapFor(location)
+                                        onBitmapLoaded(bitmap, fromCache)
                                     }
                                     .apply { invokeOnCompletion { loadBitmapJobs.remove(uuid) } }
                         }
@@ -375,9 +375,9 @@ class PlaceMapListFragment :
         return mapLayoutParams
     }
 
-    private suspend fun getBitmapFor(location: Location): Bitmap {
+    private suspend fun getBitmapFor(location: Location): Pair<Bitmap, Boolean> {
         val cached = getCachedBitmap(location)?.bitmap
-        if (cached != null) return cached
+        if (cached != null) return cached to true
 
         mapReady.await()
 
@@ -385,7 +385,7 @@ class PlaceMapListFragment :
         getLocationBitmapFlow.emit(
             GetLocationBitmapRequest(location, deferredBitmap, currentGetLocationBitmapIncrement)
         )
-        return deferredBitmap.await()
+        return deferredBitmap.await() to false
     }
 
     private suspend fun captureBitmapAndCacheBitmap(location: Location): Bitmap {
