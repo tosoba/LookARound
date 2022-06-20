@@ -123,7 +123,7 @@ class CameraFragment :
                 (blurredBackground) ->
                 BitmapDrawable(resources, blurredBackground)
             }
-                ?: run { requireContext().getBlurredBackground(BlurredBackgroundType.CAMERA) }
+                ?: run { requireContext().getBlurredBackgroundDrawable(BlurredBackgroundType.CAMERA) }
                     ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
 
         blurBackgroundVisibilityFlow
@@ -345,8 +345,10 @@ class CameraFragment :
                     .map(ImageProxy::bitmap::get)
                     .filterNotNull()
                     .filter {
-                        mainViewModel.state.lastLiveBottomSheetState ==
-                            ViewPagerBottomSheetBehavior.STATE_HIDDEN &&
+                        val mainState = mainViewModel.state
+                        !mainState.drawerOpen &&
+                            mainState.lastLiveBottomSheetState ==
+                                ViewPagerBottomSheetBehavior.STATE_HIDDEN &&
                             latestARState == CameraARState.ENABLED
                     }
                     .map(blurProcessor::blurAndGeneratePalette)

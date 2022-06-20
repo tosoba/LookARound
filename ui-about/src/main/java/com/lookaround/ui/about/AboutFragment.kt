@@ -3,6 +3,7 @@ package com.lookaround.ui.about
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
@@ -15,6 +16,8 @@ import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -22,13 +25,14 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.lookaround.core.android.ext.fadeSetVisibility
+import com.lookaround.core.android.ext.getBlurredBackgroundBitmap
+import com.lookaround.core.android.ext.palette
 import com.lookaround.core.android.model.BlurredBackgroundType
 import com.lookaround.ui.about.databinding.*
 import com.lookaround.ui.main.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -41,13 +45,17 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainViewModel.state.bitmapCache.get(BlurredBackgroundType.CAMERA)?.let {
             (blurredBackground, palette) ->
-            binding.aboutCoordinatorLayout.background = BitmapDrawable(resources, blurredBackground)
-            val dominantSwatch = palette.dominantSwatch ?: return@let
-            binding.aboutTabLayout.setTabTextColors(
-                dominantSwatch.titleTextColor,
-                dominantSwatch.bodyTextColor
-            )
+            updateViewsWith(blurredBackground, palette)
         }
+            ?: run {
+                val blurredBitmap =
+                    requireContext().getBlurredBackgroundBitmap(BlurredBackgroundType.CAMERA)
+                        ?: return@run
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val palette = withContext(Dispatchers.Default) { blurredBitmap.palette }
+                    updateViewsWith(blurredBitmap, palette)
+                }
+            }
 
         binding.aboutToolbar.setNavigationOnClickListener { activity?.onBackPressed() }
 
@@ -87,6 +95,15 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
         )
 
         binding.githubFab.setOnClickListener {}
+    }
+
+    private fun updateViewsWith(blurredBackground: Bitmap, palette: Palette) {
+        binding.aboutCoordinatorLayout.background = BitmapDrawable(resources, blurredBackground)
+        val dominantSwatch = palette.dominantSwatch ?: return
+        binding.aboutTabLayout.setTabTextColors(
+            dominantSwatch.titleTextColor,
+            dominantSwatch.bodyTextColor
+        )
     }
 
     class GeneralFragment : Fragment(R.layout.fragment_general) {

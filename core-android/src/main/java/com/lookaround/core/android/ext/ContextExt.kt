@@ -179,8 +179,11 @@ fun Context.storeBlurredBackground(bitmap: Bitmap, type: BlurredBackgroundType) 
     storeBitmap(bitmap, "${type.name.lowercase()}.jpg")
 }
 
-fun Context.getBlurredBackground(type: BlurredBackgroundType): BitmapDrawable? =
-    getBitmap("${type.name.lowercase()}.jpg")?.let { BitmapDrawable(resources, it) }
+fun Context.getBlurredBackgroundBitmap(type: BlurredBackgroundType): Bitmap? =
+    getBitmap("${type.name.lowercase()}.jpg")
+
+fun Context.getBlurredBackgroundDrawable(type: BlurredBackgroundType): BitmapDrawable? =
+    getBlurredBackgroundBitmap(type)?.let { BitmapDrawable(resources, it) }
 
 private fun Context.storeBitmap(bitmap: Bitmap, name: String) {
     contentResolver.openOutputStream(getUriForFile(createImageFile(name)))?.use {

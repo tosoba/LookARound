@@ -355,7 +355,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
 
         fun onDrawerToggled(open: Boolean) {
-            lifecycleScope.launch { viewModel.signal(MainSignal.DrawerToggled(open)) }
+            lifecycleScope.launch { viewModel.intent(MainIntent.DrawerToggled(open)) }
         }
 
         val initiallyOpen = binding.mainDrawerLayout.isDrawerOpen(binding.drawerNavigationView)

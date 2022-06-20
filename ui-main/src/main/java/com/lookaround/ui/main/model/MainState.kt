@@ -20,6 +20,7 @@ data class MainState(
     val recentSearchesCount: Int = 0,
     val autocompleteSearchQuery: String = "",
     val searchFocused: Boolean = false,
+    val drawerOpen: Boolean = false,
 ) : Parcelable {
     @IgnoredOnParcel
     val bitmapCache = LruCache<BlurredBackgroundType, Pair<Bitmap, Palette>>(BITMAP_CACHE_SIZE)

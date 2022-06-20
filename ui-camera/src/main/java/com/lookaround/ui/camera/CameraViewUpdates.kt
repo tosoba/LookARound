@@ -165,7 +165,7 @@ internal fun cameraObscuredUpdates(
             mainViewModel.filterSignals(MainSignal.BottomSheetStateChanged::state).onStart {
                 emit(mainViewModel.state.lastLiveBottomSheetState)
             },
-            mainViewModel.filterSignals(MainSignal.DrawerToggled::open).onStart { emit(false) },
+            mainViewModel.mapStates(MainState::drawerOpen),
             cameraViewModel
                 .mapStates(CameraState::previewState)
                 .filter(CameraPreviewState::isLive::get),

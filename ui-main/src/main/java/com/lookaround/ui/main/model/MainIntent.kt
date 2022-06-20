@@ -50,4 +50,9 @@ sealed interface MainIntent {
     }
 
     object GetAttractions : MainIntent
+
+    data class DrawerToggled(val open: Boolean) : MainIntent, (MainState) -> MainState {
+        override fun invoke(state: MainState): MainState =
+            if (state.drawerOpen == open) state else state.copy(drawerOpen = open)
+    }
 }

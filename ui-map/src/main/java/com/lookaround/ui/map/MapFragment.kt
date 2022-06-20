@@ -116,7 +116,7 @@ class MapFragment :
                 (blurredBackground) ->
                 BitmapDrawable(resources, blurredBackground)
             }
-                ?: run { requireContext().getBlurredBackground(BlurredBackgroundType.MAP) }
+                ?: run { requireContext().getBlurredBackgroundDrawable(BlurredBackgroundType.MAP) }
                     ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
 
         currentMarker
