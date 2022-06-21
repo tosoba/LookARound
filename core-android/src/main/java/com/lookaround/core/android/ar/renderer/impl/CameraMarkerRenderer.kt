@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.*
 import android.location.Location
-import android.os.Build
 import android.os.Bundle
 import android.text.TextPaint
 import android.text.TextUtils
@@ -252,33 +251,15 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     private fun Canvas.drawTitleText(marker: ARMarker, rect: RectF) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            drawMultilineText(
-                text = marker.wrapped.name,
-                textPaint = titleTextPaint,
-                width = (rect.width() - MARKER_PADDING_DP * 2 - ELLIPSIS_WIDTH_PX).toInt(),
-                x = marker.x - markerWidthPx / 2 + markerPaddingPx,
-                y = marker.y - markerHeightPx / 2 + markerPaddingPx,
-                ellipsize = TextUtils.TruncateAt.END,
-                maxLines = 2,
-            )
-        } else {
-            val title =
-                TextUtils.ellipsize(
-                    marker.wrapped.name,
-                    titleTextPaint,
-                    rect.width() - MARKER_PADDING_DP * 2 - ELLIPSIS_WIDTH_PX,
-                    TextUtils.TruncateAt.END
-                )
-            drawText(
-                title,
-                0,
-                title.length,
-                marker.x - markerWidthPx / 2 + markerPaddingPx,
-                marker.y - markerHeightPx / 2 + markerPaddingPx + markerTitleTextSizePx,
-                titleTextPaint
-            )
-        }
+        drawMultilineText(
+            text = marker.wrapped.name,
+            textPaint = titleTextPaint,
+            width = (rect.width() - MARKER_PADDING_DP * 2 - ELLIPSIS_WIDTH_PX).toInt(),
+            x = marker.x - markerWidthPx / 2 + markerPaddingPx,
+            y = marker.y - markerHeightPx / 2 + markerPaddingPx,
+            ellipsize = TextUtils.TruncateAt.END,
+            maxLines = 2,
+        )
     }
 
     private fun Canvas.drawDistanceText(marker: ARMarker, rect: RectF) {
@@ -318,7 +299,7 @@ class CameraMarkerRenderer(context: Context) : MarkerRenderer {
     }
 
     companion object {
-        private const val MARKER_WIDTH_TAKEN_X_MULTIPLIER = 2.5f
+        private const val MARKER_WIDTH_TAKEN_X_MULTIPLIER = 2.75f
         private const val MARKER_VERTICAL_SPACING_PX = 50f
         private const val NUMBER_OF_ROWS_PORTRAIT = 5
         private const val NUMBER_OF_ROWS_LANDSCAPE = 2

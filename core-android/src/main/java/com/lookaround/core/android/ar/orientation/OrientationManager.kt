@@ -177,7 +177,7 @@ class OrientationManager : SensorEventListener {
 
     companion object {
         private const val CIRCLE: Float = (Math.PI * 2).toFloat()
-        private const val SMOOTH_THRESHOLD: Float = CIRCLE / 3 // originally: CIRCLE / 6
-        private const val SMOOTH_FACTOR: Float = .01f // originally: SMOOTH_THRESHOLD / 5
+        private const val SMOOTH_THRESHOLD: Float = CIRCLE / 3f // originally: CIRCLE / 6
+        private const val SMOOTH_FACTOR: Float = .005f // originally: SMOOTH_THRESHOLD / 5
     }
 }

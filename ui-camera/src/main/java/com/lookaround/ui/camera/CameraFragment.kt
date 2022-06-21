@@ -74,19 +74,15 @@ class CameraFragment :
             PreferenceManager.getDefaultSharedPreferences(requireContext())
         }
 
-    private val SharedPreferences.smoothFactor: Float?
-        get() =
-            getInt(getString(R.string.preference_sensitivity_key), -1)
-                .toFloat()
-                .takeIf { it > 0f }
-                ?.let { 0.02f * it }
+    private val SharedPreferences.smoothFactor: Float
+        get() = getInt(getString(R.string.preference_sensitivity_key), 5).toFloat() * .002f
 
     private val orientationManager: OrientationManager by
         lazy(LazyThreadSafetyMode.NONE) {
             OrientationManager(requireContext()).apply {
                 axisMode = OrientationManager.Mode.AR
                 onOrientationChangedListener = this@CameraFragment
-                defaultSharedPreferences.smoothFactor?.let { smoothFactor = it }
+                smoothFactor = defaultSharedPreferences.smoothFactor
             }
         }
 
@@ -123,7 +119,9 @@ class CameraFragment :
                 (blurredBackground) ->
                 BitmapDrawable(resources, blurredBackground)
             }
-                ?: run { requireContext().getBlurredBackgroundDrawable(BlurredBackgroundType.CAMERA) }
+                ?: run {
+                    requireContext().getBlurredBackgroundDrawable(BlurredBackgroundType.CAMERA)
+                }
                     ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
 
         blurBackgroundVisibilityFlow
