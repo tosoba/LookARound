@@ -44,7 +44,7 @@
         android:layout_height="96dp"
         android:layout_marginHorizontal="10dp"
         android:layout_marginVertical="10dp"
-        android:background="@drawable/radar_background"
+        android:background="@drawable/radar_background_small"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/bottom_views_guideline"
         app:layout_constraintDimensionRatio="1:1"

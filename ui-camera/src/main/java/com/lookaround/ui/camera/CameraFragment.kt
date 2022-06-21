@@ -512,6 +512,12 @@ class CameraFragment :
             }
         )
         arRadarView.layoutParams = radarViewLayoutParams
+        arRadarView.background =
+            ContextCompat.getDrawable(
+                requireContext(),
+                if (enlarged) R.drawable.radar_background_large
+                else R.drawable.radar_background_small
+            )
     }
 
     private fun FragmentCameraBinding.onLoadingStarted() {
@@ -654,7 +660,11 @@ class CameraFragment :
         if (showRadar) {
             arViewsGroup.visibility = View.VISIBLE
             arRadarView.background =
-                ContextCompat.getDrawable(requireContext(), R.drawable.radar_background)
+                ContextCompat.getDrawable(
+                    requireContext(),
+                    if (cameraViewModel.state.radarEnlarged) R.drawable.radar_background_large
+                    else R.drawable.radar_background_small
+                )
             arRadarView.rotableBackground = R.drawable.radar_arrow
             arRadarView.disabled = false
         } else {
