@@ -60,7 +60,6 @@ internal fun arEnabledUpdates(
                 showingAnyMarkers = showingAnyMarkers
             )
         }
-        .distinctUntilChangedBy(ARUpdate.Enabled::enabled)
         .filter(ARUpdate.Enabled::enabled::get)
 
 sealed interface ARUpdate {
