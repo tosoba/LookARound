@@ -9,6 +9,7 @@
     <color name="cluster_stroke">#FFFFFF</color>
 
     <color name="dark_gray_background">#ff434343</color>
+    <color name="splash_dark_background">#353839</color>
 
     <color name="translucent_scrim_bottom">#2A000000</color>
     <color name="translucent_scrim_bottom_center">#0D000000</color>

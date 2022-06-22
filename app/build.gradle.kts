@@ -83,6 +83,7 @@ dependencies {
     implementation("androidx.palette:palette:1.0.0")
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:3.0.0-RC3")
+    implementation("androidx.core:core-splashscreen:1.0.0-rc01")
 
     implementation("androidx.compose.runtime:runtime:1.2.0-beta02")
     implementation("androidx.compose.compiler:compiler:1.2.0-beta02")
