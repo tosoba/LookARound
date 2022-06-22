@@ -299,7 +299,11 @@ class CameraFragment :
                     )
                 } else {
                     openGLRenderer.setBlurEnabled(enabled = false, animated = false)
-                    blurBackgroundVisibilityFlow.emit(if (obscured) View.VISIBLE else View.GONE)
+                    if (obscured) {
+                        blurBackgroundVisibilityFlow.emit(View.VISIBLE)
+                    } else if (latestARState == CameraARState.ENABLED) {
+                        blurBackgroundVisibilityFlow.emit(View.GONE)
+                    }
                 }
 
                 if (obscured) disableAR() else enableAR(showingAnyMarkers)
@@ -604,7 +608,7 @@ class CameraFragment :
 
     override fun onResume() {
         super.onResume()
-        defaultSharedPreferences.smoothFactor?.let { orientationManager.smoothFactor = it }
+        orientationManager.smoothFactor = defaultSharedPreferences.smoothFactor
         orientationManager.startSensor(requireContext())
     }
 
