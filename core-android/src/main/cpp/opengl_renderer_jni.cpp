@@ -453,7 +453,7 @@ void main() {
         static constexpr GLfloat LOD_INCREMENT = (NativeContext::MAX_LOD - NativeContext::MIN_LOD) /
                                                  (GLfloat) NativeContext::BLUR_ANIMATION_FRAMES;
 
-        static constexpr GLfloat MAX_CONTRASTING_COLOR_MIX = 0.03f;
+        static constexpr GLfloat MAX_CONTRASTING_COLOR_MIX = .05f;
         static constexpr GLfloat MIN_CONTRASTING_COLOR_MIX = 0.f;
         static constexpr GLfloat CONTRASTING_COLOR_MIX_INCREMENT =
                 (NativeContext::MAX_CONTRASTING_COLOR_MIX -
