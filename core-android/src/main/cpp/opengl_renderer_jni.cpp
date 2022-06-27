@@ -725,6 +725,14 @@ void main() {
         }
     };
 
+    void ThrowException(JNIEnv *env, const char *exceptionName, const char *msg) {
+        jclass exClass = env->FindClass(exceptionName);
+        assert(exClass != nullptr);
+
+        [[maybe_unused]] jint throwSuccess = env->ThrowNew(exClass, msg);
+        assert(throwSuccess == JNI_OK);
+    }
+
     void InitFrameBuffer(GLuint *textureId, GLuint *fboId, GLsizei width, GLsizei height) {
         CHECK_GL(glGenTextures(1, textureId));
         CHECK_GL(glBindTexture(GL_TEXTURE_2D, *textureId));
@@ -754,8 +762,13 @@ void main() {
     }
 
     // Returns a handle to the shader
-    GLuint CompileShader(GLenum shaderType, const char *shaderSrc) {
+    GLuint CompileShader(JNIEnv *env, GLenum shaderType, const char *shaderSrc) {
         GLuint shader = CHECK_GL(glCreateShader(shaderType));
+
+        if (!shader) {
+            ThrowException(env, "java/lang/Exception", "Compile shader exception.");
+        }
+
         assert(shader);
         CHECK_GL(glShaderSource(shader, 1, &shaderSrc, /*length=*/nullptr));
         CHECK_GL(glCompileShader(shader));
@@ -776,17 +789,24 @@ void main() {
             CHECK_GL(glDeleteShader(shader));
             shader = 0;
         }
-        assert(shader);
+
+        if (!shader) {
+            ThrowException(env, "java/lang/Exception", "Compile shader exception.");
+        }
+
         return shader;
     }
 
     // Returns a handle to the output program
-    GLuint CreateGlProgram(const char *vertexShaderSrc, const char *fragmentShaderSrc) {
-        GLuint vertexShader = CompileShader(GL_VERTEX_SHADER, vertexShaderSrc);
+    GLuint
+    CreateGlProgram(JNIEnv *env, const char *vertexShaderSrc, const char *fragmentShaderSrc) {
+        GLuint vertexShader = CompileShader(env, GL_VERTEX_SHADER, vertexShaderSrc);
         assert(vertexShader);
 
-        GLuint fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSrc);
-        assert(fragmentShader);
+        GLuint fragmentShader = CompileShader(env, GL_FRAGMENT_SHADER, fragmentShaderSrc);
+        if (!fragmentShader) {
+            ThrowException(env, "java/lang/Exception", "Compile shader exception.");
+        }
 
         GLuint program = CHECK_GL(glCreateProgram());
         assert(program);
@@ -809,7 +829,6 @@ void main() {
             CHECK_GL(glDeleteProgram(program));
             program = 0;
         }
-        assert(program);
         return program;
     }
 
@@ -824,14 +843,6 @@ void main() {
             nativeContext->windowSurface.first = nullptr;
         }
     }
-
-    void ThrowException(JNIEnv *env, const char *exceptionName, const char *msg) {
-        jclass exClass = env->FindClass(exceptionName);
-        assert(exClass != nullptr);
-
-        [[maybe_unused]] jint throwSuccess = env->ThrowNew(exClass, msg);
-        assert(throwSuccess == JNI_OK);
-    }
 }  // namespace
 
 extern "C" {
@@ -845,7 +856,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     EGLint minorVer;
     EGLBoolean initSuccess = eglInitialize(eglDisplay, &majorVer, &minorVer);
     if (initSuccess != EGL_TRUE) {
-        ThrowException(env, "java/lang/RuntimeException",
+        ThrowException(env, "java/lang/Exception",
                        "EGL Error: eglInitialize failed.");
         return 0;
     }
@@ -907,7 +918,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
             new NativeContext(eglDisplay, config, eglContext, /*window=*/nullptr,
                     /*surface=*/nullptr, eglPbuffer);
 
-    nativeContext->programNoBlur = CreateGlProgram(VERTEX_SHADER_SRC_NO_BLUR,
+    nativeContext->programNoBlur = CreateGlProgram(env,
+                                                   VERTEX_SHADER_SRC_NO_BLUR,
                                                    FRAGMENT_SHADER_SRC_NO_BLUR);
     assert(nativeContext->programNoBlur);
     nativeContext->positionHandleNoBlur =
@@ -938,7 +950,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
             CHECK_GL(glGetUniformLocation(nativeContext->programNoBlur, "cornerRadius"));
     assert(nativeContext->cornerRadiusHandleNoBlur != -1);
 
-    nativeContext->programVOES = CreateGlProgram(VERTEX_SHADER_SRC_TRANSFORM,
+    nativeContext->programVOES = CreateGlProgram(env,
+                                                 VERTEX_SHADER_SRC_TRANSFORM,
                                                  FRAGMENT_SHADER_SRC_V_OES);
     assert(nativeContext->programVOES);
     nativeContext->positionHandleVOES =
@@ -969,7 +982,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
             CHECK_GL(glGetUniformLocation(nativeContext->programVOES, "texTransform"));
     assert(nativeContext->texTransformHandleVOES != -1);
 
-    nativeContext->programH = CreateGlProgram(VERTEX_SHADER_SRC_NO_TRANSFORM,
+    nativeContext->programH = CreateGlProgram(env,
+                                              VERTEX_SHADER_SRC_NO_TRANSFORM,
                                               FRAGMENT_SHADER_SRC_H);
     assert(nativeContext->programH);
     nativeContext->positionHandleH =
@@ -994,7 +1008,8 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
             CHECK_GL(glGetUniformLocation(nativeContext->programH, "contrastingColorMix"));
     assert(nativeContext->contrastingColorMixHandleH != -1);
 
-    nativeContext->programV2D = CreateGlProgram(VERTEX_SHADER_SRC_NO_TRANSFORM,
+    nativeContext->programV2D = CreateGlProgram(env,
+                                                VERTEX_SHADER_SRC_NO_TRANSFORM,
                                                 FRAGMENT_SHADER_SRC_V_2D);
     assert(nativeContext->programV2D);
     nativeContext->positionHandleV2D =

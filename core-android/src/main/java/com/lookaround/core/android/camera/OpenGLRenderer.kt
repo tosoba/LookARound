@@ -157,7 +157,13 @@ class OpenGLRenderer {
             )
             activeStreamStateObserver.set(streamStateObserver)
 
-            if (nativeContext == 0L) nativeContext = initContext()
+            if (nativeContext == 0L)
+                try {
+                    nativeContext = initContext()
+                } catch (t: Throwable) {
+                    Timber.tag("OGLR").e(t)
+                }
+
             val surfaceTexture = resetPreviewTexture(surfaceRequest.resolution)
             val inputSurface = Surface(surfaceTexture)
             numOutstandingSurfaces++
