@@ -58,7 +58,7 @@ class OpenGLRenderer {
     private val surfaceTransform = FloatArray(16)
 
     private val tempVec = FloatArray(8)
-    private var nativeContext: Long = 0
+    private var nativeContext = 0L
     private var isShutdown = false
     private var numOutstandingSurfaces = 0
     private var frameUpdateListener: Pair<Executor, (Long) -> Unit>? = null
@@ -157,13 +157,7 @@ class OpenGLRenderer {
             )
             activeStreamStateObserver.set(streamStateObserver)
 
-            if (nativeContext == 0L)
-                try {
-                    nativeContext = initContext()
-                } catch (t: Throwable) {
-                    Timber.tag("OGLR").e(t)
-                }
-
+            if (nativeContext == 0L) nativeContext = initContext()
             val surfaceTexture = resetPreviewTexture(surfaceRequest.resolution)
             val inputSurface = Surface(surfaceTexture)
             numOutstandingSurfaces++
