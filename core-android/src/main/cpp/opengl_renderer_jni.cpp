@@ -756,7 +756,7 @@ void main() {
     // Returns a handle to the shader
     GLuint CompileShader(GLenum shaderType, const char *shaderSrc) {
         GLuint shader = CHECK_GL(glCreateShader(shaderType));
-        assert(shader);
+        if (!shader) return 0;
         CHECK_GL(glShaderSource(shader, 1, &shaderSrc, /*length=*/nullptr));
         CHECK_GL(glCompileShader(shader));
         GLint compileStatus = 0;
@@ -776,7 +776,6 @@ void main() {
             CHECK_GL(glDeleteShader(shader));
             shader = 0;
         }
-        assert(shader);
         return shader;
     }
 
@@ -786,7 +785,9 @@ void main() {
         assert(vertexShader);
 
         GLuint fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSrc);
-        assert(fragmentShader);
+        if (!fragmentShader) {
+            return 0;
+        }
 
         GLuint program = CHECK_GL(glCreateProgram());
         assert(program);
@@ -909,7 +910,10 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
 
     nativeContext->programNoBlur = CreateGlProgram(VERTEX_SHADER_SRC_NO_BLUR,
                                                    FRAGMENT_SHADER_SRC_NO_BLUR);
-    assert(nativeContext->programNoBlur);
+    if (!nativeContext->programNoBlur) {
+        return -1L;
+    }
+
     nativeContext->positionHandleNoBlur =
             CHECK_GL(glGetAttribLocation(nativeContext->programNoBlur, "position"));
     assert(nativeContext->positionHandleNoBlur != -1);

@@ -157,7 +157,14 @@ class OpenGLRenderer {
             )
             activeStreamStateObserver.set(streamStateObserver)
 
-            if (nativeContext == 0L) nativeContext = initContext()
+            if (nativeContext == 0L)
+                nativeContext =
+                    initContext().also {
+                        if (it < 0L) throw IllegalStateException()
+                    } // TODO: replace this with a callback function or a mutableSharedFlow to
+            // signal an error to CameraFragment -> then show camera init failure msg
+            // (just throwing an exception does not work because we're in a callback yo) - check if
+            // exception can be thrown and caught here as well!!!
             val surfaceTexture = resetPreviewTexture(surfaceRequest.resolution)
             val inputSurface = Surface(surfaceTexture)
             numOutstandingSurfaces++
