@@ -782,15 +782,14 @@ void main() {
     // Returns a handle to the output program
     GLuint CreateGlProgram(const char *vertexShaderSrc, const char *fragmentShaderSrc) {
         GLuint vertexShader = CompileShader(GL_VERTEX_SHADER, vertexShaderSrc);
-        assert(vertexShader);
+        if (!vertexShader) return 0;
 
         GLuint fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSrc);
-        if (!fragmentShader) {
-            return 0;
-        }
+        if (!fragmentShader) return 0;
 
         GLuint program = CHECK_GL(glCreateProgram());
-        assert(program);
+        if (!program) return 0;
+
         CHECK_GL(glAttachShader(program, vertexShader));
         CHECK_GL(glAttachShader(program, fragmentShader));
         CHECK_GL(glLinkProgram(program));
@@ -810,7 +809,7 @@ void main() {
             CHECK_GL(glDeleteProgram(program));
             program = 0;
         }
-        assert(program);
+
         return program;
     }
 
@@ -840,7 +839,11 @@ JNIEXPORT jlong JNICALL
 Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
         JNIEnv *env, jobject clazz) {
     EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    assert(eglDisplay != EGL_NO_DISPLAY);
+    if (eglDisplay == EGL_NO_DISPLAY) {
+        ThrowException(env, "java/lang/RuntimeException",
+                       "EGL Error: eglGetDisplay failed.");
+        return 0;
+    }
 
     EGLint majorVer;
     EGLint minorVer;
@@ -873,22 +876,34 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     EGLBoolean chooseConfigSuccess =
             eglChooseConfig(eglDisplay, configAttribs, &config, configSize, &numConfigs);
     if (chooseConfigSuccess != EGL_TRUE) {
-        ThrowException(env, "java/lang/IllegalArgumentException",
-                       "EGL Error: eglChooseConfig failed. ");
+        ThrowException(env, "java/lang/RuntimeException",
+                       "EGL Error: eglChooseConfig failed.");
         return 0;
     }
-    assert(numConfigs > 0);
+    if (numConfigs <= 0) {
+        ThrowException(env, "java/lang/RuntimeException",
+                       "Number of configs <= 0");
+        return 0;
+    }
 
     int contextAttribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
     EGLContext eglContext = eglCreateContext(
             eglDisplay, config, EGL_NO_CONTEXT, static_cast<EGLint *>(contextAttribs));
-    assert(eglContext != EGL_NO_CONTEXT);
+    if (eglContext == EGL_NO_CONTEXT) {
+        ThrowException(env, "java/lang/RuntimeException",
+                       "EGL Error: eglCreateContext failed.");
+        return 0;
+    }
 
     // Create 1x1 pixmap to use as a surface until one is set.
     int pbufferAttribs[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
     EGLSurface eglPbuffer =
             eglCreatePbufferSurface(eglDisplay, config, pbufferAttribs);
-    assert(eglPbuffer != EGL_NO_SURFACE);
+    if (eglPbuffer == EGL_NO_SURFACE) {
+        ThrowException(env, "java/lang/RuntimeException",
+                       "EGL Error: eglCreatePbufferSurface failed.");
+        return 0;
+    }
 
     eglMakeCurrent(eglDisplay, eglPbuffer, eglPbuffer, eglContext);
 
@@ -1053,7 +1068,10 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_setWindowSurface(
     EGLSurface surface =
             eglCreateWindowSurface(nativeContext->display, nativeContext->config,
                                    nativeWindow, /*attrib_list=*/nullptr);
-    assert(surface != EGL_NO_SURFACE);
+    if (surface == EGL_NO_SURFACE) {
+        __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "Failed to create window surface.");
+        return JNI_FALSE;
+    }
 
     nativeContext->windowSurface = std::make_pair(nativeWindow, surface);
     eglMakeCurrent(nativeContext->display, surface, surface, nativeContext->context);
