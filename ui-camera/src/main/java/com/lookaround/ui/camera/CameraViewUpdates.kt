@@ -106,7 +106,9 @@ internal fun arDisabledUpdates(
                 .mapStates(CameraState::previewState)
                 .onStart { emit(cameraViewModel.state.previewState) }
                 .distinctUntilChanged(),
-            cameraViewModel.filterSignals<CameraSignal.PitchChanged>(),
+            cameraViewModel.filterSignals(CameraSignal.PitchChanged::withinLimit).onStart {
+                emit(true)
+            },
             cameraObscuredUpdates(mainViewModel, cameraViewModel)
                 .onStart {
                     emit(
@@ -121,7 +123,7 @@ internal fun arDisabledUpdates(
                 .map { it.markers.hasValue }
                 .onStart { emit(mainViewModel.state.markers.hasValue) }
                 .distinctUntilChanged()
-        ) { locationState, previewState, (pitchWithinLimit), obscuredUpdate, showingAnyMarkers ->
+        ) { locationState, previewState, pitchWithinLimit, obscuredUpdate, showingAnyMarkers ->
             ARDisabledViewUpdate(
                 anyPermissionDenied =
                     locationState.isFailedWith<LocationPermissionDeniedException>() ||

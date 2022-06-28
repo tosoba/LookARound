@@ -911,7 +911,9 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
     nativeContext->programNoBlur = CreateGlProgram(VERTEX_SHADER_SRC_NO_BLUR,
                                                    FRAGMENT_SHADER_SRC_NO_BLUR);
     if (!nativeContext->programNoBlur) {
-        return -1L;
+        ThrowException(env, "java/lang/RuntimeException",
+                       "EGL Error: eglInitialize failed.");
+        return 0;
     }
 
     nativeContext->positionHandleNoBlur =

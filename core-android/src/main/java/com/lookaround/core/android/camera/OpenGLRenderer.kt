@@ -167,17 +167,10 @@ class OpenGLRenderer {
             )
             activeStreamStateObserver.set(streamStateObserver)
 
-            if (nativeContext == 0L)
-                nativeContext =
-                    initContext().also {
-                        if (it < 0L) {
-                            cameraFatalErrorsSharedFlow.tryEmit(Unit)
-                            return@setSurfaceProvider
-                        }
-                    } // TODO: replace this with a callback function or a mutableSharedFlow to
-            // signal an error to CameraFragment -> then show camera init failure msg
-            // (just throwing an exception does not work because we're in a callback yo) - check if
-            // exception can be thrown and caught here as well!!!
+            if (nativeContext == 0L) {
+                nativeContext = catchAndEmitFatalErrors(::initContext) ?: return@setSurfaceProvider
+            }
+
             val surfaceTexture = resetPreviewTexture(surfaceRequest.resolution)
             val inputSurface = Surface(surfaceTexture)
             numOutstandingSurfaces++
@@ -200,7 +193,9 @@ class OpenGLRenderer {
         if (isShutdown) return
         try {
             executor.execute {
-                if (nativeContext == 0L) nativeContext = initContext()
+                if (nativeContext == 0L) {
+                    nativeContext = catchAndEmitFatalErrors(::initContext) ?: return@execute
+                }
 
                 if (setWindowSurface(nativeContext, surface)) {
                     this.surfaceRotationDegrees = surfaceRotationDegrees
@@ -559,4 +554,13 @@ class OpenGLRenderer {
         green: Float,
         blue: Float
     )
+
+    private fun <T : Any> catchAndEmitFatalErrors(action: () -> T): T? =
+        try {
+            action()
+        } catch (ex: Exception) {
+            Timber.tag("OGL").e(ex)
+            cameraFatalErrorsSharedFlow.tryEmit(Unit)
+            null
+        }
 }
