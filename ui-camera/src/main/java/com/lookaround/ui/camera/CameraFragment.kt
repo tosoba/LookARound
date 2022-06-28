@@ -336,13 +336,17 @@ class CameraFragment :
     }
 
     private fun initCamera() {
-        var initial = true
+        openGLRenderer.cameraFatalErrorsFlow
+            .onEach { cameraViewModel.intent(CameraIntent.CameraInitializationFailed) }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val (preview, _, imageFlow) = cameraInitializationResult.await()
                 openGLRenderer.attachInputPreview(preview, binding.cameraPreview)
                 if (isRunningOnEmulator()) return@launch
 
+                var initial = true
                 imageFlow
                     .map(ImageProxy::bitmap::get)
                     .filterNotNull()

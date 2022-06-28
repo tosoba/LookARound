@@ -24,7 +24,9 @@ import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import timber.log.Timber
 
@@ -67,6 +69,14 @@ class OpenGLRenderer {
     private val previewStreamStateFlow = MutableStateFlow(StreamState.IDLE)
     val previewStreamStates: Flow<StreamState>
         get() = previewStreamStateFlow
+
+    private val cameraFatalErrorsSharedFlow =
+        MutableSharedFlow<Unit>(
+            extraBufferCapacity = 64,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
+    val cameraFatalErrorsFlow: Flow<Unit>
+        get() = cameraFatalErrorsSharedFlow
 
     private var markerRects: List<RoundedRectF> = emptyList()
         set(value) {
@@ -160,7 +170,10 @@ class OpenGLRenderer {
             if (nativeContext == 0L)
                 nativeContext =
                     initContext().also {
-                        if (it < 0L) throw IllegalStateException()
+                        if (it < 0L) {
+                            cameraFatalErrorsSharedFlow.tryEmit(Unit)
+                            return@setSurfaceProvider
+                        }
                     } // TODO: replace this with a callback function or a mutableSharedFlow to
             // signal an error to CameraFragment -> then show camera init failure msg
             // (just throwing an exception does not work because we're in a callback yo) - check if
