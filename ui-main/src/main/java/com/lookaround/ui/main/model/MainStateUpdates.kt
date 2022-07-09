@@ -12,9 +12,9 @@ object LoadingSearchResultsUpdate : (MainState) -> MainState {
         state.copy(markers = state.markers.copyWithLoadingInProgress)
 }
 
-data class SearchErrorUpdate(private val throwable: Throwable) : (MainState) -> MainState {
+data class SearchErrorUpdate(private val exception: Exception) : (MainState) -> MainState {
     override fun invoke(state: MainState): MainState =
-        state.copy(markers = state.markers.copyWithError(throwable))
+        state.copy(markers = state.markers.copyWithError(exception))
 }
 
 data class SearchAroundResultsLoadedUpdate(
@@ -81,8 +81,8 @@ object LocationDisabledUpdate : (MainState) -> MainState {
         state.copyWithLocationException(LocationDisabledException)
 }
 
-data class FailedToUpdateLocationUpdate(val throwable: Throwable) : (MainState) -> MainState {
-    override fun invoke(state: MainState): MainState = state.copyWithLocationException(throwable)
+data class FailedToUpdateLocationUpdate(val exception: Exception) : (MainState) -> MainState {
+    override fun invoke(state: MainState): MainState = state.copyWithLocationException(exception)
 }
 
 data class RecentSearchesCountUpdate(private val count: Int) : (MainState) -> MainState {

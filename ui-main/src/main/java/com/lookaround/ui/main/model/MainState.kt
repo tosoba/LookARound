@@ -25,8 +25,8 @@ data class MainState(
     @IgnoredOnParcel
     val bitmapCache = LruCache<BlurredBackgroundType, Pair<Bitmap, Palette>>(BITMAP_CACHE_SIZE)
 
-    internal fun copyWithLocationException(throwable: Throwable): MainState =
-        copy(locationState = locationState.copyWithError(throwable))
+    internal fun copyWithLocationException(ex: Exception): MainState =
+        copy(locationState = locationState.copyWithError(ex))
 
     companion object {
         private const val BITMAP_CACHE_SIZE = 10

@@ -87,7 +87,7 @@ constructor(
                             } else {
                                 emit(
                                     FailedToUpdateLocationUpdate(
-                                        it.throwable ?: LocationUpdateFailureException
+                                        it.exception ?: LocationUpdateFailureException
                                     )
                                 )
                             }
@@ -207,9 +207,9 @@ constructor(
             } else {
                 emit(placesLoadedUpdate(places))
             }
-        } catch (throwable: Throwable) {
-            emit(SearchErrorUpdate(throwable))
-            signal(MainSignal.PlacesLoadingFailed(throwable))
+        } catch (ex: Exception) {
+            emit(SearchErrorUpdate(ex))
+            signal(MainSignal.PlacesLoadingFailed(ex))
         }
     }
 

@@ -16,7 +16,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-object GetMapException : Throwable()
+object GetMapException : RuntimeException()
 
 suspend fun MapView.init(
     httpHandler: HttpHandler? = null,

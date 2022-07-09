@@ -4,4 +4,4 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-object LocationUpdateFailureException : Throwable("Failed to update location."), Parcelable
+object LocationUpdateFailureException : RuntimeException("Failed to update location."), Parcelable

@@ -28,7 +28,7 @@ inline fun <reified T : Parcelable> Loadable<T>.hasNoValueOrEmpty(): Boolean =
         is WithoutValue -> true
         is WithValue<T> -> {
             val v = value
-            if (v is Collection<*>) v.isNullOrEmpty() else false
+            if (v is Collection<*>) v.isEmpty() else false
         }
     }
 
