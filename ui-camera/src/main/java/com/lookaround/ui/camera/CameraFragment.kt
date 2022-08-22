@@ -186,7 +186,8 @@ class CameraFragment :
                     return@request
                 }
 
-                if (deniedList.contains(
+                if (
+                    deniedList.contains(
                         Manifest.permission.ACCESS_COARSE_LOCATION,
                     ) || deniedList.contains(Manifest.permission.ACCESS_FINE_LOCATION)
                 ) {
@@ -337,7 +338,15 @@ class CameraFragment :
 
     private fun initCamera() {
         openGLRenderer.cameraFatalErrorsFlow
-            .onEach { cameraViewModel.intent(CameraIntent.CameraInitializationFailed) }
+            .onEach {
+                // TODO: instead of disabling camera (and making the whole app unusable) try to
+                // initialize cameraX without OGL renderer maybe (using this sample https://github.com/android/camera-samples/tree/master/CameraXBasic/app/src/main/java/com/android/example/cameraxbasic)
+                // since it should theoretically just work...
+                // try to create IRenderSurface that simply inflates a androidx.camera.view.PreviewView and does nothing else at first
+                // also auto disable dynamic blur in settings
+
+                // cameraViewModel.intent(CameraIntent.CameraInitializationFailed)
+            }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -413,7 +422,8 @@ class CameraFragment :
 
             val markers = mainViewModel.state.markers
             if (markers !is WithValue) return@setOnClickListener
-            if (cameraViewModel.state.firstMarkerIndex * FIRST_MARKER_INDEX_DIFF +
+            if (
+                cameraViewModel.state.firstMarkerIndex * FIRST_MARKER_INDEX_DIFF +
                     FIRST_MARKER_INDEX_DIFF < markers.value.size
             ) {
                 lifecycleScope.launch {
@@ -478,7 +488,8 @@ class CameraFragment :
 
     private fun FragmentCameraBinding.toggleRadarEnlarged(enlarged: Boolean) {
         val radarViewLayoutParams = arRadarView.layoutParams as ConstraintLayout.LayoutParams
-        if (requireContext().resources.configuration.orientation ==
+        if (
+            requireContext().resources.configuration.orientation ==
                 Configuration.ORIENTATION_PORTRAIT
         ) {
             if (enlarged) {

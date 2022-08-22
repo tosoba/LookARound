@@ -140,9 +140,9 @@ dependencies {
     kapt("androidx.hilt:hilt-compiler:1.0.0")
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
 
-    implementation("androidx.camera:camera-camera2:1.1.0-alpha10")
-    implementation("androidx.camera:camera-lifecycle:1.1.0-alpha10")
-    implementation("androidx.camera:camera-view:1.0.0-alpha30")
+    implementation("androidx.camera:camera-camera2:1.2.0-alpha04")
+    implementation("androidx.camera:camera-lifecycle:1.2.0-alpha04")
+    implementation("androidx.camera:camera-view:1.2.0-alpha04")
 
     implementation("com.google.android.gms:play-services-location:19.0.1")
     implementation("com.github.jintin:FancyLocationProvider:2.0.0")

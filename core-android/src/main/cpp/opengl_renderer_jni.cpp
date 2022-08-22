@@ -927,7 +927,7 @@ Java_com_lookaround_core_android_camera_OpenGLRenderer_initContext(
                                                    FRAGMENT_SHADER_SRC_NO_BLUR);
     if (!nativeContext->programNoBlur) {
         ThrowException(env, "java/lang/RuntimeException",
-                       "EGL Error: eglInitialize failed.");
+                       "OGL Error: creating GL program failed.");
         return 0;
     }
 
