@@ -169,6 +169,9 @@ class OpenGLRenderer {
             )
             activeStreamStateObserver.set(streamStateObserver)
 
+            // TODO: try to move this outside setSurfaceProvider and see what happens (on realme first)
+            // if it works - when initContext fails inflate PreviewView into ViewStub (maybe even do it outside of OpenGLRenderer)
+            // and connect StreamState from PreviewView to previewStreamStateFlow (or somewhere else outside this class)
             if (nativeContext == 0L) {
                 nativeContext = catchAndEmitFatalErrors(::initContext) ?: return@setSurfaceProvider
             }
