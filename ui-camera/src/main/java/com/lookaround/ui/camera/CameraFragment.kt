@@ -337,16 +337,8 @@ class CameraFragment :
     }
 
     private fun initCamera() {
-        openGLRenderer.cameraFatalErrorsFlow
-            .onEach {
-                // TODO: instead of disabling camera (and making the whole app unusable) try to
-                // initialize cameraX without OGL renderer maybe (using this sample https://github.com/android/camera-samples/tree/master/CameraXBasic/app/src/main/java/com/android/example/cameraxbasic)
-                // since it should theoretically just work...
-                // try to create IRenderSurface that simply inflates a androidx.camera.view.PreviewView and does nothing else at first
-                // also auto disable dynamic blur in settings
-
-                // cameraViewModel.intent(CameraIntent.CameraInitializationFailed)
-            }
+        openGLRenderer.oglFatalErrorsFlow
+            .onEach { cameraViewModel.intent(CameraIntent.CameraInitializationFailed) }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
         viewLifecycleOwner.lifecycleScope.launch {

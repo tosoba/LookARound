@@ -72,13 +72,13 @@ class OpenGLRenderer {
     val previewStreamStates: Flow<StreamState>
         get() = previewStreamStateFlow
 
-    private val cameraFatalErrorsSharedFlow =
+    private val oglFatalErrorsSharedFlow =
         MutableSharedFlow<Unit>(
             extraBufferCapacity = 64,
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
-    val cameraFatalErrorsFlow: Flow<Unit>
-        get() = cameraFatalErrorsSharedFlow
+    val oglFatalErrorsFlow: Flow<Unit>
+        get() = oglFatalErrorsSharedFlow
 
     private var markerRects: List<RoundedRectF> = emptyList()
         set(value) {
@@ -169,9 +169,6 @@ class OpenGLRenderer {
             )
             activeStreamStateObserver.set(streamStateObserver)
 
-            // TODO: try to move this outside setSurfaceProvider and see what happens (on realme first)
-            // if it works - when initContext fails inflate PreviewView into ViewStub (maybe even do it outside of OpenGLRenderer)
-            // and connect StreamState from PreviewView to previewStreamStateFlow (or somewhere else outside this class)
             if (nativeContext == 0L) {
                 nativeContext = catchAndEmitFatalErrors(::initContext) ?: return@setSurfaceProvider
             }
@@ -518,7 +515,8 @@ class OpenGLRenderer {
         // a "center crop" scale type. Because vertex coordinates are already normalized, we must
         // remove
         // the implicit scaling (through division) before scaling by the opposite dimension.
-        if (naturalPreviewWidth * naturalSurfaceHeight > naturalPreviewHeight * naturalSurfaceWidth
+        if (
+            naturalPreviewWidth * naturalSurfaceHeight > naturalPreviewHeight * naturalSurfaceWidth
         ) {
             Matrix.scaleM(surfaceTransform, 0, heightRatio / widthRatio, 1.0f, 1.0f)
         } else {
@@ -565,7 +563,7 @@ class OpenGLRenderer {
             action()
         } catch (ex: Exception) {
             Timber.tag("OGL").e(ex)
-            cameraFatalErrorsSharedFlow.tryEmit(Unit)
+            oglFatalErrorsSharedFlow.tryEmit(Unit)
             null
         }
 }
