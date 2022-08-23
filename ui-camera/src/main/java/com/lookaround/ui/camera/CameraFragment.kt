@@ -616,7 +616,11 @@ class CameraFragment :
     override fun onResume() {
         super.onResume()
         orientationManager.smoothFactor = defaultSharedPreferences.smoothFactor
-        orientationManager.startSensor(requireContext())
+        if (!orientationManager.startSensor(requireContext())) {
+            lifecycleScope.launchWhenResumed {
+                cameraViewModel.intent(CameraIntent.CameraInitializationFailed)
+            }
+        }
     }
 
     override fun onPause() {

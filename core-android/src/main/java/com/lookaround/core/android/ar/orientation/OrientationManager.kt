@@ -62,22 +62,26 @@ class OrientationManager : SensorEventListener {
      * @param context The context over this will work
      */
     @MainThread
-    fun startSensor(context: Context) {
-        if (!sensorRunning) {
-            val manager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-            manager.registerListener(
+    fun startSensor(context: Context): Boolean {
+        if (sensorRunning) return true
+        val manager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        if (
+            !manager.registerListener(
                 this,
                 manager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
                 SensorManager.SENSOR_DELAY_UI
-            )
-            manager.registerListener(
-                this,
-                manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                SensorManager.SENSOR_DELAY_UI
-            )
-            sensorManager = manager
-            sensorRunning = true
+            ) ||
+                !manager.registerListener(
+                    this,
+                    manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                    SensorManager.SENSOR_DELAY_UI
+                )
+        ) {
+            return false
         }
+        sensorManager = manager
+        sensorRunning = true
+        return true
     }
 
     /** * Detects a change in a sensor and warns the appropiate listener. */
