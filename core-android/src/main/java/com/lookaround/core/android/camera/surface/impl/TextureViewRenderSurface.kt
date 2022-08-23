@@ -1,4 +1,4 @@
-package com.lookaround.core.android.camera
+package com.lookaround.core.android.camera.surface.impl
 
 import android.graphics.SurfaceTexture
 import android.util.Size
@@ -10,6 +10,9 @@ import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.core.content.ContextCompat
 import com.google.common.util.concurrent.ListenableFuture
 import com.lookaround.core.android.R
+import com.lookaround.core.android.camera.OpenGLRenderer
+import com.lookaround.core.android.camera.surface.IRenderSurface
+import com.lookaround.core.android.camera.surface.Surfaces
 import java.util.concurrent.atomic.AtomicReference
 import timber.log.Timber
 

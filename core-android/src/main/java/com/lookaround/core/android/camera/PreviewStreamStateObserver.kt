@@ -13,6 +13,7 @@ import androidx.camera.core.impl.utils.futures.Futures
 import androidx.camera.view.PreviewView.StreamState
 import androidx.concurrent.futures.CallbackToFutureAdapter
 import com.google.common.util.concurrent.ListenableFuture
+import com.lookaround.core.android.camera.surface.IRenderSurface
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @SuppressLint("RestrictedApi")

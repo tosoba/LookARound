@@ -16,6 +16,8 @@ import androidx.camera.view.PreviewView.StreamState
 import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.core.content.ContextCompat
 import com.google.common.util.concurrent.ListenableFuture
+import com.lookaround.core.android.camera.surface.impl.SurfaceViewRenderSurface
+import com.lookaround.core.android.camera.surface.impl.TextureViewRenderSurface
 import com.lookaround.core.android.ext.shouldUseTextureView
 import com.lookaround.core.android.model.RoundedRectF
 import java.util.*

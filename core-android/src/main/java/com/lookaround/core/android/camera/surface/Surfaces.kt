@@ -1,4 +1,4 @@
-package com.lookaround.core.android.camera
+package com.lookaround.core.android.camera.surface
 
 import android.view.Surface
 import androidx.annotation.IntDef

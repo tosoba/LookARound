@@ -1,4 +1,4 @@
-package com.lookaround.core.android.camera
+package com.lookaround.core.android.camera.surface.impl
 
 import android.annotation.SuppressLint
 import android.os.Build
@@ -9,6 +9,9 @@ import android.view.ViewStub
 import androidx.camera.core.impl.utils.futures.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.lookaround.core.android.R
+import com.lookaround.core.android.camera.OpenGLRenderer
+import com.lookaround.core.android.camera.surface.IRenderSurface
+import com.lookaround.core.android.camera.surface.Surfaces
 import java.util.concurrent.ExecutionException
 import timber.log.Timber
 
