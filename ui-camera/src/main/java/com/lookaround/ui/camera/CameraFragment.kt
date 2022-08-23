@@ -79,7 +79,7 @@ class CameraFragment :
 
     private val orientationManager: OrientationManager by
         lazy(LazyThreadSafetyMode.NONE) {
-            OrientationManager(requireContext()).apply {
+            OrientationManager().apply {
                 axisMode = OrientationManager.Mode.AR
                 onOrientationChangedListener = this@CameraFragment
                 smoothFactor = defaultSharedPreferences.smoothFactor

@@ -75,7 +75,7 @@ class MapFragment :
 
     private val orientationManager: OrientationManager by
         lazy(LazyThreadSafetyMode.NONE) {
-            OrientationManager(requireContext()).apply {
+            OrientationManager().apply {
                 axisMode = OrientationManager.Mode.COMPASS
                 onOrientationChangedListener = this@MapFragment
             }
@@ -141,7 +141,8 @@ class MapFragment :
 
         lifecycleScope.launchWhenResumed {
             mainViewModel.signal(
-                if (mainViewModel.state.lastLiveBottomSheetState !=
+                if (
+                    mainViewModel.state.lastLiveBottomSheetState !=
                         ViewPagerBottomSheetBehavior.STATE_EXPANDED
                 ) {
                     MainSignal.ToggleSearchBarVisibility(View.VISIBLE)
@@ -195,6 +196,7 @@ class MapFragment :
         binding.userLocationFab.visibility = View.VISIBLE
         mapController.launch { updateCompassFab() }
         lifecycleScope.launchWhenResumed { mainViewModel.signal(MainSignal.MapFragmentResumed) }
+        orientationManager.startSensor(requireContext())
     }
 
     override fun onPause() {
@@ -516,7 +518,8 @@ class MapFragment :
     }
 
     private fun initBlurringOnBottomSheetStateChanged() {
-        if (mainViewModel.state.lastLiveBottomSheetState !=
+        if (
+            mainViewModel.state.lastLiveBottomSheetState !=
                 ViewPagerBottomSheetBehavior.STATE_HIDDEN
         ) {
             binding.blurBackground.visibility = View.GONE
