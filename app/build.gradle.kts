@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.lookaround"
-        minSdk = 23
+        minSdk = 28
         targetSdk = 32
         version = "1.0"
         versionCode = 1
