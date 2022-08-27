@@ -217,7 +217,6 @@ class CameraFragment :
                 loadingStartedUpdates(mainViewModel, cameraViewModel),
                 arEnabledUpdates(mainViewModel, cameraViewModel)
             )
-            .debounce(250L)
             .onEach {
                 latestARState =
                     when (it) {
@@ -241,7 +240,7 @@ class CameraFragment :
     private fun FragmentCameraBinding.initARViews() {
         initARCameraPageViews()
 
-        initCamera()
+        if (!initCamera()) return
 
         openGLRenderer.previewStreamStates
             .distinctUntilChanged()
@@ -336,7 +335,9 @@ class CameraFragment :
         }
     }
 
-    private fun initCamera() {
+    private fun initCamera(): Boolean {
+        if (!startSensor()) return false
+
         openGLRenderer.oglFatalErrorsFlow
             .onEach { cameraViewModel.intent(CameraIntent.CameraInitializationFailed) }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -376,6 +377,20 @@ class CameraFragment :
                 cameraViewModel.intent(CameraIntent.CameraInitializationFailed)
             }
         }
+
+        return true
+    }
+
+    private fun startSensor(): Boolean {
+        orientationManager.smoothFactor = defaultSharedPreferences.smoothFactor
+        if (!orientationManager.startSensor(requireContext())) {
+            lifecycleScope.launch {
+                cameraViewModel.intent(CameraIntent.CameraInitializationFailed)
+            }
+            return false
+        }
+
+        return true
     }
 
     private suspend fun updateContrastingColorUsing(palette: Palette) {
@@ -615,12 +630,7 @@ class CameraFragment :
 
     override fun onResume() {
         super.onResume()
-        orientationManager.smoothFactor = defaultSharedPreferences.smoothFactor
-        if (!orientationManager.startSensor(requireContext())) {
-            lifecycleScope.launchWhenResumed {
-                cameraViewModel.intent(CameraIntent.CameraInitializationFailed)
-            }
-        }
+        startSensor()
     }
 
     override fun onPause() {
