@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface FlowProcessor<Intent : Any, State : Any, Signal : Any> {
     fun updates(
-        coroutineScope: CoroutineScope,
         intents: Flow<Intent>,
         currentState: () -> State,
         signal: suspend (Signal) -> Unit

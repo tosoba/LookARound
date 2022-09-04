@@ -16,7 +16,6 @@ constructor(
     private val isConnectedFlow: IsConnectedFlow,
 ) : FlowProcessor<MapSceneIntent, MapSceneState, MapSceneSignal> {
     override fun updates(
-        coroutineScope: CoroutineScope,
         intents: Flow<MapSceneIntent>,
         currentState: () -> MapSceneState,
         signal: suspend (MapSceneSignal) -> Unit

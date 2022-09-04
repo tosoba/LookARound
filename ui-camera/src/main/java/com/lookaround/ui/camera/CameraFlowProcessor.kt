@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.merge
 class CameraFlowProcessor @Inject constructor() :
     FlowProcessor<CameraIntent, CameraState, CameraSignal> {
     override fun updates(
-        coroutineScope: CoroutineScope,
         intents: Flow<CameraIntent>,
         currentState: () -> CameraState,
         signal: suspend (CameraSignal) -> Unit

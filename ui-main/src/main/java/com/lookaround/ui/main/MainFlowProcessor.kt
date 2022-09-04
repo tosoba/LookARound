@@ -30,7 +30,6 @@ constructor(
     private val getAutocompleteSearchResults: GetAutocompleteSearchResults,
 ) : FlowProcessor<MainIntent, MainState, MainSignal> {
     override fun updates(
-        coroutineScope: CoroutineScope,
         intents: Flow<MainIntent>,
         currentState: () -> MainState,
         signal: suspend (MainSignal) -> Unit

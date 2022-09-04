@@ -23,7 +23,6 @@ constructor(
     private val deleteSearches: DeleteSearches,
 ) : FlowProcessor<RecentSearchesIntent, RecentSearchesState, RecentSearchesSignal> {
     override fun updates(
-        coroutineScope: CoroutineScope,
         intents: Flow<RecentSearchesIntent>,
         currentState: () -> RecentSearchesState,
         signal: suspend (RecentSearchesSignal) -> Unit

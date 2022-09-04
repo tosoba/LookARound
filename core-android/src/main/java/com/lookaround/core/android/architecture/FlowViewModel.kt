@@ -27,14 +27,13 @@ abstract class FlowViewModel<Intent : Any, State : Any, Signal : Any>(
     val states: StateFlow<State>
         get() = mutableStates
     var state: State
-        private set(value) = value.let(mutableStates::value::set)
+        private set(value) = value.let { mutableStates.update { it } }
         get() = mutableStates.value
     fun <V> mapStates(property: KProperty1<State, V>): Flow<V> = states.map(property::get)
 
     init {
         processor
             .updates(
-                coroutineScope = viewModelScope,
                 intents = mutableIntents,
                 currentState = states::value,
                 signal = ::signal
