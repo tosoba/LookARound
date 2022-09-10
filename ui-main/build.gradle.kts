@@ -51,6 +51,7 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
 
     implementation("com.google.android.material:material:1.6.0")
     implementation("androidx.palette:palette:1.0.0")
@@ -68,6 +69,8 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.40")
     kapt("androidx.hilt:hilt-compiler:1.0.0")
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
+
+    implementation("com.jakewharton.timber:timber:4.7.1")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

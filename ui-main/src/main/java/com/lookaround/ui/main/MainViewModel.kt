@@ -1,8 +1,10 @@
 package com.lookaround.ui.main
 
 import androidx.lifecycle.SavedStateHandle
-import com.lookaround.core.android.architecture.FlowViewModel
-import com.lookaround.core.android.ext.initialState
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.lookaround.core.android.architecture.IMviFlowStateContainer
+import com.lookaround.core.android.architecture.LoggingMiddleware
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
@@ -16,9 +18,20 @@ import kotlinx.coroutines.FlowPreview
 @HiltViewModel
 class MainViewModel
 @Inject
-constructor(savedStateHandle: SavedStateHandle, processor: MainFlowProcessor) :
-    FlowViewModel<MainIntent, MainState, MainSignal>(
-        savedStateHandle.initialState(),
-        savedStateHandle,
-        processor
-    )
+constructor(
+    savedStateHandle: SavedStateHandle,
+    stateContainerFactory: MainStateContainer.Factory,
+) :
+    ViewModel(),
+    IMviFlowStateContainer<MainState, MainIntent, MainSignal> by stateContainerFactory.create(
+        savedStateHandle
+    ) {
+
+    init {
+        launch(
+            viewModelScope,
+            updateMiddlewares = listOf(LoggingMiddleware("STATE_UPDATE")),
+            stateMiddlewares = listOf(LoggingMiddleware("NEW_STATE"))
+        )
+    }
+}

@@ -43,6 +43,8 @@ import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.imxie.exvpbs.ViewPagerBottomSheetBehavior
+import com.lookaround.core.android.architecture.filterSignals
+import com.lookaround.core.android.architecture.onEachSignal
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.android.model.hasValue
@@ -567,7 +569,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             registerOnPageChangeCallback(
                 object : ViewPager2.OnPageChangeCallback() {
                     override fun onPageSelected(position: Int) {
-                        if (bottomSheetBehavior.state ==
+                        if (
+                            bottomSheetBehavior.state ==
                                 ViewPagerBottomSheetBehavior.STATE_HIDDEN ||
                                 binding.bottomNavigationView.selectedItemId == R.id.action_unchecked
                         ) {

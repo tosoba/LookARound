@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.lookaround.core.android.architecture.filterSignals
 import com.lookaround.core.android.ext.*
 import com.lookaround.core.android.map.LocationBitmapCaptureCache
 import com.lookaround.core.android.map.scene.MapSceneViewModel
