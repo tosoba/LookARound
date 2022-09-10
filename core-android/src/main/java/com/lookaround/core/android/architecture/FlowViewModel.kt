@@ -27,7 +27,7 @@ abstract class FlowViewModel<Intent : Any, State : Any, Signal : Any>(
     val states: StateFlow<State>
         get() = mutableStates
     var state: State
-        private set(value) = value.let { mutableStates.update { it } }
+        private set(value) = value.let(mutableStates::value::set)
         get() = mutableStates.value
     fun <V> mapStates(property: KProperty1<State, V>): Flow<V> = states.map(property::get)
 
