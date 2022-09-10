@@ -8,11 +8,9 @@ import timber.log.Timber
 
 abstract class Middleware<T : Any>(val order: Int = 0) : (T) -> Unit
 
-class LoggingMiddleware<T : Any>(val tag: String, order: Int = 0) : Middleware<T>(order) {
+class DebugLoggingMiddleware<T : Any>(val tag: String, order: Int = 0) : Middleware<T>(order) {
     override fun invoke(t: T) {
-        if (BuildConfig.DEBUG && BuildConfig.LOG_STATES_UPDATES_FLOW) {
-            Timber.tag(tag).d(t.toString())
-        }
+        if (BuildConfig.DEBUG) Timber.tag(tag).d(t.toString())
     }
 }
 

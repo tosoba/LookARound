@@ -9,9 +9,10 @@ import kotlinx.coroutines.flow.*
 interface IFlowStateContainer<STATE> {
     val states: Flow<STATE>
     val state: STATE
-
-    fun <V> mapStates(property: KProperty1<STATE, V>): Flow<V> = states.map(property::get)
 }
+
+fun <STATE : Any, V> IFlowStateContainer<STATE>.mapStates(property: KProperty1<STATE, V>): Flow<V> =
+    states.map(property::get)
 
 abstract class FlowStateContainer<STATE : Any>(
     initialState: STATE,
@@ -25,12 +26,8 @@ abstract class FlowStateContainer<STATE : Any>(
     final override val state: STATE
         get() = mutableStates.value
 
-    fun updateState(update: STATE.() -> STATE) {
-        mutableStates.update {
-            val updated = update(it)
-            savedStateHandle.saveState(updated)
-            updated
-        }
+    protected fun updateState(state: STATE) {
+        mutableStates.value = state.also { savedStateHandle.saveState(it) }
     }
 }
 
@@ -79,7 +76,7 @@ abstract class MviFlowStateContainer<STATE : Any, INTENT : Any, SIGNAL : Any>(
             .updates()
             .runMiddlewares(updateMiddlewares)
             .scan(state) { currentState, update -> currentState.update() }
-            .onEach { updateState { it } }
+            .onEach(::updateState)
             .runMiddlewares(stateMiddlewares)
             .launchIn(scope)
     }

@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.lookaround.core.android.architecture.mapStates
 import com.lookaround.core.android.ext.darkMode
 import com.lookaround.core.android.ext.preciseFormattedDistanceTo
 import com.lookaround.core.android.ext.setListBackgroundItemDrawableWith

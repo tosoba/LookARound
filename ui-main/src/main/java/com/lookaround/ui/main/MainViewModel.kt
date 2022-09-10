@@ -3,8 +3,8 @@ package com.lookaround.ui.main
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lookaround.core.android.architecture.DebugLoggingMiddleware
 import com.lookaround.core.android.architecture.IMviFlowStateContainer
-import com.lookaround.core.android.architecture.LoggingMiddleware
 import com.lookaround.ui.main.model.MainIntent
 import com.lookaround.ui.main.model.MainSignal
 import com.lookaround.ui.main.model.MainState
@@ -30,8 +30,8 @@ constructor(
     init {
         launch(
             viewModelScope,
-            updateMiddlewares = listOf(LoggingMiddleware("STATE_UPDATE")),
-            stateMiddlewares = listOf(LoggingMiddleware("NEW_STATE"))
+            updateMiddlewares = listOf(DebugLoggingMiddleware("STATE_UPDATE")),
+            stateMiddlewares = listOf(DebugLoggingMiddleware("NEW_STATE"))
         )
     }
 }
