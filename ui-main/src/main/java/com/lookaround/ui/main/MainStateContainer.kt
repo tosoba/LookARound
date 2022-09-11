@@ -1,6 +1,7 @@
 package com.lookaround.ui.main
 
 import androidx.lifecycle.SavedStateHandle
+import com.lookaround.core.android.architecture.MviFlow
 import com.lookaround.core.android.architecture.MviFlowStateContainer
 import com.lookaround.core.android.architecture.StateContainerFactory
 import com.lookaround.core.android.exception.LocationUpdateFailureException
@@ -26,26 +27,28 @@ class MainStateContainer
 @AssistedInject
 constructor(
     @Assisted savedStateHandle: SavedStateHandle,
+    private val getPlacesOfTypeUpdates: GetPlacesOfTypeUpdates,
     private val isLocationAvailable: IsLocationAvailable,
     private val locationDataFlow: LocationDataFlow,
     private val isConnectedFlow: IsConnectedFlow,
     private val totalSearchesCountFlow: TotalSearchesCountFlow,
-    private val getPlacesOfTypeAround: GetPlacesOfTypeAround,
     private val getAttractionsAround: GetAttractionsAround,
     private val autocompleteSearch: AutocompleteSearch,
     private val getSearchAroundResults: GetSearchAroundResults,
     private val getAutocompleteSearchResults: GetAutocompleteSearchResults,
 ) :
-    MviFlowStateContainer<MainState, MainIntent, MainSignal>(
-        initialState = MainState(),
-        savedStateHandle = savedStateHandle,
-        fromSavedState = { it[MainState::class.java.simpleName] },
-        saveState = { this[MainState::class.java.simpleName] = it }
+    MviFlow<MainState, MainIntent, MainSignal>(
+        MviFlowStateContainer(
+            initialState = MainState(),
+            savedStateHandle = savedStateHandle,
+            fromSavedState = { it[MainState::class.java.simpleName] },
+            saveState = { this[MainState::class.java.simpleName] = it }
+        )
     ) {
 
     override fun Flow<MainIntent>.updates(): Flow<MainState.() -> MainState> =
         merge(
-            filterIsInstance<MainIntent.GetPlacesOfType>().placesOfTypeAroundUpdates,
+            getPlacesOfTypeUpdates(filterIsInstance(), this@MainStateContainer),
             filterIsInstance<MainIntent.GetAttractions>().attractionsAroundUpdates,
             filterIsInstance<MainIntent.LocationPermissionGranted>().take(1).flatMapLatest {
                 locationStateUpdatesFlow
@@ -101,34 +104,6 @@ constructor(
                 .onStart {
                     if (!isLocationAvailable()) emit(LocationDisabledUpdate)
                     else emit(LoadingLocationUpdate)
-                }
-
-    private val Flow<MainIntent.GetPlacesOfType>.placesOfTypeAroundUpdates:
-        Flow<(MainState) -> MainState>
-        get() =
-            withLatestFrom(isConnectedFlow()) { (placeType), isConnected ->
-                    placeType to isConnected
-                }
-                .transformLatest { (placeType, isConnected) ->
-                    val currentLocation = state.locationState
-                    if (currentLocation !is WithValue) {
-                        signal(MainSignal.UnableToLoadPlacesWithoutLocation)
-                        return@transformLatest
-                    }
-
-                    if (!isConnected) {
-                        signal(MainSignal.UnableToLoadPlacesWithoutConnection)
-                        return@transformLatest
-                    }
-
-                    emitPlacesUpdates(::SearchAroundResultsLoadedUpdate) {
-                        getPlacesOfTypeAround(
-                            placeType = placeType,
-                            lat = currentLocation.value.latitude.roundedTo2DecimalPlaces,
-                            lng = currentLocation.value.longitude.roundedTo2DecimalPlaces,
-                            radiusInMeters = PLACES_LOADING_RADIUS_METERS
-                        )
-                    }
                 }
 
     private val Flow<MainIntent.GetAttractions>.attractionsAroundUpdates:

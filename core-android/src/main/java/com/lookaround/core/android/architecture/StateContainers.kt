@@ -26,7 +26,7 @@ abstract class FlowStateContainer<STATE : Any>(
     final override val state: STATE
         get() = mutableStates.value
 
-    protected fun updateState(state: STATE) {
+    internal fun updateState(state: STATE) {
         mutableStates.value = state.also { savedStateHandle.saveState(it) }
     }
 }
@@ -42,11 +42,11 @@ interface IMviFlowStateContainer<STATE : Any, INTENT : Any, SIGNAL : Any> :
         intentMiddlewares: Collection<Middleware<INTENT>> = emptyList(),
         updateMiddlewares: Collection<Middleware<STATE.() -> STATE>> = emptyList(),
         stateMiddlewares: Collection<Middleware<STATE>> = emptyList()
-    )
+    ) {}
 }
 
 @ExperimentalCoroutinesApi
-abstract class MviFlowStateContainer<STATE : Any, INTENT : Any, SIGNAL : Any>(
+class MviFlowStateContainer<STATE : Any, INTENT : Any, SIGNAL : Any>(
     initialState: STATE,
     savedStateHandle: SavedStateHandle = SavedStateHandle(),
     fromSavedState: (SavedStateHandle) -> STATE? = { null },
@@ -56,13 +56,18 @@ abstract class MviFlowStateContainer<STATE : Any, INTENT : Any, SIGNAL : Any>(
     IMviFlowStateContainer<STATE, INTENT, SIGNAL> {
 
     private val mutableSignals: MutableSharedFlow<SIGNAL> = MutableSharedFlow()
-    final override val signals: Flow<SIGNAL>
+    override val signals: Flow<SIGNAL>
         get() = mutableSignals
-    final override suspend fun signal(effect: SIGNAL) = mutableSignals.emit(effect)
+    override suspend fun signal(effect: SIGNAL) = mutableSignals.emit(effect)
 
-    private val mutableIntents: MutableSharedFlow<INTENT> = MutableSharedFlow()
-    final override suspend fun intent(intent: INTENT) = mutableIntents.emit(intent)
+    internal val mutableIntents: MutableSharedFlow<INTENT> = MutableSharedFlow()
+    override suspend fun intent(intent: INTENT) = mutableIntents.emit(intent)
+}
 
+@ExperimentalCoroutinesApi
+abstract class MviFlow<STATE : Any, INTENT : Any, SIGNAL : Any>(
+    private val stateContainer: MviFlowStateContainer<STATE, INTENT, SIGNAL>
+) : IMviFlowStateContainer<STATE, INTENT, SIGNAL> by stateContainer {
     protected abstract fun Flow<INTENT>.updates(): Flow<STATE.() -> STATE>
 
     final override fun launch(
@@ -71,12 +76,12 @@ abstract class MviFlowStateContainer<STATE : Any, INTENT : Any, SIGNAL : Any>(
         updateMiddlewares: Collection<Middleware<STATE.() -> STATE>>,
         stateMiddlewares: Collection<Middleware<STATE>>
     ) {
-        mutableIntents
+        stateContainer.mutableIntents
             .runMiddlewares(intentMiddlewares)
             .updates()
             .runMiddlewares(updateMiddlewares)
-            .scan(state) { currentState, update -> currentState.update() }
-            .onEach(::updateState)
+            .scan(stateContainer.state) { currentState, update -> currentState.update() }
+            .onEach(stateContainer::updateState)
             .runMiddlewares(stateMiddlewares)
             .launchIn(scope)
     }
