@@ -1,7 +1,6 @@
 package com.lookaround.ui.main
 
 import androidx.lifecycle.SavedStateHandle
-import com.lookaround.core.android.architecture.MviFlow
 import com.lookaround.core.android.architecture.MviFlowStateContainer
 import com.lookaround.core.android.architecture.StateContainerFactory
 import com.lookaround.core.android.exception.LocationUpdateFailureException
@@ -37,13 +36,11 @@ constructor(
     private val getSearchAroundResults: GetSearchAroundResults,
     private val getAutocompleteSearchResults: GetAutocompleteSearchResults,
 ) :
-    MviFlow<MainState, MainIntent, MainSignal>(
-        MviFlowStateContainer(
-            initialState = MainState(),
-            savedStateHandle = savedStateHandle,
-            fromSavedState = { it[MainState::class.java.simpleName] },
-            saveState = { this[MainState::class.java.simpleName] = it }
-        )
+    MviFlowStateContainer<MainState, MainIntent, MainSignal>(
+        initialState = MainState(),
+        savedStateHandle = savedStateHandle,
+        fromSavedState = { it[MainState::class.java.simpleName] },
+        saveState = { this[MainState::class.java.simpleName] = it }
     ) {
 
     override fun Flow<MainIntent>.updates(): Flow<MainState.() -> MainState> =
