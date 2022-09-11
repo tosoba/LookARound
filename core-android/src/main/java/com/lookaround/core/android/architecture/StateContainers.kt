@@ -101,3 +101,7 @@ inline fun <reified S : Any, T> IMviFlowStateContainer<*, *, *>.onEachSignal(
     property: KProperty1<S, T>,
     noinline block: suspend (T) -> Unit
 ): Flow<T> = filterSignals<S>().map(property::get).onEach(block)
+
+interface StateContainerFactory<T : IFlowStateContainer<*>> {
+    fun create(savedStateHandle: SavedStateHandle): T
+}

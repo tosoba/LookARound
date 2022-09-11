@@ -2,6 +2,7 @@ package com.lookaround.ui.main
 
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.architecture.MviFlowStateContainer
+import com.lookaround.core.android.architecture.StateContainerFactory
 import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.ext.locationWith
 import com.lookaround.core.android.ext.roundToDecimalPlaces
@@ -38,7 +39,7 @@ constructor(
     MviFlowStateContainer<MainState, MainIntent, MainSignal>(
         initialState = MainState(),
         savedStateHandle = savedStateHandle,
-        fromSavedState = { savedStateHandle[MainState::class.java.simpleName] },
+        fromSavedState = { it[MainState::class.java.simpleName] },
         saveState = { this[MainState::class.java.simpleName] = it }
     ) {
 
@@ -203,10 +204,7 @@ constructor(
         }
     }
 
-    @AssistedFactory
-    interface Factory {
-        fun create(savedStateHandle: SavedStateHandle): MainStateContainer
-    }
+    @AssistedFactory interface Factory : StateContainerFactory<MainStateContainer>
 
     companion object {
         private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L
