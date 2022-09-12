@@ -22,17 +22,14 @@ abstract class FlowStateContainer<STATE : Any>(
 ) : IFlowStateContainer<STATE> {
     private val mutableStates: MutableStateFlow<STATE> =
         MutableStateFlow(fromSavedState(savedStateHandle) ?: initialState)
-    final override val states: Flow<STATE> = mutableStates
+    final override val states: Flow<STATE>
+        get() = mutableStates.asStateFlow()
     final override val state: STATE
         get() = mutableStates.value
 
-    internal fun updateState(state: STATE) {
+    protected fun updateState(state: STATE) {
         mutableStates.value = state.also { savedStateHandle.saveState(it) }
     }
-}
-
-interface IMviFlowStateContainerInteractions {
-
 }
 
 interface IMviFlowStateContainer<STATE : Any, INTENT : Any, SIGNAL : Any> :
@@ -60,12 +57,14 @@ abstract class MviFlowStateContainer<STATE : Any, INTENT : Any, SIGNAL : Any>(
     IMviFlowStateContainer<STATE, INTENT, SIGNAL> {
 
     private val mutableSignals: MutableSharedFlow<SIGNAL> = MutableSharedFlow()
-    override val signals: Flow<SIGNAL>
-        get() = mutableSignals
-    override suspend fun signal(effect: SIGNAL) = mutableSignals.emit(effect)
+    final override val signals: Flow<SIGNAL>
+        get() = mutableSignals.asSharedFlow()
+    final override suspend fun signal(effect: SIGNAL) = mutableSignals.emit(effect)
 
     private val mutableIntents: MutableSharedFlow<INTENT> = MutableSharedFlow()
-    override suspend fun intent(intent: INTENT) = mutableIntents.emit(intent)
+    protected val intents: Flow<INTENT>
+        get() = mutableIntents.asSharedFlow()
+    final override suspend fun intent(intent: INTENT) = mutableIntents.emit(intent)
 
     protected abstract fun Flow<INTENT>.updates(): Flow<STATE.() -> STATE>
 
@@ -84,6 +83,10 @@ abstract class MviFlowStateContainer<STATE : Any, INTENT : Any, SIGNAL : Any>(
             .runMiddlewares(stateMiddlewares)
             .launchIn(scope)
     }
+
+    protected fun <I : INTENT> Flow<I>.mapTo(
+        handler: IntentHandler<STATE, I, SIGNAL>
+    ): Flow<STATE.() -> STATE> = handler(this, ::state::get, ::signal)
 }
 
 @ExperimentalCoroutinesApi

@@ -45,7 +45,7 @@ constructor(
 
     override fun Flow<MainIntent>.updates(): Flow<MainState.() -> MainState> =
         merge(
-            getPlacesOfTypeUpdates(filterIsInstance(), this@MainStateContainer),
+            filterIsInstance<MainIntent.GetPlacesOfType>().mapTo(getPlacesOfTypeUpdates),
             filterIsInstance<MainIntent.GetAttractions>().attractionsAroundUpdates,
             filterIsInstance<MainIntent.LocationPermissionGranted>().take(1).flatMapLatest {
                 locationStateUpdatesFlow

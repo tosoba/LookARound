@@ -1,5 +1,6 @@
 package com.lookaround.ui.main
 
+import com.lookaround.core.android.architecture.IntentHandler
 import com.lookaround.core.android.ext.roundToDecimalPlaces
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.ext.withLatestFrom
@@ -23,28 +24,29 @@ class GetPlacesOfTypeUpdates
 constructor(
     private val isConnectedFlow: IsConnectedFlow,
     private val getPlacesOfTypeAround: GetPlacesOfTypeAround,
-) {
-    operator fun invoke(
+) : IntentHandler<MainState, MainIntent.GetPlacesOfType, MainSignal> {
+    override operator fun invoke(
         intents: Flow<MainIntent.GetPlacesOfType>,
-        stateContainer: MainStateContainer,
+        currentState: () -> MainState,
+        signal: suspend (MainSignal) -> Unit,
     ): Flow<MainState.() -> MainState> =
         intents
             .withLatestFrom(isConnectedFlow()) { (placeType), isConnected ->
                 placeType to isConnected
             }
             .transformLatest { (placeType, isConnected) ->
-                val currentLocation = stateContainer.state.locationState
+                val currentLocation = currentState().locationState
                 if (currentLocation !is WithValue) {
-                    stateContainer.signal(MainSignal.UnableToLoadPlacesWithoutLocation)
+                    signal(MainSignal.UnableToLoadPlacesWithoutLocation)
                     return@transformLatest
                 }
 
                 if (!isConnected) {
-                    stateContainer.signal(MainSignal.UnableToLoadPlacesWithoutConnection)
+                    signal(MainSignal.UnableToLoadPlacesWithoutConnection)
                     return@transformLatest
                 }
 
-                emitPlacesUpdates(stateContainer, ::SearchAroundResultsLoadedUpdate) {
+                emitPlacesUpdates(signal, ::SearchAroundResultsLoadedUpdate) {
                     getPlacesOfTypeAround(
                         placeType = placeType,
                         lat = currentLocation.value.latitude.roundedTo2DecimalPlaces,
@@ -58,7 +60,7 @@ constructor(
 @ExperimentalCoroutinesApi
 @FlowPreview
 private suspend fun <T> FlowCollector<(MainState) -> MainState>.emitPlacesUpdates(
-    stateContainer: MainStateContainer,
+    signal: suspend (MainSignal) -> Unit,
     placesLoadedUpdate: (Iterable<T>) -> (MainState) -> MainState,
     getPlaces: suspend () -> Collection<T>
 ) {
@@ -66,14 +68,14 @@ private suspend fun <T> FlowCollector<(MainState) -> MainState>.emitPlacesUpdate
     try {
         val places = withTimeout(PLACES_LOADING_TIMEOUT_MILLIS) { getPlaces() }
         if (places.isEmpty()) {
-            stateContainer.signal(MainSignal.NoPlacesFound)
+            signal(MainSignal.NoPlacesFound)
             emit(NoPlacesFoundUpdate)
         } else {
             emit(placesLoadedUpdate(places))
         }
     } catch (ex: Exception) {
         emit(SearchErrorUpdate(ex))
-        stateContainer.signal(MainSignal.PlacesLoadingFailed(ex))
+        signal(MainSignal.PlacesLoadingFailed(ex))
     }
 }
 
