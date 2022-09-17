@@ -1,6 +1,6 @@
-package com.lookaround.ui.main
+package com.lookaround.ui.main.transfomer
 
-import com.lookaround.core.android.architecture.IntentHandler
+import com.lookaround.core.android.architecture.FlowTransformer
 import com.lookaround.core.android.ext.roundToDecimalPlaces
 import com.lookaround.core.android.model.WithValue
 import com.lookaround.core.ext.withLatestFrom
@@ -24,13 +24,13 @@ class GetPlacesOfTypeUpdates
 constructor(
     private val isConnectedFlow: IsConnectedFlow,
     private val getPlacesOfTypeAround: GetPlacesOfTypeAround,
-) : IntentHandler<MainState, MainIntent.GetPlacesOfType, MainSignal> {
+) : FlowTransformer<MainState, MainIntent.GetPlacesOfType, MainSignal> {
     override operator fun invoke(
-        intents: Flow<MainIntent.GetPlacesOfType>,
+        flow: Flow<MainIntent.GetPlacesOfType>,
         currentState: () -> MainState,
         signal: suspend (MainSignal) -> Unit,
     ): Flow<MainState.() -> MainState> =
-        intents
+        flow
             .withLatestFrom(isConnectedFlow()) { (placeType), isConnected ->
                 placeType to isConnected
             }
@@ -65,13 +65,13 @@ class GetAttractionsUpdates
 constructor(
     private val isConnectedFlow: IsConnectedFlow,
     private val getAttractionsAround: GetAttractionsAround,
-) : IntentHandler<MainState, MainIntent.GetAttractions, MainSignal> {
+) : FlowTransformer<MainState, MainIntent.GetAttractions, MainSignal> {
     override fun invoke(
-        intents: Flow<MainIntent.GetAttractions>,
+        flow: Flow<MainIntent.GetAttractions>,
         currentState: () -> MainState,
         signal: suspend (MainSignal) -> Unit
     ): Flow<MainState.() -> MainState> =
-        intents
+        flow
             .withLatestFrom(isConnectedFlow()) { _, isConnected -> isConnected }
             .transformLatest { isConnected ->
                 val currentLocation = currentState().locationState
@@ -103,13 +103,13 @@ class AutocompleteSearchUpdates
 constructor(
     private val isConnectedFlow: IsConnectedFlow,
     private val autocompleteSearch: AutocompleteSearch,
-) : IntentHandler<MainState, MainIntent.SearchQueryChanged, MainSignal> {
+) : FlowTransformer<MainState, MainIntent.SearchQueryChanged, MainSignal> {
     override fun invoke(
-        intents: Flow<MainIntent.SearchQueryChanged>,
+        flow: Flow<MainIntent.SearchQueryChanged>,
         currentState: () -> MainState,
         signal: suspend (MainSignal) -> Unit
     ): Flow<MainState.() -> MainState> =
-        intents
+        flow
             .map { (query) -> query.trim() }
             .filterNot { query -> query.isBlank() || query.count(Char::isLetterOrDigit) <= 3 }
             .distinctUntilChanged()

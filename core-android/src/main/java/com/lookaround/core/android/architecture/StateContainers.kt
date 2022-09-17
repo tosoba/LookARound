@@ -84,8 +84,8 @@ abstract class MviFlowStateContainer<STATE : Any, INTENT : Any, SIGNAL : Any>(
             .launchIn(scope)
     }
 
-    protected fun <I : INTENT> Flow<I>.mapTo(
-        handler: IntentHandler<STATE, I, SIGNAL>
+    protected fun <T : Any> Flow<T>.mapTo(
+        handler: FlowTransformer<STATE, T, SIGNAL>
     ): Flow<STATE.() -> STATE> = handler(this, ::state::get, ::signal)
 }
 

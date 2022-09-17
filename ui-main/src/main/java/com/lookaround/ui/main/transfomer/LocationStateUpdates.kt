@@ -1,6 +1,6 @@
-package com.lookaround.ui.main
+package com.lookaround.ui.main.transfomer
 
-import com.lookaround.core.android.architecture.IntentHandler
+import com.lookaround.core.android.architecture.FlowTransformer
 import com.lookaround.core.android.exception.LocationUpdateFailureException
 import com.lookaround.core.android.ext.locationWith
 import com.lookaround.core.model.LocationDataDTO
@@ -22,12 +22,12 @@ class LocationStateUpdates
 constructor(
     private val isLocationAvailable: IsLocationAvailable,
     private val locationDataFlow: LocationDataFlow,
-) : IntentHandler<MainState, MainIntent.LocationPermissionGranted, MainSignal> {
+) : FlowTransformer<MainState, MainIntent.LocationPermissionGranted, MainSignal> {
     override fun invoke(
-        intents: Flow<MainIntent.LocationPermissionGranted>,
+        flow: Flow<MainIntent.LocationPermissionGranted>,
         currentState: () -> MainState,
         signal: suspend (MainSignal) -> Unit
-    ): Flow<MainState.() -> MainState> = intents.take(1).flatMapLatest { locationStateUpdatesFlow }
+    ): Flow<MainState.() -> MainState> = flow.take(1).flatMapLatest { locationStateUpdatesFlow }
 
     private val locationStateUpdatesFlow: Flow<(MainState) -> MainState>
         get() =
@@ -67,6 +67,8 @@ constructor(
                     if (!isLocationAvailable()) emit(LocationDisabledUpdate)
                     else emit(LoadingLocationUpdate)
                 }
-}
 
-private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L
+    companion object {
+        private const val LOCATION_UPDATES_INTERVAL_MILLIS = 5_000L
+    }
+}
