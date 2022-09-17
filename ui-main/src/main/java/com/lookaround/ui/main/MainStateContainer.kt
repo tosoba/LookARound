@@ -3,7 +3,6 @@ package com.lookaround.ui.main
 import androidx.lifecycle.SavedStateHandle
 import com.lookaround.core.android.architecture.MviFlowStateContainer
 import com.lookaround.core.android.architecture.StateContainerFactory
-import com.lookaround.core.android.ext.roundToDecimalPlaces
 import com.lookaround.core.usecase.GetAutocompleteSearchResults
 import com.lookaround.core.usecase.GetSearchAroundResults
 import com.lookaround.core.usecase.TotalSearchesCountFlow
@@ -14,7 +13,6 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.withTimeout
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -56,31 +54,5 @@ constructor(
             filterIsInstance()
         )
 
-    private suspend fun <T> FlowCollector<(MainState) -> MainState>.emitPlacesUpdates(
-        placesLoadedUpdate: (Iterable<T>) -> (MainState) -> MainState,
-        getPlaces: suspend () -> Collection<T>
-    ) {
-        emit(LoadingSearchResultsUpdate)
-        try {
-            val places = withTimeout(PLACES_LOADING_TIMEOUT_MILLIS) { getPlaces() }
-            if (places.isEmpty()) {
-                signal(MainSignal.NoPlacesFound)
-                emit(NoPlacesFoundUpdate)
-            } else {
-                emit(placesLoadedUpdate(places))
-            }
-        } catch (ex: Exception) {
-            emit(SearchErrorUpdate(ex))
-            signal(MainSignal.PlacesLoadingFailed(ex))
-        }
-    }
-
     @AssistedFactory interface Factory : StateContainerFactory<MainStateContainer>
-
-    companion object {
-        private const val PLACES_LOADING_TIMEOUT_MILLIS = 10_000L
-
-        private val Double.roundedTo2DecimalPlaces: Double
-            get() = roundToDecimalPlaces(2).toDouble()
-    }
 }
