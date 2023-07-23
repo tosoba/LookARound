@@ -279,7 +279,9 @@ class PlaceFragment : Fragment(R.layout.fragment_place), MapController.SceneLoad
     private fun startGoogleMapsForNavigation() {
         startGoogleMapForMarker(
             failureMsgRes = R.string.unable_to_launch_google_maps_for_navigation
-        ) { (_, location) -> "google.navigation:q=${location.latitude},${location.longitude}" }
+        ) { (_, location) ->
+            "google.navigation:q=${location.latitude},${location.longitude}"
+        }
     }
 
     private fun startGoogleMapsForStreetView() {

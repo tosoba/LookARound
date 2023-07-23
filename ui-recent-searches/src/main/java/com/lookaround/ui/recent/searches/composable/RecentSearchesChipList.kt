@@ -28,8 +28,7 @@ fun RecentSearchesChipList(
     onItemClicked: (RecentSearchModel) -> Unit
 ) {
     val recentSearchesFlow = remember {
-        recentSearchesViewModel
-            .states
+        recentSearchesViewModel.states
             .map { (searches) ->
                 if (searches is WithValue) {
                     searches.value.take(displayedItemsLimit) to searches.value.size

@@ -192,8 +192,10 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
     private fun placeCategoriesMatching(query: String): List<PlaceTypeListItem.PlaceCategory> =
         allPlaceTypeListItems.filterIsInstance<PlaceTypeListItem.PlaceCategory>().filter {
             var index = allPlaceTypeListItems.indexOf(it) + 1
-            while (index < allPlaceTypeListItems.size &&
-                allPlaceTypeListItems[index] is PlaceTypeListItem.PlaceType<*>) {
+            while (
+                index < allPlaceTypeListItems.size &&
+                    allPlaceTypeListItems[index] is PlaceTypeListItem.PlaceType<*>
+            ) {
                 val placeType =
                     (allPlaceTypeListItems[index] as PlaceTypeListItem.PlaceType<*>).wrapped
                 if (placeType.matchesQuery(query)) {
@@ -241,9 +243,10 @@ class PlaceCategoriesFragment : Fragment(R.layout.fragment_place_categories) {
                     for (index in placeTypeListItems.size - 1 downTo 0) {
                         when (val item = placeTypeListItems[index]) {
                             is PlaceTypeListItem.PlaceCategory -> {
-                                if (index + 1 == placeTypeListItems.size ||
-                                        placeTypeListItems[index + 1]
-                                            is PlaceTypeListItem.PlaceCategory
+                                if (
+                                    index + 1 == placeTypeListItems.size ||
+                                        placeTypeListItems[index + 1] is
+                                            PlaceTypeListItem.PlaceCategory
                                 ) {
                                     placeTypeListItems.removeAt(index)
                                 }

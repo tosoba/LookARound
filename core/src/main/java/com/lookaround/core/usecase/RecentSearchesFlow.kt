@@ -17,8 +17,8 @@ constructor(
 ) {
     operator fun invoke(limit: Int, query: String? = null): Flow<List<SearchDTO>> =
         searchAroundRepo.recentSearchesAround(limit, query).combine(
-                autocompleteSearchRepo.recentAutocompleteSearches(limit, query)
-            ) { recentSearchesAround, recentAutocompleteSearches ->
+            autocompleteSearchRepo.recentAutocompleteSearches(limit, query)
+        ) { recentSearchesAround, recentAutocompleteSearches ->
             recentSearchesAround
                 .union(recentAutocompleteSearches)
                 .toSortedSet { search1, search2 ->

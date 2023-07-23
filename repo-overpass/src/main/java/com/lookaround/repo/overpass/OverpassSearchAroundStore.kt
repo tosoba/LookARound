@@ -33,7 +33,9 @@ internal object OverpassSearchAroundStore {
                                 lat = lat,
                                 lng = lng,
                                 radiusInMeters = radiusInMeters
-                            ) { tag(key, value, filter) }
+                            ) {
+                                tag(key, value, filter)
+                            }
                         transformer?.invoke(nodes) ?: nodes
                     },
                 sourceOfTruth =

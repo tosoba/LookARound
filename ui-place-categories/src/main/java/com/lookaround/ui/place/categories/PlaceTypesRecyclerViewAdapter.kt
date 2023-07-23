@@ -18,10 +18,7 @@ internal class PlaceTypesRecyclerViewAdapter(
     private var items: List<PlaceTypeListItem>,
     private val onPlaceTypeClicked: (IPlaceType) -> Unit,
 ) : RecyclerView.Adapter<ViewBindingViewHolder>() {
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int
-    ): ViewBindingViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewBindingViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return ViewBindingViewHolder(
             when (ViewType.values()[viewType]) {
@@ -48,10 +45,7 @@ internal class PlaceTypesRecyclerViewAdapter(
         )
     }
 
-    override fun onBindViewHolder(
-        holder: ViewBindingViewHolder,
-        position: Int
-    ) {
+    override fun onBindViewHolder(holder: ViewBindingViewHolder, position: Int) {
         when (val binding = holder.binding) {
             is TransparentChipItemBinding -> bindPlaceCategoryHeaderItem(binding, position)
             is PlaceTypeItemBinding -> bindPlaceTypeItem(binding, position)

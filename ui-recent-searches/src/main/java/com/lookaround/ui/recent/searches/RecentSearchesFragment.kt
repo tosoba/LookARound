@@ -196,7 +196,8 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
             .onEach {
                 val recentSearchItems = it.map(RecentSearchesRecyclerViewAdapter.Item::Search)
                 recentSearchesRecyclerViewAdapter.updateItems(
-                    if (recentSearchesRecyclerViewAdapter.items.firstOrNull()
+                    if (
+                        recentSearchesRecyclerViewAdapter.items.firstOrNull()
                             is RecentSearchesRecyclerViewAdapter.Item.Spacer
                     ) {
                         listOf(recentSearchesRecyclerViewAdapter.items.first()) + recentSearchItems
@@ -233,7 +234,8 @@ class RecentSearchesFragment : Fragment(R.layout.fragment_recent_searches) {
     }
 
     private fun addTopSpacer(height: Int) {
-        if (recentSearchesRecyclerViewAdapter.items.firstOrNull()
+        if (
+            recentSearchesRecyclerViewAdapter.items.firstOrNull()
                 is RecentSearchesRecyclerViewAdapter.Item.Spacer
         ) {
             binding.recentSearchesRecyclerView.visibility = View.VISIBLE

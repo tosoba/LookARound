@@ -140,8 +140,7 @@ class CameraFragment :
                     googlePlayServicesNotAvailable,
                     locationDisabled,
                     pitchOutsideLimit,
-                    initializationFailure
-                ) ->
+                    initializationFailure) ->
                 mainViewModel.signal(MainSignal.ARDisabled)
                 binding.onARDisabled(
                     anyPermissionDenied = anyPermissionDenied,

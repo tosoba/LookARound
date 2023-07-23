@@ -57,8 +57,7 @@ private fun List<Marker>.toSetSortedByDistanceToUserLocation(
     if (userLocation !is WithValue<Location>) {
         throw IllegalStateException("User location does not have a value.")
     }
-    marker1
-        .location
+    marker1.location
         .distanceTo(userLocation.value)
         .compareTo(marker2.location.distanceTo(userLocation.value))
 }

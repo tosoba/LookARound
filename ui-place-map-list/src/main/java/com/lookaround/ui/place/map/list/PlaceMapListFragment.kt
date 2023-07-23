@@ -272,7 +272,8 @@ class PlaceMapListFragment :
                 cancelBitmapJobs()
                 val mapItems = markers.map(PlaceMapsRecyclerViewAdapter.Item::Map)
                 placeMapsRecyclerViewAdapter.updateItems(
-                    if (placeMapsRecyclerViewAdapter.items.firstOrNull()
+                    if (
+                        placeMapsRecyclerViewAdapter.items.firstOrNull()
                             is PlaceMapsRecyclerViewAdapter.Item.Spacer
                     ) {
                         listOf(placeMapsRecyclerViewAdapter.items.first()) + mapItems

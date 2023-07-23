@@ -141,7 +141,8 @@ constructor(
         lng: Double,
         radiusInMeters: Float
     ): List<String> =
-        store.get(
+        store
+            .get(
                 SearchAroundInput(
                     lat = lat,
                     lng = lng,
@@ -149,7 +150,9 @@ constructor(
                     key = "image",
                     value = "http",
                     filter = Filter.ILIKE
-                ) { filterNot { it.tags?.get("image") == null } }
+                ) {
+                    filterNot { it.tags?.get("image") == null }
+                }
             )
             .mapNotNull { it.tags["image"] }
 

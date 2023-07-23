@@ -35,7 +35,9 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 (blurredBackground) ->
                 BitmapDrawable(resources, blurredBackground)
             }
-                ?: run { requireContext().getBlurredBackgroundDrawable(BlurredBackgroundType.CAMERA) }
+                ?: run {
+                    requireContext().getBlurredBackgroundDrawable(BlurredBackgroundType.CAMERA)
+                }
                     ?: run { ContextCompat.getDrawable(requireContext(), R.drawable.background) }
 
         binding.settingsToolbar.setNavigationOnClickListener { activity?.onBackPressed() }

@@ -3,7 +3,6 @@ package com.lookaround.ui.camera
 import com.lookaround.core.android.architecture.FlowProcessor
 import com.lookaround.ui.camera.model.*
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
