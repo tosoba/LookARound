@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = 33
 
     defaultConfig {
         minSdk = 28
-        targetSdk = 32
+        targetSdk = 33
         version = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -64,7 +64,7 @@ android {
             // lives alongside the project's buildDir.
             buildStagingDirectory = File("${project.buildDir}/../nativeBuildStaging")
             path = File("${project.buildDir}/../src/main/cpp/CMakeLists.txt")
-            version = "3.10.2"
+            version = "3.22.1"
         }
     }
 

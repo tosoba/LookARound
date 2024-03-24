@@ -66,20 +66,20 @@ fun View.fadeSetVisibility(visibility: Int) {
         .alpha(if (visibility == View.GONE) 0f else 1f)
         .setListener(
             object : Animator.AnimatorListener {
-                override fun onAnimationStart(animation: Animator?) {
+                override fun onAnimationStart(animation: Animator) {
                     if (visibility == View.VISIBLE) {
                         alpha = 0f
                         this@fadeSetVisibility.visibility = visibility
                     }
                 }
-                override fun onAnimationEnd(animation: Animator?) {
+                override fun onAnimationEnd(animation: Animator) {
                     if (visibility == View.GONE) {
                         this@fadeSetVisibility.visibility = visibility
                     }
                     alpha = 1f
                 }
-                override fun onAnimationCancel(animation: Animator?) = Unit
-                override fun onAnimationRepeat(animation: Animator?) = Unit
+                override fun onAnimationCancel(animation: Animator) = Unit
+                override fun onAnimationRepeat(animation: Animator) = Unit
             }
         )
 }
